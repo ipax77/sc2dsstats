@@ -7,6 +7,7 @@ use POSIX qw(strftime);
 use File::Basename;
 use GD::Graph::bars;
 use File::Copy;
+use utf8;
 
 my $DEBUG = 2;
 
@@ -18,6 +19,11 @@ my %cfg;
 
 print "Reading in Config file ..\n" if $DEBUG;
 Config::Simple->import_from($config_file, \%cfg);
+
+if (defined $cfg{'default.player'}) {
+	#utf8::encode($cfg{'default.player'});	
+}
+
 foreach my $a (keys %cfg) {
 	print $a . " => " . $cfg{$a} . "\n" if $DEBUG > 1;
 }
@@ -206,9 +212,12 @@ while (my $p = readdir(STAT)) {
 	                open(ST, "<", $stat_file) or die "Could not read $stat_file: $!\n";
 	                        while (<ST>) {
 		                        if (/m_name/) {
-			                        if (/(\w*)',$/) {
+			                        if (/([\\\w]*)',$/) {
 			                                $player_count++;
 			                                my $name = $1;
+			                                if ($name =~ /\\/) {
+			                                	$name =~ s/\\x(..)/chr hex $1/ge;
+			                                }
 			                                $detail{$id}{$player_count}{'NAME'} = $name;
 			                                $detail{$id}{$player_count}{'GAMES'} = $games;
 			
@@ -216,8 +225,12 @@ while (my $p = readdir(STAT)) {
 	               				 }
 	
 	       		                 if (/m_race/) {
-			                        if (/'(\w*)',$/) {
+			                        if (/([\\\w]*)',$/) {
 			                                my $race = $1;
+			                                if ($race =~ /\\/) {
+			                                	$race =~ s/\\x(..)/chr hex $1/ge;
+			                                }
+			                                
 			                                $detail{$id}{$player_count}{'RACE'} = $race;
 			                        }
 	             			    }

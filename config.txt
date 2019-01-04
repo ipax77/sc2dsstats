@@ -6,6 +6,7 @@
 
 replay_path=C:/Users/<username>/Documents/StarCraft II/Accounts/107095918/2-S2-1-226401/Replays/Multiplayer
 
+
 # Your SC2 Player name (without Clan tags)
 player=PAX
 
