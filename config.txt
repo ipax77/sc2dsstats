@@ -37,9 +37,11 @@ SKIP=240
 # H&H balanced 20181026000000
 # Karax Mirage imba 20181116000000
 
+# Activate Skipmessage - If you type 'skipdsstats' in the ingame chat in the first 60sec of the game it will not be computed.
+#SKIPMSG=1
+
 # Debug level (2=all, 1=info, 0=error only)
 DEBUG=1
-
 
 # On the fly stats (experimental)
 #DAILY=20181221180000

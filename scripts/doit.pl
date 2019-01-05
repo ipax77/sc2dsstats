@@ -62,6 +62,7 @@ my $games = 0;
 my %replays;
 
 my %sum;
+my %skipmsg;
 
 &ReadCSV($stats_file, \%sum);
 
@@ -150,7 +151,7 @@ my $id_count = 0;
 opendir(STAT, $stats_dir) or die "Could not read dir $stats_dir: $!\n";
 while (my $p = readdir(STAT)) {
         next if ($p =~ /^\./);
-
+		next if ($p !~ /^Direct/);
         my $id;
         if ($p =~ /(.*)\.SC2Replay/) {
                 $id = $1;
@@ -225,7 +226,9 @@ while (my $p = readdir(STAT)) {
 			                                }
 			                                $detail{$id}{$player_count}{'NAME'} = $name;
 			                                $detail{$id}{$player_count}{'GAMES'} = $games;
-			
+											if ($name eq $cfg{'default.player'}) {
+												$skipmsg{$id}{'PLAYER'} = $player_count;	
+											}
 			                        }
 	               				 }
 	
@@ -326,6 +329,43 @@ while (my $p = readdir(STAT)) {
 	               
 	
 	                close(TRACKEREVENTS);
+	        } elsif ($p =~ /_messageevents\.txt$/ && $cfg{'default.SKIPMSG'}) {
+	        	my $stat_file = $stats_dir . "/" . $p;
+	        	
+	        	my $playerid;
+	        	my $gameloop;
+	        	my $msgevent;
+	        	my $msg;
+	        	open(MSGEVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+	        	
+	        	while (<MSGEVENTS>) {
+	        		
+	        		if (/m_userId/) {
+	        			if (/(\d)\},$/) {
+	        				$playerid = $1;
+	        			}	
+	        			
+	        		} elsif (/_gameloop/) {
+	        			if (/(\d+),$/) {
+	        				$gameloop = $1;	
+	        			}		
+	        		} elsif (/SChatMessage/) {
+	        			$msgevent = 1;	
+	        		} elsif (/m_string/) {
+	        			if (/'(.*)'\}$/) {
+	        				$msg = $1;
+	        				
+	        				if ($gameloop < 2000 && $msgevent) {
+	        					$skipmsg{$id}{$playerid + 1} = 1;
+	        				}
+	        				
+	        					
+	        			}	
+	        		}
+	        	}
+	        	
+	        	close(MSGEVENTS);
+	        	
 	        }
         
         }
@@ -371,12 +411,22 @@ foreach my $id (sort keys %detail) {
 					next;
 				}
 				
+				if (defined $cfg{'default.SKIPMSG'}) {
+					if (defined $skipmsg{$id}{'PLAYER'}) {
+						if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
+							print "Skipping $id due to skipmsg\n" if $DEBUG > 1;
+							next;
+						}
+					}	
+				}
+				
 
 				if ($duration && $gametime  && defined $detail{$id}{$d}{'GAMES'} && defined $detail{$id}{$d}{'NAME'} && defined $detail{$id}{$d}{'RACE2'} && defined $detail{$id}{$d}{'TEAM'} && defined $detail{$id}{$d}{'RESULT'}) {	
 	                if ($gametime >= $start_date) { 
 	                	if ($gametime <= $end_date) {
-			                print $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " . $detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " . $duration . "; " . $gametime . "; " . $d . ";\n" if $DEBUG > 1;
-			                print SUM $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " . $detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " . $duration . "; " . $gametime . "; " . $d . ";\n";
+	                		
+			                	print $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " . $detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " . $duration . "; " . $gametime . "; " . $d . ";\n" if $DEBUG > 1;
+			                	print SUM $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " . $detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " . $duration . "; " . $gametime . "; " . $d . ";\n";
 	                	} else {
 	                		print "Skipping $id because of gametime ($start_date <= $gametime => $end_date)\n" if $DEBUG > 1;
 	                	}
@@ -696,6 +746,9 @@ foreach my $r (sort keys %dps) {
 	}
 	my $dps_average = $sum / scalar(@{ $dps{$r} });
 	$dps_average = sprintf("%.2f", $dps_average);
+	if (!defined $mvp{$r}) {
+		$mvp{$r} = 0;
+	}
 	my $mvp_per = $mvp{$r} * 100 / $vsglobal{$player}{$r}{'PLAYED'};
 	$mvp_per = sprintf("%.2f", $mvp_per);
 	$min = sprintf("%.2f", $min);
