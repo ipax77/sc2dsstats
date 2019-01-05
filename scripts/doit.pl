@@ -2,12 +2,16 @@
 
 use strict;
 use warnings;
-use Config::Simple;
+
 use POSIX qw(strftime);
 use File::Basename;
 use GD::Graph::bars;
 use File::Copy;
+use Encode qw(decode encode);
 use utf8;
+use open IN => ":utf8";
+use open OUT => ":utf8";
+use Config::Simple;
 
 my $DEBUG = 2;
 
@@ -21,7 +25,7 @@ print "Reading in Config file ..\n" if $DEBUG;
 Config::Simple->import_from($config_file, \%cfg);
 
 if (defined $cfg{'default.player'}) {
-	#utf8::encode($cfg{'default.player'});	
+	$cfg{'default.player'} = encode("UTF-8", $cfg{'default.player'});
 }
 
 foreach my $a (keys %cfg) {
@@ -217,6 +221,7 @@ while (my $p = readdir(STAT)) {
 			                                my $name = $1;
 			                                if ($name =~ /\\/) {
 			                                	$name =~ s/\\x(..)/chr hex $1/ge;
+			                                	$name = encode("UTF-8", $name);
 			                                }
 			                                $detail{$id}{$player_count}{'NAME'} = $name;
 			                                $detail{$id}{$player_count}{'GAMES'} = $games;
@@ -247,7 +252,7 @@ while (my $p = readdir(STAT)) {
 		                                my $teamid = $1;
 		                                $detail{$id}{$player_count}{'TEAM'} = $teamid;
 		
-		                                if ($detail{$id}{$player_count}{'NAME'} eq "PAX") {
+		                                if ($detail{$id}{$player_count}{'NAME'} eq $player) {
 		                                        $myteam = $teamid;
 		                                }
 		
@@ -762,7 +767,7 @@ $graph2->set_values_font('C:/Windows/Fonts/arial.ttf', 12);
 $graph2->set( dclrs => [ qw(blue blue blue blue) ] );
 my $gd_dps = $graph2->plot(\@data_dps) or die $graph2->error;
  
-open(IMG, ">", $png_dps) or die $!;
+open(IMG, ">:unix", $png_dps) or die $!;
 binmode IMG;
 print IMG $gd_dps->png;
 close(IMG);
@@ -878,7 +883,7 @@ $graph->set_values_font('C:/Windows/Fonts/arial.ttf', 12);
 $graph->set( dclrs => [ qw(blue blue blue blue) ] );
 my $gd = $graph->plot(\@data) or die $graph->error;
  
-open(IMG, ">", $png) or die $!;
+open(IMG, ">:unix", $png) or die $!;
 binmode IMG;
 print IMG $gd->png;
 close(IMG);
@@ -1000,7 +1005,7 @@ if (defined $cfg{'default.DAILY'}) {
 	$graph->set( dclrs => [ qw(blue blue blue blue) ] );
 	my $gd = $graph->plot(\@data) or die $graph->error;
 	 
-	open(IMG, ">", $daily_png) or die $!;
+	open(IMG, ">:unix", $daily_png) or die $!;
 	binmode IMG;
 	print IMG $gd->png;	
 	close(IMG);
