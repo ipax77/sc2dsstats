@@ -185,219 +185,222 @@ my $id_count = 1;
 
 opendir(STAT, $stats_dir) or die "Could not read dir $stats_dir: $!\n";
 while (my $p = readdir(STAT)) {
+	
         next if ($p =~ /^\./);
-		next if ($p !~ /^Direct/);
-        my $id;
-        if ($p =~ /(.*)\.SC2Replay/) {
-                $id = $1;
-        }
-
-        if (defined $replays{$id}) {
-        	print "Skipping $id ..\n" if $DEBUG > 1;
-        	next;	
-        } else {
-        	if ($id ne $new_id) {
-        		print "$id_count out of $todo_replays done.\n" if $DEBUG;
-        		$new_id = $id;
-        		$id_count ++;
-        		
-        		#my $replay = $cfg{'default.replay_path'} . "/" . $id . ".SC2Replay";
-	        	#if (-e $replay) {
-	        	#	$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
-	        	#}  
-				$games ++;	
-        		
-        	}
-        	print "Working on $id ..\n" if  $DEBUG;	
-        }
-        
-      
-        if (defined $sum{$id}) {
-        	
-        	print "Fetching data from global csv file for $id ..\n" if $DEBUG > 1;
-        	
-        	my $i = 0;
-        	foreach my $g (keys %{ $sum{$id} } ) {
-        		$detail{$id}{$i}{'NAME'} = $g;
-        		$detail{$id}{$i}{'RACE'} = $sum{$id}{$g}{'RACE'};
-        		$detail{$id}{$i}{'TEAM'} = $sum{$id}{$g}{'TEAM'};
-        		$detail{$id}{$i}{'RESULT'} = $sum{$id}{$g}{'RESULT'};
-        		$detail{$id}{$i}{'KILLSUM'} = $sum{$id}{$g}{'KILLSUM'};
-        		$detail{$id}{$i}{'DURATION'} = $sum{$id}{$g}{'DURATION'};
-        		$detail{$id}{$i}{'GAMETIME'} = $sum{$id}{$g}{'GAMETIME'};
-        		$detail{$id}{$i}{'GAMES'} = $games;
-        		$i++;
-        	}
-        	
-        } else {
-        	
-        	print "Reading in data from $id ..\n" if $DEBUG > 1;
-        	
-			my $duration;
-			my $player_count = 0;
 	
-	        if ($p =~ /SC2Replay\.txt$/ || $p =~ /SC2Replay_details\.txt$/) {
-	                my $stat_file = $stats_dir . "/" . $p;
+		if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
+	        my $id;
+	        if ($p =~ /(.*)\.SC2Replay/) {
+	                $id = $1;
+	        }
 	
-	                $games ++;
-	                $player_count = 0;
-	
-	                my $win_t0 = 0;
-	                my $win_t1 = 0;
-	                my $myteam = 0;
-	
-	                open(ST, "<", $stat_file) or die "Could not read $stat_file: $!\n";
-	                        while (<ST>) {
-		                        if (/m_name/) {
-			                        if (/([\\\w]*)',$/) {
-			                                $player_count++;
-			                                my $name = $1;
-			                                if ($name =~ /\\/) {
-			                                	$name =~ s/\\x(..)/chr hex $1/ge;
-			                                	$name = encode("UTF-8", $name);
+	        if (defined $replays{$id}) {
+	        	print "Skipping $id ..\n" if $DEBUG > 1;
+	        	next;	
+	        } else {
+	        	if ($id ne $new_id) {
+	        		print "$id_count out of $todo_replays done.\n" if $DEBUG;
+	        		$new_id = $id;
+	        		$id_count ++;
+	        		
+	        		#my $replay = $cfg{'default.replay_path'} . "/" . $id . ".SC2Replay";
+		        	#if (-e $replay) {
+		        	#	$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
+		        	#}  
+					$games ++;	
+	        		
+	        	}
+	        	print "Working on $id ..\n" if  $DEBUG;	
+	        }
+	        
+	      
+	        if (defined $sum{$id}) {
+	        	
+	        	print "Fetching data from global csv file for $id ..\n" if $DEBUG > 1;
+	        	
+	        	my $i = 0;
+	        	foreach my $g (keys %{ $sum{$id} } ) {
+	        		$detail{$id}{$i}{'NAME'} = $g;
+	        		$detail{$id}{$i}{'RACE'} = $sum{$id}{$g}{'RACE'};
+	        		$detail{$id}{$i}{'TEAM'} = $sum{$id}{$g}{'TEAM'};
+	        		$detail{$id}{$i}{'RESULT'} = $sum{$id}{$g}{'RESULT'};
+	        		$detail{$id}{$i}{'KILLSUM'} = $sum{$id}{$g}{'KILLSUM'};
+	        		$detail{$id}{$i}{'DURATION'} = $sum{$id}{$g}{'DURATION'};
+	        		$detail{$id}{$i}{'GAMETIME'} = $sum{$id}{$g}{'GAMETIME'};
+	        		$detail{$id}{$i}{'GAMES'} = $games;
+	        		$i++;
+	        	}
+	        	
+	        } else {
+	        	
+	        	print "Reading in data from $id ..\n" if $DEBUG > 1;
+	        	
+				my $duration;
+				my $player_count = 0;
+		
+		        if ($p =~ /SC2Replay\.txt$/ || $p =~ /SC2Replay_details\.txt$/) {
+		                my $stat_file = $stats_dir . "/" . $p;
+		
+		                $games ++;
+		                $player_count = 0;
+		
+		                my $win_t0 = 0;
+		                my $win_t1 = 0;
+		                my $myteam = 0;
+		
+		                open(ST, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+		                        while (<ST>) {
+			                        if (/m_name/) {
+				                        if (/([\\\w]*)',$/) {
+				                                $player_count++;
+				                                my $name = $1;
+				                                if ($name =~ /\\/) {
+				                                	$name =~ s/\\x(..)/chr hex $1/ge;
+				                                	$name = encode("UTF-8", $name);
+				                                }
+				                                $detail{$id}{$player_count}{'NAME'} = $name;
+				                                $detail{$id}{$player_count}{'GAMES'} = $games;
+												if ($name eq $cfg{'default.player'}) {
+													$skipmsg{$id}{'PLAYER'} = $player_count;	
+												}
+				                        }
+		               				 }
+		
+		       		                 if (/m_race/) {
+				                        if (/([\\\w]*)',$/) {
+				                                my $race = $1;
+				                                if ($race =~ /\\/) {
+				                                	$race =~ s/\\x(..)/chr hex $1/ge;
+				                                }
+				                                
+				                                $detail{$id}{$player_count}{'RACE'} = $race;
+				                        }
+		             			    }
+		
+		                        if (/m_result/) {
+			                        if (/(\d+),$/) {
+			                                my $result = $1;
+			                                $detail{$id}{$player_count}{'RESULT'} = $result;
+			                        }
+		                  	    }
+		
+		                        if (/m_teamId/) {
+			                        if (/\s(\d*),$/) {
+			                                my $teamid = $1;
+			                                $detail{$id}{$player_count}{'TEAM'} = $teamid;
+			
+			                                if ($detail{$id}{$player_count}{'NAME'} eq $player) {
+			                                        $myteam = $teamid;
 			                                }
-			                                $detail{$id}{$player_count}{'NAME'} = $name;
-			                                $detail{$id}{$player_count}{'GAMES'} = $games;
-											if ($name eq $cfg{'default.player'}) {
-												$skipmsg{$id}{'PLAYER'} = $player_count;	
-											}
-			                        }
-	               				 }
-	
-	       		                 if (/m_race/) {
-			                        if (/([\\\w]*)',$/) {
-			                                my $race = $1;
-			                                if ($race =~ /\\/) {
-			                                	$race =~ s/\\x(..)/chr hex $1/ge;
+			
+			
+			                                if ($teamid == 0) {
+			                                        $win_t0 +=      $detail{$id}{$player_count}{'RESULT'};
+			                                } elsif ($teamid == 1) {
+			                                        $win_t1 +=      $detail{$id}{$player_count}{'RESULT'};
 			                                }
-			                                
-			                                $detail{$id}{$player_count}{'RACE'} = $race;
 			                        }
-	             			    }
-	
-	                        if (/m_result/) {
-		                        if (/(\d+),$/) {
-		                                my $result = $1;
-		                                $detail{$id}{$player_count}{'RESULT'} = $result;
 		                        }
-	                  	    }
-	
-	                        if (/m_teamId/) {
-		                        if (/\s(\d*),$/) {
-		                                my $teamid = $1;
-		                                $detail{$id}{$player_count}{'TEAM'} = $teamid;
-		
-		                                if ($detail{$id}{$player_count}{'NAME'} eq $player) {
-		                                        $myteam = $teamid;
-		                                }
+		                        
+		                        if (/m_timeUTC/) {
+		                        	if (/(\d+)L,$/) {
+		                        		#$gametime = $1;	
+		                        		
+		                        	}	
+		                        }
 		
 		
-		                                if ($teamid == 0) {
-		                                        $win_t0 +=      $detail{$id}{$player_count}{'RESULT'};
-		                                } elsif ($teamid == 1) {
-		                                        $win_t1 +=      $detail{$id}{$player_count}{'RESULT'};
-		                                }
+		
 		                        }
-	                        }
-	                        
-	                        if (/m_timeUTC/) {
-	                        	if (/(\d+)L,$/) {
-	                        		#$gametime = $1;	
-	                        		
-	                        	}	
-	                        }
-	
-	
-	
-	                        }
-	                close(ST);
-	        } elsif ($p =~ /_trackerevents\.txt$/) {
-	                my $stat_file = $stats_dir . "/" . $p;
-	                my $playerid;
-	
-	                open(TRACKEREVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
-	
-	                while (<TRACKEREVENTS>) {
-	
-		                if (/m_controlPlayerId/) {
-			                if (/(\d+),$/) {
-		    	                $playerid = $1;
-		        	        }
-		                } elsif (/m_unitTypeName/) {
-		                        if (/'(\w*)',$/) {
-			                        my $unit = $1;
-			                        if ($unit =~ /^Worker(.*)/) {
-			                                my $race2 = $1;
-			                                $detail{$id}{$playerid}{'RACE2'} = $race2;
-			                         }
-		                        }
-		 	        	 } elsif (/_gameloop/) {
-			        	 	if (/(\d+),$/) {
-								$duration = $1;	
-			        	 	}
-			        	 	
-			        	 } elsif (/m_playerId/) {
-			        	 	if (/(\d),$/) {
-			        	 		$playerid = $1;	
-			        	 	}	
-			        	 } elsif (/m_scoreValueMineralsKilledArmy/) {
-			                if (/(\d+),$/) {
-			                        my $killarmy = $1;
-			                        $detail{$id}{$playerid}{'KILLSUM'} = $killarmy;
-			                        $detail{$id}{$playerid}{'DURATION'} = $duration;
-			                        
-			                        if (!defined $detail{$id}{$playerid}{'GAMETIME'}) {
-				                        my $replay = $cfg{'default.replay_path'} . "/" . $id . ".SC2Replay";
-	        							if (-e $replay) {
-	        								$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
-						        		}   	
-				                        $detail{$id}{$playerid}{'GAMETIME'} = $gametime;
+		                close(ST);
+		        } elsif ($p =~ /_trackerevents\.txt$/) {
+		                my $stat_file = $stats_dir . "/" . $p;
+		                my $playerid;
+		
+		                open(TRACKEREVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+		
+		                while (<TRACKEREVENTS>) {
+		
+			                if (/m_controlPlayerId/) {
+				                if (/(\d+),$/) {
+			    	                $playerid = $1;
+			        	        }
+			                } elsif (/m_unitTypeName/) {
+			                        if (/'(\w*)',$/) {
+				                        my $unit = $1;
+				                        if ($unit =~ /^Worker(.*)/) {
+				                                my $race2 = $1;
+				                                $detail{$id}{$playerid}{'RACE2'} = $race2;
+				                         }
 			                        }
-			                }
-		        		}
-	                }
-		        	 
-	              
-	               
-	
-	                close(TRACKEREVENTS);
-	        } elsif ($p =~ /_messageevents\.txt$/ && defined($cfg{'default.SKIPMSG'})) {
-	        	if ($cfg{'default.SKIPMSG'}) {
-		        	my $stat_file = $stats_dir . "/" . $p;
-		        	
-		        	my $playerid;
-		        	my $gameloop;
-		        	my $msgevent;
-		        	my $msg;
-		        	open(MSGEVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
-		        	
-		        	while (<MSGEVENTS>) {
-		        		
-		        		if (/m_userId/) {
-		        			if (/(\d)\},$/) {
-		        				$playerid = $1;
-		        			}	
-		        			
-		        		} elsif (/_gameloop/) {
-		        			if (/(\d+),$/) {
-		        				$gameloop = $1;	
-		        			}		
-		        		} elsif (/SChatMessage/) {
-		        			$msgevent = 1;	
-		        		} elsif (/m_string/) {
-		        			if (/'([^']*)'\}$/) {
-		        				$msg = $1;
-		        				if ($msg eq "skipdsstats") {
-			        				if ($gameloop < 2000 && $msgevent) {
-			        					$skipmsg{$id}{$playerid + 1} = 1;
+			 	        	 } elsif (/_gameloop/) {
+				        	 	if (/(\d+),$/) {
+									$duration = $1;	
+				        	 	}
+				        	 	
+				        	 } elsif (/m_playerId/) {
+				        	 	if (/(\d),$/) {
+				        	 		$playerid = $1;	
+				        	 	}	
+				        	 } elsif (/m_scoreValueMineralsKilledArmy/) {
+				                if (/(\d+),$/) {
+				                        my $killarmy = $1;
+				                        $detail{$id}{$playerid}{'KILLSUM'} = $killarmy;
+				                        $detail{$id}{$playerid}{'DURATION'} = $duration;
+				                        
+				                        if (!defined $detail{$id}{$playerid}{'GAMETIME'}) {
+					                        my $replay = $cfg{'default.replay_path'} . "/" . $id . ".SC2Replay";
+		        							if (-e $replay) {
+		        								$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
+							        		}   	
+					                        $detail{$id}{$playerid}{'GAMETIME'} = $gametime;
+				                        }
+				                }
+			        		}
+		                }
+			        	 
+		              
+		               
+		
+		                close(TRACKEREVENTS);
+		        } elsif ($p =~ /_messageevents\.txt$/ && defined($cfg{'default.SKIPMSG'})) {
+		        	if ($cfg{'default.SKIPMSG'}) {
+			        	my $stat_file = $stats_dir . "/" . $p;
+			        	
+			        	my $playerid;
+			        	my $gameloop;
+			        	my $msgevent;
+			        	my $msg;
+			        	open(MSGEVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+			        	
+			        	while (<MSGEVENTS>) {
+			        		
+			        		if (/m_userId/) {
+			        			if (/(\d)\},$/) {
+			        				$playerid = $1;
+			        			}	
+			        			
+			        		} elsif (/_gameloop/) {
+			        			if (/(\d+),$/) {
+			        				$gameloop = $1;	
+			        			}		
+			        		} elsif (/SChatMessage/) {
+			        			$msgevent = 1;	
+			        		} elsif (/m_string/) {
+			        			if (/'([^']*)'\}$/) {
+			        				$msg = $1;
+			        				if ($msg eq "skipdsstats") {
+				        				if ($gameloop < 2000 && $msgevent) {
+				        					$skipmsg{$id}{$playerid + 1} = 1;
+				        				}
 			        				}
-		        				}
-		        			}	
-		        		}
-		        	}
-		        	
-		        	close(MSGEVENTS);
-	        	}	        	
+			        			}	
+			        		}
+			        	}
+			        	
+			        	close(MSGEVENTS);
+		        	}	        	
+		        }
 	        }
         }
 }
