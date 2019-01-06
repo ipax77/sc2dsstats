@@ -1,4 +1,23 @@
-#!C:\Perl64\bin\perl.exe
+# Copyright (c) 2019 Philipp Hetzner
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 
 use strict;
 use warnings;
@@ -37,14 +56,14 @@ $DEBUG = $cfg{'default.DEBUG'};
 print "Hello World - Main path = $main_path\n" if $DEBUG > 1;
 
 
-my $python = $main_path . "python2.7/python-2.7.13/python.exe";
+# Defining basic variables
+#
 
+my $python = $main_path . "python2.7/python-2.7.13/python.exe";
 if (defined $cfg{'default.python_path'}) {
 	$python = $cfg{'default.python_path'};
 }
-
 my $p_script = $main_path . "python2.7/python-2.7.13/Lib/site-packages/s2protocol/s2_cli.py";
-#my $p_script = $main_path . "python2.7/python-2.7.13/Lib/s2protocol/s2_cli.py";
 my $store_path = $main_path . "analyzes";
 my $stats_dir = $store_path;
 my $stats_file = $main_path . "stats.csv";
@@ -64,8 +83,15 @@ my %replays;
 my %sum;
 my %skipmsg;
 
+
+# Reading in maybe already existing stats file so we don't have to compute already known data
+#
+
 &ReadCSV($stats_file, \%sum);
 
+
+# If start_date is defined in the config file make seperate data files
+#
 
 if (defined $cfg{'default.start_date'}) {
 	$start_date = $cfg{'default.start_date'};
@@ -90,7 +116,7 @@ if (defined $cfg{'default.start_date'} || defined $cfg{'default.end_date'}) {
 }
 
 
-
+###
 
 print "Working on replays between $start_date and $end_date ..\n" if $DEBUG;
 
@@ -99,6 +125,9 @@ my $csv = $stats_file;
 my $player = $cfg{'default.player'};
 my @getpool = ('messageevents', 'trackerevents', 'details', 'gameevents');
 
+
+# Decoding the replays using s2protocol and python
+#
 
 my $todo_replays = 0;
 opendir(REP, $cfg{'default.replay_path'}) or die "Could not read dir $cfg{'default.replay_path'}: $!\n";
@@ -110,7 +139,7 @@ while (my $p = readdir(REP)) {
 }	
 closedir(REP);
 
-my $done_replays = 0;
+my $done_replays = 1;
 opendir(REP, $cfg{'default.replay_path'}) or die "Could not read dir $cfg{'default.replay_path'}: $!\n";
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
@@ -123,6 +152,9 @@ while (my $p = readdir(REP)) {
 }
 closedir(REP);
 
+
+#  Reading in maybe already existing stats file so we don't have to compute already known data
+#
 
 if (-e $stats_file) {
         open(SUM, "<", $stats_file) or die "Could not read $stats_file: $!\n";
@@ -143,10 +175,13 @@ if (-e $stats_file) {
         }
 }
 
-my $gametime;
 
+# Extracting data from the decoded Replays
+#
+
+my $gametime;
 my $new_id = 0;
-my $id_count = 0;
+my $id_count = 1;
 
 opendir(STAT, $stats_dir) or die "Could not read dir $stats_dir: $!\n";
 while (my $p = readdir(STAT)) {
@@ -180,8 +215,6 @@ while (my $p = readdir(STAT)) {
         if (defined $sum{$id}) {
         	
         	print "Fetching data from global csv file for $id ..\n" if $DEBUG > 1;
-   
-          	
         	
         	my $i = 0;
         	foreach my $g (keys %{ $sum{$id} } ) {
@@ -192,7 +225,6 @@ while (my $p = readdir(STAT)) {
         		$detail{$id}{$i}{'KILLSUM'} = $sum{$id}{$g}{'KILLSUM'};
         		$detail{$id}{$i}{'DURATION'} = $sum{$id}{$g}{'DURATION'};
         		$detail{$id}{$i}{'GAMETIME'} = $sum{$id}{$g}{'GAMETIME'};
-        		#$detail{$id}{$i}{'GAMETIME'} = $gametime;
         		$detail{$id}{$i}{'GAMES'} = $games;
         		$i++;
         	}
@@ -329,48 +361,50 @@ while (my $p = readdir(STAT)) {
 	               
 	
 	                close(TRACKEREVENTS);
-	        } elsif ($p =~ /_messageevents\.txt$/ && $cfg{'default.SKIPMSG'}) {
-	        	my $stat_file = $stats_dir . "/" . $p;
-	        	
-	        	my $playerid;
-	        	my $gameloop;
-	        	my $msgevent;
-	        	my $msg;
-	        	open(MSGEVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
-	        	
-	        	while (<MSGEVENTS>) {
-	        		
-	        		if (/m_userId/) {
-	        			if (/(\d)\},$/) {
-	        				$playerid = $1;
-	        			}	
-	        			
-	        		} elsif (/_gameloop/) {
-	        			if (/(\d+),$/) {
-	        				$gameloop = $1;	
-	        			}		
-	        		} elsif (/SChatMessage/) {
-	        			$msgevent = 1;	
-	        		} elsif (/m_string/) {
-	        			if (/'([^']*)'\}$/) {
-	        				$msg = $1;
-	        				if ($msg eq "skipdsstats") {
-		        				if ($gameloop < 2000 && $msgevent) {
-		        					$skipmsg{$id}{$playerid + 1} = 1;
+	        } elsif ($p =~ /_messageevents\.txt$/ && defined($cfg{'default.SKIPMSG'})) {
+	        	if ($cfg{'default.SKIPMSG'}) {
+		        	my $stat_file = $stats_dir . "/" . $p;
+		        	
+		        	my $playerid;
+		        	my $gameloop;
+		        	my $msgevent;
+		        	my $msg;
+		        	open(MSGEVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+		        	
+		        	while (<MSGEVENTS>) {
+		        		
+		        		if (/m_userId/) {
+		        			if (/(\d)\},$/) {
+		        				$playerid = $1;
+		        			}	
+		        			
+		        		} elsif (/_gameloop/) {
+		        			if (/(\d+),$/) {
+		        				$gameloop = $1;	
+		        			}		
+		        		} elsif (/SChatMessage/) {
+		        			$msgevent = 1;	
+		        		} elsif (/m_string/) {
+		        			if (/'([^']*)'\}$/) {
+		        				$msg = $1;
+		        				if ($msg eq "skipdsstats") {
+			        				if ($gameloop < 2000 && $msgevent) {
+			        					$skipmsg{$id}{$playerid + 1} = 1;
+			        				}
 		        				}
-	        				}
-	        			}	
-	        		}
-	        	}
-	        	
-	        	close(MSGEVENTS);
-	        	
+		        			}	
+		        		}
+		        	}
+		        	
+		        	close(MSGEVENTS);
+	        	}	        	
 	        }
-        
         }
-
 }
 closedir(STAT);
+
+# Writing summary into a csv file while skipping some
+#
 
 my $skip_normal = 0;
 
@@ -439,6 +473,9 @@ foreach my $id (sort keys %detail) {
 }
 
 close(SUM);
+
+# Collecting and summarizing the givien data
+#
 
 my @races = split(/,/, $cfg{'default.commanders'});
 
@@ -633,13 +670,6 @@ if (defined $cfg{'default.DAILY'}) {
 }
 
 
-
-
-
-
-
-
-
 foreach my $g (keys %sum) {
 	foreach my $n (keys %{ $sum{$g} }) {
 
@@ -760,6 +790,9 @@ foreach my $r (sort keys %dps) {
 }
 print "\n";
 
+# Generating the Graphs
+#
+
 my $hs = $start_date;
 if ($start_date =~ /^(\d{8})/) {
 	$hs = $1;
@@ -858,6 +891,7 @@ $graph->set(
     y_tick_number       => 1,
     y_label_skip        => 1,
     x_label_skip        => 1,
+    x_labels_vertical => 1,
     
     bar_spacing     => 10,
     accent_treshold => 200,
@@ -907,7 +941,7 @@ foreach my $n (keys %vsglobal) {
 				#	played 38 
 				# win 21
 				
-				$l{$r} = $winp_r;
+				$l{$r . " (" . $vsglobal{$n}{$r}{'PLAYED'} . ")"} = $winp_r;
 				
 				$total += $vsglobal{$n}{$r}{'PLAYED'};			
 				$total_won += $vsglobal{$n}{$r}{'WON'} if defined $vsglobal{$n}{$r}{'WON'};
@@ -980,6 +1014,7 @@ if (defined $cfg{'default.DAILY'}) {
 	    y_tick_number       => 1,
 	    y_label_skip        => 1,
 	    x_label_skip        => 1,
+	    
 	    
 	    bar_spacing     => 10,
 	    accent_treshold => 200,
@@ -1102,6 +1137,8 @@ if (defined $cfg{'default.DAILY'}) {
 	
 }
 
+# Reading in csv file
+#
 
 sub ReadCSV {
 	my $csv = shift;
@@ -1151,6 +1188,8 @@ sub ReadCSV {
 	
 }
 
+# Decoding the replays (skipping files already existing)
+#
 
 sub Info {
         my $rep = shift;
