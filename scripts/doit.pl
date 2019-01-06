@@ -354,12 +354,11 @@ while (my $p = readdir(STAT)) {
 	        		} elsif (/m_string/) {
 	        			if (/'(.*)'\}$/) {
 	        				$msg = $1;
-	        				
-	        				if ($gameloop < 2000 && $msgevent) {
-	        					$skipmsg{$id}{$playerid + 1} = 1;
+	        				if ($msg eq "skipdsstats") {
+		        				if ($gameloop < 2000 && $msgevent) {
+		        					$skipmsg{$id}{$playerid + 1} = 1;
+		        				}
 	        				}
-	        				
-	        					
 	        			}	
 	        		}
 	        	}
