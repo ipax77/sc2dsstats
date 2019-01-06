@@ -352,7 +352,7 @@ while (my $p = readdir(STAT)) {
 	        		} elsif (/SChatMessage/) {
 	        			$msgevent = 1;	
 	        		} elsif (/m_string/) {
-	        			if (/'(.*)'\}$/) {
+	        			if (/'([^']*)'\}$/) {
 	        				$msg = $1;
 	        				if ($msg eq "skipdsstats") {
 		        				if ($gameloop < 2000 && $msgevent) {
