@@ -8,7 +8,7 @@ Read the Readme.txt.
 # Requirements
 It requires Python with the s2protocol library (version 4.8.0.71061.1) and Perl with GD::Graph::bars.
 Precompiled versions for Windows 10 64Bit are included in this repository. 
-The GUI requires Microsoft .net framework 4.6.1
+The GUI requires Microsoft .net Framework 4.6.1
 
 # License
 
