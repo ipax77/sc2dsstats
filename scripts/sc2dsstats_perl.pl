@@ -30,29 +30,35 @@ use Encode qw(decode encode);
 use utf8;
 use open IN => ":utf8";
 use open OUT => ":utf8";
-use Config::Simple;
+use XML::Simple;
+
 
 my $DEBUG = 2;
 
 my $main_path = $ARGV[0];
 $main_path =~ s/\\/\//g;
 
-my $config_file = $main_path . "/config.txt";
+my $config_file = $main_path . "/sc2dsstats.exe.Config";
 my $logfile = $main_path . "log.txt";
 my %cfg;
 
+
 print "Reading in Config file ..\n" if $DEBUG;
-Config::Simple->import_from($config_file, \%cfg);
 
-if (defined $cfg{'default.player'}) {
-	$cfg{'default.player'} = encode("UTF-8", $cfg{'default.player'});
+my $cfg = XMLin($config_file);
+
+#$cfg->{'appSettings'}{'add'}{'PLAYER'}{'value'}
+
+if (defined $cfg->{'appSettings'}{'add'}{'PLAYER'}{'value'}) {
+	$cfg->{'appSettings'}{'add'}{'PLAYER'}{'value'} = encode("UTF-8", $cfg->{'appSettings'}{'add'}{'PLAYER'}{'value'});
+}
+my $player = $cfg->{'appSettings'}{'add'}{'PLAYER'}{'value'};
+
+foreach my $a (keys %{ $cfg->{'appSettings'}{'add'} }) {
+	print $a . " => " . $cfg->{'appSettings'}{'add'}{$a}{'value'} . "\n" if $DEBUG > 1;
 }
 
-foreach my $a (keys %cfg) {
-	print $a . " => " . $cfg{$a} . "\n" if $DEBUG > 1;
-}
-
-$DEBUG = $cfg{'default.DEBUG'};
+$DEBUG = $cfg->{'appSettings'}{'add'}{'DEBUG'}{'value'};
 
 print "Hello World - Main path = $main_path\n" if $DEBUG > 1;
 
@@ -66,8 +72,8 @@ open(LOG, ">>", $logfile) or die "Could  not write to $logfile: $!\n";
 #
 
 my $python = $main_path . "python2.7/python-2.7.13/python.exe";
-if (defined $cfg{'default.python_path'}) {
-	$python = $cfg{'default.python_path'};
+if (defined $cfg->{'appSettings'}{'add'}{'PYTHON'}{'value'} && $cfg->{'appSettings'}{'add'}{'PYTHON'}{'value'}) {
+	$python = $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'};
 }
 my $p_script = $main_path . "python2.7/python-2.7.13/Lib/site-packages/s2protocol/s2_cli.py";
 my $s2_cli = $main_path . "scripts/s2_cli.exe";
@@ -80,8 +86,6 @@ my $png_dps = $main_path . "dps.png";
 my $latest_txt = $main_path . "latest.txt";
 
 
-my $start_date = "19700101000000";
-my $end_date = strftime("%Y%m%d%H%M%S", localtime());
 
 my %detail;
 
@@ -101,15 +105,21 @@ my %skipmsg;
 # If start_date is defined in the config file make seperate data files
 #
 
-if (defined $cfg{'default.start_date'}) {
-	$start_date = $cfg{'default.start_date'};
+my $start_date = "19700101000000";
+my $end_date = strftime("%Y%m%d%H%M%S", localtime());
+
+if (defined $cfg->{'appSettings'}{'add'}{'START_DATE'}{'value'}) {
+	$start_date = $cfg->{'appSettings'}{'add'}{'START_DATE'}{'value'} if $cfg->{'appSettings'}{'add'}{'START_DATE'}{'value'};
 }
 
-if (defined $cfg{'default.end_date'}) {
-	$end_date = $cfg{'default.end_date'};	
+if (defined $cfg->{'appSettings'}{'add'}{'END_DATE'}{'value'}) {
+	$end_date = $cfg->{'appSettings'}{'add'}{'END_DATE'}{'value'} if $cfg->{'appSettings'}{'add'}{'END_DATE'}{'value'};
 }
 
-if (defined $cfg{'default.start_date'} || defined $cfg{'default.end_date'}) {
+
+&Log("Starting at $end_date ..\n");
+
+if ($cfg->{'appSettings'}{'add'}{'START_DATE'}{'value'} || $cfg->{'appSettings'}{'add'}{'END_DATE'}{'value'}) {
 	my $start_date_m;
 	if ($start_date =~ /^(\d{8})/) {
 		$start_date_m = $1;	
@@ -131,15 +141,17 @@ print "Working on replays between $start_date and $end_date ..\n" if $DEBUG;
 
 my $csv = $stats_file;
 
-my $player = $cfg{'default.player'};
-my @getpool = ('messageevents', 'trackerevents', 'details', 'gameevents');
+my @getpool = ('trackerevents', 'details');
+if (defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
+	push(@getpool, 'messageevents');
+}
 
 
 # Decoding the replays using s2protocol and python
 #
 
 my $todo_replays = 0;
-opendir(REP, $cfg{'default.replay_path'}) or die "Could not read dir $cfg{'default.replay_path'}: $!\n";
+opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or die "Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!\n";
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
 	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
@@ -149,11 +161,11 @@ while (my $p = readdir(REP)) {
 closedir(REP);
 
 my $done_replays = 1;
-opendir(REP, $cfg{'default.replay_path'}) or die "Could not read dir $cfg{'default.replay_path'}: $!\n";
+opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or die "Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!\n";
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
 	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
-		my $replay = $cfg{'default.replay_path'} . "/" . $p;
+		my $replay = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} . "/" . $p;
 		print "Working on $replay ..($done_replays out of $todo_replays done)\n" if $DEBUG;
 		&Log("Working on $replay ..($done_replays out of $todo_replays done)\n") if $DEBUG;
 		
@@ -219,7 +231,7 @@ while (my $p = readdir(STAT)) {
 	        		$new_id = $id;
 	        		$id_count ++;
 	        		
-	        		#my $replay = $cfg{'default.replay_path'} . "/" . $id . ".SC2Replay";
+	        		#my $replay = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} . "/" . $id . ".SC2Replay";
 		        	#if (-e $replay) {
 		        	#	$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
 		        	#}  
@@ -277,11 +289,11 @@ while (my $p = readdir(STAT)) {
 				                                my $name = $1;
 				                                if ($name =~ /\\/) {
 				                                	$name =~ s/\\x(..)/chr hex $1/ge;
-				                                	$name = encode("UTF-8", $name);
+				                                	#$name = encode("UTF-8", $name);
 				                                }
 				                                $detail{$id}{$player_count}{'NAME'} = $name;
 				                                $detail{$id}{$player_count}{'GAMES'} = $games;
-												if ($name eq $cfg{'default.player'}) {
+												if ($name eq $player) {
 													$skipmsg{$id}{'PLAYER'} = $player_count;	
 												}
 				                        }
@@ -370,7 +382,7 @@ while (my $p = readdir(STAT)) {
 				                        $detail{$id}{$playerid}{'DURATION'} = $duration;
 				                        
 				                        if (!defined $detail{$id}{$playerid}{'GAMETIME'}) {
-					                        my $replay = $cfg{'default.replay_path'} . "/" . $id . ".SC2Replay";
+					                        my $replay = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} . "/" . $id . ".SC2Replay";
 		        							if (-e $replay) {
 		        								$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
 							        		}   	
@@ -384,8 +396,8 @@ while (my $p = readdir(STAT)) {
 		               
 		
 		                close(TRACKEREVENTS);
-		        } elsif ($p =~ /_messageevents\.txt$/ && defined($cfg{'default.SKIPMSG'})) {
-		        	if ($cfg{'default.SKIPMSG'}) {
+		        } elsif ($p =~ /_messageevents\.txt$/ && $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
+		        	if ($cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
 			        	my $stat_file = $stats_dir . "/" . $p;
 			        	
 			        	my $playerid;
@@ -432,8 +444,8 @@ closedir(STAT);
 
 my $skip_normal = 0;
 
-if (defined $cfg{'default.skip_normal'}) {
-	$skip_normal = $cfg{'default.skip_normal'};
+if (defined $cfg->{'appSettings'}{'add'}{'SKIP_NORMAL'}{'value'}) {
+	$skip_normal = $cfg->{'appSettings'}{'add'}{'SKIP_NORMAL'}{'value'};
 }
 
 my $duration_skip = 0;
@@ -472,7 +484,7 @@ foreach my $id (sort keys %detail) {
 					next;
 				}
 				
-				if (defined $cfg{'default.SKIPMSG'}) {
+				if (defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
 					if (defined $skipmsg{$id}{'PLAYER'}) {
 						if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
 							print "Skipping $id due to skipmsg\n" if $DEBUG > 1;
@@ -507,7 +519,6 @@ close(SUM);
 # Collecting and summarizing the givien data
 #
 
-my @races = split(/,/, $cfg{'default.commanders'});
 
 print "Generating png for player $player ..\n" if $DEBUG;
 &Log("Generating png for player $player ..\n") if $DEBUG;
@@ -553,9 +564,9 @@ foreach my $replay (keys %sum) {
 			}
 			
 	
-			if (defined $cfg{'default.SKIP'}) {
+			if (defined $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
 				my $d_min = $duration / 24.4;
-				if ($d_min < $cfg{'default.SKIP'}) {
+				if ($d_min < $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
 					$d_skip = 1;
 					print "Skipping stats for $replay due to duration ($d_min)\n" if $DEBUG > 1;
 				}
@@ -583,9 +594,9 @@ foreach my $replay (keys %sum) {
 				}
 			}
 			
-			if (defined $cfg{'default.DAILY'}) {
+			if (defined $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'} && $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
 				
-				if ($gametime >= $cfg{'default.DAILY'}) {
+				if ($gametime >= $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
 					push(@dduration, $duration);
 				
 					$dglobal{'GAMES'} ++;
@@ -658,7 +669,7 @@ my $dd_min = 100000000;
 my $dd_max = 0;
 my $dd_average;
 
-if (defined $cfg{'default.DAILY'}) {
+if (defined $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'} && $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
 	$dstats_commander = 0;
 	if (defined $dglobal{'GAMESCOMMANDER'}) {
 		if (!defined $dglobal{'PAXWINCOMMANDER'}) {
@@ -718,8 +729,8 @@ foreach my $g (keys %sum) {
 				$vsglobal{$n}{$race}{'LOST'} ++;
 			}
 			
-			if (defined $cfg{'default.DAILY'}) {
-				if ($sum{$g}{$n}{'GAMETIME'} >= $cfg{'default.DAILY'}) {
+			if (defined $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'} && $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
+				if ($sum{$g}{$n}{'GAMETIME'} >= $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
 					my $race = $sum{$g}{$n}{'RACE'};
 					$dvsglobal{$n}{$race}{'PLAYED'} ++;
 					
@@ -754,8 +765,8 @@ foreach my $g (keys %sum) {
 				my $duration = $sum{$g}{$n}{'DURATION'} / 24.4;
 				
 				my $doit = 1;
-				if (defined $cfg{'default.SKIP'}) {
-					if ($duration < $cfg{'default.SKIP'}) {
+				if (defined $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
+					if ($duration < $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
 						$doit = 0;	
 					}
 				}
@@ -847,7 +858,7 @@ $graph2->set(
     shadow_depth    => 4,
     shadowclr       => 'dred',
         
-    y_max_value         => 100,
+    y_max_value         => 110,
     y_min_value         => 0,
     y_tick_number       => 1,
     y_label_skip        => 1,
@@ -922,7 +933,7 @@ $graph->set(
     shadow_depth    => 4,
     shadowclr       => 'dred',
         
-    y_max_value         => 100,
+    y_max_value         => 110,
     y_min_value         => 0,
     y_tick_number       => 1,
     y_label_skip        => 1,
@@ -980,7 +991,7 @@ foreach my $n (keys %vsglobal) {
 				print $winp_r . "%\n" if $DEBUG;
 				
 				&Log($vsglobal{$n}{$r}{'WON'} . "; ")if $DEBUG && defined $vsglobal{$n}{$r}{'WON'};
-				&Log($vsglobal{$n}{$r}{'LOST'} . "; ") if $DEBUG && defined $vsglobal{$n}{$r}{'WON'};
+				&Log($vsglobal{$n}{$r}{'LOST'} . "; ") if $DEBUG && defined $vsglobal{$n}{$r}{'LOST'};
 				&Log($winp_r . "%\n") if $DEBUG;
 				
 				#	played 38 
@@ -1020,13 +1031,13 @@ print IMG $gd->png;
 close(IMG);
 
 
-if (defined $cfg{'default.DAILY'}) {
+if (defined $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'} && $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
 	my $total;
 	my $total_won;
 	my $total_lost;
 	
 	my $daily;
-	if ($cfg{'default.DAILY'} =~ /^(\d{8})/) {
+	if ($cfg->{'appSettings'}{'add'}{'DAILY'}{'value'} =~ /^(\d{8})/) {
 		$daily = $1;
 	}
 	
@@ -1056,7 +1067,7 @@ if (defined $cfg{'default.DAILY'}) {
 	    shadow_depth    => 4,
 	    shadowclr       => 'dred',
 	        
-	    y_max_value         => 120,
+	    y_max_value         => 110,
 	    y_min_value         => 0,
 	    y_tick_number       => 1,
 	    y_label_skip        => 1,
@@ -1158,9 +1169,9 @@ if (defined $cfg{'default.DAILY'}) {
 }
 
 
-if (defined $cfg{'default.DAILY'}) {
+if (defined $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'} && $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'}) {
 	
-	my $latest = $cfg{'default.DAILY'};
+	my $latest = $cfg->{'appSettings'}{'add'}{'DAILY'}{'value'};
 	my $latest_game;
 	
 	foreach my $g (keys %sum) {
@@ -1192,6 +1203,8 @@ if (defined $cfg{'default.DAILY'}) {
 	close(LATEST);
 	
 }
+my $t2 = strftime("%Y%m%d%H%M%S", localtime());
+&Log("Finished at $t2 ..\n");
 
 close(LOG);
 

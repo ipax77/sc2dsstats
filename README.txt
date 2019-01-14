@@ -1,10 +1,8 @@
 Generates a graph with global winrate stats.
 
-1. Edit the config.txt file located in the same folder as this file. 
+1. Start the file sc2dsstats.exe
 
-2. Execute the doit.cmd script
-
-3. If success there will be an stats.png file in the same folder as this file containing your stats.
+2. Follow the instructions
 
 
 Analysing the replays will need a lot of diskspace - expect ~800 MB for every 100 DS replays. 

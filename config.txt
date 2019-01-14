@@ -1,55 +1,5 @@
 # Configuration file
 # 
 
-# Path where all the replays are located 
-# IMPORTANT: You have to use / instead of \ 
+# Obsolete - please use sc2dsstats.exe.config instead.
 
-replay_path=C:/Users/<username>/Documents/StarCraft II/Accounts/107095918/2-S2-1-226401/Replays/Multiplayer
-
-
-# Your SC2 Player name (without Clan tags)
-player=PAX
-
-# Commanders
-# All commanders you want a bar for
-commanders=Abathur,Alarak,Artanis,Dehaka,Fenix,Tychus,Horner,Karax,Kerrigan,Raynor,Stukov,Swann,Nova,Vorazun,Zagara,Zeratul,Terran,Protoss,Zerg
-
-# If you want to skip stats for normal games (Zerg, Terran, Protoss) set this to 1
-skip_normal=0
-
-# Skip games with gametime below 240sec
-SKIP=240
-
-# If you want a time based analyses (don't use this for the first run)
-# 
-# start_date - only compute replays with timestamp greater than it - format YYYYmmDDHHMMSS
-# end_date - only compute replays with timestamp lower than it - format YYYYmmDDHHMMSS
-# If not defined all replays will be computed.
-#
-#start_date=20181101000000
-#end_date=20181213000000
-
-# Blizzard Commander changes 20180622000000
-# Refinery income pause removed 20180525000000
-# Dehaka out 20180817000000
-# Dehaka balanced 20180829000000
-# H&H out 20181012000000
-# H&H balanced 20181026000000
-# Karax Mirage imba 20181116000000
-
-# Activate Skipmessage - If you type 'skipdsstats' in the ingame chat in the first 60sec of the game it will not be computed.
-#SKIPMSG=1
-
-# Debug level (2=all, 1=info, 0=error only)
-DEBUG=1
-
-# On the fly stats (experimental)
-#DAILY=20181221180000
-
-# Python path (if you have your own python installation with the library s2protocol
-# python_path=C:/Python27/python.exe
-
-# TODO
-# Version management
-# Exclude time_dates
-# DPS -> DPM (damage based on minerales not on time)
