@@ -1,9 +1,8 @@
 Generates a graph with global winrate stats.
 
-1. Start the file sc2dsstats.exe
+1. Open sc2dsstats.exe
 
 2. Follow the instructions
-
 
 Analysing the replays will need a lot of diskspace - expect ~800 MB for every 100 DS replays. 
 
