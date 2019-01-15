@@ -1,16 +1,24 @@
 use strict;
 use warnings;
+use utf8;
+use open IN => ":utf8";
+use open OUT => ":utf8";
 use XML::Simple;
 use GD::Graph::bars;
 use POSIX qw(strftime);
 use File::Basename;
 
-my $DEBUG = 1;
+my $DEBUG = 0;
 
 my $main_path = dirname($0);
 $main_path = dirname($main_path);
 my $csv = $main_path . "/stats.csv";
+
+$csv = "C:/temp/sc2_ds_stats/stats.csv" if $DEBUG > 1; 
+
 my $config_file = $main_path . "/sc2dsstats.exe.Config";
+
+$config_file = "C:/temp/sc2_ds_stats/sc2dsstats.exe.Config" if $DEBUG > 1;
 
 my $cfg = XMLin($config_file);
 
@@ -21,8 +29,8 @@ $skip_normal = 0;
 
 my $png = $main_path . "/otf.png";
 
-#my $start_date = 19700101;
-my $start_date = 20190114000000;
+my $start_date = 19700101000000;
+#my $start_date = 20190101000000;
 my $end_date = strftime("%Y%m%d%H%M%S", localtime());
 
 my %sum;
@@ -32,7 +40,11 @@ my @duration;
 
 my @commanders = ('Abathur' , 'Alarak', 'Artanis', 'Dehaka', 'Fenix', 'Tychus', 'Horner', 'Karax', 'Kerrigan' ,'Raynor', 'Stukov', 'Swann', 'Nova', 'Vorazun', 'Zagara');
 
-my $interest = "Karax";
+my @opp = (0, 4, 5, 6, 1, 2, 3);
+my %opp; 
+my $opp_stats = 0;
+
+my $interest = "Raynor";
 my %interest;
 
 if (defined $ARGV[0]) {
@@ -44,9 +56,11 @@ if (defined $ARGV[1]) {
 if (defined $ARGV[2]) {
 	$skip_normal = $ARGV[2];
 }
-
-
-
+if (defined $ARGV[3]) {
+	$interest = $ARGV[3];
+	$png = $main_path . "/dt.png";
+	$opp_stats = 1;	
+}
 
 print $player . "\n";
 print $skip_normal . "\n";
@@ -54,6 +68,14 @@ print $skip_normal . "\n";
 &ReadCSV($csv, \%sum);
 
 foreach my $replay (keys %sum) {
+	
+	# Player count
+	my $c = keys %{ $sum{$replay} };
+	
+	if ($c != 6) {
+		next;	
+	}
+	
 	foreach my $name (keys %{ $sum{$replay} }) {
 		
 		my $race2 = $sum{$replay}{$name}{'RACE'};
@@ -62,6 +84,7 @@ foreach my $replay (keys %sum) {
 		my $killsum = $sum{$replay}{$name}{'KILLSUM'};
 		my $duration = $sum{$replay}{$name}{'DURATION'};
 		my $gametime = $sum{$replay}{$name}{'GAMETIME'};
+		my $id = $sum{$replay}{$name}{'PLAYERID'};
 	
 		#print $name . "\n";
 	
@@ -98,7 +121,14 @@ foreach my $replay (keys %sum) {
 			}
 			
 			if (! $d_skip) {
-				push(@duration, $duration);
+				
+				if ($opp_stats) {
+					if ($race2 eq $interest) {
+						push(@duration, $duration);
+					}	
+				} else {
+					push(@duration, $duration);
+				}
 				
 				if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
 					$global{'STD'}{'GAMES'}++;
@@ -106,13 +136,31 @@ foreach my $replay (keys %sum) {
 					$global{'CMDR'}{'GAMES'}++;
 				}
 				$global{$race2}{'GAMES'}++;
+
+				if ($opp_stats) {
+					foreach my $oname (keys %{ $sum{$replay} }) {
+						if ($sum{$replay}{$oname}{'PLAYERID'} == $opp[$id]) {
+							$opp{$race2 . " vs " . $sum{$replay}{$oname}{'RACE'}}{'GAMES'} ++;								
+						}
+					}
+				}
+
 				if ($win == 1) {
 					if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
 						$global{'STD'}{'WIN'}++;
 					} else {
 						$global{'CMDR'}{'WIN'} ++;
 					}
-					$global{$race2}{'WIN'} ++;	
+					$global{$race2}{'WIN'} ++;
+					
+					if ($opp_stats) {
+						foreach my $oname (keys %{ $sum{$replay} }) {
+							if ($sum{$replay}{$oname}{'PLAYERID'} == $opp[$id]) {
+								$opp{$race2 . " vs " . $sum{$replay}{$oname}{'RACE'}}{'WIN'} ++;								
+							}
+						}
+					}
+						
 				}
 
 				if ($race2 eq $interest) {
@@ -130,21 +178,102 @@ foreach my $replay (keys %sum) {
 	}
 }
 
-my %winrate;
-foreach my $r (keys %global) {
-	my $wr = $global{$r}{'WIN'} * 100 / $global{$r}{'GAMES'};
-	$wr = sprintf("%.2f", $wr);
-	print $r . "(" . $global{$r}{'GAMES'} . ")" . " => " . $wr . "\n";
-	$winrate{$r . " (" . $global{$r}{'GAMES'} . ")"} = $wr;	
-}
 
 my @x;
 my @y;
+my $title;
 
-foreach (sort {$winrate{$a} <=> $winrate{$b}} keys %winrate) {
-	push(@x, $_);
-	push(@y, $winrate{$_});
+my $sd;
+my $ed;
+if ($start_date =~ /^(\d{8})/) {
+	$sd = $1;
 }
+
+if ($end_date =~ /^(\d{8})/) {
+	$ed = $1;	
+}
+
+
+	# Average duration
+	# 
+	
+	my $d_sum;
+	my $d_min = 100000000;
+	my $d_max = 0;
+	
+	foreach my $d (@duration) {
+		my $dm = $d / 24.4;
+		$d_sum += $dm;
+		
+		if ($dm <= $d_min) {
+			$d_min = $dm;	
+		}
+		
+		if ($dm > $d_max) {
+			$d_max = $dm;
+		}
+	}
+	
+	my $d_average = $d_sum / scalar(@duration) / 60;
+	$d_average = sprintf("%.2f", $d_average);
+	$d_max = $d_max / 60;
+	$d_max = sprintf("%.2f", $d_max);
+	$d_min = $d_min / 60;
+	$d_min = sprintf("%.2f", $d_min);
+
+# Total
+#
+
+if ($opp_stats == 0) { 
+
+	my %winrate;
+	foreach my $r (keys %global) {
+		if (!defined $global{$r}{'WIN'}) {
+				$global{$r}{'WIN'} = 0;	
+		}
+		my $wr = $global{$r}{'WIN'} * 100 / $global{$r}{'GAMES'};
+		$wr = sprintf("%.2f", $wr);
+		print $r . "(" . $global{$r}{'GAMES'} . ")" . " => " . $wr . "\n";
+		$winrate{$r . " (" . $global{$r}{'GAMES'} . ")"} = $wr;	
+	}
+	
+
+	foreach (sort {$winrate{$a} <=> $winrate{$b}} keys %winrate) {
+		push(@x, $_);
+		push(@y, $winrate{$_});
+	}
+	
+
+	
+	$title = "Winrate ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
+
+} else {
+	# Matchups
+	#
+	
+	my %mu_wr;
+	foreach my $mu (keys %opp) {
+		if ($mu =~ /^$interest/) {
+			if (!defined $opp{$mu}{'WIN'}) {
+				$opp{$mu}{'WIN'} = 0;	
+			}
+			my $wr = $opp{$mu}{'WIN'} * 100 / $opp{$mu}{'GAMES'};
+			$wr = sprintf("%.2f", $wr);
+			print $mu . "(" . $opp{$mu}{'GAMES'} . ") => " . $wr . "\n";
+			$mu_wr{$mu . "(" . $opp{$mu}{'GAMES'} . ")"} = $wr;
+		}	
+	}
+	
+	foreach (sort {$mu_wr{$a} <=> $mu_wr{$b}} keys %mu_wr) {
+		push(@x, $_);
+		push(@y, $mu_wr{$_});	
+	}
+	
+	$title = $interest . " vs the world ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
+}
+
+# Interest
+#
 
 #my $i = 0;
 #foreach (sort {$a <=> $b} keys %interest) {
@@ -157,45 +286,10 @@ foreach (sort {$winrate{$a} <=> $winrate{$b}} keys %winrate) {
 #	
 #}
 
-my $sd;
-my $ed;
-if ($start_date =~ /^(\d{8})/) {
-	$sd = $1;
-}
 
-if ($end_date =~ /^(\d{8})/) {
-	$ed = $1;	
-}
 
-# Average duration
-# 
 
-my $d_sum;
-my $d_min = 100000000;
-my $d_max = 0;
-
-foreach my $d (@duration) {
-	my $dm = $d / 24.4;
-	$d_sum += $dm;
-	
-	if ($dm <= $d_min) {
-		$d_min = $dm;	
-	}
-	
-	if ($dm > $d_max) {
-		$d_max = $dm;
-	}
-}
-
-my $d_average = $d_sum / scalar(@duration) / 60;
-$d_average = sprintf("%.2f", $d_average);
-$d_max = $d_max / 60;
-$d_max = sprintf("%.2f", $d_max);
-$d_min = $d_min / 60;
-$d_min = sprintf("%.2f", $d_min);
-
-&PrintGraph("Winrate ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)", "Commanders", 1, $png, \@x, \@y);
-
+&PrintGraph($title, "Commanders", 1, $png, \@x, \@y);
 
 
 
