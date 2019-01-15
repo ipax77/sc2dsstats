@@ -22,7 +22,7 @@ $skip_normal = 0;
 my $png = $main_path . "/otf.png";
 
 #my $start_date = 19700101;
-my $start_date = 20190101000000;
+my $start_date = 20190114000000;
 my $end_date = strftime("%Y%m%d%H%M%S", localtime());
 
 my %sum;
@@ -166,7 +166,36 @@ if ($start_date =~ /^(\d{8})/) {
 if ($end_date =~ /^(\d{8})/) {
 	$ed = $1;	
 }
-&PrintGraph("Winrate ($sd to $ed)", "Commanders", 1, $png, \@x, \@y);
+
+# Average duration
+# 
+
+my $d_sum;
+my $d_min = 100000000;
+my $d_max = 0;
+
+foreach my $d (@duration) {
+	my $dm = $d / 24.4;
+	$d_sum += $dm;
+	
+	if ($dm <= $d_min) {
+		$d_min = $dm;	
+	}
+	
+	if ($dm > $d_max) {
+		$d_max = $dm;
+	}
+}
+
+my $d_average = $d_sum / scalar(@duration) / 60;
+$d_average = sprintf("%.2f", $d_average);
+$d_max = $d_max / 60;
+$d_max = sprintf("%.2f", $d_max);
+$d_min = $d_min / 60;
+$d_min = sprintf("%.2f", $d_min);
+
+&PrintGraph("Winrate ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)", "Commanders", 1, $png, \@x, \@y);
+
 
 
 
