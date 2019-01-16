@@ -37,8 +37,6 @@ namespace sc2dsstats_t1
         public Image dynamicImage = null;
         public TextBox dynamicText = null;
 
-        public const string logfile = "C:/temp/sc2_ds_stats/log.txt";
-
         public MainWindow()
         {
             InitializeComponent();
@@ -262,6 +260,7 @@ namespace sc2dsstats_t1
             dp_config.Visibility = Visibility.Collapsed;
             otf_stats.Visibility = Visibility.Collapsed;
             doit_grid.Visibility = Visibility.Collapsed;
+            gr_details.Visibility = Visibility.Collapsed;
 
         }
 
@@ -297,6 +296,7 @@ namespace sc2dsstats_t1
 
 
             dynamicText = new TextBox();
+
             dynamicText.Width = 1610;
             dynamicText.Height = 610;
             //dynamicText.Background = "#FF83868F";
@@ -319,24 +319,6 @@ namespace sc2dsstats_t1
 
         }
 
-        private void OnChanged(object source, FileSystemEventArgs e)
-        {
-
-            
-
-            if (e.FullPath == logfile)
-
-            {
-                StreamReader reader = new StreamReader(logfile);
-                
-                dynamicText.Text = "Und es war Winter";
-                dynamicText.Text = reader.ReadToEnd();
-
-                reader.Close();
-            }
-        }
-
- 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             ClearImage();
@@ -354,9 +336,12 @@ namespace sc2dsstats_t1
         {
             ClearImage();
 
+            string logfile = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            logfile += "\\log.txt";
+
             CreateViewTextDynamically(logfile);
 
-            dynamicText.Text = "Und es war Sommer";
+            
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\doit.cmd";
@@ -364,7 +349,7 @@ namespace sc2dsstats_t1
             string Arguments = @" ";
 
             List<string> files = new List<string>();
-            
+
 
 
             Process doit = new Process();
@@ -376,22 +361,32 @@ namespace sc2dsstats_t1
 
             }
 
-            StreamReader reader = new StreamReader(logfile);
+            if (File.Exists(logfile))
+            {
+                StreamReader reader = new StreamReader(logfile, Encoding.UTF8, true);
 
-            dynamicText.Text = "";
-            dynamicText.Text = reader.ReadToEnd();
-            reader.Close();
 
-            /*
-            foreach (string bab in files) {
-                dynamicText.Text += bab + Environment.NewLine;
+                dynamicText.Text = "";
+                byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+
+                dynamicText.Text = Encoding.Default.GetString(bytes);
+
+
+                reader.Close();
+
+                /*
+                foreach (string bab in files) {
+                    dynamicText.Text += bab + Environment.NewLine;
+                }
+                */
+
+                dynamicText.Focus();
+                dynamicText.SelectionStart = dynamicText.Text.Length;
+                dynamicText.ScrollToEnd();
+            } else
+            {
+                MessageBox.Show("No logfile found :(");
             }
-            */
-
-            dynamicText.Focus();
-            dynamicText.SelectionStart = dynamicText.Text.Length;
-            dynamicText.ScrollToEnd();
-
 
 
 
@@ -672,5 +667,109 @@ namespace sc2dsstats_t1
 
         }
 
+        private void bt_details_Click(object sender, RoutedEventArgs e)
+        {
+            ClearImage();
+            System.DateTime sd = new DateTime(2018, 1, 1);
+            dt_enddate.SelectedDate = DateTime.Today;
+            dt_startdate.SelectedDate = sd;
+
+            string[] cmdrs = new string[]
+            {
+                "Abathur",
+                 "Alarak",
+                 "Artanis",
+                 "Dehaka",
+                 "Fenix",
+                 "Tychus",
+                 "Horner",
+                 "Karax",
+                 "Kerrigan",
+                 "Raynor",
+                 "Stukov",
+                 "Swann",
+                 "Nova",
+                 "Vorazun",
+                 "Zagara",
+                 "Protoss",
+                 "Terran",
+                 "Zerg"
+            };
+            foreach (string cmdr in cmdrs) {
+                dt_ComboBox.Items.Add(cmdr);
+            }
+
+            dt_ComboBox.SelectedItem = dt_ComboBox.Items[0];
+            gr_details.Visibility = Visibility.Visible;
+
+        }
+
+        private void dt_showButton_Click(object sender, RoutedEventArgs e)
+        {
+
+
+            ///otf_image.Source = null;
+
+            string sd = dt_startdate.SelectedDate.Value.ToString("yyyyMMdd");
+            sd += "000000";
+            string ed = dt_enddate.SelectedDate.Value.ToString("yyyyMMdd");
+            ed += "000000";
+            string show_std = "1";
+
+            if (dt_std.IsChecked == true)
+            {
+                show_std = "0";
+            }
+
+            string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            s_doit += "\\scripts\\sc2dsstats_worker.exe";
+
+            string ExecutableFilePath = s_doit;
+            string cmdr = dt_ComboBox.Items[dt_ComboBox.SelectedIndex].ToString();
+            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr;
+
+
+            List<string> files = new List<string>();
+            files = FirstRun();
+
+
+            Process doit = new Process();
+
+            if (File.Exists(ExecutableFilePath))
+            {
+                doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                doit.WaitForExit();
+
+            }
+
+            string dt_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            dt_png += "\\dt.png";
+
+
+            if (File.Exists(dt_png))
+            {
+                // Create a BitmapSource  
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(@dt_png);
+                bitmap.EndInit();
+
+                // Set Image.Source  
+                dt_image.Source = bitmap;
+                label1.Text = dt_png;
+                label1.UpdateLayout();
+
+            }
+            else
+            {
+                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
+            }
+
+
+
+
+        }
     }
 }

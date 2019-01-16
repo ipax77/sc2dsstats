@@ -14,11 +14,11 @@ my $main_path = dirname($0);
 $main_path = dirname($main_path);
 my $csv = $main_path . "/stats.csv";
 
-$csv = "C:/temp/sc2_ds_stats/stats.csv" if $DEBUG > 1; 
+$csv = "D:/github/sc2dsstats_debug/stats.csv" if $DEBUG > 1; 
 
 my $config_file = $main_path . "/sc2dsstats.exe.Config";
 
-$config_file = "C:/temp/sc2_ds_stats/sc2dsstats.exe.Config" if $DEBUG > 1;
+$config_file = "D:/github/sc2dsstats_debug/sc2dsstats.exe.Config" if $DEBUG > 1;
 
 my $cfg = XMLin($config_file);
 
@@ -44,7 +44,7 @@ my @opp = (0, 4, 5, 6, 1, 2, 3);
 my %opp; 
 my $opp_stats = 0;
 
-my $interest = "Raynor";
+my $interest = "Swann";
 my %interest;
 
 if (defined $ARGV[0]) {
@@ -62,11 +62,13 @@ if (defined $ARGV[3]) {
 	$opp_stats = 1;	
 }
 
+# $opp_stats = 1;
+
 print $player . "\n";
 print $skip_normal . "\n";
 
 &ReadCSV($csv, \%sum);
-
+my $i = 0;
 foreach my $replay (keys %sum) {
 	
 	# Player count
@@ -75,6 +77,8 @@ foreach my $replay (keys %sum) {
 	if ($c != 6) {
 		next;	
 	}
+	
+	
 	
 	foreach my $name (keys %{ $sum{$replay} }) {
 		
@@ -91,7 +95,11 @@ foreach my $replay (keys %sum) {
 		if ($name eq $player) {
 
 			my $d_skip = 0;
-	
+			
+			if ($race2 eq $interest) {
+				$i++;
+			}
+			
 			if ($skip_normal) {
 				if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
 					$d_skip = 1;
@@ -259,8 +267,12 @@ if ($opp_stats == 0) {
 			}
 			my $wr = $opp{$mu}{'WIN'} * 100 / $opp{$mu}{'GAMES'};
 			$wr = sprintf("%.2f", $wr);
-			print $mu . "(" . $opp{$mu}{'GAMES'} . ") => " . $wr . "\n";
-			$mu_wr{$mu . "(" . $opp{$mu}{'GAMES'} . ")"} = $wr;
+			print $mu . " (" . $opp{$mu}{'GAMES'} . ") => " . $wr . "\n";
+			my $x_value = $mu;
+			if ($mu =~ /vs (.*)$/) {
+				$x_value = "vs " . $1;
+			}
+			$mu_wr{$x_value . " (" . $opp{$mu}{'GAMES'} . ")"} = $wr;
 		}	
 	}
 	
@@ -350,6 +362,8 @@ open(IMG, ">:unix", $png) or die $!;
 binmode IMG;
 print IMG $gd->png;
 close(IMG);
+	
+print "Games played: $interest => $i\n";
 	
 }
 
