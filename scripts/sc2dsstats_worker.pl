@@ -62,6 +62,8 @@ if (defined $ARGV[3]) {
 	$opp_stats = 1;	
 }
 
+$end_date += 1000000;
+
 # $opp_stats = 1;
 
 print $player . "\n";

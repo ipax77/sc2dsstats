@@ -36,6 +36,7 @@ namespace sc2dsstats_t1
     {
         public Image dynamicImage = null;
         public TextBox dynamicText = null;
+        private bool dt_handle = true;
 
         public MainWindow()
         {
@@ -348,9 +349,10 @@ namespace sc2dsstats_t1
             string ExecutableFilePath = s_doit;
             string Arguments = @" ";
 
+            doit_TextBox1.Text += Environment.NewLine;
+            doit_TextBox1.Text += "Processing Replays ..." + Environment.NewLine;
+
             List<string> files = new List<string>();
-
-
 
             Process doit = new Process();
 
@@ -681,14 +683,14 @@ namespace sc2dsstats_t1
                  "Artanis",
                  "Dehaka",
                  "Fenix",
-                 "Tychus",
                  "Horner",
                  "Karax",
                  "Kerrigan",
+                 "Nova",
                  "Raynor",
                  "Stukov",
                  "Swann",
-                 "Nova",
+                 "Tychus",
                  "Vorazun",
                  "Zagara",
                  "Protoss",
@@ -703,6 +705,27 @@ namespace sc2dsstats_t1
             gr_details.Visibility = Visibility.Visible;
 
         }
+
+        private void dt_ComboBox_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBox cmb = sender as ComboBox;
+            dt_handle = !cmb.IsDropDownOpen;
+            Handle(sender, e);
+        }
+
+        private void dt_ComboBox_Closed(object sender, EventArgs e)
+        {
+            if (dt_handle) Handle(sender, e);
+            dt_handle = true;
+        }
+
+        private void Handle(object sender, EventArgs e)
+        {
+            RoutedEventArgs re = (RoutedEventArgs)e;
+
+            dt_showButton_Click(sender, re);
+        }
+
 
         private void dt_showButton_Click(object sender, RoutedEventArgs e)
         {

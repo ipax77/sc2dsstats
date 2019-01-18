@@ -92,7 +92,7 @@
             <DatePicker x:Name="dt_startdate" HorizontalAlignment="Left" Margin="435,8,0,0" VerticalAlignment="Top"/>
             <DatePicker x:Name="dt_enddate" HorizontalAlignment="Left" Margin="647,8,0,0" VerticalAlignment="Top"/>
             <Label Content="commander" HorizontalAlignment="Left" Margin="153,6,0,0" VerticalAlignment="Top" Width="76"/>
-            <ComboBox x:Name="dt_ComboBox" HorizontalAlignment="Left" Margin="234,10,0,0" VerticalAlignment="Top" Width="120"/>
+            <ComboBox x:Name="dt_ComboBox" HorizontalAlignment="Left" Margin="234,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dt_ComboBox_Changed" DropDownClosed="dt_ComboBox_Closed" />
 
         </Grid>
 
