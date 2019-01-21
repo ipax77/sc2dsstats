@@ -35,7 +35,7 @@
             </TextBox.Background>
         </TextBox>
         <Button Content="stats" HorizontalAlignment="Left" Margin="115,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.107,-0.033" Click="Button_Click_1"/>
-        <Button Content="dps" HorizontalAlignment="Left" Margin="195,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="Button_Click_2"/>
+        <Button Content="damage" HorizontalAlignment="Left" Margin="195,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_damage_Click"/>
         <Button Content="timebased" HorizontalAlignment="Left" Margin="275,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_Time_Click"/>
         <Button Content="clear" HorizontalAlignment="Left" Margin="435,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="Button_Click_3"/>
         <Button Content="details" HorizontalAlignment="Left" Margin="355,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="bt_details_Click"/>
@@ -93,6 +93,21 @@
             <DatePicker x:Name="dt_enddate" HorizontalAlignment="Left" Margin="647,8,0,0" VerticalAlignment="Top"/>
             <Label Content="commander" HorizontalAlignment="Left" Margin="153,6,0,0" VerticalAlignment="Top" Width="76"/>
             <ComboBox x:Name="dt_ComboBox" HorizontalAlignment="Left" Margin="234,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dt_ComboBox_Changed" DropDownClosed="dt_ComboBox_Closed" />
+
+        </Grid>
+
+        <Grid x:Name="gr_damage" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0" Height="682" Width="1675">
+
+            <Button x:Name="dps_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="983,8,0,0" Width="74" Height="24" Content="Show" Click="dps_showButton_Click"/>
+            <CheckBox x:Name="dps_std" Content="show STD" HorizontalAlignment="Left" Margin="895,13,0,0" VerticalAlignment="Top"/>
+            <CheckBox x:Name="dps_player" Content="playeronly" HorizontalAlignment="Left" Margin="798,13,0,0" VerticalAlignment="Top"/>
+            <Label Content="start_date" HorizontalAlignment="Left" Margin="372,6,0,0" VerticalAlignment="Top" Width="58"/>
+            <Label Content="end_date" HorizontalAlignment="Left" Margin="586,6,0,0" VerticalAlignment="Top" Width="56"/>
+            <Image x:Name="dps_image" HorizontalAlignment="Left" Height="641" Margin="10,41,0,0" VerticalAlignment="Top" Width="1655"/>
+            <DatePicker x:Name="dps_startdate" HorizontalAlignment="Left" Margin="435,8,0,0" VerticalAlignment="Top"/>
+            <DatePicker x:Name="dps_enddate" HorizontalAlignment="Left" Margin="647,8,0,0" VerticalAlignment="Top"/>
+            <Label Content="commander" HorizontalAlignment="Left" Margin="153,6,0,0" VerticalAlignment="Top" Width="76"/>
+            <ComboBox x:Name="dps_ComboBox" Visibility="Collapsed" HorizontalAlignment="Left" Margin="234,10,0,0" VerticalAlignment="Top" Width="120" />
 
         </Grid>
 

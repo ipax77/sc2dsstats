@@ -269,7 +269,15 @@ while (my $p = readdir(STAT)) {
 	        	
 	        	
 				my $duration;
+				my $gameloop;
 				my $player_count = 0;
+				my $fix;
+				my %fix;
+				
+				my %m_scoreValueMineralsCollectionRate;
+				my %m_scoreValueMineralsLostArmy;
+				my %m_scoreValueMineralsUsedActiveForces;
+				
 		
 		        if ($p =~ /SC2Replay\.txt$/ || $p =~ /SC2Replay_details\.txt$/) {
 		                my $stat_file = $stats_dir . "/" . $p;
@@ -349,6 +357,8 @@ while (my $p = readdir(STAT)) {
 		        } elsif ($p =~ /_trackerevents\.txt$/) {
 		                my $stat_file = $stats_dir . "/" . $p;
 		                my $playerid;
+		                my $controlPlayerId;
+		                my $event;
 		
 		                open(TRACKEREVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
 		
@@ -364,11 +374,15 @@ while (my $p = readdir(STAT)) {
 				                        if ($unit =~ /^Worker(.*)/) {
 				                                my $race2 = $1;
 				                                $detail{$id}{$playerid}{'RACE2'} = $race2;
+				                                if ($race2 eq "Stukov" || $race2 eq "Horner") {
+				                                	$fix = 1;	
+				                                }
 				                         }
 			                        }
 			 	        	 } elsif (/_gameloop/) {
 				        	 	if (/(\d+),$/) {
 									$duration = $1;	
+									$gameloop = $1;
 				        	 	}
 				        	 	
 				        	 } elsif (/m_playerId/) {
@@ -389,13 +403,103 @@ while (my $p = readdir(STAT)) {
 					                        $detail{$id}{$playerid}{'GAMETIME'} = $gametime;
 				                        }
 				                }
+			        		} elsif (/m_scoreValueMineralsCollectionRate'\: (\d+),$/) {
+								$m_scoreValueMineralsCollectionRate{$playerid}{$gameloop} = $1;
+							#} elsif (/m_scoreValueMineralsLostArmy'\: (\d+),$/) {
+							#	
+							} elsif (/m_scoreValueMineralsUsedActiveForces'\: (\d+),$/) {
+								$m_scoreValueMineralsUsedActiveForces{$playerid}{$gameloop} = $1;
+							}	
+			        		
+			        		if ($fix) {
+			        				if (/'_event'\: 'NNet.Replay.Tracker.SUnitBornEvent',$/) {
+										$event = 1;
+									}
+	
+									if (/'m_controlPlayerId'\: (\d),$/) {
+										$controlPlayerId = $1;
+									}
+									
+									if (/m_unitTypeName'\: 'StukovInfestedBunker',$/) {
+										if ($event) {
+											
+											if (!defined $fix{$controlPlayerId}) {
+												$fix{$controlPlayerId} = 375;
+											} else {
+												$fix{$controlPlayerId} += 375;
+											}
+										} else {
+											#print "Something else\n";	
+										}	
+										$event = 0;
+									} elsif (/m_unitTypeName'\: 'HornerAssaultGalleon',$/) {
+										if ($event) {
+											
+											if (!defined $fix{$controlPlayerId}) {
+												$fix{$controlPlayerId} = 475;
+											} else {
+												$fix{$controlPlayerId} += 475;
+											}
+										} else {
+											#print "Something else\n";	
+										}	
+										$event = 0;
+									}	
 			        		}
+			        		
+			        		
+			        		
 		                }
-			        	 
-		              
-		               
-		
 		                close(TRACKEREVENTS);
+		                
+		                foreach my $p (keys %m_scoreValueMineralsCollectionRate) {
+						
+							foreach my $gl (sort { $a <=> $b } keys %{ $m_scoreValueMineralsCollectionRate{$p} }) {
+								my $income = $m_scoreValueMineralsCollectionRate{$p}{$gl} / 9.15;
+								$detail{$id}{$p}{'INCOME'} += $income;
+							}
+							$detail{$id}{$p}{'INCOME'} = sprintf("%.2f", $detail{$id}{$p}{'INCOME'}); 
+						}
+						
+						foreach my $p (keys %m_scoreValueMineralsUsedActiveForces) {
+							next if $p > 6;
+							foreach my $gl (sort { $a <=> $b } keys %{ $m_scoreValueMineralsUsedActiveForces{$p} }) {
+								
+								my $spawn = ($gl - 480) % 1440;
+								if ($spawn == 0) {
+									if ($p == 1 || $p == 4) {
+										if (defined $detail{$id}{$p}{'ARMY'}) {
+											$detail{$id}{$p}{'ARMY'} += $m_scoreValueMineralsUsedActiveForces{$p}{$gl};
+										} else {
+												$detail{$id}{$p}{'ARMY'} = $m_scoreValueMineralsUsedActiveForces{$p}{$gl};
+										}
+									}
+								} elsif ($spawn == 480) {
+									if ($p == 2 || $p == 5) {
+										if (defined $detail{$id}{$p}{'ARMY'}) {
+											$detail{$id}{$p}{'ARMY'} += $m_scoreValueMineralsUsedActiveForces{$p}{$gl};
+										} else {
+												$detail{$id}{$p}{'ARMY'} = $m_scoreValueMineralsUsedActiveForces{$p}{$gl};
+										}
+									}
+								} elsif ($spawn == 960) {
+									if ($p == 3 || $p == 6) {
+										if (defined $detail{$id}{$p}{'ARMY'}) {
+											$detail{$id}{$p}{'ARMY'} += $m_scoreValueMineralsUsedActiveForces{$p}{$gl};
+										} else {
+												$detail{$id}{$p}{'ARMY'} = $m_scoreValueMineralsUsedActiveForces{$p}{$gl};
+										}
+									}
+								}
+							}
+						}
+						
+						foreach my $p (keys %fix) {
+							$detail{$id}{$p}{'ARMY'} += $fix{$p};
+						}
+		                
+		                
+		                
 		        } elsif ($p =~ /_messageevents\.txt$/ && $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
 		        	if ($cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
 			        	my $stat_file = $stats_dir . "/" . $p;
@@ -500,8 +604,12 @@ foreach my $id (sort keys %detail) {
 	                if ($gametime >= $start_date) { 
 	                	if ($gametime <= $end_date) {
 	                		
-			                	print $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " . $detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " . $duration . "; " . $gametime . "; " . $d . ";\n" if $DEBUG > 1;
-			                	print SUM $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " . $detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " . $duration . "; " . $gametime . "; " . $d . ";\n";
+	                			my $ent = $detail{$id}{$d}{'GAMES'} . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " .
+			                		$detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " .
+			                		$duration . "; " . $gametime . "; " . $d . "; " . $detail{$id}{$d}{'INCOME'} . "; " . $detail{$id}{$d}{'ARMY'} . ";\n";
+			                		
+			                	print $ent if $DEBUG > 1;
+			                	print SUM $ent;
 	                	} else {
 	                		print "Skipping $id because of gametime ($start_date <= $gametime => $end_date)\n" if $DEBUG > 1;
 	                	}

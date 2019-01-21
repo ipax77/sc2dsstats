@@ -37,6 +37,7 @@ namespace sc2dsstats_t1
         public Image dynamicImage = null;
         public TextBox dynamicText = null;
         private bool dt_handle = true;
+        private bool dps_handle = true;
 
         public MainWindow()
         {
@@ -262,6 +263,7 @@ namespace sc2dsstats_t1
             otf_stats.Visibility = Visibility.Collapsed;
             doit_grid.Visibility = Visibility.Collapsed;
             gr_details.Visibility = Visibility.Collapsed;
+            gr_damage.Visibility = Visibility.Collapsed;
 
         }
 
@@ -427,6 +429,7 @@ namespace sc2dsstats_t1
             }
         }
 
+        /*
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
 
@@ -447,7 +450,7 @@ namespace sc2dsstats_t1
                 MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
             }
         }
-
+        */
         
 
 
@@ -794,5 +797,143 @@ namespace sc2dsstats_t1
 
 
         }
+
+        private void bt_damage_Click(object sender, RoutedEventArgs e)
+        {
+            ClearImage();
+            System.DateTime sd = new DateTime(2018, 1, 1);
+            dps_enddate.SelectedDate = DateTime.Today;
+            dps_startdate.SelectedDate = sd;
+
+            string[] cmdrs = new string[]
+            {
+                "Abathur",
+                 "Alarak",
+                 "Artanis",
+                 "Dehaka",
+                 "Fenix",
+                 "Horner",
+                 "Karax",
+                 "Kerrigan",
+                 "Nova",
+                 "Raynor",
+                 "Stukov",
+                 "Swann",
+                 "Tychus",
+                 "Vorazun",
+                 "Zagara",
+                 "Protoss",
+                 "Terran",
+                 "Zerg"
+            };
+            foreach (string cmdr in cmdrs)
+            {
+                dps_ComboBox.Items.Add(cmdr);
+            }
+
+            dps_ComboBox.SelectedItem = dps_ComboBox.Items[0];
+            gr_damage.Visibility = Visibility.Visible;
+
+        }
+
+        /*
+        private void dps_ComboBox_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBox cmb = sender as ComboBox;
+            dps_handle = !cmb.IsDropDownOpen;
+            dps_Handle(sender, e);
+        }
+
+        private void dps_ComboBox_Closed(object sender, EventArgs e)
+        {
+            if (dps_handle) dps_Handle(sender, e);
+            dps_handle = true;
+        }
+
+        private void dps_Handle(object sender, EventArgs e)
+        {
+            RoutedEventArgs re = (RoutedEventArgs)e;
+
+            dps_showButton_Click(sender, re);
+        }
+        */
+
+        private void dps_showButton_Click(object sender, RoutedEventArgs e)
+        {
+
+
+            ///otf_image.Source = null;
+
+            string sd = dps_startdate.SelectedDate.Value.ToString("yyyyMMdd");
+            sd += "000000";
+            string ed = dps_enddate.SelectedDate.Value.ToString("yyyyMMdd");
+            ed += "000000";
+            string show_std = "1";
+
+            if (dps_std.IsChecked == true)
+            {
+                show_std = "0";
+            }
+
+            string player_only = "0";
+            if (dps_player.IsChecked == true)
+            {
+                player_only = "1";
+            }
+
+            string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            s_doit += "\\scripts\\sc2dsstats_damage.exe";
+
+            string ExecutableFilePath = s_doit;
+            string cmdr = dps_ComboBox.Items[dps_ComboBox.SelectedIndex].ToString();
+            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr + " " + player_only;
+
+
+            List<string> files = new List<string>();
+            files = FirstRun();
+
+
+            Process doit = new Process();
+
+            if (File.Exists(ExecutableFilePath))
+            {
+                doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                doit.WaitForExit();
+
+            }
+
+            string dps_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            dps_png += "\\dpv.png";
+
+
+            if (File.Exists(dps_png))
+            {
+                // Create a BitmapSource  
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(@dps_png);
+                bitmap.EndInit();
+
+                // Set Image.Source  
+                dps_image.Source = bitmap;
+                label1.Text = dps_png;
+                label1.UpdateLayout();
+
+            }
+            else
+            {
+                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
+            }
+
+
+
+
+        }
     }
 }
+
+
+
+

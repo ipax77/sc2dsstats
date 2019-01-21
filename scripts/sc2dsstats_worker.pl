@@ -262,11 +262,15 @@ if ($opp_stats == 0) {
 	#
 	
 	my %mu_wr;
+	my $gg;
+	my $gw;
 	foreach my $mu (keys %opp) {
 		if ($mu =~ /^$interest/) {
 			if (!defined $opp{$mu}{'WIN'}) {
 				$opp{$mu}{'WIN'} = 0;	
 			}
+			$gg += $opp{$mu}{'GAMES'};
+			$gw += $opp{$mu}{'WIN'};
 			my $wr = $opp{$mu}{'WIN'} * 100 / $opp{$mu}{'GAMES'};
 			$wr = sprintf("%.2f", $wr);
 			print $mu . " (" . $opp{$mu}{'GAMES'} . ") => " . $wr . "\n";
@@ -277,13 +281,17 @@ if ($opp_stats == 0) {
 			$mu_wr{$x_value . " (" . $opp{$mu}{'GAMES'} . ")"} = $wr;
 		}	
 	}
+	my $gwr = $gw * 100 / $gg;
+	$gwr = sprintf("%.2f", $gwr);
+	#$mu_wr{"\xC3\x98" . " (" . $gg . ")"} = $gwr;
+
 	
 	foreach (sort {$mu_wr{$a} <=> $mu_wr{$b}} keys %mu_wr) {
 		push(@x, $_);
 		push(@y, $mu_wr{$_});	
 	}
 	
-	$title = $interest . " vs the world ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
+	$title = $interest . " vs the world ($sd to $ed - winrate " . "\xC3\x98" . ": " . $gwr . "% - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
 }
 
 # Interest
