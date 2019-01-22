@@ -6,6 +6,7 @@ use open IN => ":utf8";
 use open OUT => ":utf8";
 use XML::Simple;
 use GD::Graph::bars;
+use GD::Graph::hbars;
 use POSIX qw(strftime);
 use File::Basename;
 
@@ -39,6 +40,8 @@ my $png = $main_path . "/dpv.png";
 my $interest;
 my $opp_stats;
 my $player_stats;
+my $basedon = "army";
+my $alignment = "horizontal";
 
 my $start_date = 19700101000000;
 #my $start_date = 20190101000000;
@@ -59,6 +62,11 @@ if (defined $ARGV[3]) {
 	$opp_stats = 1;	
 } if (defined $ARGV[4]) {
 	$player_stats = $ARGV[4];	
+} if (defined $ARGV[5]) {
+	$basedon = $ARGV[5];	
+}
+if (defined $ARGV[6]) {
+	$alignment = $ARGV[6];	
 }
 
 $end_date += 1000000;
@@ -76,8 +84,16 @@ my @commanders = ('Abathur' , 'Alarak', 'Artanis', 'Dehaka', 'Fenix', 'Tychus', 
 my %dpv;
 my %dpv_sum;
 my %l_skip;
+my %dmg;
+my $leaver;
+my $games = keys %sum;
 
 foreach my $replay (keys %sum) {
+	
+	if ($replay =~ /Beta/) {
+		print "Skipping $replay due to beta\n";
+		next;
+	}
 	
 	# Player count
 	my $c = keys %{ $sum{$replay} };
@@ -85,7 +101,7 @@ foreach my $replay (keys %sum) {
 	if ($c != 6) {
 		next;	
 	}
-	foreach my $name (keys %{ $sum{$replay} }) {
+	foreach my $name (sort keys %{ $sum{$replay} }) {
 		
 		my $race2 = $sum{$replay}{$name}{'RACE'};
 		my $team = $sum{$replay}{$name}{'TEAM'};
@@ -97,42 +113,36 @@ foreach my $replay (keys %sum) {
 		my $income = $sum{$replay}{$name}{'INCOME'};
 		my $army = $sum{$replay}{$name}{'ARMY'};
 
+		if (defined $l_skip{$replay} && $l_skip{$replay}) {
+			next;	
+		}	
+
+
 		if ($skip_normal) {
 			if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
 				print "Skipping stats for $replay due to skip_normal\n" if $DEBUG > 1;
+				$l_skip{$replay} = 1;
 				next;	
 			}
 		}
 		
 		if ($gametime < $start_date) {
 			print "Skipping stats for $replay due to start_date: $start_date\n" if $DEBUG > 1;
+			$l_skip{$replay} = 1;
 			next;
 		}
 			
 		if ($gametime > $end_date) {
 			print "Skipping stats for $replay due to end_date: $end_date\n" if $DEBUG > 1;
+			$l_skip{$replay} = 1;
 			next;
 		}
 
-		if ($duration < 5376) {
+		if ($sum{$replay}{$player}{'DURATION'} < 5376) {
 			print "Skipping $replay due to duration\n";
+			$l_skip{$replay} = 1;
 			next;	
 		}
-		
-		if (!$army || $army <  1500) {
-			print "Skipping $replay due to no army\n";
-			next;	
-		}
-		
-		if (!$killsum || $killsum < 1500) {
-			print "Skipping $replay due to nothing killed\n";
-			next;	
-		}
-
-		if (defined $l_skip{$replay} && $l_skip{$replay}) {
-			print "Skipping $replay due to leaver\n";			
-			next;	
-		}	
 
 		my $l_DURATION = $sum{$replay}{$player}{'DURATION'};
 		
@@ -140,47 +150,74 @@ foreach my $replay (keys %sum) {
 			my $diff = $l_DURATION - $sum{$replay}{$p}{'DURATION'};
 			
 			if ($diff > 1344) {
+				$leaver++;			
 				$l_skip{$replay} = 1;
+				print "Skipping $replay due to leaver\n";			
 				last;
 			}
-			if (defined $l_skip{$replay} && $l_skip{$replay}) {
-				print "Skipping $replay due to leaver\n";			
-				next;	
-			}	
 		}	
 
+		
 		if (defined $l_skip{$replay} && $l_skip{$replay}) {
-			print "Skipping $replay due to leaver\n";			
+			next;	
+		}	
+		
+		if (!$army || $army <  1500) {
+			print "Skipping $replay due to no army\n";
+			$l_skip{$replay} = 1;
 			next;	
 		}
 		
+		if (!$killsum || $killsum < 1500) {
+			print "Skipping $replay due to nothing killed\n";
+			$l_skip{$replay} = 1;
+			next;	
+		}
+
 		if ($player_stats == 1) {
 			if ($name ne $player) {
 				next;
 			}	
 		}
-				
-		my $dpv = $killsum / $army;
-		
-		if ($dpv < 0.3 || $dpv > 3) {
-			print "Skipping $replay due to strange\n";
-			next;
+
+		my $dpv;		
+		if ($basedon eq "army") {
+			$dpv = $killsum / $army;
+			if ($dpv < 0.3 || $dpv > 3) {
+				print "Skipping strange things: $replay => $race2 => $dpv\n";
+			}
+		} elsif ($basedon eq "income") {
+			$dpv = $killsum / $income;
+		} elsif ($basedon eq "time") {
+			$dpv = $killsum / $sum{$replay}{$player}{'DURATION'};
 		}
+		
+		
 		
 		#$dpv = sprintf("%.2f", $dpv);
 		#$dpv{$replay}{$race2} = $dpv;
-		$dpv{$race2}{'GAMES'} ++;
-		if (defined $dpv{$race2}{'VALUE'}) { 
-			$dpv{$race2}{'VALUE'} += $dpv;
-		} else {
-			$dpv{$race2}{'VALUE'} = $dpv;	
-		} 	
+		$dmg{$name}{$race2} = $dpv;
 	}
+	
+	if (!defined $l_skip{$replay}) {
+		foreach my $p (keys %dmg) {
+			foreach my $r (keys %{ $dmg{$p} }) {
+				$dpv{$r}{'GAMES'} ++;
+				if (defined $dpv{$r}{'VALUE'}) { 
+					$dpv{$r}{'VALUE'} += $dmg{$p}{$r};
+				} else {
+					$dpv{$r}{'VALUE'} = $dmg{$p}{$r};	
+				}
+			}
+		} 	
+			
+	}
+	%dmg = ();
 }
 
 
-my $games = keys %sum;
-my $leaver = keys %l_skip;
+
+#my $leaver = keys %l_skip;
 
 my $l_p = $leaver * 100 / $games;
 $l_p = sprintf("%.2f", $l_p);
@@ -189,6 +226,7 @@ print "$leaver out or $games left the game for no reason ($l_p %)\n";
 my @x;
 my @y;
 my $title;
+my $y_label;
 
 foreach my $r ( keys %dpv) {
 	my $avg = $dpv{$r}{'VALUE'} / $dpv{$r}{'GAMES'};
@@ -196,10 +234,13 @@ foreach my $r ( keys %dpv) {
 	print $r . " <=> " . $avg . "\n";
 	$dpv_sum{$r . " (" . $dpv{$r}{'GAMES'} . ")"} = $avg;
 }
-
+my $max = 0;
 foreach (sort { $dpv_sum{$a} <=> $dpv_sum{$b} } keys %dpv_sum) {
 	push(@x, $_);
-	push(@y, $dpv_sum{$_});	
+	push(@y, $dpv_sum{$_});
+	if ($dpv_sum{$_} > $max) {
+		$max = $dpv_sum{$_};	
+	}	
 }
 
 my $sd;
@@ -215,25 +256,47 @@ my $add = "World";
 if ($player_stats == 1) {
 	$add = "Player";
 }
-$title = "Damage $add ($sd to $ed) ($l_p% games with leaver skiped)\n";
+if ($basedon eq "army") {
+	$title = "DPV $add ($sd to $ed) ($l_p% games with leaver skiped)\n";
+	$y_label = "DPV (KilledArmyValue / SpawnedArmyValue)";
+} elsif ($basedon eq "income") {
+	$title = "DPM $add ($sd to $ed) ($l_p% games with leaver skiped)\n";
+	$y_label = "DPV (KilledArmyValue / MineralsCollected)";
+} elsif ($basedon eq "time") {
+	$title = "DPS $add ($sd to $ed) ($l_p% games with leaver skiped)\n";
+	$y_label = "DPV (KilledArmyValue / gameduration)";
+}
 
-&PrintGraph($title, "Commanders", 1, $png, \@x, \@y);
+
+
+my $y_max_value = $max * 1.1;
+$y_max_value = sprintf("%.1f", $y_max_value);
+
+if ($alignment eq "horizontal") {
+	&PrintGraph($title, "Commanders", $y_label, 1, $y_max_value, $png, \@x, \@y);
+} elsif ($alignment eq "vertical") {
+	&PrintHGraph($title, "Commanders", $y_label, 1, $y_max_value, $png, \@x, \@y);	
+}	
+
 
 
 sub PrintGraph {
 
 my $title = shift;
 my $x_label = shift;
+my $y_label = shift;
 my $x_tick_number = shift;
+my $y_max_value = shift;
 my $png = shift;
 my $x = shift;
 my $y = shift;
 
 
 my $graph = GD::Graph::bars->new(1600, 600);
+#my $graph = GD::Graph::hbars->new(600, 1600);
 $graph->set(
     x_label             => $x_label . '(generated by https://github.com/ipax77/sc2dsstats)',
-    y_label             => 'DPV (KilledArmyValue / SpawnedArmyValue)',
+    y_label             => $y_label,
     title               => $title,
     
     # shadows
@@ -241,7 +304,7 @@ $graph->set(
     shadow_depth    => 4,
     shadowclr       => 'dred',
         
-    y_max_value         => 1.2,
+    y_max_value         => $y_max_value,
     y_min_value         => 0,
     y_tick_number       => 1,
     y_label_skip        => 1,
@@ -281,7 +344,69 @@ close(IMG);
 	
 }
 
+sub PrintHGraph {
 
+my $title = shift;
+my $x_label = shift;
+my $y_label = shift;
+my $x_tick_number = shift;
+my $y_max_value = shift;
+my $png = shift;
+my $x = shift;
+my $y = shift;
+
+
+#my $graph = GD::Graph::bars->new(1600, 600);
+my $graph = GD::Graph::hbars->new(600, 1600);
+$graph->set(
+    x_label             => $x_label . '(generated by https://github.com/ipax77/sc2dsstats)',
+    y_label             => $y_label,
+    title               => $title,
+    
+    # shadows
+    bar_spacing     => 8,
+    shadow_depth    => 4,
+    shadowclr       => 'dred',
+        
+    y_max_value         => $y_max_value,
+    y_min_value         => 0,
+    y_tick_number       => 1,
+    y_label_skip        => 1,
+    x_label_skip        => 1,
+    #x_labels_vertical => 1,
+    
+    bar_spacing     => 10,
+    accent_treshold => 200,
+    transparent     => 0,
+    
+    transparent         => 0,
+    bgclr               => 'white',
+    long_ticks          => 1,
+) or die $graph->error;
+
+
+
+
+my @data = ($x, $y);
+
+
+$graph->set_title_font('C:/Windows/Fonts/arial.ttf', 18);
+$graph->set_legend_font('C:/Windows/Fonts/arial.ttf', 18);
+$graph->set_legend_font('C:/Windows/Fonts/arial.ttf', 18);
+$graph->set_x_axis_font('C:/Windows/Fonts/arial.ttf', 14);
+$graph->set(show_values => 1 );
+$graph->set_values_font('C:/Windows/Fonts/arial.ttf', 12);
+
+$graph->set( dclrs => [ qw(blue blue blue blue) ] );
+my $gd = $graph->plot(\@data) or die $graph->error;
+ 
+open(IMG, ">:unix", $png) or die $!;
+binmode IMG;
+print IMG $gd->png;
+close(IMG);
+	
+	
+}
 
 sub ReadCSV {
 	my $csv = shift;
@@ -336,3 +461,4 @@ sub ReadCSV {
 	}
 	
 }
+

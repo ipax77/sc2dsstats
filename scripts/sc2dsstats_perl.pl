@@ -31,6 +31,7 @@ use utf8;
 use open IN => ":utf8";
 use open OUT => ":utf8";
 use XML::Simple;
+use DateTime;
 
 
 my $DEBUG = 2;
@@ -202,7 +203,7 @@ if (-e $stats_file) {
 # Extracting data from the decoded Replays
 #
 
-my $gametime;
+#my $gametime;
 my $new_id = 0;
 my $id_count = 1;
 
@@ -271,7 +272,8 @@ while (my $p = readdir(STAT)) {
 				my $duration;
 				my $gameloop;
 				my $player_count = 0;
-				my $fix;
+				my $gametime;
+				my $fix = 0;
 				my %fix;
 				
 				my %m_scoreValueMineralsCollectionRate;
@@ -288,6 +290,7 @@ while (my $p = readdir(STAT)) {
 		                my $win_t0 = 0;
 		                my $win_t1 = 0;
 		                my $myteam = 0;
+		                my $offset = 0;
 		
 		                open(ST, "<", $stat_file) or die "Could not read $stat_file: $!\n";
 		                        while (<ST>) {
@@ -307,7 +310,7 @@ while (my $p = readdir(STAT)) {
 				                        }
 		               				 }
 		
-		       		                 if (/m_race/) {
+		       		                 elsif (/m_race/) {
 				                        if (/([\\\w]*)',$/) {
 				                                my $race = $1;
 				                                if ($race =~ /\\/) {
@@ -318,36 +321,52 @@ while (my $p = readdir(STAT)) {
 				                        }
 		             			    }
 		
-		                        if (/m_result/) {
-			                        if (/(\d+),$/) {
-			                                my $result = $1;
-			                                $detail{$id}{$player_count}{'RESULT'} = $result;
-			                        }
-		                  	    }
+			                        elsif (/m_result/) {
+				                        if (/(\d+),$/) {
+				                                my $result = $1;
+				                                $detail{$id}{$player_count}{'RESULT'} = $result;
+				                        }
+			                  	    }
 		
-		                        if (/m_teamId/) {
-			                        if (/\s(\d*),$/) {
-			                                my $teamid = $1;
-			                                $detail{$id}{$player_count}{'TEAM'} = $teamid;
-			
-			                                if ($detail{$id}{$player_count}{'NAME'} eq $player) {
-			                                        $myteam = $teamid;
-			                                }
-			
-			
-			                                if ($teamid == 0) {
-			                                        $win_t0 +=      $detail{$id}{$player_count}{'RESULT'};
-			                                } elsif ($teamid == 1) {
-			                                        $win_t1 +=      $detail{$id}{$player_count}{'RESULT'};
-			                                }
+			                        elsif (/m_teamId/) {
+				                        if (/\s(\d*),$/) {
+				                                my $teamid = $1;
+				                                $detail{$id}{$player_count}{'TEAM'} = $teamid;
+				
+				                                if ($detail{$id}{$player_count}{'NAME'} eq $player) {
+				                                        $myteam = $teamid;
+				                                }
+				
+				
+				                                if ($teamid == 0) {
+				                                        $win_t0 +=      $detail{$id}{$player_count}{'RESULT'};
+				                                } elsif ($teamid == 1) {
+				                                        $win_t1 +=      $detail{$id}{$player_count}{'RESULT'};
+				                                }
+				                        }
 			                        }
-		                        }
-		                        
-		                        if (/m_timeUTC/) {
-		                        	if (/(\d+)L,$/) {
-		                        		#$gametime = $1;	
-		                        		
-		                        	}	
+			                        
+			                        elsif (/m_timeLocalOffset/) {
+			                        	if (/\:\s([\-\d]+)L,$/) {
+			                        		$offset = $1;
+			                        	}	
+			                        }
+			                        
+			                        elsif (/m_timeUTC/) {
+			                        	if (/(\d+)L,$/) {
+			                        		my $georgian = $1;
+			                        		
+			                        		$georgian = int($georgian / 10000000);	
+			                        		$offset = int($offset / 10000000);
+			                        		my $geo = $georgian + $offset;
+			                        		my $dt_geo = DateTime->from_epoch( epoch => $geo);
+			                        		my $dgeo = $dt_geo->year - 369;
+			                        		$dt_geo->set( year => $dgeo );
+			                        		$gametime = $dt_geo->ymd('') . $dt_geo->hms(''); 
+			                        		for (my $i = 1; $i <= $player_count; $i++) {
+			                        			$detail{$id}{$i}{'GAMETIME'} = $gametime;
+			                        		}
+			                        	}	
 		                        }
 		
 		
@@ -374,8 +393,10 @@ while (my $p = readdir(STAT)) {
 				                        if ($unit =~ /^Worker(.*)/) {
 				                                my $race2 = $1;
 				                                $detail{$id}{$playerid}{'RACE2'} = $race2;
-				                                if ($race2 eq "Stukov" || $race2 eq "Horner") {
-				                                	$fix = 1;	
+				                                if ($race2 eq "Stukov" || $race2 eq "Horner" || $race2 eq "Zagara" || $race2 eq "Kerrigan" || $race2 eq "Alarak" || $race2 eq "Nova") {
+				                                	if ( $detail{$id}{$playerid}{'GAMETIME'} <= 20190121000000) {
+				                                		$fix = 1;
+				                                	}	
 				                                }
 				                         }
 			                        }
@@ -395,13 +416,13 @@ while (my $p = readdir(STAT)) {
 				                        $detail{$id}{$playerid}{'KILLSUM'} = $killarmy;
 				                        $detail{$id}{$playerid}{'DURATION'} = $duration;
 				                        
-				                        if (!defined $detail{$id}{$playerid}{'GAMETIME'}) {
-					                        my $replay = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} . "/" . $id . ".SC2Replay";
-		        							if (-e $replay) {
-		        								$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
-							        		}   	
-					                        $detail{$id}{$playerid}{'GAMETIME'} = $gametime;
-				                        }
+				                        #if (!defined $detail{$id}{$playerid}{'GAMETIME'}) {
+					                    #    my $replay = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} . "/" . $id . ".SC2Replay";
+		        						#	if (-e $replay) {
+		        						#		$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );	
+							        	#	}   	
+					                    #    $detail{$id}{$playerid}{'GAMETIME'} = $gametime;
+				                        #}
 				                }
 			        		} elsif (/m_scoreValueMineralsCollectionRate'\: (\d+),$/) {
 								$m_scoreValueMineralsCollectionRate{$playerid}{$gameloop} = $1;
@@ -445,6 +466,8 @@ while (my $p = readdir(STAT)) {
 										}	
 										$event = 0;
 									}	
+									
+
 			        		}
 			        		
 			        		
@@ -494,8 +517,26 @@ while (my $p = readdir(STAT)) {
 							}
 						}
 						
-						foreach my $p (keys %fix) {
-							$detail{$id}{$p}{'ARMY'} += $fix{$p};
+						if ($fix) {
+							# Dirty quick
+							
+							for (my $i = 1; $i <= $player_count; $i++) {
+								if (defined $detail{$id}{$i}{'RACE2'}) {
+									if ($detail{$id}{$i}{'RACE2'} eq "Nova") {
+										$fix{$i} = 250;	
+									} elsif ($detail{$id}{$i}{'RACE2'} eq "Zagara") {
+										$fix{$i} = 275;
+									} elsif ($detail{$id}{$i}{'RACE2'} eq "Alarak") {
+										$fix{$i} = 300;
+									} elsif ($detail{$id}{$i}{'RACE2'} eq "Kerrigan") {
+										$fix{$i} = 400;
+									}
+								}
+							}
+							
+							foreach my $p (keys %fix) {
+								$detail{$id}{$p}{'ARMY'} += $fix{$p};
+							}
 						}
 		                
 		                
