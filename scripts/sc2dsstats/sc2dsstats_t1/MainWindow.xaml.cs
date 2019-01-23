@@ -1,27 +1,20 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Configuration;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
-using System.Windows.Controls.Primitives;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Collections;
+using sc2dsstats;
+using Microsoft.Win32;
 
 
 namespace sc2dsstats_t1
@@ -34,7 +27,7 @@ namespace sc2dsstats_t1
 
     public partial class MainWindow : Window
     {
-        public Image dynamicImage = null;
+        public Image myImage = null;
         public TextBox dynamicText = null;
         private bool dt_handle = true;
         private bool dps_handle = true;
@@ -47,7 +40,8 @@ namespace sc2dsstats_t1
             var appSettings = ConfigurationManager.AppSettings;
 
 
-            if (string.Equals(appSettings["FIRST_RUN"], "1")) {
+            if (string.Equals(appSettings["FIRST_RUN"], "1"))
+            {
 
 
 
@@ -141,7 +135,9 @@ namespace sc2dsstats_t1
             if (String.Equals(appSettings["SKIP_MSG"], "0"))
             {
                 j /= 2;
-            } else {
+            }
+            else
+            {
                 j /= 3;
             }
 
@@ -234,7 +230,7 @@ namespace sc2dsstats_t1
             fr_InputTextBox.Text = String.Empty;
 
             string filename = fr_InputTextBox2.Text;
-            
+
 
             config.AppSettings.Settings.Remove("REPLAY_PATH");
             config.AppSettings.Settings.Add("REPLAY_PATH", filename);
@@ -242,21 +238,38 @@ namespace sc2dsstats_t1
             ConfigurationManager.RefreshSection("appSettings");
 
             MessageBox.Show("Now we are good to go - have fun :) (There are more options available at File->Options)");
-            
+
         }
 
         private void ClearImage()
         {
-            if (stackpanel1.Children.Contains(dynamicImage))
-            {
-                dynamicImage.Source = null;
-                stackpanel1.Children.Clear();
-            }
+
 
             if (stackpanel1.Children.Contains(dynamicText))
             {
                 dynamicText = null;
                 stackpanel1.Children.Clear();
+            }
+
+            if (stackpanel1.Children.Contains(myImage))
+            {
+                myImage.Source = null;
+                stackpanel1.Children.Remove(myImage);
+            }
+            if (otf_stats.Children.Contains(myImage))
+            {
+                myImage.Source = null;
+                otf_stats.Children.Remove(myImage);
+            }
+            if (gr_details.Children.Contains(myImage))
+            {
+                myImage.Source = null;
+                gr_details.Children.Remove(myImage);
+            }
+            if (gr_damage.Children.Contains(myImage))
+            {
+                myImage.Source = null;
+                gr_damage.Children.Remove(myImage);
             }
 
             dp_config.Visibility = Visibility.Collapsed;
@@ -267,14 +280,15 @@ namespace sc2dsstats_t1
 
         }
 
-        private void CreateViewImageDynamically(string imgPath)
+        private Image CreateViewImageDynamically(string imgPath)
         {
             // Create Image and set its width and height  
-            dynamicImage = new Image();
+            Image dynamicImage = new Image();
             dynamicImage.Stretch = Stretch.Fill;
             dynamicImage.StretchDirection = StretchDirection.Both;
             dynamicImage.Width = 1610;
             dynamicImage.Height = 610;
+            dynamicImage.MouseDown += new System.Windows.Input.MouseButtonEventHandler(dyn_image_Click);
 
             // Create a BitmapSource  
             BitmapImage bitmap = new BitmapImage();
@@ -287,7 +301,25 @@ namespace sc2dsstats_t1
             dynamicImage.Source = bitmap;
 
             // Add Image to Window  
-            stackpanel1.Children.Add(dynamicImage);
+            /// stackpanel1.Children.Add(dynamicImage);
+            /// 
+
+            ContextMenu cm = new ContextMenu();
+            MenuItem saveas = new MenuItem();
+            saveas.Header = "Save as ...";
+            cm.Items.Add(saveas);
+            saveas.Click += new System.Windows.RoutedEventHandler(SaveAs_Click);
+
+
+
+
+            dynamicImage.ContextMenu = cm;
+
+            
+
+
+
+            return dynamicImage;
         }
 
         private void CreateViewTextDynamically(string imgPath)
@@ -317,7 +349,7 @@ namespace sc2dsstats_t1
 
             stackpanel1.Children.Add(dynamicText);
 
-           
+
 
 
         }
@@ -344,7 +376,7 @@ namespace sc2dsstats_t1
 
             CreateViewTextDynamically(logfile);
 
-            
+
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\doit.cmd";
@@ -387,7 +419,8 @@ namespace sc2dsstats_t1
                 dynamicText.Focus();
                 dynamicText.SelectionStart = dynamicText.Text.Length;
                 dynamicText.ScrollToEnd();
-            } else
+            }
+            else
             {
                 MessageBox.Show("No logfile found :(");
             }
@@ -419,11 +452,13 @@ namespace sc2dsstats_t1
 
             if (File.Exists(stats))
             {
-                CreateViewImageDynamically(stats);
+                myImage = CreateViewImageDynamically(stats);
+                stackpanel1.Children.Add(myImage);
                 label1.Text = stats;
                 label1.UpdateLayout();
 
-            } else
+            }
+            else
             {
                 MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
             }
@@ -451,7 +486,7 @@ namespace sc2dsstats_t1
             }
         }
         */
-        
+
 
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
@@ -499,7 +534,7 @@ namespace sc2dsstats_t1
 
         }
 
-        private void bt_save_Click (object sender, RoutedEventArgs e)
+        private void bt_save_Click(object sender, RoutedEventArgs e)
         {
 
             string aba = "bab" + Environment.NewLine;
@@ -535,7 +570,8 @@ namespace sc2dsstats_t1
                     {
 
 
-                    } else
+                    }
+                    else
                     {
                         config.AppSettings.Settings.Remove(myCfg.key);
                         config.AppSettings.Settings.Add(myCfg.key, myCfg.value);
@@ -563,7 +599,7 @@ namespace sc2dsstats_t1
             List<myConfig> configs = new List<myConfig>();
             var appSettings = ConfigurationManager.AppSettings;
             string cdesc = "Und es war Sommer";
-            
+
             foreach (var ckey in appSettings.AllKeys)
             {
                 if (String.Equals(ckey, "REPLAY_PATH"))
@@ -599,7 +635,6 @@ namespace sc2dsstats_t1
         private void otf_ShowButton_Click(object sender, RoutedEventArgs e)
         {
 
-            
             ///otf_image.Source = null;
 
             string sd = otf_startdate.SelectedDate.Value.ToString("yyyyMMdd");
@@ -607,15 +642,15 @@ namespace sc2dsstats_t1
             string ed = otf_enddate.SelectedDate.Value.ToString("yyyyMMdd");
             ed += "000000";
             string show_std = "1";
-            
+
             if (otf_std.IsChecked == true)
             {
                 show_std = "0";
-            } 
+            }
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\scripts\\sc2dsstats_worker.exe";
- 
+
             string ExecutableFilePath = s_doit;
             string Arguments = sd + " " + ed + " " + show_std;
 
@@ -636,38 +671,54 @@ namespace sc2dsstats_t1
             string otf_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             otf_png += "\\otf.png";
 
-   
+
             if (File.Exists(otf_png))
             {
-                // Create a BitmapSource  
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(@otf_png);
-                bitmap.EndInit();
 
-                // Set Image.Source  
-                otf_image.Source = bitmap;
-                label1.Text = otf_png;
-                label1.UpdateLayout();
+
+                if (otf_stats.Children.Contains(myImage))
+                {
+                    // Create a BitmapSource  
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(@otf_png);
+                    bitmap.EndInit();
+
+                    // Set Image.Source  
+                    myImage.Source = bitmap;
+                    label1.Text = otf_png;
+                    label1.UpdateLayout();
+                    
+                }
+                else
+                {
+
+
+                    myImage = CreateViewImageDynamically(otf_png);
+                    label1.Text = otf_png;
+                    label1.UpdateLayout();
+                    otf_stats.Children.Add(myImage);
+                }
 
             }
             else
             {
                 MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
             }
-        
 
 
 
-    }
+
+        }
 
         private void bt_Time_Click(object sender, RoutedEventArgs e)
         {
             ClearImage();
+            System.DateTime sd = new DateTime(2018, 11, 1);
             otf_enddate.SelectedDate = DateTime.Today;
-            otf_startdate.SelectedDate = DateTime.Today;
+            otf_startdate.SelectedDate = sd;
             otf_stats.Visibility = Visibility.Visible;
 
         }
@@ -700,7 +751,8 @@ namespace sc2dsstats_t1
                  "Terran",
                  "Zerg"
             };
-            foreach (string cmdr in cmdrs) {
+            foreach (string cmdr in cmdrs)
+            {
                 dt_ComboBox.Items.Add(cmdr);
             }
 
@@ -733,7 +785,7 @@ namespace sc2dsstats_t1
         private void dt_showButton_Click(object sender, RoutedEventArgs e)
         {
 
-
+   
             ///otf_image.Source = null;
 
             string sd = dt_startdate.SelectedDate.Value.ToString("yyyyMMdd");
@@ -746,13 +798,24 @@ namespace sc2dsstats_t1
             {
                 show_std = "0";
             }
+            string player_only = "1";
+            if (dt_player.IsChecked == false)
+            {
+                player_only = "0";
+            }
+
+            string alignment = "horizontal";
+            if (dt_rb_vertical.IsChecked == true)
+            {
+                alignment = "vertical";
+            }
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\scripts\\sc2dsstats_worker.exe";
 
             string ExecutableFilePath = s_doit;
             string cmdr = dt_ComboBox.Items[dt_ComboBox.SelectedIndex].ToString();
-            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr;
+            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr + " " + player_only + " army " + alignment;
 
 
             List<string> files = new List<string>();
@@ -774,18 +837,30 @@ namespace sc2dsstats_t1
 
             if (File.Exists(dt_png))
             {
-                // Create a BitmapSource  
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(@dt_png);
-                bitmap.EndInit();
 
-                // Set Image.Source  
-                dt_image.Source = bitmap;
-                label1.Text = dt_png;
-                label1.UpdateLayout();
+                if (gr_details.Children.Contains(myImage))
+                {
+                    // Create a BitmapSource  
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(@dt_png);
+                    bitmap.EndInit();
+
+                    // Set Image.Source  
+                    myImage.Source = bitmap;
+                    label1.Text = dt_png;
+                    label1.UpdateLayout();
+                }
+                else
+                {
+
+                    myImage = CreateViewImageDynamically(dt_png);
+                    label1.Text = dt_png;
+                    label1.UpdateLayout();
+                    gr_details.Children.Add(myImage);
+                }
 
             }
             else
@@ -836,7 +911,7 @@ namespace sc2dsstats_t1
 
         }
 
-        /*
+
         private void dps_ComboBox_Changed(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
@@ -856,12 +931,12 @@ namespace sc2dsstats_t1
 
             dps_showButton_Click(sender, re);
         }
-        */
+
 
         private void dps_showButton_Click(object sender, RoutedEventArgs e)
         {
 
-
+  
             ///otf_image.Source = null;
 
             string sd = dps_startdate.SelectedDate.Value.ToString("yyyyMMdd");
@@ -881,12 +956,38 @@ namespace sc2dsstats_t1
                 player_only = "1";
             }
 
+            string basedon = "army";
+            if (dps_rb_income.IsChecked == true)
+            {
+                basedon = "income";
+            }
+            else if (dps_rb_time.IsChecked == true)
+            {
+                basedon = "time";
+            }
+            else if (dps_rb_army.IsChecked == true)
+            {
+                basedon = "army";
+            }
+
+            string alignment = "horizontal";
+            if (dps_rb_vertical.IsChecked == true)
+            {
+                alignment = "vertical";
+            }
+
+            string opp = "0";
+            if (dps_opp.IsChecked == true)
+            {
+                opp = "1";
+            }
+
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\scripts\\sc2dsstats_damage.exe";
 
             string ExecutableFilePath = s_doit;
             string cmdr = dps_ComboBox.Items[dps_ComboBox.SelectedIndex].ToString();
-            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr + " " + player_only;
+            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr + " " + player_only + " " + basedon + " " + alignment + " " + opp;
 
 
             List<string> files = new List<string>();
@@ -908,18 +1009,30 @@ namespace sc2dsstats_t1
 
             if (File.Exists(dps_png))
             {
-                // Create a BitmapSource  
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(@dps_png);
-                bitmap.EndInit();
+                if (gr_damage.Children.Contains(myImage))
+                {
+                    // Create a BitmapSource  
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(@dps_png);
+                    bitmap.EndInit();
 
-                // Set Image.Source  
-                dps_image.Source = bitmap;
-                label1.Text = dps_png;
-                label1.UpdateLayout();
+                    // Set Image.Source  
+                    myImage.Source = bitmap;
+                    label1.Text = dps_png;
+                    label1.UpdateLayout();
+                }
+                else
+                {
+
+                    myImage = CreateViewImageDynamically(dps_png);
+                    label1.Text = dps_png;
+                    label1.UpdateLayout();
+                    gr_damage.Children.Add(myImage);
+                }
+
 
             }
             else
@@ -931,9 +1044,200 @@ namespace sc2dsstats_t1
 
 
         }
+
+        private void dps_Popup_Click(object sender, RoutedEventArgs e)
+        {
+            Window1 win1 = new Window1();
+
+
+
+            string dps_png = @"D:/github/sc2dssstats_debug/dpv.png";
+
+
+            if (File.Exists(dps_png))
+            {
+                // Create a BitmapSource  
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(@dps_png);
+                bitmap.EndInit();
+
+                // Set Image.Source  
+                win1.win_dps_img1.Source = bitmap;
+                win1.win_dps_grid.Visibility = Visibility.Visible;
+
+            }
+            win1.win_dps_grid.Visibility = Visibility.Visible;
+
+            win1.Show();
+        }
+
+        private void dps_rb_army_Click(object sender, RoutedEventArgs e)
+        {
+            if (dps_rb_army.IsChecked == true)
+            {
+                dps_rb_income.IsChecked = false;
+            }
+        }
+
+        private void dps_rb_income_Click(object sender, RoutedEventArgs e)
+        {
+            if (dps_rb_income.IsChecked == true)
+            {
+                dps_rb_army.IsChecked = false;
+            }
+        }
+
+        private void dps_rb_Horizontal_Click(object sender, RoutedEventArgs e)
+        {
+            if (dps_rb_horizontal.IsChecked == true)
+            {
+                dps_rb_vertical.IsChecked = false;
+            }
+        }
+
+        private void dps_rb_Vertical_Click(object sender, RoutedEventArgs e)
+        {
+            if (dps_rb_vertical.IsChecked == true)
+            {
+                dps_rb_horizontal.IsChecked = false;
+            }
+        }
+
+
+        private void dps_opp_Click(object sender, RoutedEventArgs e)
+        {
+            dps_ComboBox.Visibility = Visibility.Visible;
+            if (dps_opp.IsChecked == false)
+            {
+                dps_ComboBox.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void dps_image_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Und es war SOmmer");
+        }
+
+        private void dyn_image_Click(object sender, RoutedEventArgs e)
+        {
+            /// MessageBox.Show("Und es war SOmmer");
+
+            System.Windows.Input.MouseEventArgs me = (System.Windows.Input.MouseEventArgs)e;
+            BitmapImage bitmap = new BitmapImage();
+
+            string dps_png = myImage.Source.ToString();
+
+            dps_png = new Uri(dps_png).LocalPath;
+
+            if (me.RightButton == System.Windows.Input.MouseButtonState.Released)
+            {
+                Window1 win1 = new Window1();
+
+
+                win1.Title = dps_png;
+
+                /// System.Windows.Controls.Image pupdynImage = new System.Windows.Controls.Image();
+
+                var imageStream = File.OpenRead(@dps_png);
+                var decoder = BitmapDecoder.Create(imageStream, BitmapCreateOptions.IgnoreColorProfile, BitmapCacheOption.OnLoad);
+                win1.Height = decoder.Frames[0].PixelHeight;
+                win1.Width = decoder.Frames[0].PixelWidth;
+
+
+
+
+
+
+                if (File.Exists(dps_png))
+                {
+
+                    bitmap.BeginInit();
+                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(@dps_png);
+                    bitmap.EndInit();
+                    // Set Image.Source  
+                    win1.win_dps_img1.Source = bitmap;
+                    win1.win_dps_grid.Visibility = Visibility.Visible;
+
+                }
+                win1.win_dps_grid.Visibility = Visibility.Visible;
+
+                win1.Show();
+
+            }
+
+            else if (me.LeftButton == System.Windows.Input.MouseButtonState.Released)
+            {
+
+
+                /**
+                /// save as
+                
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                saveFileDialog1.Filter = "PNG Image|*.png";
+                saveFileDialog1.Title = "Save PNG Image File";
+                saveFileDialog1.ShowDialog();
+
+                if (saveFileDialog1.FileName != "")
+                {
+                    bitmap.BeginInit();
+                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(@dps_png);
+                    bitmap.EndInit();
+
+                    // Save the bitmap into a file.
+                    using (FileStream stream =
+                        new FileStream(saveFileDialog1.FileName, FileMode.Create))
+                    {
+                        PngBitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                        encoder.Save(stream);
+                    }
+
+
+                }
+                **/
+            }
+        }
+        private void SaveAs_Click(object sender, RoutedEventArgs e)
+        {
+
+            string dps_png = myImage.Source.ToString();
+            dps_png = new Uri(dps_png).LocalPath;
+            BitmapImage bitmap = new BitmapImage();
+
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "PNG Image|*.png";
+            saveFileDialog1.Title = "Save PNG Image File";
+            saveFileDialog1.ShowDialog();
+
+            if (saveFileDialog1.FileName != "")
+            {
+                bitmap.BeginInit();
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(@dps_png);
+                bitmap.EndInit();
+
+                // Save the bitmap into a file.
+                using (FileStream stream =
+                    new FileStream(saveFileDialog1.FileName, FileMode.Create))
+                {
+                    PngBitmapEncoder encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                    encoder.Save(stream);
+                }
+
+
+            }
+        }
     }
 }
-
 
 
 

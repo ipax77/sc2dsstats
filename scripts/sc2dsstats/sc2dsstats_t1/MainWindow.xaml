@@ -3,9 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+
         mc:Ignorable="d"
         Title="sc2dsstats" Height="800" Width="1700">
 
+    
+    
     <Grid x:Name="Grid1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinWidth="1700" MinHeight="800">
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -26,8 +29,6 @@
                 </Menu>
             </DockPanel>
         </Grid>
-
-
         <Button Content="doit" HorizontalAlignment="Left" Margin="34,35,0,0" VerticalAlignment="Top" Width="76" RenderTransformOrigin="-0.402,-0.777" Click="Button_Click" Background="{x:Null}"/>
         <TextBox x:Name="label1" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" HorizontalAlignment="Left" Margin="573,36,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Width="963">
             <TextBox.Background>
@@ -76,38 +77,58 @@
             <CheckBox x:Name="otf_std" Content="show STD" HorizontalAlignment="Left" Margin="808,12,0,0" VerticalAlignment="Top"/>
             <Label Content="start_date" HorizontalAlignment="Left" Margin="371,6,0,0" VerticalAlignment="Top" Width="59"/>
             <Label Content="end_date" HorizontalAlignment="Left" Margin="588,6,0,0" VerticalAlignment="Top" Width="54"/>
-            <Image x:Name="otf_image" HorizontalAlignment="Left" Height="641" Margin="10,41,0,0" VerticalAlignment="Top" Width="1655"/>
             <DatePicker x:Name="otf_startdate" HorizontalAlignment="Left" Margin="435,8,0,0" VerticalAlignment="Top"/>
             <DatePicker x:Name="otf_enddate" HorizontalAlignment="Left" Margin="647,8,0,0" VerticalAlignment="Top"/>
 
         </Grid>
 
         <Grid x:Name="gr_details" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0" Height="682" Width="1675">
-
-            <Button x:Name="dt_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="940,8,0,0" Width="74" Height="24" Content="Show" Click="dt_showButton_Click"/>
-            <CheckBox x:Name="dt_std" Content="show STD" HorizontalAlignment="Left" Margin="808,12,0,0" VerticalAlignment="Top"/>
+            <Button x:Name="dt_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="957,8,0,0" Width="74" Height="24" Content="Show" Click="dt_showButton_Click"/>
+            <CheckBox x:Name="dt_std" Content="show STD" HorizontalAlignment="Left" Margin="880,13,0,0" VerticalAlignment="Top" Width="72"/>
+            <CheckBox x:Name="dt_player" Content="playeronly" HorizontalAlignment="Left" Margin="800,13,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" />
             <Label Content="start_date" HorizontalAlignment="Left" Margin="372,6,0,0" VerticalAlignment="Top" Width="58"/>
             <Label Content="end_date" HorizontalAlignment="Left" Margin="586,6,0,0" VerticalAlignment="Top" Width="56"/>
-            <Image x:Name="dt_image" HorizontalAlignment="Left" Height="641" Margin="10,41,0,0" VerticalAlignment="Top" Width="1655"/>
             <DatePicker x:Name="dt_startdate" HorizontalAlignment="Left" Margin="435,8,0,0" VerticalAlignment="Top"/>
             <DatePicker x:Name="dt_enddate" HorizontalAlignment="Left" Margin="647,8,0,0" VerticalAlignment="Top"/>
             <Label Content="commander" HorizontalAlignment="Left" Margin="153,6,0,0" VerticalAlignment="Top" Width="76"/>
             <ComboBox x:Name="dt_ComboBox" HorizontalAlignment="Left" Margin="234,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dt_ComboBox_Changed" DropDownClosed="dt_ComboBox_Closed" />
-
+            <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="33" Margin="63,0,0,0" VerticalAlignment="Top" Width="79" />
+            <Border Margin="211,3,1382,649">
+                <Grid Margin="-146,0,146,0">
+                    <RadioButton x:Name="dt_rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Grid.ColumnSpan="3" />
+                    <RadioButton x:Name="dt_rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Grid.ColumnSpan="3" />
+                </Grid>
+            </Border>
         </Grid>
 
         <Grid x:Name="gr_damage" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0" Height="682" Width="1675">
-
-            <Button x:Name="dps_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="983,8,0,0" Width="74" Height="24" Content="Show" Click="dps_showButton_Click"/>
-            <CheckBox x:Name="dps_std" Content="show STD" HorizontalAlignment="Left" Margin="895,13,0,0" VerticalAlignment="Top"/>
-            <CheckBox x:Name="dps_player" Content="playeronly" HorizontalAlignment="Left" Margin="798,13,0,0" VerticalAlignment="Top"/>
+            <Button x:Name="dps_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="1072,8,0,0" Width="74" Height="24" Content="Show" Click="dps_showButton_Click"/>
+            <Button x:Name="dps_Popup" VerticalAlignment="Top" Visibility="Collapsed" HorizontalAlignment="Left" Margin="316.333,8,0,0" Width="74" Height="24" Content="Popup" Click="dps_Popup_Click" Grid.Column="1"/>
+            <CheckBox x:Name="dps_std" Content="show STD" HorizontalAlignment="Left" Margin="995,13,0,0" VerticalAlignment="Top"/>
+            <CheckBox x:Name="dps_player" Content="playeronly" HorizontalAlignment="Left" Margin="915,13,0,0" VerticalAlignment="Top"/>
+            <CheckBox x:Name="dps_opp" Content="vs" HorizontalAlignment="Left" Margin="84,13,0,0" VerticalAlignment="Top" Click="dps_opp_Click"/>
             <Label Content="start_date" HorizontalAlignment="Left" Margin="372,6,0,0" VerticalAlignment="Top" Width="58"/>
             <Label Content="end_date" HorizontalAlignment="Left" Margin="586,6,0,0" VerticalAlignment="Top" Width="56"/>
-            <Image x:Name="dps_image" HorizontalAlignment="Left" Height="641" Margin="10,41,0,0" VerticalAlignment="Top" Width="1655"/>
             <DatePicker x:Name="dps_startdate" HorizontalAlignment="Left" Margin="435,8,0,0" VerticalAlignment="Top"/>
             <DatePicker x:Name="dps_enddate" HorizontalAlignment="Left" Margin="647,8,0,0" VerticalAlignment="Top"/>
-            <Label Content="commander" HorizontalAlignment="Left" Margin="153,6,0,0" VerticalAlignment="Top" Width="76"/>
-            <ComboBox x:Name="dps_ComboBox" Visibility="Collapsed" HorizontalAlignment="Left" Margin="234,10,0,0" VerticalAlignment="Top" Width="120" />
+            <Label Content="commander" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="76"/>
+            <ComboBox x:Name="dps_ComboBox" Visibility="Collapsed" HorizontalAlignment="Left" Margin="131,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dps_ComboBox_Changed" DropDownClosed="dps_ComboBox_Closed" />
+            <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="45" Margin="794,-9,0,0" VerticalAlignment="Top" Width="108" Grid.ColumnSpan="2" />
+            <Border Margin="803,6,785,646" Grid.ColumnSpan="2">
+                <Grid>
+                    <RadioButton x:Name="dps_rb_army" Content="ArmyValue" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Click="dps_rb_army_Click"/>
+                    <RadioButton x:Name="dps_rb_income" Content="IncomeValue" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="dps_rb_income_Click" />
+                    <RadioButton x:Name="dps_rb_time" Content="gametime" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-15,0,0" />
+                </Grid>
+            </Border>
+            <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="33" Margin="287,3,0,0" VerticalAlignment="Top" Width="80" />
+            <Border Margin="337,8,1231,644">
+                <Grid Margin="87,-3,-87,3">
+                    <RadioButton x:Name="dps_rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Click="dps_rb_Horizontal_Click" IsChecked="True" Margin="-137,-2,0,0" />
+                    <RadioButton x:Name="dps_rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="-137,13,0,0" VerticalAlignment="Top" Click="dps_rb_Vertical_Click" />
+
+                </Grid>
+            </Border>
 
         </Grid>
 
@@ -131,4 +152,6 @@
 
 
     </Grid>
+
+
 </Window>
