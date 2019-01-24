@@ -7,8 +7,6 @@
         mc:Ignorable="d"
         Title="sc2dsstats" Height="800" Width="1700">
 
-    
-    
     <Grid x:Name="Grid1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinWidth="1700" MinHeight="800">
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -103,7 +101,7 @@
 
         <Grid x:Name="gr_damage" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0" Height="682" Width="1675">
             <Button x:Name="dps_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="1072,8,0,0" Width="74" Height="24" Content="Show" Click="dps_showButton_Click"/>
-            <Button x:Name="dps_Popup" VerticalAlignment="Top" Visibility="Collapsed" HorizontalAlignment="Left" Margin="316.333,8,0,0" Width="74" Height="24" Content="Popup" Click="dps_Popup_Click" Grid.Column="1"/>
+            <Button x:Name="dps_Popup" VerticalAlignment="Top" Visibility="Collapsed" HorizontalAlignment="Left" Margin="316.333,8,0,0" Width="74" Height="24" Content="Popup" Grid.Column="1"/>
             <CheckBox x:Name="dps_std" Content="show STD" HorizontalAlignment="Left" Margin="995,13,0,0" VerticalAlignment="Top"/>
             <CheckBox x:Name="dps_player" Content="playeronly" HorizontalAlignment="Left" Margin="915,13,0,0" VerticalAlignment="Top"/>
             <CheckBox x:Name="dps_opp" Content="vs" HorizontalAlignment="Left" Margin="84,13,0,0" VerticalAlignment="Top" Click="dps_opp_Click"/>

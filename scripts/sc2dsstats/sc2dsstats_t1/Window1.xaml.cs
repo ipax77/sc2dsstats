@@ -1,18 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace sc2dsstats
 {
@@ -33,8 +24,8 @@ namespace sc2dsstats
             win_dps_img1.ContextMenu = win_cm;
 
 
-                
-                
+
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -55,7 +46,8 @@ namespace sc2dsstats
                 // Set Image.Source  
                 win_dps_img1.Source = bitmap;
 
-            } else
+            }
+            else
             {
                 MessageBox.Show("und es war sommer");
             }
@@ -95,5 +87,11 @@ namespace sc2dsstats
             }
         }
 
+        private void win_img_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            string dps_png = win_dps_img1.Source.ToString();
+            dps_png = new Uri(dps_png).LocalPath;
+            File.Delete(dps_png);
+        }
     }
 }

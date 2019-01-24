@@ -983,7 +983,7 @@ namespace sc2dsstats_t1
             }
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            s_doit += "\\scripts\\sc2dsstats_damage.exe";
+            s_doit += "\\scripts\\sc2dsstats_dmg.exe";
 
             string ExecutableFilePath = s_doit;
             string cmdr = dps_ComboBox.Items[dps_ComboBox.SelectedIndex].ToString();
@@ -1004,7 +1004,7 @@ namespace sc2dsstats_t1
             }
 
             string dps_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            dps_png += "\\dpv.png";
+            dps_png += "\\dmg.png";
 
 
             if (File.Exists(dps_png))
@@ -1043,35 +1043,6 @@ namespace sc2dsstats_t1
 
 
 
-        }
-
-        private void dps_Popup_Click(object sender, RoutedEventArgs e)
-        {
-            Window1 win1 = new Window1();
-
-
-
-            string dps_png = @"D:/github/sc2dssstats_debug/dpv.png";
-
-
-            if (File.Exists(dps_png))
-            {
-                // Create a BitmapSource  
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(@dps_png);
-                bitmap.EndInit();
-
-                // Set Image.Source  
-                win1.win_dps_img1.Source = bitmap;
-                win1.win_dps_grid.Visibility = Visibility.Visible;
-
-            }
-            win1.win_dps_grid.Visibility = Visibility.Visible;
-
-            win1.Show();
         }
 
         private void dps_rb_army_Click(object sender, RoutedEventArgs e)
@@ -1153,11 +1124,43 @@ namespace sc2dsstats_t1
 
                 if (File.Exists(dps_png))
                 {
+                    
+
+                    string targetPath = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                    targetPath += "/temp";
+
+                    string fileName = "dmg_tmp0.png";
+
+
+                    // Use Path class to manipulate file and directory paths.
+                    string sourceFile = dps_png;
+                    string destFile = System.IO.Path.Combine(targetPath, fileName);
+
+                    int i = 0;
+                    while (File.Exists(destFile))
+                    {
+                        i++;
+                        fileName = "dmg_tmp" + i.ToString() + ".png";
+                        destFile = System.IO.Path.Combine(targetPath, fileName);
+                    }
+
+                    // To copy a folder's contents to a new location:
+                    // Create a new target folder, if necessary.
+                    if (!System.IO.Directory.Exists(targetPath))
+                    {
+                        System.IO.Directory.CreateDirectory(targetPath);
+                    }
+
+                    // To copy a file to another location and 
+                    // overwrite the destination file if it already exists.
+                    System.IO.File.Copy(sourceFile, destFile, true);
+
+
 
                     bitmap.BeginInit();
                     bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@dps_png);
+                    bitmap.UriSource = new Uri(@destFile);
                     bitmap.EndInit();
                     // Set Image.Source  
                     win1.win_dps_img1.Source = bitmap;
@@ -1167,6 +1170,9 @@ namespace sc2dsstats_t1
                 win1.win_dps_grid.Visibility = Visibility.Visible;
 
                 win1.Show();
+                ///win1.Close();
+
+                win1.Closing += new CancelEventHandler(win1_img_Closing);
 
             }
 
@@ -1204,6 +1210,12 @@ namespace sc2dsstats_t1
                 **/
             }
         }
+
+        void win1_img_Closing(object sender, CancelEventArgs e)
+        {
+
+        }
+
         private void SaveAs_Click(object sender, RoutedEventArgs e)
         {
 

@@ -5,6 +5,7 @@ use open IN => ":utf8";
 use open OUT => ":utf8";
 use XML::Simple;
 use GD::Graph::bars;
+use GD::Graph::hbars;
 use POSIX qw(strftime);
 use File::Basename;
 
@@ -43,7 +44,9 @@ my @commanders = ('Abathur' , 'Alarak', 'Artanis', 'Dehaka', 'Fenix', 'Tychus', 
 my @opp = (0, 4, 5, 6, 1, 2, 3);
 my %opp; 
 my $opp_stats = 0;
-
+my $player_stats = 1;
+my $basedon = "army";
+my $alignment = "horizontal";
 my $interest = "Swann";
 my %interest;
 
@@ -61,6 +64,14 @@ if (defined $ARGV[3]) {
 	$png = $main_path . "/dt.png";
 	$opp_stats = 1;	
 }
+if (defined $ARGV[4]) {
+	$player_stats = $ARGV[4];	
+} if (defined $ARGV[5]) {
+	$basedon = $ARGV[5];	
+}
+if (defined $ARGV[6]) {
+	$alignment = $ARGV[6];	
+}
 
 $end_date += 1000000;
 
@@ -68,8 +79,15 @@ $end_date += 1000000;
 
 print $player . "\n";
 print $skip_normal . "\n";
+my %l_skip;
+
 
 &ReadCSV($csv, \%sum);
+
+my $leaver = 0;
+my $games = keys %sum;
+my $games2;
+
 my $i = 0;
 foreach my $replay (keys %sum) {
 	
@@ -94,95 +112,118 @@ foreach my $replay (keys %sum) {
 	
 		#print $name . "\n";
 	
-		if ($name eq $player) {
+		if ($player_stats == 1) {
+			if ($name ne $player) {
+				next;
+			}	
+		}
 
-			my $d_skip = 0;
-			
-			if ($race2 eq $interest) {
-				$i++;
-			}
-			
-			if ($skip_normal) {
-				if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
-					$d_skip = 1;
-					print "Skipping stats for $replay due to skip_normal\n" if $DEBUG > 1;	
-				}
-				
-			}
-			
-	
-			if (defined $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
-				my $d_min = $duration / 24.4;
-				if ($d_min < $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
-					$d_skip = 1;
-					print "Skipping stats for $replay due to duration ($d_min)\n" if $DEBUG > 1;
-				}
-			} 
-			
-			if ($gametime < $start_date) {
+		my $d_skip = 0;
+		
+		if ($race2 eq $interest) {
+			$i++;
+		}
+		
+		if ($skip_normal) {
+			if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
 				$d_skip = 1;
-				print "Skipping stats for $replay due to start_date: $start_date\n" if $DEBUG > 1;
+				print "Skipping stats for $replay due to skip_normal\n" if $DEBUG > 1;	
 			}
 			
-			if ($gametime > $end_date) {
+		}
+		
+
+		if (defined $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
+			my $d_min = $duration / 24.4;
+			if ($d_min < $cfg->{'appSettings'}{'add'}{'SKIP'}{'value'}) {
 				$d_skip = 1;
-				print "Skipping stats for $replay due to end_date: $end_date\n" if $DEBUG > 1;
-				
+				print "Skipping stats for $replay due to duration ($d_min)\n" if $DEBUG > 1;
 			}
+		} 
+		
+		if ($gametime < $start_date) {
+			$d_skip = 1;
+			print "Skipping stats for $replay due to start_date: $start_date\n" if $DEBUG > 1;
+		}
+		
+		if ($gametime > $end_date) {
+			$d_skip = 1;
+			print "Skipping stats for $replay due to end_date: $end_date\n" if $DEBUG > 1;
 			
-			if (! $d_skip) {
-				
-				if ($opp_stats) {
-					if ($race2 eq $interest) {
-						push(@duration, $duration);
-					}	
-				} else {
+		}
+		
+		if (defined $l_skip{$replay} && $l_skip{$replay}) {
+			next;	
+		}	
+		
+		my $l_DURATION = $sum{$replay}{$player}{'DURATION'};
+		
+		foreach my $p (keys %{ $sum{$replay} }) {
+			my $diff = $l_DURATION - $sum{$replay}{$p}{'DURATION'};
+			
+			if ($diff > 1344) {
+				$leaver++;			
+				$l_skip{$replay} = 1;
+				print "Skipping $replay due to leaver\n" if $DEBUG > 1;			
+				last;
+			}
+		}	
+
+		if (defined $l_skip{$replay} && $l_skip{$replay}) {
+			next;	
+		}		
+
+		
+		if (! $d_skip) {
+			
+			if ($opp_stats) {
+				if ($race2 eq $interest) {
 					push(@duration, $duration);
-				}
-				
-				if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
-					$global{'STD'}{'GAMES'}++;
-				} else {	
-					$global{'CMDR'}{'GAMES'}++;
-				}
-				$global{$race2}{'GAMES'}++;
+				}	
+			} else {
+				push(@duration, $duration);
+			}
+			
+			if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
+				$global{'STD'}{'GAMES'}++;
+			} else {	
+				$global{'CMDR'}{'GAMES'}++;
+			}
+			$global{$race2}{'GAMES'}++;
 
+			if ($opp_stats) {
+				foreach my $oname (keys %{ $sum{$replay} }) {
+					if ($sum{$replay}{$oname}{'PLAYERID'} == $opp[$id]) {
+						$opp{$race2 . " vs " . $sum{$replay}{$oname}{'RACE'}}{'GAMES'} ++;								
+					}
+				}
+			}
+
+			if ($win == 1) {
+				if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
+					$global{'STD'}{'WIN'}++;
+				} else {
+					$global{'CMDR'}{'WIN'} ++;
+				}
+				$global{$race2}{'WIN'} ++;
+				
 				if ($opp_stats) {
 					foreach my $oname (keys %{ $sum{$replay} }) {
 						if ($sum{$replay}{$oname}{'PLAYERID'} == $opp[$id]) {
-							$opp{$race2 . " vs " . $sum{$replay}{$oname}{'RACE'}}{'GAMES'} ++;								
+							$opp{$race2 . " vs " . $sum{$replay}{$oname}{'RACE'}}{'WIN'} ++;								
 						}
 					}
 				}
-
-				if ($win == 1) {
-					if ($race2 eq "Zerg" || $race2 eq "Terran" || $race2 eq "Protoss") {
-						$global{'STD'}{'WIN'}++;
-					} else {
-						$global{'CMDR'}{'WIN'} ++;
-					}
-					$global{$race2}{'WIN'} ++;
 					
-					if ($opp_stats) {
-						foreach my $oname (keys %{ $sum{$replay} }) {
-							if ($sum{$replay}{$oname}{'PLAYERID'} == $opp[$id]) {
-								$opp{$race2 . " vs " . $sum{$replay}{$oname}{'RACE'}}{'WIN'} ++;								
-							}
-						}
-					}
-						
-				}
+			}
 
-				if ($race2 eq $interest) {
-					if (!defined $global{$race2}{'WIN'}) {
-						$global{$race2}{'WIN'} = 0;	
-					}
-					my $wr = $global{$race2}{'WIN'} * 100 / $global{$race2}{'GAMES'};
-					$wr = sprintf("%.2f", $wr); 
-					$interest{$gametime} = 	$wr;
+			if ($race2 eq $interest) {
+				if (!defined $global{$race2}{'WIN'}) {
+					$global{$race2}{'WIN'} = 0;	
 				}
-							
-
+				my $wr = $global{$race2}{'WIN'} * 100 / $global{$race2}{'GAMES'};
+				$wr = sprintf("%.2f", $wr); 
+				$interest{$gametime} = 	$wr;
 			}
 		}
 	}
@@ -204,32 +245,37 @@ if ($end_date =~ /^(\d{8})/) {
 }
 
 
-	# Average duration
-	# 
+# Average duration
+# 
+
+my $d_sum;
+my $d_min = 100000000;
+my $d_max = 0;
+
+foreach my $d (@duration) {
+	my $dm = $d / 24.4;
+	$d_sum += $dm;
 	
-	my $d_sum;
-	my $d_min = 100000000;
-	my $d_max = 0;
-	
-	foreach my $d (@duration) {
-		my $dm = $d / 24.4;
-		$d_sum += $dm;
-		
-		if ($dm <= $d_min) {
-			$d_min = $dm;	
-		}
-		
-		if ($dm > $d_max) {
-			$d_max = $dm;
-		}
+	if ($dm <= $d_min) {
+		$d_min = $dm;	
 	}
 	
-	my $d_average = $d_sum / scalar(@duration) / 60;
-	$d_average = sprintf("%.2f", $d_average);
-	$d_max = $d_max / 60;
-	$d_max = sprintf("%.2f", $d_max);
-	$d_min = $d_min / 60;
-	$d_min = sprintf("%.2f", $d_min);
+	if ($dm > $d_max) {
+		$d_max = $dm;
+	}
+}
+
+my $d_average = $d_sum / scalar(@duration) / 60;
+$d_average = sprintf("%.2f", $d_average);
+$d_max = $d_max / 60;
+$d_max = sprintf("%.2f", $d_max);
+$d_min = $d_min / 60;
+$d_min = sprintf("%.2f", $d_min);
+
+my $add = "World";
+if ($player_stats == 1) {
+	$add = "Player";
+}
 
 # Total
 #
@@ -255,7 +301,7 @@ if ($opp_stats == 0) {
 	
 
 	
-	$title = "Winrate ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
+	$title = "Winrate " . $add . " ($sd to $ed - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
 
 } else {
 	# Matchups
@@ -291,7 +337,7 @@ if ($opp_stats == 0) {
 		push(@y, $mu_wr{$_});	
 	}
 	
-	$title = $interest . " vs the world ($sd to $ed - winrate " . "\xC3\x98" . ": " . $gwr . "% - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
+	$title = $interest . " ($add) vs the world ($sd to $ed - winrate " . "\xC3\x98" . ": " . $gwr . "% - gametime " . "\xC3\x98" . ": " .  $d_average . " min)";
 }
 
 # Interest
@@ -309,10 +355,17 @@ if ($opp_stats == 0) {
 #}
 
 
+if ($alignment eq "horizontal") {
+	&PrintGraph($title, "Commanders", 1, $png, \@x, \@y);
+} elsif ($alignment eq "vertical") {
+	&PrintHGraph($title, "Commanders", 1, $png, \@x, \@y);	
+}	
 
 
-&PrintGraph($title, "Commanders", 1, $png, \@x, \@y);
-
+#&PrintGraph($title, "Commanders", 1, $png, \@x, \@y);
+my $l_p = $leaver * 100 / $games;
+$l_p = sprintf("%.2f", $l_p);
+print "$leaver out or $games left the game for no reason ($l_p %)\n";
 
 
 sub PrintGraph {
@@ -374,10 +427,70 @@ print IMG $gd->png;
 close(IMG);
 	
 print "Games played: $interest => $i\n";
-	
+
 }
 
+sub PrintHGraph {
 
+my $title = shift;
+my $x_label = shift;
+my $x_tick_number = shift;
+my $png = shift;
+my $x = shift;
+my $y = shift;
+
+
+#my $graph = GD::Graph::bars->new(1600, 600);
+my $graph = GD::Graph::hbars->new(600, 1600);
+$graph->set(
+    x_label             => $x_label . '(generated by https://github.com/ipax77/sc2dsstats)',
+    y_label             => 'Winrate',
+    title               => $title,
+    
+    # shadows
+    bar_spacing     => 8,
+    shadow_depth    => 4,
+    shadowclr       => 'dred',
+        
+    y_max_value         => 110,
+    y_min_value         => 0,
+    y_tick_number       => 1,
+    y_label_skip        => 1,
+    x_label_skip        => 1,
+    #x_labels_vertical => 1,
+    
+    bar_spacing     => 10,
+    accent_treshold => 200,
+    transparent     => 0,
+    
+    transparent         => 0,
+    bgclr               => 'white',
+    long_ticks          => 1,
+) or die $graph->error;
+
+
+
+
+my @data = ($x, $y);
+
+
+$graph->set_title_font('C:/Windows/Fonts/arial.ttf', 18);
+$graph->set_legend_font('C:/Windows/Fonts/arial.ttf', 18);
+$graph->set_legend_font('C:/Windows/Fonts/arial.ttf', 18);
+$graph->set_x_axis_font('C:/Windows/Fonts/arial.ttf', 14);
+$graph->set(show_values => 1 );
+$graph->set_values_font('C:/Windows/Fonts/arial.ttf', 12);
+
+$graph->set( dclrs => [ qw(blue blue blue blue) ] );
+my $gd = $graph->plot(\@data) or die $graph->error;
+ 
+open(IMG, ">:unix", $png) or die $!;
+binmode IMG;
+print IMG $gd->png;
+close(IMG);
+	
+	
+}
 
 
 
