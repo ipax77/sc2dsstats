@@ -15,7 +15,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using sc2dsstats;
 using Microsoft.Win32;
-
+using System.Collections;
 
 namespace sc2dsstats_t1
 {
@@ -31,6 +31,8 @@ namespace sc2dsstats_t1
         public TextBox dynamicText = null;
         private bool dt_handle = true;
         private bool dps_handle = true;
+        ArrayList imgGarbage = new ArrayList();
+
 
         public MainWindow()
         {
@@ -47,28 +49,51 @@ namespace sc2dsstats_t1
 
                 /// MessageBox.Show("Welcome to sc2dsstats - this is your first run so we need to know some things to make this work ..");
                 fr_InputBox.Visibility = System.Windows.Visibility.Visible;
+                gr_buttons.Visibility = Visibility.Collapsed;
+                gr_menu.Visibility = Visibility.Collapsed;
 
 
-                Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                config.AppSettings.Settings.Remove("FIRST_RUN");
-                config.AppSettings.Settings.Add("FIRST_RUN", "0");
-                config.Save();
-                ConfigurationManager.RefreshSection("appSettings");
 
 
 
             }
 
-
-
+            string[] cmdrs = new string[]
+{
+                "Abathur",
+                 "Alarak",
+                 "Artanis",
+                 "Dehaka",
+                 "Fenix",
+                 "Horner",
+                 "Karax",
+                 "Kerrigan",
+                 "Nova",
+                 "Raynor",
+                 "Stukov",
+                 "Swann",
+                 "Tychus",
+                 "Vorazun",
+                 "Zagara",
+                 "Protoss",
+                 "Terran",
+                 "Zerg"
+};
+            foreach (string cmdr in cmdrs)
+            {
+                dps_ComboBox.Items.Add(cmdr);
+                dt_ComboBox.Items.Add(cmdr);
+            }
 
         }
 
-        private List<string> FirstRun()
+        private void FirstRun()
         {
             string dir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             string drive = "C:\\";
-            List<string> dsreplays = new List<string>();
+
+            Hashtable dsreplays = new Hashtable();
+
 
             Regex rx = new Regex(@"(\w:\\)");
 
@@ -91,58 +116,80 @@ namespace sc2dsstats_t1
             var appSettings = ConfigurationManager.AppSettings;
 
             int i = 0;
+            int newrep = 0;
+
+            string csv = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            csv += "\\stats.csv";
+
+
+            if (File.Exists(csv))
+            {
+
+                string line;
+                string pattern = @"^(\d+); ([^;]+);";
+                ///string pattern = @"^(\d+);";
+                System.IO.StreamReader file = new System.IO.StreamReader(csv);
+                while ((line = file.ReadLine()) != null)
+                {
+                    foreach (Match m in Regex.Matches(line, pattern))
+                    {
+                        string value1 = m.Groups[2].ToString() + ".SC2Replay";
+                        if (dsreplays.ContainsKey(value1))
+                        {
+
+
+                        } else {
+                            dsreplays.Add(value1, "1");
+
+                        }
+                    }
+                }
+
+                file.Close();
+            }
+
             if (Directory.Exists(appSettings["REPLAY_PATH"]))
             {
                 string[] replays = Directory.GetFiles(appSettings["REPLAY_PATH"]);
                 foreach (string fileName in replays)
                 {
-                    Regex frx = new Regex(@"^Direct Strike|^Desert Strike");
+                    ///string rx_id = @"(Direct Strike.*)\.SC2Replay$|(Desert Strike.*)\.SC2Replay$";
+                    string rx_id = @"(Direct Strike.*)\.SC2Replay";
+                    string rx_id2 = @"(Desert Strike.*)\.SC2Replay";
 
-                    string p = Path.GetFileName(fileName);
-                    MatchCollection fmatches = frx.Matches(p);
-                    if (fmatches.Count > 0)
+                    Match m = Regex.Match(fileName, rx_id, RegexOptions.IgnoreCase);
+                    Match m2 = Regex.Match(fileName, rx_id2, RegexOptions.IgnoreCase);
+                    if (m.Success)
                     {
-                        foreach (Match match in fmatches)
+                        i++;
+                        if (dsreplays.ContainsKey(m.Value))
                         {
-                            dsreplays.Add(fileName);
-                            i++;
+                        } else
+                        {
+                            newrep++;
 
+                        }
+
+                    }
+                    if (m2.Success)
+                    {
+                        i++;
+                        if (dsreplays.ContainsKey(m2.Value))
+                        {
+                        } else
+                        {
+                            newrep++;
                         }
                     }
                 }
             }
 
-            string analyzes = dir + "/analyzes";
 
-            int j = 0;
-            if (Directory.Exists(analyzes))
-            {
-                string[] replays = Directory.GetFiles(analyzes);
-                foreach (string fileName in replays)
-                {
-                    Regex frx = new Regex(@"^Direct Strike|^Desert Strike");
 
-                    string p = Path.GetFileName(fileName);
-                    MatchCollection fmatches = frx.Matches(p);
-                    if (fmatches.Count > 0)
-                    {
-                        foreach (Match match in fmatches)
-                            j++;
-                    }
-                }
-            }
 
-            if (String.Equals(appSettings["SKIP_MSG"], "0"))
-            {
-                j /= 2;
-            }
-            else
-            {
-                j /= 3;
-            }
-
-            int newrep = i - j;
-
+            
+            ///MessageBox.Show(i.ToString() + " new Replays found :)");
+            
             doit_TextBox1.Text = "We found " + newrep.ToString() + " new Replays (total: " + i.ToString() + ")" + Environment.NewLine;
 
             double scalc = 6472659;
@@ -166,12 +213,17 @@ namespace sc2dsstats_t1
 
             doit_TextBox1.Text += Environment.NewLine;
             doit_TextBox1.Text += "Expected time needed: " + st_time + " h" + Environment.NewLine;
-            doit_TextBox1.Text += "Expected disk space needed: " + st_size + " GB" + Environment.NewLine;
-            doit_TextBox1.Text += "(Your current free disk space is " + st_fs + " GB)" + Environment.NewLine;
 
-            if (nsize > fs)
+            if (String.Equals(appSettings["KEEP"], "1"))
             {
-                doit_TextBox1.Text += "WARNING: There might be not enough Diskspace available!!!" + Environment.NewLine;
+                doit_TextBox1.Text += "Expected disk space needed: " + st_size + " GB" + Environment.NewLine;
+                doit_TextBox1.Text += "(Your current free disk space is " + st_fs + " GB)" + Environment.NewLine;
+
+
+                if (nsize > fs)
+                {
+                    doit_TextBox1.Text += "WARNING: There might be not enough Diskspace available!!!" + Environment.NewLine;
+                }
             }
             doit_TextBox1.Text += Environment.NewLine;
 
@@ -180,7 +232,7 @@ namespace sc2dsstats_t1
             /// 100 Replays =~ 647265846 Bytes, 720 sec
 
 
-            return dsreplays;
+           
 
         }
 
@@ -237,7 +289,15 @@ namespace sc2dsstats_t1
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
 
+
+            config.AppSettings.Settings.Remove("FIRST_RUN");
+            config.AppSettings.Settings.Add("FIRST_RUN", "0");
+            config.Save();
+            ConfigurationManager.RefreshSection("appSettings");
             MessageBox.Show("Now we are good to go - have fun :) (There are more options available at File->Options)");
+
+            gr_buttons.Visibility = Visibility.Visible;
+            gr_menu.Visibility = Visibility.Visible;
 
         }
 
@@ -278,6 +338,14 @@ namespace sc2dsstats_t1
             gr_details.Visibility = Visibility.Collapsed;
             gr_damage.Visibility = Visibility.Collapsed;
 
+            
+           
+            foreach (string img in imgGarbage) { 
+                if (File.Exists(img))
+                {
+                    File.Delete(img);
+                }
+            }
         }
 
         private Image CreateViewImageDynamically(string imgPath)
@@ -358,8 +426,7 @@ namespace sc2dsstats_t1
         {
             ClearImage();
             doit_grid.Visibility = Visibility.Visible;
-            List<string> files = new List<string>();
-            files = FirstRun();
+            FirstRun();
 
 
 
@@ -379,7 +446,7 @@ namespace sc2dsstats_t1
 
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            s_doit += "\\doit.cmd";
+            s_doit += "\\scripts\\sc2dsstats_scan.exe";
             string ExecutableFilePath = s_doit;
             string Arguments = @" ";
 
@@ -448,7 +515,7 @@ namespace sc2dsstats_t1
 
 
             string stats = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            stats += "\\stats.png";
+            stats += "\\worker.png";
 
             if (File.Exists(stats))
             {
@@ -602,6 +669,7 @@ namespace sc2dsstats_t1
 
             foreach (var ckey in appSettings.AllKeys)
             {
+                cdesc = "";
                 if (String.Equals(ckey, "REPLAY_PATH"))
                     cdesc = "# Path where all the replays are located - IMPORTANT: You have to use / instead of \\";
                 if (String.Equals(ckey, "PLAYER"))
@@ -641,22 +709,44 @@ namespace sc2dsstats_t1
             sd += "000000";
             string ed = otf_enddate.SelectedDate.Value.ToString("yyyyMMdd");
             ed += "000000";
-            string show_std = "1";
+            string skip_std = "1";
 
             if (otf_std.IsChecked == true)
             {
-                show_std = "0";
+                skip_std = "0";
             }
+
+            string otf_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            otf_png += "\\temp\\";
+
+            if (!System.IO.Directory.Exists(otf_png))
+            {
+                System.IO.Directory.CreateDirectory(otf_png);
+            }
+            long msec = DateTime.Now.Ticks;
+            otf_png += "sc2dsstats_stats_" + msec.ToString() + ".png";
+
+            imgGarbage.Add(otf_png);
 
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\scripts\\sc2dsstats_worker.exe";
 
             string ExecutableFilePath = s_doit;
-            string Arguments = sd + " " + ed + " " + show_std;
+            string Arguments = "--start_date=" + sd + " "
+                + "--end_date=" + ed + " "
+                + "--skip STD=" + skip_std + " "
+                + "--player_only "
+                + "--png=" + otf_png + " "
+                ;
 
+            /**
+                + "--alignment=" + alignment + " ";
+            if (String.Equals(player_only, "1"))
+            {
+                Arguments += "--player_only ";
 
-            List<string> files = new List<string>();
-            files = FirstRun();
+            }
+            **/
 
 
             Process doit = new Process();
@@ -668,8 +758,6 @@ namespace sc2dsstats_t1
 
             }
 
-            string otf_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            otf_png += "\\otf.png";
 
 
             if (File.Exists(otf_png))
@@ -678,6 +766,9 @@ namespace sc2dsstats_t1
 
                 if (otf_stats.Children.Contains(myImage))
                 {
+
+                    myImage.Source = null;
+
                     // Create a BitmapSource  
                     BitmapImage bitmap = new BitmapImage();
                     bitmap.BeginInit();
@@ -716,10 +807,93 @@ namespace sc2dsstats_t1
         private void bt_Time_Click(object sender, RoutedEventArgs e)
         {
             ClearImage();
-            System.DateTime sd = new DateTime(2018, 11, 1);
-            otf_enddate.SelectedDate = DateTime.Today;
-            otf_startdate.SelectedDate = sd;
+            System.DateTime sd_t = new DateTime(2018, 11, 1);
+            DateTime today = DateTime.Today;
+            otf_enddate.SelectedDate = today.AddDays(1);
+            otf_startdate.SelectedDate = sd_t;
             otf_stats.Visibility = Visibility.Visible;
+
+            string sd = otf_startdate.SelectedDate.Value.ToString("yyyyMMdd");
+            sd += "000000";
+            string ed = otf_enddate.SelectedDate.Value.ToString("yyyyMMdd");
+            ed += "000000";
+            string skip_std = "1";
+
+            if (otf_std.IsChecked == true)
+            {
+                skip_std = "0";
+            }
+
+            string otf_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            otf_png += "\\temp\\";
+
+            if (!System.IO.Directory.Exists(otf_png))
+            {
+                System.IO.Directory.CreateDirectory(otf_png);
+            }
+            long msec = DateTime.Now.Ticks;
+            otf_png += "sc2dsstats_stats_" + msec.ToString() + ".png";
+            imgGarbage.Add(otf_png);
+
+            string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            s_doit += "\\scripts\\sc2dsstats_worker.exe";
+
+            string ExecutableFilePath = s_doit;
+            string Arguments = "--start_date=" + sd + " "
+                + "--end_date=" + ed + " "
+                + "--skip STD=" + skip_std + " "
+                + "--player_only "
+                + "--png=" + otf_png + " "
+                ;
+
+            Process doit = new Process();
+
+            if (File.Exists(ExecutableFilePath))
+            {
+                doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                doit.WaitForExit();
+
+            }
+
+
+            if (File.Exists(otf_png))
+            {
+
+
+                if (otf_stats.Children.Contains(myImage))
+                {
+
+                    myImage.Source = null;
+
+                    // Create a BitmapSource  
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(@otf_png);
+                    bitmap.EndInit();
+
+                    // Set Image.Source  
+                    myImage.Source = bitmap;
+                    label1.Text = otf_png;
+                    label1.UpdateLayout();
+
+                }
+                else
+                {
+
+
+                    myImage = CreateViewImageDynamically(otf_png);
+                    label1.Text = otf_png;
+                    label1.UpdateLayout();
+                    otf_stats.Children.Add(myImage);
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
+            }
 
         }
 
@@ -727,34 +901,11 @@ namespace sc2dsstats_t1
         {
             ClearImage();
             System.DateTime sd = new DateTime(2018, 1, 1);
-            dt_enddate.SelectedDate = DateTime.Today;
+            DateTime today = DateTime.Today;
+            dt_enddate.SelectedDate = today.AddDays(1);
             dt_startdate.SelectedDate = sd;
 
-            string[] cmdrs = new string[]
-            {
-                "Abathur",
-                 "Alarak",
-                 "Artanis",
-                 "Dehaka",
-                 "Fenix",
-                 "Horner",
-                 "Karax",
-                 "Kerrigan",
-                 "Nova",
-                 "Raynor",
-                 "Stukov",
-                 "Swann",
-                 "Tychus",
-                 "Vorazun",
-                 "Zagara",
-                 "Protoss",
-                 "Terran",
-                 "Zerg"
-            };
-            foreach (string cmdr in cmdrs)
-            {
-                dt_ComboBox.Items.Add(cmdr);
-            }
+
 
             dt_ComboBox.SelectedItem = dt_ComboBox.Items[0];
             gr_details.Visibility = Visibility.Visible;
@@ -770,8 +921,22 @@ namespace sc2dsstats_t1
 
         private void dt_ComboBox_Closed(object sender, EventArgs e)
         {
-            if (dt_handle) Handle(sender, e);
-            dt_handle = true;
+            if (dt_ComboBox.SelectedItem == null)
+            {
+                dt_ComboBox.SelectedItem = dt_ComboBox.Items[0];
+            }
+            else
+            {
+                try
+                {
+                    if (dt_handle) Handle(sender, e);
+                    dt_handle = true;
+                }
+                catch (InvalidCastException ex)
+                {
+
+                }
+            }
         }
 
         private void Handle(object sender, EventArgs e)
@@ -792,11 +957,11 @@ namespace sc2dsstats_t1
             sd += "000000";
             string ed = dt_enddate.SelectedDate.Value.ToString("yyyyMMdd");
             ed += "000000";
-            string show_std = "1";
+            string skip_std = "1";
 
             if (dt_std.IsChecked == true)
             {
-                show_std = "0";
+                skip_std = "0";
             }
             string player_only = "1";
             if (dt_player.IsChecked == false)
@@ -810,18 +975,43 @@ namespace sc2dsstats_t1
                 alignment = "vertical";
             }
 
+            string dt_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            dt_png += "\\temp\\";
+
+            if (!System.IO.Directory.Exists(dt_png))
+            {
+                System.IO.Directory.CreateDirectory(dt_png);
+            }
+            long msec = DateTime.Now.Ticks;
+            dt_png += "sc2dsstats_details_" + msec.ToString() + ".png";
+            imgGarbage.Add(dt_png);
+
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             s_doit += "\\scripts\\sc2dsstats_worker.exe";
 
             string ExecutableFilePath = s_doit;
+
+
+            if (dt_ComboBox.SelectedItem == null)
+            {
+                dt_ComboBox.SelectedItem = dt_ComboBox.Items[0];
+            }
+
             string cmdr = dt_ComboBox.Items[dt_ComboBox.SelectedIndex].ToString();
-            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr + " " + player_only + " army " + alignment;
 
 
-            List<string> files = new List<string>();
-            files = FirstRun();
+            string Arguments = "--start_date=" + sd + " "
+                            + "--end_date=" + ed + " "
+                            + "--skip STD=" + skip_std + " "
+                            + "--alignment=" + alignment + " "
+                            + "--cmdr=" + cmdr + " "
+                            + "--png=" + dt_png + " "
+                            ;
+            if (String.Equals(player_only, "1"))
+            {
+                Arguments += "--player_only ";
 
-
+            }
             Process doit = new Process();
 
             if (File.Exists(ExecutableFilePath))
@@ -831,10 +1021,7 @@ namespace sc2dsstats_t1
 
             }
 
-            string dt_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            dt_png += "\\dt.png";
-
-
+ 
             if (File.Exists(dt_png))
             {
 
@@ -877,34 +1064,11 @@ namespace sc2dsstats_t1
         {
             ClearImage();
             System.DateTime sd = new DateTime(2018, 1, 1);
-            dps_enddate.SelectedDate = DateTime.Today;
+            DateTime today = DateTime.Today;
+            dps_enddate.SelectedDate = today.AddDays(1);
             dps_startdate.SelectedDate = sd;
 
-            string[] cmdrs = new string[]
-            {
-                "Abathur",
-                 "Alarak",
-                 "Artanis",
-                 "Dehaka",
-                 "Fenix",
-                 "Horner",
-                 "Karax",
-                 "Kerrigan",
-                 "Nova",
-                 "Raynor",
-                 "Stukov",
-                 "Swann",
-                 "Tychus",
-                 "Vorazun",
-                 "Zagara",
-                 "Protoss",
-                 "Terran",
-                 "Zerg"
-            };
-            foreach (string cmdr in cmdrs)
-            {
-                dps_ComboBox.Items.Add(cmdr);
-            }
+
 
             dps_ComboBox.SelectedItem = dps_ComboBox.Items[0];
             gr_damage.Visibility = Visibility.Visible;
@@ -921,8 +1085,22 @@ namespace sc2dsstats_t1
 
         private void dps_ComboBox_Closed(object sender, EventArgs e)
         {
-            if (dps_handle) dps_Handle(sender, e);
-            dps_handle = true;
+            if (dps_ComboBox.SelectedItem == null)
+            {
+                dps_ComboBox.SelectedItem = dps_ComboBox.Items[0];
+            }
+            else
+            {
+                try
+                {
+                    if (dt_handle) Handle(sender, e);
+                    dt_handle = true;
+                }
+                catch (InvalidCastException ex)
+                {
+
+                }
+            }
         }
 
         private void dps_Handle(object sender, EventArgs e)
@@ -943,11 +1121,11 @@ namespace sc2dsstats_t1
             sd += "000000";
             string ed = dps_enddate.SelectedDate.Value.ToString("yyyyMMdd");
             ed += "000000";
-            string show_std = "1";
+            string skip_std = "1";
 
             if (dps_std.IsChecked == true)
             {
-                show_std = "0";
+                skip_std = "0";
             }
 
             string player_only = "0";
@@ -982,17 +1160,43 @@ namespace sc2dsstats_t1
                 opp = "1";
             }
 
+            string dps_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            dps_png += "\\temp\\";
+
+            if (!System.IO.Directory.Exists(dps_png))
+            {
+                System.IO.Directory.CreateDirectory(dps_png);
+            }
+            long msec = DateTime.Now.Ticks;
+            dps_png += "sc2dsstats_damage_" + msec.ToString() + ".png";
+            imgGarbage.Add(dps_png);
+
+
             string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            s_doit += "\\scripts\\sc2dsstats_dmg.exe";
+            s_doit += "\\scripts\\sc2dsstats_worker.exe";
 
             string ExecutableFilePath = s_doit;
+
+            if (dps_ComboBox.SelectedItem == null)
+            {
+                dps_ComboBox.SelectedItem = dps_ComboBox.Items[0];
+            }
             string cmdr = dps_ComboBox.Items[dps_ComboBox.SelectedIndex].ToString();
-            string Arguments = sd + " " + ed + " " + show_std + " " + cmdr + " " + player_only + " " + basedon + " " + alignment + " " + opp;
-
-
-            List<string> files = new List<string>();
-            files = FirstRun();
-
+            string Arguments = "--start_date=" + sd + " "
+                            + "--end_date=" + ed + " "
+                            + "--skip STD=" + skip_std + " "
+                            + "--dmg=" + basedon + " "
+                            + "--alignment=" + alignment + " "
+                            + "--png=" + dps_png + " "
+                            ;
+               if (String.Equals(opp, "1")) {
+                    Arguments += "--cmdr=" + cmdr + " ";
+               }
+               if (String.Equals(player_only, "1"))
+               {  
+                    Arguments += "--player_only ";
+                
+                }
 
             Process doit = new Process();
 
@@ -1003,14 +1207,16 @@ namespace sc2dsstats_t1
 
             }
 
-            string dps_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            dps_png += "\\dmg.png";
+
 
 
             if (File.Exists(dps_png))
             {
                 if (gr_damage.Children.Contains(myImage))
                 {
+
+                    myImage.Source = null;
+
                     // Create a BitmapSource  
                     BitmapImage bitmap = new BitmapImage();
                     bitmap.BeginInit();
@@ -1127,9 +1333,9 @@ namespace sc2dsstats_t1
                     
 
                     string targetPath = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-                    targetPath += "/temp";
+                    targetPath += "\\temp";
 
-                    string fileName = "dmg_tmp0.png";
+                    string fileName = "worker_tmp0.png";
 
 
                     // Use Path class to manipulate file and directory paths.
@@ -1140,7 +1346,7 @@ namespace sc2dsstats_t1
                     while (File.Exists(destFile))
                     {
                         i++;
-                        fileName = "dmg_tmp" + i.ToString() + ".png";
+                        fileName = "worker_tmp" + i.ToString() + ".png";
                         destFile = System.IO.Path.Combine(targetPath, fileName);
                     }
 
@@ -1246,6 +1452,17 @@ namespace sc2dsstats_t1
                 }
 
 
+            }
+        }
+
+        private void main_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            foreach (string img in imgGarbage)
+            {
+                if (File.Exists(img))
+                {
+                    File.Delete(img);
+                }
             }
         }
     }

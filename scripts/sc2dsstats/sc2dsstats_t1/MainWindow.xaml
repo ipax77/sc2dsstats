@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-
+        Closing="main_Closing"
         mc:Ignorable="d"
         Title="sc2dsstats" Height="800" Width="1700">
 
@@ -14,7 +14,7 @@
                 <GradientStop Color="#FFDEE4F0"/>
             </LinearGradientBrush>
         </Grid.Background>
-        <Grid>
+        <Grid x:Name="gr_menu">
             <DockPanel VerticalAlignment="TOP" x:Name="dp_menu" Margin="0,0,0,770">
 
                 <Menu DockPanel.Dock="Top" Height="24" RenderTransformOrigin="0.495,-3.854">
@@ -27,19 +27,20 @@
                 </Menu>
             </DockPanel>
         </Grid>
-        <Button Content="doit" HorizontalAlignment="Left" Margin="34,35,0,0" VerticalAlignment="Top" Width="76" RenderTransformOrigin="-0.402,-0.777" Click="Button_Click" Background="{x:Null}"/>
-        <TextBox x:Name="label1" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" HorizontalAlignment="Left" Margin="573,36,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Width="963">
-            <TextBox.Background>
-                <ImageBrush/>
-            </TextBox.Background>
-        </TextBox>
-        <Button Content="stats" HorizontalAlignment="Left" Margin="115,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.107,-0.033" Click="Button_Click_1"/>
-        <Button Content="damage" HorizontalAlignment="Left" Margin="195,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_damage_Click"/>
-        <Button Content="timebased" HorizontalAlignment="Left" Margin="275,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_Time_Click"/>
-        <Button Content="clear" HorizontalAlignment="Left" Margin="435,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="Button_Click_3"/>
-        <Button Content="details" HorizontalAlignment="Left" Margin="355,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="bt_details_Click"/>
-        <StackPanel x:Name="stackpanel1" HorizontalAlignment="Center" Height="600" Margin="19,0,0,40" VerticalAlignment="Center" Width="1650" RenderTransformOrigin="0.22,-1.12"/>
-
+        <Grid x:Name="gr_buttons">
+            <Button Content="doit" HorizontalAlignment="Left" Margin="34,35,0,0" VerticalAlignment="Top" Width="76" RenderTransformOrigin="-0.402,-0.777" Click="Button_Click" Background="{x:Null}"/>
+            <TextBox x:Name="label1" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" HorizontalAlignment="Left" Margin="573,36,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Width="963">
+                <TextBox.Background>
+                    <ImageBrush/>
+                </TextBox.Background>
+            </TextBox>
+            <Button Content="stats" Visibility="Collapsed" HorizontalAlignment="Left" Margin="115,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.107,-0.033" Click="Button_Click_1"/>
+            <Button Content="damage" HorizontalAlignment="Left" Margin="195,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_damage_Click"/>
+            <Button Content="stats" HorizontalAlignment="Left" Margin="275,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_Time_Click"/>
+            <Button Content="clear" HorizontalAlignment="Left" Margin="435,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="Button_Click_3"/>
+            <Button Content="details" HorizontalAlignment="Left" Margin="355,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="bt_details_Click"/>
+            <StackPanel x:Name="stackpanel1" HorizontalAlignment="Center" Height="600" Margin="19,0,0,40" VerticalAlignment="Center" Width="1650" RenderTransformOrigin="0.22,-1.12"/>
+        </Grid>
         <Grid x:Name="sp_options" HorizontalAlignment="Center" Height="600" Margin="19,0,0,40" VerticalAlignment="Center" Width="1650" RenderTransformOrigin="0.22,-1.12"/>
 
         <DockPanel x:Name="dp_config" Visibility="Collapsed">
