@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using sc2dsstats;
 using Microsoft.Win32;
 using System.Collections;
+using System.Windows.Input;
 
 namespace sc2dsstats_t1
 {
@@ -343,7 +344,14 @@ namespace sc2dsstats_t1
             foreach (string img in imgGarbage) { 
                 if (File.Exists(img))
                 {
-                    File.Delete(img);
+                    try
+                    {
+                        File.Delete(img);
+                    }
+                    catch (System.IO.IOException)
+                    {
+
+                    }
                 }
             }
         }
@@ -736,7 +744,7 @@ namespace sc2dsstats_t1
                 + "--end_date=" + ed + " "
                 + "--skip STD=" + skip_std + " "
                 + "--player_only "
-                + "--png=" + otf_png + " "
+                + "--png=\"" + otf_png + "\" "
                 ;
 
             /**
@@ -843,7 +851,7 @@ namespace sc2dsstats_t1
                 + "--end_date=" + ed + " "
                 + "--skip STD=" + skip_std + " "
                 + "--player_only "
-                + "--png=" + otf_png + " "
+                + "--png=\"" + otf_png + "\" "
                 ;
 
             Process doit = new Process();
@@ -1005,7 +1013,7 @@ namespace sc2dsstats_t1
                             + "--skip STD=" + skip_std + " "
                             + "--alignment=" + alignment + " "
                             + "--cmdr=" + cmdr + " "
-                            + "--png=" + dt_png + " "
+                            + "--png=\"" + dt_png + "\" "
                             ;
             if (String.Equals(player_only, "1"))
             {
@@ -1187,7 +1195,7 @@ namespace sc2dsstats_t1
                             + "--skip STD=" + skip_std + " "
                             + "--dmg=" + basedon + " "
                             + "--alignment=" + alignment + " "
-                            + "--png=" + dps_png + " "
+                            + "--png=\"" + dps_png + "\" "
                             ;
                if (String.Equals(opp, "1")) {
                     Arguments += "--cmdr=" + cmdr + " ";
@@ -1298,122 +1306,120 @@ namespace sc2dsstats_t1
             MessageBox.Show("Und es war SOmmer");
         }
 
-        private void dyn_image_Click(object sender, RoutedEventArgs e)
+        private void dyn_image_Click(object sender, MouseEventArgs e)
         {
             /// MessageBox.Show("Und es war SOmmer");
 
-            System.Windows.Input.MouseEventArgs me = (System.Windows.Input.MouseEventArgs)e;
-            BitmapImage bitmap = new BitmapImage();
-
-            string dps_png = myImage.Source.ToString();
-
-            dps_png = new Uri(dps_png).LocalPath;
-
-            if (me.RightButton == System.Windows.Input.MouseButtonState.Released)
+            if (e is MouseEventArgs)
             {
-                Window1 win1 = new Window1();
 
-
-                win1.Title = dps_png;
-
-                /// System.Windows.Controls.Image pupdynImage = new System.Windows.Controls.Image();
-
-                var imageStream = File.OpenRead(@dps_png);
-                var decoder = BitmapDecoder.Create(imageStream, BitmapCreateOptions.IgnoreColorProfile, BitmapCacheOption.OnLoad);
-                win1.Height = decoder.Frames[0].PixelHeight;
-                win1.Width = decoder.Frames[0].PixelWidth;
-
-
-
-
-
-
-                if (File.Exists(dps_png))
+                if (e.RightButton == MouseButtonState.Released)
                 {
-                    
-
-                    string targetPath = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-                    targetPath += "\\temp";
-
-                    string fileName = "worker_tmp0.png";
+                    Window1 win1 = new Window1();
+                    BitmapImage bitmap = new BitmapImage();
+                    string dps_png = myImage.Source.ToString();
+                    dps_png = new Uri(dps_png).LocalPath;
 
 
-                    // Use Path class to manipulate file and directory paths.
-                    string sourceFile = dps_png;
-                    string destFile = System.IO.Path.Combine(targetPath, fileName);
+                    win1.Title = dps_png;
 
-                    int i = 0;
-                    while (File.Exists(destFile))
+                    /// System.Windows.Controls.Image pupdynImage = new System.Windows.Controls.Image();
+
+                    var imageStream = File.OpenRead(@dps_png);
+                    var decoder = BitmapDecoder.Create(imageStream, BitmapCreateOptions.IgnoreColorProfile, BitmapCacheOption.OnLoad);
+                    win1.Height = decoder.Frames[0].PixelHeight;
+                    win1.Width = decoder.Frames[0].PixelWidth;
+
+
+
+
+
+
+                    if (File.Exists(dps_png))
                     {
-                        i++;
-                        fileName = "worker_tmp" + i.ToString() + ".png";
-                        destFile = System.IO.Path.Combine(targetPath, fileName);
+
+
+                        string targetPath = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                        targetPath += "\\temp";
+
+                        string fileName = "worker_tmp0.png";
+
+
+                        // Use Path class to manipulate file and directory paths.
+                        string sourceFile = dps_png;
+                        string destFile = System.IO.Path.Combine(targetPath, fileName);
+
+                        int i = 0;
+                        while (File.Exists(destFile))
+                        {
+                            i++;
+                            fileName = "worker_tmp" + i.ToString() + ".png";
+                            destFile = System.IO.Path.Combine(targetPath, fileName);
+                        }
+
+                        // To copy a folder's contents to a new location:
+                        // Create a new target folder, if necessary.
+                        if (!System.IO.Directory.Exists(targetPath))
+                        {
+                            System.IO.Directory.CreateDirectory(targetPath);
+                        }
+
+                        // To copy a file to another location and 
+                        // overwrite the destination file if it already exists.
+                        System.IO.File.Copy(sourceFile, destFile, true);
+
+
+
+                        bitmap.BeginInit();
+                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.UriSource = new Uri(@destFile);
+                        bitmap.EndInit();
+                        // Set Image.Source  
+                        win1.win_dps_img1.Source = bitmap;
+                        win1.win_dps_grid.Visibility = Visibility.Visible;
+
                     }
-
-                    // To copy a folder's contents to a new location:
-                    // Create a new target folder, if necessary.
-                    if (!System.IO.Directory.Exists(targetPath))
-                    {
-                        System.IO.Directory.CreateDirectory(targetPath);
-                    }
-
-                    // To copy a file to another location and 
-                    // overwrite the destination file if it already exists.
-                    System.IO.File.Copy(sourceFile, destFile, true);
-
-
-
-                    bitmap.BeginInit();
-                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@destFile);
-                    bitmap.EndInit();
-                    // Set Image.Source  
-                    win1.win_dps_img1.Source = bitmap;
                     win1.win_dps_grid.Visibility = Visibility.Visible;
 
+                    win1.Show();
+                    ///win1.Close();
+
+                    win1.Closing += new CancelEventHandler(win1_img_Closing);
+
                 }
-                win1.win_dps_grid.Visibility = Visibility.Visible;
 
-                win1.Show();
-                ///win1.Close();
-
-                win1.Closing += new CancelEventHandler(win1_img_Closing);
-
-            }
-
-            else if (me.LeftButton == System.Windows.Input.MouseButtonState.Released)
-            {
-
-
-                /**
-                /// save as
-                
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-                saveFileDialog1.Filter = "PNG Image|*.png";
-                saveFileDialog1.Title = "Save PNG Image File";
-                saveFileDialog1.ShowDialog();
-
-                if (saveFileDialog1.FileName != "")
+                else if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    bitmap.BeginInit();
-                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@dps_png);
-                    bitmap.EndInit();
+                    /**
+                    /// save as
+                
+                    SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                    saveFileDialog1.Filter = "PNG Image|*.png";
+                    saveFileDialog1.Title = "Save PNG Image File";
+                    saveFileDialog1.ShowDialog();
 
-                    // Save the bitmap into a file.
-                    using (FileStream stream =
-                        new FileStream(saveFileDialog1.FileName, FileMode.Create))
+                    if (saveFileDialog1.FileName != "")
                     {
-                        PngBitmapEncoder encoder = new PngBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                        encoder.Save(stream);
+                        bitmap.BeginInit();
+                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.UriSource = new Uri(@dps_png);
+                        bitmap.EndInit();
+
+                        // Save the bitmap into a file.
+                        using (FileStream stream =
+                            new FileStream(saveFileDialog1.FileName, FileMode.Create))
+                        {
+                            PngBitmapEncoder encoder = new PngBitmapEncoder();
+                            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                            encoder.Save(stream);
+                        }
+
+
                     }
-
-
+                    **/
                 }
-                **/
             }
         }
 
@@ -1461,7 +1467,14 @@ namespace sc2dsstats_t1
             {
                 if (File.Exists(img))
                 {
-                    File.Delete(img);
+                    try
+                    {
+                        File.Delete(img);
+                    }
+                    catch (System.IO.IOException)
+                    {
+
+                    }
                 }
             }
         }

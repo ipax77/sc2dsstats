@@ -13,19 +13,20 @@ use POSIX qw(strftime);
 use File::Basename;
 use Encode qw(decode encode);
 use Getopt::Long;
+use Time::HiRes qw(gettimeofday tv_interval);;
 
 
 my $DEBUG = 2;
-
+my $t0 = [gettimeofday];
 
 ## Usage 
 #
 my $USAGE = '
 
 usage: sc2dsstats_worker.pl [--stats] [--start_date] [--end_date] [--player_only]
-                 [--cmdr] [--dps_basis] [--alignment]
+                 [--cmdr] [--dmg] [--alignment]
                  [--skip] [--keep] [--player] [--DEBUG]
-                 [--stats_file] 
+                 [--stats_file] [--png]
 
 positional arguments:
   replay_file        .SC2Replay file to load
@@ -61,7 +62,7 @@ $main_path = dirname($main_path);
 
 my $config_file = $main_path . "/sc2dsstats.exe.Config";
 my $csv = $main_path . "/stats.csv";
-my $logfile = $main_path . "/log_dmg.txt";
+my $logfile = $main_path . "/log_worker.txt";
 my $png = $main_path . "/worker.png";
 
 my %cfg;
@@ -119,7 +120,7 @@ GetOptions (
 	"help" => \$help
 	
 
-) or die "Error in command line arguments:$! \n";
+) or &Error("Error in command line arguments:$!");
 
 if ($help) {
 	print $USAGE . "\n";
@@ -509,7 +510,9 @@ if ($basedon) {
 
 &PrintGraph($title, "Commanders", $y_label, 1, $y_max_value, $png, \@x, \@y, $alignment);
 
+&Log("Elapsed time: " . tv_interval($t0) . " seconds", 0);
 
+exit 0;
 
 
 
@@ -563,7 +566,7 @@ $graph->set(
     transparent         => 0,
     bgclr               => 'white',
     long_ticks          => 1,
-) or die $graph->error;
+) or &Error($graph->error);
 
 
 
@@ -579,11 +582,11 @@ $graph->set(show_values => 1 );
 $graph->set_values_font('C:/Windows/Fonts/arial.ttf', 12);
 
 $graph->set( dclrs => [ qw(blue blue blue blue) ] );
-my $gd = $graph->plot(\@data) or die $graph->error;
+my $gd = $graph->plot(\@data) or &Error($graph->error);
  
 &Log("(PrintGraph) Printing graph to $png ..", 1); 
  
-open(IMG, ">:unix", $png) or die $!;
+open(IMG, ">:unix", $png) or &Error($!);
 binmode IMG;
 print IMG $gd->png;
 close(IMG);
@@ -599,6 +602,13 @@ sub Log {
 	print $msg . "\n" if $DEBUG >= $debug;
 }
 
+
+sub Error {
+	my $msg = shift;
+	&Log($msg, 0);
+	close(LOG);
+	exit 1;
+}
 
 sub Skip {
 	my $replay = shift;
@@ -721,7 +731,6 @@ sub Skip {
 		}
 	}		
 	
-	
 	return 0;
 	
 }
@@ -733,7 +742,7 @@ sub ReadCSV {
 	
 	
 	if (-e $csv) {
-        open(SUM, "<", $csv) or die "Could not read $csv: $!\n";
+        open(SUM, "<", $csv) or &Error("Could not read $csv: $!");
         while (<SUM>) {
         	chomp;
 			if (/^\d/) {

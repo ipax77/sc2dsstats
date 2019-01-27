@@ -93,7 +93,7 @@ $games = keys %sum;
 #
 
 my $todo_replays = 0;
-opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or die "Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!\n";
+opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or &Error("Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!");
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
 	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
@@ -146,10 +146,10 @@ closedir(REP);
 
 &Log("We found $todo_replays new replays", 1);
 
-open(CSV, ">>", $csv) or die "Could not write to $csv: $!\n";
+open(CSV, ">>", $csv) or &Error("Could not write to $csv: $!");
 
 my $done_replays = 1;
-opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or die "Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!\n";
+opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or &Error("Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!");
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
 	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
@@ -269,9 +269,9 @@ while (my $p = readdir(REP)) {
 					foreach my $get (@getpool) {
 						my $done_file = $info_path . $get . ".txt";
 						if (-e $done_file) {
-							unlink($done_file) or die "Could not unlink $done_file: $!\n";
+							unlink($done_file) or &Error("Could not unlink $done_file: $!");
 							if ($skip == 1) {
-								open(DONE, ">", $done_file) or die "Could not write to $done_file: $!\n";
+								open(DONE, ">", $done_file) or &Error("Could not write to $done_file: $!");
 								print DONE "Und es war Sommer (delete this file if you want to rescan the replay)\n";
 								close(DONE);
 							}
@@ -336,7 +336,7 @@ sub GetData {
 					my $result;
 					my $teamid;
 	
-	                open(ST, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+	                open(ST, "<", $stat_file) or &Error("Could not read $stat_file: $!");
                         while (<ST>) {
 	                        if (/m_name/) {
 		                        if (/'([^']+)',$/) {
@@ -429,7 +429,7 @@ sub GetData {
 		                my $controlPlayerId;
 		                my $event;
 		
-		                open(TRACKEREVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+		                open(TRACKEREVENTS, "<", $stat_file) or &Error("Could not read $stat_file: $!");
 		
 		                while (<TRACKEREVENTS>) {
 		
@@ -598,7 +598,7 @@ sub GetData {
 			        	my $gameloop;
 			        	my $msgevent;
 			        	my $msg;
-			        	open(MSGEVENTS, "<", $stat_file) or die "Could not read $stat_file: $!\n";
+			        	open(MSGEVENTS, "<", $stat_file) or &Error("Could not read $stat_file: $!");
 			        	
 			        	while (<MSGEVENTS>) {
 			        		
@@ -689,10 +689,10 @@ sub Info {
 					&Log("(Info) " . $exec, 2);
 					`$exec`;
 					if (-s $temp_file) {
-						&File::Copy::move($temp_file, $store_file) or die $!;
+						&File::Copy::move($temp_file, $store_file) or &Error($!);
 					} else {
 						&Log("(Info) Failed extracting data from $rep - plase check if there is an update availabe.", 0);
-						&File::Copy::move($temp_file, $store_file) or die $!;
+						&File::Copy::move($temp_file, $store_file) or &Error($!);
 						return;
 					}
 				}
@@ -709,13 +709,20 @@ sub Log {
 	print $msg . "\n" if $DEBUG >= $debug;
 }
 
+sub Error {
+	my $msg = shift;
+	&Log($msg, 0);
+	close(LOG);
+	exit 1;	
+}
+
 sub ReadCSV {
 	my $csv = shift;
 	my $sumref = shift;
 	
 	
 	if (-e $csv) {
-        open(SUM, "<", $csv) or die "Could not read $csv: $!\n";
+        open(SUM, "<", $csv) or &Error("Could not read $csv: $!");
         while (<SUM>) {
         	chomp;
 			if (/^\d/) {

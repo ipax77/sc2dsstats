@@ -1,3 +1,0 @@
-Mainpath: D:/github/sc2dsstats/
-Starting at 20190114212928 ..
-Working on replays between 19700101000000 and 20190114212928 ..
