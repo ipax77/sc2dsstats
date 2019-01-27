@@ -685,7 +685,7 @@ sub Info {
 					&Log("(Info) Skipping $rep - plain file already existing ($store_file)", 1);
 				} else {
 					#my $exec = "$python $p_script \"$rep\" --$get > \"$temp_file\"";
-					my $exec = "$s2_cli \"$rep\" --$get > \"$temp_file\"";
+					my $exec = "\"$s2_cli\" \"$rep\" --$get > \"$temp_file\"";
 					&Log("(Info) " . $exec, 2);
 					`$exec`;
 					if (-s $temp_file) {
