@@ -22,5 +22,17 @@ namespace sc2dsstats.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Sommer")]
+        public string test1 {
+            get {
+                return ((string)(this["test1"]));
+            }
+            set {
+                this["test1"] = value;
+            }
+        }
     }
 }

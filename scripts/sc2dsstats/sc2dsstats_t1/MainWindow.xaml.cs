@@ -47,7 +47,6 @@ namespace sc2dsstats_t1
             {
 
 
-
                 /// MessageBox.Show("Welcome to sc2dsstats - this is your first run so we need to know some things to make this work ..");
                 fr_InputBox.Visibility = System.Windows.Visibility.Visible;
                 gr_buttons.Visibility = Visibility.Collapsed;
@@ -366,6 +365,18 @@ namespace sc2dsstats_t1
             dynamicImage.Height = 610;
             dynamicImage.MouseDown += new System.Windows.Input.MouseButtonEventHandler(dyn_image_Click);
 
+            dynamicImage.AllowDrop = true;
+            dynamicImage.MouseMove += new MouseEventHandler(dyn_image_Move);
+
+            /**
+            dynamicImage.MouseDown += new System.Windows.Input.MouseEventHandler(this.ListDragSource_MouseDown);
+            dynamicImage.QueryContinueDrag += new System.Windows.Input.QueryCursorEventHandler(this.ListDragSource_QueryContinueDrag);
+            dynamicImage.MouseUp += new System.Windows.Input.MouseEventHandler(this.ListDragSource_MouseUp);
+            dynamicImage.MouseMove += new System.Windows.Input.MouseEventHandler(this.ListDragSource_MouseMove);
+            **/
+
+
+
             // Create a BitmapSource  
             BitmapImage bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -397,6 +408,42 @@ namespace sc2dsstats_t1
 
             return dynamicImage;
         }
+
+
+        private void dyn_image_Move(object sender, MouseEventArgs e)
+        {
+            Image dropImage = sender as Image;
+            string drop = dropImage.Source.ToString();
+            drop = new Uri(drop).LocalPath;
+
+            BitmapImage dropBitmap = new BitmapImage();
+            dropBitmap.BeginInit();
+            dropBitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+            dropBitmap.CacheOption = BitmapCacheOption.OnLoad;
+            dropBitmap.UriSource = new Uri(drop);
+            dropBitmap.EndInit();
+
+            string[] files = new string[1];
+            BitmapImage[] dBitmaps = new BitmapImage[1];
+            files[0] = drop;
+            dBitmaps[0] = dropBitmap;
+
+
+
+            DataObject dropObj = new DataObject(DataFormats.FileDrop, files);
+            ///dropObj.SetData(DataFormats.Text, files[0]);
+            dropObj.SetData(DataFormats.Bitmap, dBitmaps[0]);
+
+            if (myImage != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+
+
+                ///DragDrop.DoDragDrop(myImage, dps_png, DragDropEffects.Copy);
+                DragDrop.DoDragDrop(myImage, dropObj, DragDropEffects.All | DragDropEffects.Link);
+
+            }
+        }
+
 
         private void CreateViewTextDynamically(string imgPath)
         {
@@ -574,7 +621,43 @@ namespace sc2dsstats_t1
             Application.Current.Shutdown();
         }
 
-        private void mnu_Options(object sender, RoutedEventArgs e)
+        private void mnu_Log(object sender, RoutedEventArgs e)
+        {
+            Window2 win2 = new Window2();
+            string logfile = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            logfile += "\\log_worker.txt";
+
+            if (File.Exists(logfile))
+            {
+                StreamReader reader = new StreamReader(logfile, Encoding.UTF8, true);
+
+
+                win2.win_Log_Textbox_Log.Text = "";
+                byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+
+                win2.win_Log_Textbox_Log.Text = Encoding.Default.GetString(bytes);
+                reader.Close();
+
+                win2.win_Log_Textbox_Log.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                win2.win_Log_Textbox_Log.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                win2.win_Log_Textbox_Log.TextWrapping = TextWrapping.Wrap;
+                win2.win_Log_Textbox_Log.AcceptsReturn = true;
+                win2.win_Log_Textbox_Log.Background = new LinearGradientBrush(Colors.LightBlue, Colors.SlateBlue, 90);
+                win2.win_Log_Textbox_Log.FontFamily = new FontFamily("Courier New");
+
+                win2.win_Log_Textbox_Log.Focus();
+                win2.win_Log_Textbox_Log.SelectionStart = win2.win_Log_Textbox_Log.Text.Length;
+                win2.win_Log_Textbox_Log.ScrollToEnd();
+                win2.Show();
+            } else
+            {
+                MessageBox.Show("No logfile found :(");
+            }
+
+
+        }
+
+            private void mnu_Options(object sender, RoutedEventArgs e)
         {
 
             ClearImage();
@@ -1460,6 +1543,8 @@ namespace sc2dsstats_t1
 
             }
         }
+
+   
 
         private void main_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {

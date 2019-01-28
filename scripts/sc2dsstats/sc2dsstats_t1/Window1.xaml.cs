@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace sc2dsstats
@@ -92,6 +93,38 @@ namespace sc2dsstats
             string dps_png = win_dps_img1.Source.ToString();
             dps_png = new Uri(dps_png).LocalPath;
             File.Delete(dps_png);
+        }
+
+        private void win_image_Move(object sender, MouseEventArgs e)
+        {
+            Image dropImage = sender as Image;
+            string drop = dropImage.Source.ToString();
+            drop = new Uri(drop).LocalPath;
+
+            BitmapImage dropBitmap = new BitmapImage();
+            dropBitmap.BeginInit();
+            dropBitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+            dropBitmap.CacheOption = BitmapCacheOption.OnLoad;
+            dropBitmap.UriSource = new Uri(drop);
+            dropBitmap.EndInit();
+            string[] files =  new string[1];
+            files[0] = drop;
+            BitmapImage[] dBitmaps = new BitmapImage[1];
+            dBitmaps[0] = dropBitmap;
+
+            DataObject dropObj = new DataObject(DataFormats.FileDrop, files);
+            ///dropObj.SetData(DataFormats.Text, files[0]);
+            dropObj.SetData(DataFormats.Bitmap, dBitmaps[0]);
+
+            if (dropImage != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+
+
+                ///DragDrop.DoDragDrop(myImage, dps_png, DragDropEffects.Copy);
+                DragDrop.DoDragDrop(dropImage, dropObj, DragDropEffects.All | DragDropEffects.Link);
+
+            }
+
         }
     }
 }

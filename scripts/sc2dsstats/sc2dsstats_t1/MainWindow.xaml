@@ -20,6 +20,7 @@
                 <Menu DockPanel.Dock="Top" Height="24" RenderTransformOrigin="0.495,-3.854">
                     <MenuItem Header="_File">
                         <MenuItem Header="_Options" Click="mnu_Options"/>
+                        <MenuItem Header="_Log" Click="mnu_Log"/>
                         <Separator />
                         <MenuItem Header="_Exit" Click="mnu_Exit" />
                     </MenuItem>

@@ -9,7 +9,8 @@
     mc:Ignorable="d"
         Title="Window1" Height="1650" Width="810">
     <Grid x:Name="win_dps_grid" Visibility="Visible">
-        <Image x:Name="win_dps_img1" MaxWidth="1600" MaxHeight="1600" ScrollViewer.HorizontalScrollBarVisibility="Visible" Grid.IsSharedSizeScope="True">
+        <Image x:Name="win_dps_img1" MaxWidth="1600" MaxHeight="1600" ScrollViewer.HorizontalScrollBarVisibility="Visible" Grid.IsSharedSizeScope="True" AllowDrop="True" MouseMove="win_image_Move">
+
         </Image>
 
     </Grid>
