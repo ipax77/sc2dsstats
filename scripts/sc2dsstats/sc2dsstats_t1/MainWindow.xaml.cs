@@ -412,35 +412,49 @@ namespace sc2dsstats_t1
 
         private void dyn_image_Move(object sender, MouseEventArgs e)
         {
-            Image dropImage = sender as Image;
-            string drop = dropImage.Source.ToString();
-            drop = new Uri(drop).LocalPath;
 
             BitmapImage dropBitmap = new BitmapImage();
-            dropBitmap.BeginInit();
-            dropBitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-            dropBitmap.CacheOption = BitmapCacheOption.OnLoad;
-            dropBitmap.UriSource = new Uri(drop);
-            dropBitmap.EndInit();
 
-            string[] files = new string[1];
-            BitmapImage[] dBitmaps = new BitmapImage[1];
-            files[0] = drop;
-            dBitmaps[0] = dropBitmap;
+            try
+            {
+                Image dropImage = sender as Image;
+                string drop = dropImage.Source.ToString();
+                drop = new Uri(drop).LocalPath;
 
 
+                dropBitmap.BeginInit();
+                dropBitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                dropBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                dropBitmap.UriSource = new Uri(drop);
+                dropBitmap.EndInit();
 
-            DataObject dropObj = new DataObject(DataFormats.FileDrop, files);
-            ///dropObj.SetData(DataFormats.Text, files[0]);
-            dropObj.SetData(DataFormats.Bitmap, dBitmaps[0]);
+                string[] files = new string[1];
+                BitmapImage[] dBitmaps = new BitmapImage[1];
+                files[0] = drop;
+                dBitmaps[0] = dropBitmap;
 
-            if (myImage != null && e.LeftButton == MouseButtonState.Pressed)
+
+
+                DataObject dropObj = new DataObject(DataFormats.FileDrop, files);
+                ///dropObj.SetData(DataFormats.Text, files[0]);
+                dropObj.SetData(DataFormats.Bitmap, dBitmaps[0]);
+
+                if (myImage != null && e.LeftButton == MouseButtonState.Pressed)
+                {
+
+
+                    ///DragDrop.DoDragDrop(myImage, dps_png, DragDropEffects.Copy);
+                    DragDrop.DoDragDrop(myImage, dropObj, DragDropEffects.Copy);
+
+                }
+            }
+            catch (System.IO.FileNotFoundException)
             {
 
-
-                ///DragDrop.DoDragDrop(myImage, dps_png, DragDropEffects.Copy);
-                DragDrop.DoDragDrop(myImage, dropObj, DragDropEffects.All | DragDropEffects.Link);
-
+            }
+            finally
+            {
+                dropBitmap = null;
             }
         }
 
@@ -686,9 +700,12 @@ namespace sc2dsstats_t1
             // Refresh items to display sort
             dataGrid1.Items.Refresh();
 
-            InitializeComponent();
+            ///InitializeComponent();
 
-            dp_config.Visibility = Visibility.Visible;
+            ///dp_config.Visibility = Visibility.Visible;
+
+            Window3 win3 = new Window3();
+            win3.Show();
 
         }
 

@@ -678,12 +678,13 @@ sub Skip {
 	}		
 
 	# duration
-	
-	if ($sum{$replay}{$player}{'DURATION'} <= $cfg->{'appSettings'}{'add'}{'DURATION'}{'value'}) {
-		$skip{$replay}{'DURATION'} ++;
-		$skip{$replay}{'SKIP'} = 1;	
-		&Log("(Skip) Skipping $replay due to DURATION", 2);
-		return 1;
+	if (defined $sum{$replay}{$player}{'DURATION'} && $sum{$replay}{$player}{'DURATION'}) {
+		if ($sum{$replay}{$player}{'DURATION'} <= $cfg->{'appSettings'}{'add'}{'DURATION'}{'value'}) {
+			$skip{$replay}{'DURATION'} ++;
+			$skip{$replay}{'SKIP'} = 1;	
+			&Log("(Skip) Skipping $replay due to DURATION", 2);
+			return 1;
+		}
 	}
 
 	foreach my $name (keys %{ $sum{$replay} }) {
@@ -699,35 +700,43 @@ sub Skip {
 		}
 
 		# leaver
-		if (($sum{$replay}{$player}{'DURATION'} - $sum{$replay}{$name}{'DURATION'}) >  $cfg->{'appSettings'}{'add'}{'LEAVER'}{'value'}) {
-			$skip{$replay}{'LEAVER'} ++;
-			$skip{$replay}{'SKIP'} = 1;	
-			&Log("(Skip) Skipping $replay due to LEAVER", 2);
-			return 1;
+		if (defined $cfg->{'appSettings'}{'add'}{'LEAVER'}{'value'} && $cfg->{'appSettings'}{'add'}{'LEAVER'}{'value'}) {
+			if (($sum{$replay}{$player}{'DURATION'} - $sum{$replay}{$name}{'DURATION'}) >  $cfg->{'appSettings'}{'add'}{'LEAVER'}{'value'}) {
+				$skip{$replay}{'LEAVER'} ++;
+				$skip{$replay}{'SKIP'} = 1;	
+				&Log("(Skip) Skipping $replay due to LEAVER", 2);
+				return 1;
+			}
 		}
 		
 		# killsum
-		if ($sum{$replay}{$name}{'KILLSUM'} < $cfg->{'appSettings'}{'add'}{'KILLSUM'}{'value'}) {
-			$skip{$replay}{'KILLSUM'} ++;
-			$skip{$replay}{'SKIP'} = 1;	
-			&Log("(Skip) Skipping $replay due to KILLSUM", 2);
-			return 1;
+		if (defined $cfg->{'appSettings'}{'add'}{'KILLSUM'}{'value'} && $cfg->{'appSettings'}{'add'}{'KILLSUM'}{'value'}) {
+			if ($sum{$replay}{$name}{'KILLSUM'} < $cfg->{'appSettings'}{'add'}{'KILLSUM'}{'value'}) {
+				$skip{$replay}{'KILLSUM'} ++;
+				$skip{$replay}{'SKIP'} = 1;	
+				&Log("(Skip) Skipping $replay due to KILLSUM", 2);
+				return 1;
+			}
 		}
 
 		# army
-		if ($sum{$replay}{$name}{'ARMY'} < $cfg->{'appSettings'}{'add'}{'ARMY'}{'value'}) {
-			$skip{$replay}{'ARMY'} ++;
-			$skip{$replay}{'SKIP'} = 1;	
-			&Log("(Skip) Skipping $replay due to ARMY", 2);
-			return 1;
+		if (defined $cfg->{'appSettings'}{'add'}{'ARMY'}{'value'} && $cfg->{'appSettings'}{'add'}{'ARMY'}{'value'}) {
+			if ($sum{$replay}{$name}{'ARMY'} < $cfg->{'appSettings'}{'add'}{'ARMY'}{'value'}) {
+				$skip{$replay}{'ARMY'} ++;
+				$skip{$replay}{'SKIP'} = 1;	
+				&Log("(Skip) Skipping $replay due to ARMY", 2);
+				return 1;
+			}
 		}
 
 		#income
-		if ($sum{$replay}{$name}{'INCOME'} < $cfg->{'appSettings'}{'add'}{'INCOME'}{'value'}) {
-			$skip{$replay}{'INCOME'} ++;
-			$skip{$replay}{'SKIP'} = 1;	
-			&Log("(Skip) Skipping $replay due to INCOME", 2);
-			return 1;
+		if (defined $cfg->{'appSettings'}{'add'}{'INCOME'}{'value'} && $cfg->{'appSettings'}{'add'}{'INCOME'}{'value'}) {
+			if ($sum{$replay}{$name}{'INCOME'} < $cfg->{'appSettings'}{'add'}{'INCOME'}{'value'}) {
+				$skip{$replay}{'INCOME'} ++;
+				$skip{$replay}{'SKIP'} = 1;	
+				&Log("(Skip) Skipping $replay due to INCOME", 2);
+				return 1;
+			}
 		}
 	}		
 	
