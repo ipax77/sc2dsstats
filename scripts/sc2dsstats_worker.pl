@@ -750,8 +750,8 @@ sub ReadCSV {
 	my $sumref = shift;
 	
 	
-	if (-e $csv) {
-        open(SUM, "<", $csv) or &Error("Could not read $csv: $!");
+	if (-e "$csv") {
+        open(SUM, "<", "$csv") or &Error("Could not read $csv: $!");
         while (<SUM>) {
         	chomp;
 			if (/^\d/) {

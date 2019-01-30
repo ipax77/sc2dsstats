@@ -236,7 +236,14 @@ namespace sc2dsstats_t1
 
         }
 
-        private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
+        private void bt_onthefly_Click(object sender, RoutedEventArgs e)
+        {
+            Window4 win_otf = new Window4();
+            win_otf.Show();
+        }
+
+
+            private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
         {
 
             // Create OpenFileDialog 
@@ -824,6 +831,12 @@ namespace sc2dsstats_t1
                 skip_std = "0";
             }
 
+            string player_only = "1";
+            if (otf_player.IsChecked == false)
+            {
+                player_only = "0";
+            }
+
             string otf_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             otf_png += "\\temp\\";
 
@@ -843,18 +856,15 @@ namespace sc2dsstats_t1
             string Arguments = "--start_date=" + sd + " "
                 + "--end_date=" + ed + " "
                 + "--skip STD=" + skip_std + " "
-                + "--player_only "
+                
                 + "--png=\"" + otf_png + "\" "
                 ;
 
-            /**
-                + "--alignment=" + alignment + " ";
             if (String.Equals(player_only, "1"))
             {
                 Arguments += "--player_only ";
 
             }
-            **/
 
 
             Process doit = new Process();

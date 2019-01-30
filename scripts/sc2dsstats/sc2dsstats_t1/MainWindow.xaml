@@ -35,7 +35,7 @@
                     <ImageBrush/>
                 </TextBox.Background>
             </TextBox>
-            <Button Content="stats" Visibility="Collapsed" HorizontalAlignment="Left" Margin="115,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.107,-0.033" Click="Button_Click_1"/>
+            <Button Content="onthefly" Visibility="Collapsed" HorizontalAlignment="Left" Margin="115,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.107,-0.033" Click="bt_onthefly_Click"/>
             <Button Content="damage" HorizontalAlignment="Left" Margin="195,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_damage_Click"/>
             <Button Content="stats" HorizontalAlignment="Left" Margin="275,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_Time_Click"/>
             <Button Content="clear" HorizontalAlignment="Left" Margin="435,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="Button_Click_3"/>
@@ -73,8 +73,9 @@
         </Grid>
         <Grid x:Name="otf_stats" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0" Height="682" Width="1675">
 
-            <Button x:Name="Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="940,8,0,0" Width="74" Height="24" Content="Show" Click="otf_ShowButton_Click"/>
-            <CheckBox x:Name="otf_std" Content="show STD" HorizontalAlignment="Left" Margin="808,12,0,0" VerticalAlignment="Top"/>
+            <Button x:Name="Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="955,8,0,0" Width="74" Height="24" Content="Show" Click="otf_ShowButton_Click"/>
+            <CheckBox x:Name="otf_std" Content="show STD" HorizontalAlignment="Left" Margin="878,12,0,0" VerticalAlignment="Top"/>
+            <CheckBox x:Name="otf_player" Content="playeronly" HorizontalAlignment="Left" Margin="798,12,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" />
             <Label Content="start_date" HorizontalAlignment="Left" Margin="371,6,0,0" VerticalAlignment="Top" Width="59"/>
             <Label Content="end_date" HorizontalAlignment="Left" Margin="588,6,0,0" VerticalAlignment="Top" Width="54"/>
             <DatePicker x:Name="otf_startdate" HorizontalAlignment="Left" Margin="435,8,0,0" VerticalAlignment="Top"/>

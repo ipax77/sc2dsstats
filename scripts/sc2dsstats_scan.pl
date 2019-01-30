@@ -14,6 +14,7 @@ use File::Basename;
 use Encode qw(decode encode);
 use File::Copy;
 use DateTime qw(from_epoch);
+use Getopt::Long;
 
 my $DEBUG = 2;
 
@@ -74,6 +75,40 @@ if (defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} && $cfg->{'appSett
 	push(@getpool, 'messageevents');
 }
 
+my $replay_path;
+my $skip_beta;
+my $skip_hots;
+my $skip_msg;
+my $keep = 1; 
+ 
+$replay_path = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'};
+$skip_beta = $cfg->{'appSettings'}{'add'}{'BETA'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'BETA'}{'value'};
+$skip_hots = $cfg->{'appSettings'}{'add'}{'HOTS'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'HOTS'}{'value'};
+$skip_msg = $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'};
+$keep = $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'};
+
+GetOptions (
+	"start_date=i" => \$start_date,
+	"end_date=i" => \$end_date,
+	"player=s" => \$player,
+	"stats_file=s" => \$csv,
+	"replay_path=s" => \$replay_path,
+	"DEBUG=i" => \$DEBUG,
+	"skip_beta=i" => \$skip_beta,
+	"skip_hots=i" => \$skip_hots,
+	"skip_msg=i" => \$skip_msg,
+	"keep=i" => \$keep,
+	"store_path=s" => \$store_path,
+	"s2_cli=s" => \$s2_cli
+) or &Error("Error in command line arguments:$!");
+
+#$start_date = "20190127000000";
+#$store_path = "D:/github/sc2dsstats_debug/analyzes";
+#$csv = "C:/temp/stats.csv";
+#$s2_cli = "D:/github/sc2dsstats_debug/scripts/s2_cli.exe";
+#$DEBUG = 2;
+
+
 
 my %sum;
 my %skip;
@@ -93,7 +128,7 @@ $games = keys %sum;
 #
 
 my $todo_replays = 0;
-opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or &Error("Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!");
+opendir(REP, $replay_path) or &Error("Could not read dir $replay_path: $!");
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
 	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
@@ -102,13 +137,13 @@ while (my $p = readdir(REP)) {
 			if ($p =~ /(.*)\.SC2Replay/) {
 				$id = $1;	
 			}
-			
+			my $replay = $replay_path . "/" . $p;
 			next if defined $sum{$id};
 
 			my $gametime;
 			# startdate
-			if (defined $cfg->{'skip'}{'add'}{'START_DATE'}{'value'} && $cfg->{'skip'}{'add'}{'START_DATE'}{'value'}) {
-				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $p )[9] ) );
+			if (defined $start_date && $start_date) {
+				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );
 				if ($gametime < $start_date) { 
 					&Log("(Info) Skipping $p due to START_DATE", 2);
 					next;
@@ -116,8 +151,8 @@ while (my $p = readdir(REP)) {
         	} 
         	
         	# enddate
-			if (defined $cfg->{'skip'}{'add'}{'END_DATE'}{'value'} && $cfg->{'skip'}{'add'}{'END_DATE'}{'value'}) {
-				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $p )[9] ) );
+			if (defined $end_date && $end_date) {
+				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );
 				if ($gametime > $end_date) { 
 					&Log("(Info) Skipping $p due to END_DATE", 2);
 					next;
@@ -125,7 +160,7 @@ while (my $p = readdir(REP)) {
         	} 
         	
         	# beta
-			if (defined $cfg->{'skip'}{'add'}{'BETA'}{'value'} && $cfg->{'skip'}{'add'}{'BETA'}{'value'}) {
+			if (defined $skip_beta && $skip_beta) {
 				if ($p =~ /Beta/) { 
 					&Log("(Info) Skipping $p due to BETA", 2);
 					next;
@@ -133,7 +168,7 @@ while (my $p = readdir(REP)) {
         	}
         	
         	# hots
-			if (defined $cfg->{'skip'}{'add'}{'HOTS'}{'value'} && $cfg->{'skip'}{'add'}{'HOTS'}{'value'}) {
+			if (defined $skip_hots && $skip_hots) {
 				if ($p =~ /HotS/) { 
 					&Log("(Info) Skipping $p due to HOTS", 2);
 					next;
@@ -146,10 +181,10 @@ closedir(REP);
 
 &Log("We found $todo_replays new replays", 1);
 
-open(CSV, ">>", $csv) or &Error("Could not write to $csv: $!");
+open(CSV, ">>", "$csv") or &Error("Could not write to $csv: $!");
 
 my $done_replays = 1;
-opendir(REP, $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}) or &Error("Could not read dir $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'}: $!");
+opendir(REP, $replay_path) or &Error("Could not read dir $replay_path: $!");
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
 	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
@@ -161,7 +196,7 @@ while (my $p = readdir(REP)) {
 		
 		next if defined $sum{$id};
 		
-		my $replay = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} . "/" . $p;
+		my $replay = $replay_path . "/" . $p;
 		my $info_path = &Info($replay);
 		
 		# Extracting data from the decoded Replays
@@ -183,7 +218,7 @@ while (my $p = readdir(REP)) {
 				my $skip = 0;
         		foreach  my $d (sort keys %{ $detail{$id} }) {
         			
-	        		if (defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
+	        		if (defined $skip_msg && $skip_msg) {
 						if (defined $skipmsg{$id}{'PLAYER'}) {
 							if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
 								&Log("Skipping $id due to skipmsg", 2);
@@ -265,7 +300,7 @@ while (my $p = readdir(REP)) {
 	        		}
         		}
         		
-        		if (defined $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'} && $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'} == 0) {
+        		if (defined $keep && $keep == 0) {
 					foreach my $get (@getpool) {
 						my $done_file = $info_path . $get . ".txt";
 						if (-e $done_file) {
@@ -281,14 +316,16 @@ while (my $p = readdir(REP)) {
         			
 			}
 			
+			my $done = $done_replays * 100 / $todo_replays;
+			$done = sprintf("%.2f", $done);
+			&Log($done_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
+			$done_replays ++;
+			
 		}
 		
 
 		
-		my $done = $done_replays * 100 / $todo_replays;
-		$done = sprintf("%.2f", $done);
-		&Log($done_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
-		$done_replays ++;
+
 	}
 }
 close(CSV);
@@ -592,7 +629,7 @@ sub GetData {
 		                
 		                
 		        } elsif ($stat_file =~ /_messageevents\.txt$/) {
-		        	if (defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} && $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'}) {
+		        	if (defined $skip_msg && $skip_msg) {
 			        	
 			        	my $playerid;
 			        	my $gameloop;
@@ -641,7 +678,7 @@ sub Info {
 			my $gametime;
 			
 			# startdate
-			if (defined $cfg->{'skip'}{'add'}{'START_DATE'}{'value'} && $cfg->{'skip'}{'add'}{'START_DATE'}{'value'}) {
+			if (defined $start_date && $start_date) {
 				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $rep )[9] ) );
 				if ($gametime < $start_date) { 
 					&Log("(Info) Skipping $rep due to START_DATE", 2);
@@ -650,7 +687,7 @@ sub Info {
         	} 
         	
         	# enddate
-			if (defined $cfg->{'skip'}{'add'}{'END_DATE'}{'value'} && $cfg->{'skip'}{'add'}{'END_DATE'}{'value'}) {
+			if (defined $end_date && $end_date) {
 				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $rep )[9] ) );
 				if ($gametime > $end_date) { 
 					&Log("(Info) Skipping $rep due to END_DATE", 2);
@@ -659,7 +696,7 @@ sub Info {
         	} 
         	
         	# beta
-			if (defined $cfg->{'skip'}{'add'}{'BETA'}{'value'} && $cfg->{'skip'}{'add'}{'BETA'}{'value'}) {
+			if (defined $skip_beta && $skip_beta) {
 				if ($rep =~ /Beta/) { 
 					&Log("(Info) Skipping $rep due to BETA", 2);
 					return;
@@ -667,7 +704,7 @@ sub Info {
         	}
         	
         	# hots
-			if (defined $cfg->{'skip'}{'add'}{'HOTS'}{'value'} && $cfg->{'skip'}{'add'}{'HOTS'}{'value'}) {
+			if (defined $skip_hots && $skip_hots) {
 				if ($rep =~ /HotS/) { 
 					&Log("(Info) Skipping $rep due to HOTS", 2);
 					return;
@@ -721,8 +758,8 @@ sub ReadCSV {
 	my $sumref = shift;
 	
 	
-	if (-e $csv) {
-        open(SUM, "<", $csv) or &Error("Could not read $csv: $!");
+	if (-e "$csv") {
+        open(SUM, "<", "$csv") or &Error("Could not read $csv: $!");
         while (<SUM>) {
         	chomp;
 			if (/^\d/) {
