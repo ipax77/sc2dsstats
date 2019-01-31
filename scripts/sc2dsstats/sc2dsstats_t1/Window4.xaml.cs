@@ -31,10 +31,18 @@ namespace sc2dsstats
         string today_stats = "";
         string store_path = "";
         public Image myImage = null;
+        public Task watcherThread = null;
+        public CancellationTokenSource tokenSource2 = new CancellationTokenSource();
+        Task watcherTask = null;
+        string replay_path = "";
+        bool doit = false;
 
         public Window4()
         {
             InitializeComponent();
+            var appSettings = ConfigurationManager.AppSettings;
+            replay_path = appSettings["replay_path"];
+            dp_onthefly_startdate.SelectedDate = DateTime.Today;
         }
 
         private Image CreateViewImageDynamically(string imgPath)
@@ -43,8 +51,8 @@ namespace sc2dsstats
             Image dynamicImage = new Image();
             dynamicImage.Stretch = Stretch.Fill;
             dynamicImage.StretchDirection = StretchDirection.Both;
-            dynamicImage.Width = 1610;
-            dynamicImage.Height = 610;
+            dynamicImage.MaxWidth = 1600;
+            dynamicImage.MaxHeight = 1660;
             dynamicImage.MouseDown += new System.Windows.Input.MouseButtonEventHandler(dyn_image_Click);
 
             dynamicImage.AllowDrop = true;
@@ -203,7 +211,7 @@ namespace sc2dsstats
                     win1.Show();
                     ///win1.Close();
 
-                    
+
 
                 }
 
@@ -293,7 +301,10 @@ namespace sc2dsstats
         private void bt_onthefly_start_Click(object sender, RoutedEventArgs e)
         {
 
-            
+            doit = true;
+
+            lb_onthefly.Content = "Watching ..";
+            lb_onthefly.UpdateLayout();
 
             today = DateTime.Today;
             today_stats = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
@@ -306,10 +317,24 @@ namespace sc2dsstats
             }
             today_stats += "today_stats.csv";
 
-            var appSettings = ConfigurationManager.AppSettings;
-            string replay_path = appSettings["replay_path"];
 
-            ScanReplays();
+
+            ScanReplays(replay_path);
+
+            
+
+            ///MessageBox.Show("Klicken Sie hier, um die Überwachung zu beenden!", "Überwachung");
+
+
+        }
+
+        internal void startWatching (string replay_path, CancellationToken ct)
+        {
+
+            if (ct.IsCancellationRequested == true)
+            {
+                ct.ThrowIfCancellationRequested();
+            }
 
             FileSystemWatcher watcher = new FileSystemWatcher();
 
@@ -325,23 +350,32 @@ namespace sc2dsstats
 
             watcher.EnableRaisingEvents = true;
 
-            MessageBox.Show("Klicken Sie hier, um die Überwachung zu beenden!", "Überwachung");
+            bool True = true;
+            while (True)
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    True = false;
+                }
+                watcher.WaitForChanged(WatcherChangeTypes.All);
+                True = false;
 
-
+            }
         }
 
         private void watcher_Changed(object sender, FileSystemEventArgs e)
         {
 
             // Ereignisbehandlungsroutine für Änderungsereignisse
-            MessageBox.Show(e.FullPath + " wurde geändert");
+            ///MessageBox.Show(e.FullPath + " wurde geändert");
         }
 
         private void watcher_Created(object sender, FileSystemEventArgs e)
         {
 
             // Ereignisbehandlungsroutine für Erstellungsereignisse
-            Task.Factory.StartNew(() => { ScanReplays(); }, TaskCreationOptions.AttachedToParent);
+            Task.Factory.StartNew(() => { ScanReplays(replay_path); }, TaskCreationOptions.AttachedToParent);
 
         }
 
@@ -349,127 +383,195 @@ namespace sc2dsstats
         {
 
             // Ereignisbehandlungsroutine für Löschereignisse
-            MessageBox.Show(e.FullPath + " wurde neu angelegt");
+            ///MessageBox.Show(e.FullPath + " wurde neu angelegt");
         }
 
         private void watcher_Renamed(object sender, RenamedEventArgs e)
         {
 
             // Ereignisbehandlungsroutine für Namensänderungen im Dateisystem
-            MessageBox.Show(e.OldName + " heißt jetzt " + e.Name);
+            ///MessageBox.Show(e.OldName + " heißt jetzt " + e.Name);
         }
 
-        private void ScanReplays()
+        private void bt_onthefly_stop_Click(object sender, RoutedEventArgs e)
+        {
+            doit = false;
+            lb_onthefly.Content = "Stoped.";
+            lb_onthefly.UpdateLayout();
+            today_stats = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            today_stats += "\\temp\\";
+
+            string today_csv = today_stats + "today_stats.csv";
+            string today_png = today_stats + "today_stats.png";
+
+            CancellationToken ct = tokenSource2.Token;
+            tokenSource2.Cancel();
+            
+
+            if (File.Exists(today_csv))
+            {
+                try
+                {
+                    File.Delete(today_csv);
+                }
+                catch (System.IO.IOException)
+                {
+
+                }
+            }
+
+            if (File.Exists(today_png)) {
+                try
+                {
+                    File.Delete(today_png);
+                }
+                catch (System.IO.IOException)
+                {
+
+                }
+            }
+
+
+        }
+
+        private void ScanReplays(string replay_path)
         {
 
-            System.Threading.Thread.Sleep(4000);
-
-            string logfile = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            logfile += "\\log.txt";
-
-            DateTime end = DateTime.Today;
-            end = end.AddDays(2);
-            string sd = today.ToString("yyyyMMdd");
-            sd += "000000";
-            ///sd = "20190127000000";
-
-            string ed = end.ToString("yyyyMMdd");
-            ed += "000000";
-            string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            s_doit += "\\scripts\\sc2dsstats_scan.exe";
-            string ExecutableFilePath = s_doit;
-            string Arguments = "--start_date=" + sd + " "
-                + "--end_date=" + ed + " "
-                + "--stats_file=\"" + today_stats + "\" "
-                ;
-
-            List<string> files = new List<string>();
-
-            Process doit = new Process();
-
-            if (File.Exists(ExecutableFilePath))
+            if (doit)
             {
-                doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
-                doit.WaitForExit();
+                doit = false;
+                System.Threading.Thread.Sleep(4000);
 
-            }
-
-            if (File.Exists(today_stats)) 
-            {
-
-
-                string today_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-                today_png += "\\temp\\today_stats.png";
-
-
-                string s_doit2 = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-                s_doit2 += "\\scripts\\sc2dsstats_worker.exe";
-
-                string ExecutableFilePath2 = s_doit2;
-                string Arguments2 = "--start_date=" + sd + " "
-                    + "--end_date=" + ed + " "
-                    + "--skip STD=0 "
-                    + "--player_only "
-                    + "--png=\"" + today_png + "\" "
-                    + "--skip DURATION=0 "
-                    + "--skip LEAVER=0 "
-                    + "--skip KILLSUM=0 "
-                    + "--skip INCOME=0 "
-                    + "--skip ARMY=0 "
-                    + "--stats_file=\"" + today_stats + "\"";
-                    ;
-
-                Process doit2 = new Process();
-
-                if (File.Exists(ExecutableFilePath2))
+                Dispatcher.Invoke(() =>
                 {
-                    doit2 = System.Diagnostics.Process.Start(ExecutableFilePath2, Arguments2);
-                    doit2.WaitForExit();
 
-                }
+                    string logfile = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                    logfile += "\\log.txt";
 
+                    DateTime end = DateTime.Today;
+                    end = end.AddDays(2);
+                    string sd = dp_onthefly_startdate.SelectedDate.Value.ToString("yyyyMMdd");
+                    sd += "000000";
+                    ///sd = "20190127000000";
 
-                if (File.Exists(today_png))
-                {
-                    
-                   /// bool indahouse = false;
-                   /// Dispatcher.Invoke(new Action<Grid>(Grid => indahouse = gr_onthefly.Children.Contains(myImage)), gr_onthefly);
-                        
-                    if (gr_onthefly.Children.Contains(myImage))
+                    string ed = end.ToString("yyyyMMdd");
+                    ed += "000000";
+                    string s_doit = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                    s_doit += "\\scripts\\sc2dsstats_scan.exe";
+                    string ExecutableFilePath = s_doit;
+                    string Arguments = "--start_date=" + sd + " "
+                        + "--end_date=" + ed + " "
+                        + "--stats_file=\"" + today_stats + "\" "
+                        ;
 
+                    List<string> files = new List<string>();
+
+                    Process doit = new Process();
+
+                    if (File.Exists(ExecutableFilePath))
                     {
-
-                        myImage.Source = null;
-                        gr_onthefly.Children.Remove(myImage);
-
-                        // Create a BitmapSource  
-                        BitmapImage bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.UriSource = new Uri(today_png);
-                        bitmap.EndInit();
-
-                        // Set Image.Source  
-                        myImage.Source = bitmap;
-                        lb_onthefly.Content = today_png;
-                        lb_onthefly.UpdateLayout();
-                        gr_onthefly.Children.Add(myImage);
+                        doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                        doit.WaitForExit();
 
                     }
-                    else
+
+                    if (File.Exists(today_stats))
                     {
 
-                        myImage = CreateViewImageDynamically(today_png);
-                        lb_onthefly.Content = today_png;
-                        lb_onthefly.UpdateLayout();
-                        gr_onthefly.Children.Add(myImage);
+
+                        string today_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                        today_png += "\\temp\\today_stats.png";
+
+
+                        string s_doit2 = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                        s_doit2 += "\\scripts\\sc2dsstats_worker.exe";
+
+                        string alignment = "horizontal";
+                        if (rb_otf_vertical.IsChecked == true)
+                        {
+                            alignment = "vertical";
+                        }
+
+                        string ExecutableFilePath2 = s_doit2;
+                        string Arguments2 = "--start_date=" + sd + " "
+                            + "--end_date=" + ed + " "
+                            + "--skip STD=0 "
+                            + "--player_only "
+                            + "--png=\"" + today_png + "\" "
+                            + "--skip DURATION=0 "
+                            + "--skip LEAVER=0 "
+                            + "--skip KILLSUM=0 "
+                            + "--skip INCOME=0 "
+                            + "--skip ARMY=0 "
+                            + "--alignment=" + alignment + " "
+                            + "--stats_file=\"" + today_stats + "\"";
+                        ;
+
+                        Process doit2 = new Process();
+
+                        if (File.Exists(ExecutableFilePath2))
+                        {
+                            doit2 = System.Diagnostics.Process.Start(ExecutableFilePath2, Arguments2);
+                            doit2.WaitForExit();
+
+                        }
+
+
+                        if (File.Exists(today_png))
+                        {
+
+                            /// bool indahouse = false;
+                            /// Dispatcher.Invoke(new Action<Grid>(Grid => indahouse = gr_onthefly.Children.Contains(myImage)), gr_onthefly);
+
+                            if (gr_onthefly.Children.Contains(myImage))
+
+                            {
+
+                                myImage.Source = null;
+                                gr_onthefly.Children.Remove(myImage);
+
+                                // Create a BitmapSource  
+                                BitmapImage bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.UriSource = new Uri(today_png);
+                                bitmap.EndInit();
+
+                                // Set Image.Source  
+                                myImage.Source = bitmap;
+                                lb_onthefly.Content = today_png;
+                                lb_onthefly.UpdateLayout();
+                                gr_onthefly.Children.Add(myImage);
+
+                            }
+                            else
+                            {
+
+                                myImage = CreateViewImageDynamically(today_png);
+                                lb_onthefly.Content = today_png;
+                                lb_onthefly.UpdateLayout();
+                                gr_onthefly.Children.Add(myImage);
+                                
+
+                            }
+
+                        }
+
                     }
-
-                }
-
+                });
+                doit = true;
+                CancellationToken ct = tokenSource2.Token;
+                watcherTask = Task.Factory.StartNew(() => { startWatching(replay_path, ct); }, tokenSource2.Token);
             }
+        }
 
+        private void win_onthefly_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            doit = false;
+            RoutedEventArgs ne = null;
+            bt_onthefly_stop_Click(sender, ne);
+            tokenSource2.Dispose();
         }
     }
 }

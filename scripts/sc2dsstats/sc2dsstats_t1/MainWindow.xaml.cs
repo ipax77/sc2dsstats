@@ -17,6 +17,7 @@ using sc2dsstats;
 using Microsoft.Win32;
 using System.Collections;
 using System.Windows.Input;
+using System.Threading.Tasks;
 
 namespace sc2dsstats_t1
 {
@@ -121,6 +122,7 @@ namespace sc2dsstats_t1
             string csv = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             csv += "\\stats.csv";
 
+            Boolean running = false;
 
             if (File.Exists(csv))
             {
@@ -128,24 +130,32 @@ namespace sc2dsstats_t1
                 string line;
                 string pattern = @"^(\d+); ([^;]+);";
                 ///string pattern = @"^(\d+);";
-                System.IO.StreamReader file = new System.IO.StreamReader(csv);
-                while ((line = file.ReadLine()) != null)
-                {
-                    foreach (Match m in Regex.Matches(line, pattern))
+
+                try {
+                    System.IO.StreamReader file = new System.IO.StreamReader(csv);
+                    while ((line = file.ReadLine()) != null)
                     {
-                        string value1 = m.Groups[2].ToString() + ".SC2Replay";
-                        if (dsreplays.ContainsKey(value1))
+                        foreach (Match m in Regex.Matches(line, pattern))
                         {
+                            string value1 = m.Groups[2].ToString() + ".SC2Replay";
+                            if (dsreplays.ContainsKey(value1))
+                            {
 
 
-                        } else {
-                            dsreplays.Add(value1, "1");
+                            } else {
+                                dsreplays.Add(value1, "1");
 
+                            }
                         }
                     }
-                }
 
-                file.Close();
+                    file.Close();
+                }
+                catch (System.IO.IOException)
+                {
+                    running = true;
+                    MessageBox.Show("Prozess already running. Please wait.");
+                }
             }
 
             if (Directory.Exists(appSettings["REPLAY_PATH"]))
@@ -187,10 +197,17 @@ namespace sc2dsstats_t1
 
 
 
-            
+
             ///MessageBox.Show(i.ToString() + " new Replays found :)");
-            
-            doit_TextBox1.Text = "We found " + newrep.ToString() + " new Replays (total: " + i.ToString() + ")" + Environment.NewLine;
+
+            if (running)
+            {
+                doit_TextBox1.Text = "We found 0 new Replays (total: " + i.ToString() + ")" + Environment.NewLine;
+            }
+            else
+            {
+                doit_TextBox1.Text = "We found " + newrep.ToString() + " new Replays (total: " + i.ToString() + ")" + Environment.NewLine;
+            }
 
             double scalc = 6472659;
             double nsize = newrep * scalc;
@@ -228,6 +245,11 @@ namespace sc2dsstats_t1
             doit_TextBox1.Text += Environment.NewLine;
 
             doit_TextBox1.Text += "You can always quit the prozess, next time it will continue at the last position." + Environment.NewLine;
+
+            if (running)
+            {
+                doit_TextBox1.Text += "Prozess already running. Please wait." + Environment.NewLine;
+            }
 
             /// 100 Replays =~ 647265846 Bytes, 720 sec
 
@@ -338,13 +360,18 @@ namespace sc2dsstats_t1
                 myImage.Source = null;
                 gr_damage.Children.Remove(myImage);
             }
+            if (gr_Image.Children.Contains(myImage))
+            {
+                myImage.Source = null;
+                gr_Image.Children.Remove(myImage);
+            }
 
-            dp_config.Visibility = Visibility.Collapsed;
+            ///dp_config.Visibility = Visibility.Collapsed;
             otf_stats.Visibility = Visibility.Collapsed;
             doit_grid.Visibility = Visibility.Collapsed;
             gr_details.Visibility = Visibility.Collapsed;
             gr_damage.Visibility = Visibility.Collapsed;
-
+            
             
            
             foreach (string img in imgGarbage) { 
@@ -368,8 +395,12 @@ namespace sc2dsstats_t1
             Image dynamicImage = new Image();
             dynamicImage.Stretch = Stretch.Fill;
             dynamicImage.StretchDirection = StretchDirection.Both;
-            dynamicImage.Width = 1610;
-            dynamicImage.Height = 610;
+            dynamicImage.MaxWidth = 1600;
+            dynamicImage.MaxHeight = 1000;
+            ///dynamicImage.Margin = new Thickness(0, 80, 0, 0);
+
+
+
             dynamicImage.MouseDown += new System.Windows.Input.MouseButtonEventHandler(dyn_image_Click);
 
             dynamicImage.AllowDrop = true;
@@ -531,15 +562,18 @@ namespace sc2dsstats_t1
 
             List<string> files = new List<string>();
 
-            Process doit = new Process();
+            Task.Factory.StartNew(() => { 
+                Process doit = new Process();
 
-            if (File.Exists(ExecutableFilePath))
-            {
-                doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
-                doit.WaitForExit();
+                if (File.Exists(ExecutableFilePath))
+                {
+                    doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                    doit.WaitForExit();
 
-            }
+                }
+            }, TaskCreationOptions.AttachedToParent);
 
+            
             if (File.Exists(logfile))
             {
                 StreamReader reader = new StreamReader(logfile, Encoding.UTF8, true);
@@ -553,11 +587,6 @@ namespace sc2dsstats_t1
 
                 reader.Close();
 
-                /*
-                foreach (string bab in files) {
-                    dynamicText.Text += bab + Environment.NewLine;
-                }
-                */
 
                 dynamicText.Focus();
                 dynamicText.SelectionStart = dynamicText.Text.Length;
@@ -567,8 +596,8 @@ namespace sc2dsstats_t1
             {
                 MessageBox.Show("No logfile found :(");
             }
-
-
+            
+                   
 
 
 
@@ -583,54 +612,6 @@ namespace sc2dsstats_t1
             */
 
         }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-
-            ClearImage();
-
-
-            string stats = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            stats += "\\worker.png";
-
-            if (File.Exists(stats))
-            {
-                myImage = CreateViewImageDynamically(stats);
-                stackpanel1.Children.Add(myImage);
-                label1.Text = stats;
-                label1.UpdateLayout();
-
-            }
-            else
-            {
-                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
-            }
-        }
-
-        /*
-        private void Button_Click_2(object sender, RoutedEventArgs e)
-        {
-
-            ClearImage();
-
-            string dps = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            dps += "\\dps.png";
-
-            if (File.Exists(dps))
-            {
-                CreateViewImageDynamically(dps);
-                label1.Text = dps;
-                label1.UpdateLayout();
-
-            }
-            else
-            {
-                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
-            }
-        }
-        */
-
-
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
@@ -682,137 +663,9 @@ namespace sc2dsstats_t1
         {
 
             ClearImage();
-
-            ///MessageBox.Show("Options");
-            var appSettings = ConfigurationManager.AppSettings;
-            dataGrid1.ItemsSource = appSettings.Keys;
-
-            dataGrid1.ItemsSource = LoadCollectionData();
-
-            var column = dataGrid1.Columns[0];
-
-            // Clear current sort descriptions
-            dataGrid1.Items.SortDescriptions.Clear();
-
-            // Add the new sort description
-            dataGrid1.Items.SortDescriptions.Add(new SortDescription(column.SortMemberPath, ListSortDirection.Ascending));
-
-            // Apply sort
-            foreach (var col in dataGrid1.Columns)
-            {
-                col.SortDirection = null;
-            }
-            column.SortDirection = ListSortDirection.Ascending;
-
-            // Refresh items to display sort
-            dataGrid1.Items.Refresh();
-
-            ///InitializeComponent();
-
-            ///dp_config.Visibility = Visibility.Visible;
-
             Window3 win3 = new Window3();
             win3.Show();
 
-        }
-
-        private void bt_save_Click(object sender, RoutedEventArgs e)
-        {
-
-            string aba = "bab" + Environment.NewLine;
-
-            dataGrid1.SelectAll();
-
-            Int32 selectedCellCount = dataGrid1.SelectedItems.Count;
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            var appSettings = ConfigurationManager.AppSettings;
-            for (int i = 0; i < selectedCellCount; i++)
-            {
-
-                string row = "bab";
-                row = dataGrid1.SelectedItems[i].ToString();
-                if (string.Equals("{NewItemPlaceholder}", row))
-                {
-
-                }
-                else
-                {
-
-                    myConfig myCfg = (myConfig)dataGrid1.SelectedItems[i];
-
-                    sb.Append(myCfg.key.ToString());
-                    sb.Append(" => ");
-                    sb.Append(myCfg.value.ToString());
-                    sb.Append(Environment.NewLine);
-
-
-                    if (String.Equals(myCfg.value.ToString(), appSettings[myCfg.key]))
-                    {
-
-
-                    }
-                    else
-                    {
-                        config.AppSettings.Settings.Remove(myCfg.key);
-                        config.AppSettings.Settings.Add(myCfg.key, myCfg.value);
-                        config.Save();
-
-                    }
-                }
-            }
-            ConfigurationManager.RefreshSection("appSettings");
-
-            MessageBox.Show(sb.ToString());
-
-
-        }
-
-        public class myConfig
-        {
-            public string key { get; set; }
-            public string value { get; set; }
-            public string info { get; set; }
-        }
-
-        private List<myConfig> LoadCollectionData()
-        {
-            List<myConfig> configs = new List<myConfig>();
-            var appSettings = ConfigurationManager.AppSettings;
-            string cdesc = "Und es war Sommer";
-
-            foreach (var ckey in appSettings.AllKeys)
-            {
-                cdesc = "";
-                if (String.Equals(ckey, "REPLAY_PATH"))
-                    cdesc = "# Path where all the replays are located - IMPORTANT: You have to use / instead of \\";
-                if (String.Equals(ckey, "PLAYER"))
-                    cdesc = "# Starcraft 2 Player name (without Clan tags)";
-                if (String.Equals(ckey, "SKIP_NORMAL"))
-                    cdesc = "# If you want to skip stats for normal games (Zerg, Terran, Protoss) set this to 1";
-                if (String.Equals(ckey, "SKIP"))
-                    cdesc = "# Skip games with gametime below 240sec";
-                if (String.Equals(ckey, "START_DATE"))
-                    cdesc = "# start_date - only compute replays with timestamp greater than it - format YYYYmmDDHHMMSS";
-                if (String.Equals(ckey, "END_DATE"))
-                    cdesc = "# end_date - only compute replays with timestamp lower than it - format YYYYmmDDHHMMSS";
-                if (String.Equals(ckey, "DEBUG"))
-                    cdesc = "# Debug level (2=all, 1=info, 0=error only)";
-                if (String.Equals(ckey, "SKIP_MSG"))
-                    cdesc = "# Activate Skipmessage - If you type 'skipdsstats' in the ingame chat in the first 60sec of the game it will not be computed.";
-                if (String.Equals(ckey, "DAILY"))
-                    cdesc = "# On the fly stats (experimental)";
-
-                configs.Add(new myConfig()
-                {
-                    key = ckey,
-                    value = appSettings[ckey],
-                    info = cdesc
-
-                });
-            }
-            return configs;
         }
 
         private void otf_ShowButton_Click(object sender, RoutedEventArgs e)
@@ -876,13 +729,23 @@ namespace sc2dsstats_t1
 
             }
 
+            gr_Image.MaxHeight = 600;
+            gr_Image.MaxWidth = 1600;
+            LoadImg(otf_png);
 
 
-            if (File.Exists(otf_png))
+
+
+
+        }
+
+        private void LoadImg(string image_path)
+        {
+            if (File.Exists(image_path))
             {
 
 
-                if (otf_stats.Children.Contains(myImage))
+                if (gr_Image.Children.Contains(myImage))
                 {
 
                     myImage.Source = null;
@@ -892,23 +755,23 @@ namespace sc2dsstats_t1
                     bitmap.BeginInit();
                     bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@otf_png);
+                    bitmap.UriSource = new Uri(image_path);
                     bitmap.EndInit();
 
                     // Set Image.Source  
                     myImage.Source = bitmap;
-                    label1.Text = otf_png;
+                    label1.Text = image_path;
                     label1.UpdateLayout();
-                    
+
                 }
                 else
                 {
 
 
-                    myImage = CreateViewImageDynamically(otf_png);
-                    label1.Text = otf_png;
+                    myImage = CreateViewImageDynamically(image_path);
+                    label1.Text = image_path;
                     label1.UpdateLayout();
-                    otf_stats.Children.Add(myImage);
+                    gr_Image.Children.Add(myImage);
                 }
 
             }
@@ -916,10 +779,6 @@ namespace sc2dsstats_t1
             {
                 MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
             }
-
-
-
-
         }
 
         private void bt_Time_Click(object sender, RoutedEventArgs e)
@@ -972,47 +831,9 @@ namespace sc2dsstats_t1
                 doit.WaitForExit();
 
             }
-
-
-            if (File.Exists(otf_png))
-            {
-
-
-                if (otf_stats.Children.Contains(myImage))
-                {
-
-                    myImage.Source = null;
-
-                    // Create a BitmapSource  
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@otf_png);
-                    bitmap.EndInit();
-
-                    // Set Image.Source  
-                    myImage.Source = bitmap;
-                    label1.Text = otf_png;
-                    label1.UpdateLayout();
-
-                }
-                else
-                {
-
-
-                    myImage = CreateViewImageDynamically(otf_png);
-                    label1.Text = otf_png;
-                    label1.UpdateLayout();
-                    otf_stats.Children.Add(myImage);
-                }
-
-            }
-            else
-            {
-                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
-            }
-
+            gr_Image.MaxHeight = 600;
+            gr_Image.MaxWidth = 1600;
+            LoadImg(otf_png);
         }
 
         private void bt_details_Click(object sender, RoutedEventArgs e)
@@ -1070,7 +891,6 @@ namespace sc2dsstats_t1
 
    
             ///otf_image.Source = null;
-
             string sd = dt_startdate.SelectedDate.Value.ToString("yyyyMMdd");
             sd += "000000";
             string ed = dt_enddate.SelectedDate.Value.ToString("yyyyMMdd");
@@ -1088,9 +908,13 @@ namespace sc2dsstats_t1
             }
 
             string alignment = "horizontal";
+            gr_Image.MaxHeight = 600;
+            gr_Image.MaxWidth = 1600;
             if (dt_rb_vertical.IsChecked == true)
             {
                 alignment = "vertical";
+                gr_Image.MaxHeight = 800;
+                gr_Image.MaxWidth = 1000;
             }
 
             string dt_png = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
@@ -1138,44 +962,7 @@ namespace sc2dsstats_t1
                 doit.WaitForExit();
 
             }
-
- 
-            if (File.Exists(dt_png))
-            {
-
-                if (gr_details.Children.Contains(myImage))
-                {
-                    // Create a BitmapSource  
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@dt_png);
-                    bitmap.EndInit();
-
-                    // Set Image.Source  
-                    myImage.Source = bitmap;
-                    label1.Text = dt_png;
-                    label1.UpdateLayout();
-                }
-                else
-                {
-
-                    myImage = CreateViewImageDynamically(dt_png);
-                    label1.Text = dt_png;
-                    label1.UpdateLayout();
-                    gr_details.Children.Add(myImage);
-                }
-
-            }
-            else
-            {
-                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
-            }
-
-
-
-
+            LoadImg(dt_png);
         }
 
         private void bt_damage_Click(object sender, RoutedEventArgs e)
@@ -1267,9 +1054,13 @@ namespace sc2dsstats_t1
             }
 
             string alignment = "horizontal";
+            gr_Image.MaxHeight = 600;
+            gr_Image.MaxWidth = 1600;
             if (dps_rb_vertical.IsChecked == true)
             {
                 alignment = "vertical";
+                gr_Image.MaxHeight = 800;
+                gr_Image.MaxWidth = 1000;
             }
 
             string opp = "0";
@@ -1325,47 +1116,7 @@ namespace sc2dsstats_t1
 
             }
 
-
-
-
-            if (File.Exists(dps_png))
-            {
-                if (gr_damage.Children.Contains(myImage))
-                {
-
-                    myImage.Source = null;
-
-                    // Create a BitmapSource  
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(@dps_png);
-                    bitmap.EndInit();
-
-                    // Set Image.Source  
-                    myImage.Source = bitmap;
-                    label1.Text = dps_png;
-                    label1.UpdateLayout();
-                }
-                else
-                {
-
-                    myImage = CreateViewImageDynamically(dps_png);
-                    label1.Text = dps_png;
-                    label1.UpdateLayout();
-                    gr_damage.Children.Add(myImage);
-                }
-
-
-            }
-            else
-            {
-                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
-            }
-
-
-
+            LoadImg(dps_png);
 
         }
 
