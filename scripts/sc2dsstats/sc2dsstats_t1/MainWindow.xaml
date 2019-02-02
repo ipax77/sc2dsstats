@@ -45,15 +45,19 @@
             <StackPanel x:Name="stackpanel1" HorizontalAlignment="Left" Margin="19,420,0,40" VerticalAlignment="Top" RenderTransformOrigin="0.22,-1.12"/>
         </Grid>
 
-        <Grid x:Name="fr_InputBox" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="275,91,364,0" Height="429" Width="1061">
-            <TextBox x:Name="label2" Text="Welcome to sc2dsstats - this is your first run so we need to know some things to make this work .." TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" IsReadOnly="True" Width="680" Height="29" Margin="62,10,0,0" FontFamily="Arial Black">
+        <Grid x:Name="fr_InputBox" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="0,47,0,0">
+            <TextBox x:Name="label2" MaxHeight="80" MinWidth="1300" Text="Welcome to sc2dsstats - this is your first run so we need to know some things to make it work .." TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" IsReadOnly="True" Margin="62,10,0,0" FontFamily="Arial Black">
                 <TextBox.Background>
                     <ImageBrush/>
                 </TextBox.Background>
             </TextBox>
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Please enter your ingame Starcrat 2 Player name (without caln tags)" FontWeight="Bold" FontFamily="Courier New" Margin="62,52,357,279" />
-            <TextBox MinWidth="150" x:Name="fr_InputTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,71,0,0" RenderTransformOrigin="0.5,0.5" Height="25"/>
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" FontWeight="Bold" FontFamily="Courier New" Margin="62,101,0,0" Height="49" Width="919" ><Run Text="P"/><Run Text="lease select one "/><Run Text="DS "/><Run Text="Replay in your "/><Run Text="replay "/><Run Text="folder. Usually it is something like"/><LineBreak/><Run Text="C:\\Users\\'username'\\Documents\\StarCraft II\\Accounts\\107095918\\2-S2-1-226401\\Replays\\Multiplayer"/></TextBlock>
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" MaxHeight="20" TextWrapping="Wrap" Margin="62,50,0,0" Text="Please enter your ingame Starcraft 2 Player name (without clan tags)" FontWeight="Bold" FontFamily="Courier New" />
+            <TextBox MinWidth="150" x:Name="fr_InputTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,70,0,0" RenderTransformOrigin="0.5,0.5" Height="25"/>
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" TextWrapping="Wrap" MaxHeight="80" FontWeight="Bold" FontFamily="Courier New" Margin="62,115,0,0" >
+                <Run Text="Please select one DS replay in your replay folder. Usually it is something like " />
+                <LineBreak></LineBreak>
+                <Run Text="C:/Users/'username'/Documents/StarCraft II/Accounts/107090000/2-S2-1-220000/Replays/Multiplayer" />
+            </TextBlock>
             <TextBox MinWidth="150" x:Name="fr_InputTextBox2" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,150,0,0" RenderTransformOrigin="0.5,0.5" Width="222" Height="23"/>
             <Button x:Name="Browse" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="294,150,0,0" Width="74" Height="24" Content="Browse" Click="ib_BrowseButton_Click"/>
             <Button x:Name="Ok" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="62,217,0,0" Width="74" Height="24" Content="Ok" Click="ib_OkButton_Click"/>
@@ -93,8 +97,8 @@
         <Grid x:Name="gr_damage" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="0,60,0,0">
             <Border Margin="10,-5,0,0" BorderBrush="Black" BorderThickness="1" Width="90" Height="32" HorizontalAlignment="Left">
                 <Grid Margin="10,0,0,0">
-                    <RadioButton x:Name="dps_rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Click="dps_rb_Horizontal_Click" IsChecked="True"/>
-                    <RadioButton x:Name="dps_rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="dps_rb_Vertical_Click" />
+                    <RadioButton x:Name="dps_rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True"/>
+                    <RadioButton x:Name="dps_rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" />
 
                 </Grid>
             </Border>
@@ -106,8 +110,8 @@
             <DatePicker x:Name="dps_enddate" SelectedDate="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" Margin="577,8,0,0" VerticalAlignment="Top"/>
             <Border Margin="733, -17,0,0" BorderBrush="Black" BorderThickness="1" Width="90" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top" >
                 <Grid>
-                    <RadioButton x:Name="dps_rb_army" Content="ArmyValue" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Click="dps_rb_army_Click"/>
-                    <RadioButton x:Name="dps_rb_income" Content="IncomeValue" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="dps_rb_income_Click" />
+                    <RadioButton x:Name="dps_rb_army" Content="ArmyValue" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" />
+                    <RadioButton x:Name="dps_rb_income" Content="IncomeValue" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" />
                     <RadioButton x:Name="dps_rb_time" Content="gametime" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,30,0,0" />
                 </Grid>
             </Border>
@@ -116,8 +120,12 @@
             <Button x:Name="dps_Show" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="1010,8,0,0" Width="74" Height="24" Content="Show" Click="dps_showButton_Click"/>
         </Grid>
 
-        <Grid x:Name="doit_grid" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0" Height="682" Width="1675">
-            <Button Content="Start" HorizontalAlignment="Center" Margin="204,286,1379,0" VerticalAlignment="Top" Width="92" Click="doit_Button_Click" Height="31" FontSize="14"/>
+        <Grid x:Name="doit_grid" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0">
+            <Label Content="Process priority" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,285,0,0" VerticalAlignment="Top" Width="200"/>
+            <ComboBox x:Name="cb_doit_prio" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,310,0,0" VerticalAlignment="Top" Width="120"/>
+            <Label Content="CPUs" HorizontalAlignment="Left" Margin="160,275,0,0" VerticalAlignment="Top" Width="200"/>
+            <ComboBox x:Name="cb_doit_cpus" HorizontalAlignment="Left" Margin="160,300,0,0" VerticalAlignment="Top" Width="120"/>
+            <Button Content="Start" HorizontalAlignment="Left" Margin ="300, 295, 0, 0" VerticalAlignment="Top" Width="92" Click="doit_Button_Click" Height="31" FontSize="14"/>
             <Border BorderThickness="1" HorizontalAlignment="Left" Height="271" Margin="10,10,0,0" VerticalAlignment="Top" Width="501" BorderBrush="#FF1434C3">
                 <TextBox x:Name="doit_TextBox1" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <TextBox.BorderBrush>
@@ -129,6 +137,7 @@
                 </TextBox>
 
             </Border>
+            
 
 
 
