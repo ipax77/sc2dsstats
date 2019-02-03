@@ -21,7 +21,12 @@
                 <Menu DockPanel.Dock="Top" Height="24" RenderTransformOrigin="0.495,-3.854">
                     <MenuItem Header="_File">
                         <MenuItem Header="_Options" Click="mnu_Options"/>
-                        <MenuItem Header="_Log" Click="mnu_Log"/>
+                        <MenuItem Header="_Database" Click="mnu_Database"/>
+                        <MenuItem Header="_Log">
+                            <MenuItem Header="_scan log" Click="mnu_Log_scan"></MenuItem>
+                            <MenuItem Header="_worker log" Click="mnu_Log"></MenuItem>
+                        </MenuItem>
+
                         <Separator />
                         <MenuItem Header="_Exit" Click="mnu_Exit" />
                     </MenuItem>

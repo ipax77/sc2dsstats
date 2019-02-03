@@ -143,6 +143,9 @@ namespace sc2dsstats_t1
             } else if (String.Equals(myVar, "myScan_exe"))
             {
                 ret = myScan_exe;
+            } else if (String.Equals(myVar, "myStats_csv"))
+            {
+                ret = myStats_csv;
             }
             return ret;
         }
@@ -210,7 +213,7 @@ namespace sc2dsstats_t1
                 catch (System.IO.IOException)
                 {
                     running = true;
-                    MessageBox.Show("Prozess already running. Please wait.");
+                    MessageBox.Show("Process already running. Please wait.");
                 }
             }
 
@@ -295,7 +298,7 @@ namespace sc2dsstats_t1
             }
             doit_TextBox1.Text += Environment.NewLine;
 
-            doit_TextBox1.Text += "You can always quit the prozess, next time it will continue at the last position." + Environment.NewLine;
+            doit_TextBox1.Text += "You can always quit the process, next time it will continue at the last position." + Environment.NewLine;
 
             if (running)
             {
@@ -618,35 +621,41 @@ namespace sc2dsstats_t1
                     doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
                     doit.WaitForExit();
 
-                    MessageBox.Show("Scanning complete.", "doit");
+                    MessageBox.Show("Scanning complete.", "sc2dsstats");
                     ///ClearImage();
+                    ///
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (File.Exists(myScan_log))
+                        {
+                            StreamReader reader = new StreamReader(myScan_log, Encoding.UTF8, true);
+
+
+                            doit_TextBox1.Text = "Log:" + Environment.NewLine;
+                            byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+
+                            doit_TextBox1.Text += Encoding.Default.GetString(bytes);
+
+
+                            reader.Close();
+
+
+                            doit_TextBox1.Focus();
+                            doit_TextBox1.SelectionStart = dynamicText.Text.Length;
+                            doit_TextBox1.ScrollToEnd();
+                        }
+                        else
+                        {
+                            MessageBox.Show("No logfile found :(", "sc2dsstats");
+                        }
+                    });
 
                 }
             }, TaskCreationOptions.AttachedToParent);
 
             
-            if (File.Exists(myScan_log))
-            {
-                StreamReader reader = new StreamReader(myScan_log, Encoding.UTF8, true);
 
-
-                dynamicText.Text = "";
-                byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
-
-                dynamicText.Text = Encoding.Default.GetString(bytes);
-
-
-                reader.Close();
-
-
-                dynamicText.Focus();
-                dynamicText.SelectionStart = dynamicText.Text.Length;
-                dynamicText.ScrollToEnd();
-            }
-            else
-            {
-                MessageBox.Show("No logfile found :(");
-            }
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
@@ -662,8 +671,7 @@ namespace sc2dsstats_t1
         private void mnu_Log(object sender, RoutedEventArgs e)
         {
             Win_log win2 = new Win_log();
-            string logfile = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            logfile += "\\log_worker.txt";
+            string logfile = myWorker_log;
 
             if (File.Exists(logfile))
             {
@@ -689,13 +697,48 @@ namespace sc2dsstats_t1
                 win2.Show();
             } else
             {
-                MessageBox.Show("No logfile found :(");
+                MessageBox.Show("No logfile found :(", "sc2dsstats");
             }
 
 
         }
 
-            private void mnu_Options(object sender, RoutedEventArgs e)
+        private void mnu_Log_scan(object sender, RoutedEventArgs e)
+        {
+            Win_log win2 = new Win_log();
+            string logfile = myScan_log;
+
+            if (File.Exists(logfile))
+            {
+                StreamReader reader = new StreamReader(logfile, Encoding.UTF8, true);
+
+
+                win2.win_Log_Textbox_Log.Text = "";
+                byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+
+                win2.win_Log_Textbox_Log.Text = Encoding.Default.GetString(bytes);
+                reader.Close();
+
+                win2.win_Log_Textbox_Log.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                win2.win_Log_Textbox_Log.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                win2.win_Log_Textbox_Log.TextWrapping = TextWrapping.Wrap;
+                win2.win_Log_Textbox_Log.AcceptsReturn = true;
+                win2.win_Log_Textbox_Log.Background = new LinearGradientBrush(Colors.LightBlue, Colors.SlateBlue, 90);
+                win2.win_Log_Textbox_Log.FontFamily = new FontFamily("Courier New");
+
+                win2.win_Log_Textbox_Log.Focus();
+                win2.win_Log_Textbox_Log.SelectionStart = win2.win_Log_Textbox_Log.Text.Length;
+                win2.win_Log_Textbox_Log.ScrollToEnd();
+                win2.Show();
+            }
+            else
+            {
+                MessageBox.Show("No logfile found :(", "sc2dsstats");
+            }
+
+
+        }
+        private void mnu_Options(object sender, RoutedEventArgs e)
         {
 
             ClearImage();
@@ -703,6 +746,16 @@ namespace sc2dsstats_t1
             win3.Show();
 
         }
+
+        private void mnu_Database(object sender, RoutedEventArgs e)
+        {
+
+            ClearImage();
+            Win_regex win5 = new Win_regex();
+            win5.Show();
+
+        }
+
 
         private void otf_ShowButton_Click(object sender, RoutedEventArgs e)
         {
@@ -802,7 +855,7 @@ namespace sc2dsstats_t1
             }
             else
             {
-                MessageBox.Show("No Data found :( - Did you press the 'doit' button?");
+                MessageBox.Show("No Data found :( - Did you press the 'doit' button?", "sc2dsstats");
             }
         }
 

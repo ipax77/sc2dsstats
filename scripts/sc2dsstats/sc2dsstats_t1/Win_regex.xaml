@@ -1,0 +1,99 @@
+﻿<Window x:Class="sc2dsstats.Win_regex"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:sc2dsstats"
+        mc:Ignorable="d"
+        Title="Database" Height="800" Width="1600">
+    <Grid>
+
+        <Grid x:Name="gr_database" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="1600,10,0,0">
+            <DataGrid x:Name="dg_win_regex" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="700" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid">
+                        <Setter Property="RowBackground" Value="White">
+
+                        </Setter>
+                    </Style>
+                </DataGrid.Style>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID"  Binding="{Binding ID}" Width="120" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="PLAYERID"  Binding="{Binding PLAYERID}" Width="120" />
+                    <DataGridTextColumn Header="REPLAY"  Binding="{Binding REPLAY}" Width="120" />
+                    <DataGridTextColumn Header="NAME"  Binding="{Binding NAME}" Width="120" />
+                    <DataGridTextColumn Header="RACE"  Binding="{Binding RACE}" Width="120" />
+                    <DataGridTextColumn Header="TEAM"  Binding="{Binding TEAM}" Width="120" />
+                    <DataGridTextColumn Header="RESULT"  Binding="{Binding RESULT}" Width="120" />
+                    <DataGridTextColumn Header="INCOME"  Binding="{Binding INCOME}" Width="120" />
+                    <DataGridTextColumn Header="ARMY"  Binding="{Binding ARMY}" Width="120" />
+                    <DataGridTextColumn Header="KILLSUM"  Binding="{Binding KILLSUM}" Width="120" />
+                    <DataGridTextColumn Header="DURATION"  Binding="{Binding DURATION}" Width="120" />
+                    <DataGridTextColumn Header="GAMETIME"  Binding="{Binding GAMETIME}" Width="120" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <Grid x:Name="gr_database_games" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,120,0,0" >
+            <DataGrid x:Name="dg_games" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" MouseDoubleClick="dg_games_DClick">
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid">
+                        <Setter Property="RowBackground" Value="White">
+
+                        </Setter>
+                    </Style>
+                </DataGrid.Style>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID"  Binding="{Binding ID}" Width="50" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="REPLAY"  Binding="{Binding REPLAY}" Width="120" />
+                    <DataGridTextColumn Header="GAMETIME"  Binding="{Binding GAMETIME}" Width="120" />
+                    <DataGridTextColumn Header="WINNER"  Binding="{Binding WINNER}" Width="20" />
+                    <DataGridTextColumn Header="DURATION"  Binding="{Binding DURATION}" Width="100" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="450,120,0,0">
+            <DataGrid x:Name="dg_player" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid">
+                        <Setter Property="RowBackground" Value="White">
+
+                        </Setter>
+                    </Style>
+                </DataGrid.Style>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="#64646464" />
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="POS"  Binding="{Binding POS}" Width="50" />
+                    <DataGridTextColumn Header="NAME"  Binding="{Binding NAME}" Visibility="Hidden" Width="120" />
+                    <DataGridTextColumn Header="RACE"  Binding="{Binding RACE}" Width="120" />
+                    <DataGridTextColumn Header="TEAM"  Binding="{Binding TEAM}" Visibility="Hidden" Width="50" />
+                    <DataGridTextColumn Header="KILLSUM"  Binding="{Binding KILLSUM}" Visibility="Hidden" Width="80" />
+                    <DataGridTextColumn Header="ARMY"  Binding="{Binding ARMY}" Visibility="Hidden" Width="80" />
+                    <DataGridTextColumn Header="INCOME"  Binding="{Binding INCOME}" Visibility="Hidden" Width="80" />
+                    <DataGridTextColumn Header="PDURATION"  Binding="{Binding PDURATION}" Visibility="Hidden" Width="80" />
+                    <DataGridTextColumn Header="RESULT"  Binding="{Binding RESULT}" Width="50" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <Grid x:Name="gr_player_opt" Margin="450,41,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
+            <CheckBox x:Name="cb_pl_POS" Content="POS" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_POS_Click" />
+            <CheckBox x:Name="cb_pl_NAME" Content="NAME" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" Click="cb_NAME_Click" />
+            <CheckBox x:Name="cb_pl_RACE" Content="RACE" HorizontalAlignment="Left" Margin="175,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RACE_Click" />
+            <CheckBox x:Name="cb_pl_TEAM" Content="TEAM" HorizontalAlignment="Left" Margin="285,60,0,0" VerticalAlignment="Top" Click="cb_TEAM_Click" />
+            <CheckBox x:Name="cb_pl_KILLSUM" Content="KILLSUM" HorizontalAlignment="Left" Margin="345,60,0,0" VerticalAlignment="Top" Click="cb_KILLSUM_Click" />
+            <CheckBox x:Name="cb_pl_ARMY" Content="ARMY" HorizontalAlignment="Left" Margin="425,60,0,0" VerticalAlignment="Top" Click="cb_ARMY_Click" />
+            <CheckBox x:Name="cb_pl_INCOME" Content="INCOME" HorizontalAlignment="Left" Margin="505,60,0,0" VerticalAlignment="Top" Click="cb_INCOME_Click" />
+            <CheckBox x:Name="cb_pl_DURATION" Content="DURATION" HorizontalAlignment="Left" Margin="585,60,0,0" VerticalAlignment="Top" Click="cb_DURATION_Click" />
+            <CheckBox x:Name="cb_pl_RESULT" Content="RESULT" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RESULT_Click" />
+        </Grid>
+        <Button Content="(Re)Load" HorizontalAlignment="Left" Margin="35,11,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+
+
+    </Grid>
+</Window>
