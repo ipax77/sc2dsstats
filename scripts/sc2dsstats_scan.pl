@@ -1,23 +1,23 @@
 use strict;
 use warnings;
-use strict;
-use warnings;
-use GD::Graph::bars;
+use threads;
+use Thread::Queue;
 use utf8;
 use open IN => ":utf8";
 use open OUT => ":utf8";
-use XML::Simple;
-use GD::Graph::bars;
-use GD::Graph::hbars;
 use POSIX qw(strftime);
+use XML::Simple;
 use File::Basename;
 use Encode qw(decode encode);
 use File::Copy;
 use DateTime qw(from_epoch);
 use Getopt::Long;
+use Fcntl qw(:flock SEEK_END);
+use Time::HiRes qw(gettimeofday tv_interval);
+
 
 my $DEBUG = 2;
-
+my $t0 = [gettimeofday];
 
 #my $main_path = "D:/github/sc2dsstats_debug";
 
@@ -26,6 +26,8 @@ $main_path = dirname($main_path);
 
 my $config_file = $main_path . "/sc2dsstats.exe.Config";
 my $logfile = $main_path . "/log.txt";
+my $temp_num = $main_path . "/temp_num.txt";
+my $skip_file = $main_path . "/skip.csv";
 my %cfg;
 
 open(LOG, ">", $logfile) or die $!;
@@ -80,6 +82,8 @@ my $skip_beta;
 my $skip_hots;
 my $skip_msg;
 my $keep = 1; 
+my $cores = 2;
+my $priority = "NORMAL";
  
 $replay_path = $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'REPLAY_PATH'}{'value'};
 $skip_beta = $cfg->{'appSettings'}{'add'}{'BETA'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'BETA'}{'value'};
@@ -88,8 +92,8 @@ $skip_msg = $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} if defined $cfg->{
 $keep = $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'};
 
 GetOptions (
-	"start_date=i" => \$start_date,
-	"end_date=i" => \$end_date,
+	"start_date=s" => \$start_date,
+	"end_date=s" => \$end_date,
 	"player=s" => \$player,
 	"stats_file=s" => \$csv,
 	"replay_path=s" => \$replay_path,
@@ -99,7 +103,10 @@ GetOptions (
 	"skip_msg=i" => \$skip_msg,
 	"keep=i" => \$keep,
 	"store_path=s" => \$store_path,
-	"s2_cli=s" => \$s2_cli
+	"s2_cli=s" => \$s2_cli,
+	"cores=i" => \$cores,
+	"priority=s" => \$priority,
+	"skip_file=s" => \$skip_file
 ) or &Error("Error in command line arguments:$!");
 
 #$start_date = "20190127000000";
@@ -111,14 +118,18 @@ GetOptions (
 
 
 my %sum;
-my %skip;
+my %skip : shared;
 my $games;
+
 
 &Log("Reading in stats file ..", 1);
 
 &ReadCSV($csv, \%sum);
-
+&ReadSkip($skip_file, \%skip);
 $games = keys %sum;
+open(TEMP, ">", $temp_num) or die $!;
+print TEMP $games;
+close(TEMP);
 
 &Log("$games found", 2);
 
@@ -128,6 +139,7 @@ $games = keys %sum;
 #
 
 my $todo_replays = 0;
+my @replays;
 opendir(REP, $replay_path) or &Error("Could not read dir $replay_path: $!");
 while (my $p = readdir(REP)) {
 	next if $p =~ /^\./;
@@ -137,6 +149,11 @@ while (my $p = readdir(REP)) {
 			if ($p =~ /(.*)\.SC2Replay/) {
 				$id = $1;	
 			}
+			
+			if (defined $skip{$id}) {
+				next;	
+			}
+			
 			my $replay = $replay_path . "/" . $p;
 			next if defined $sum{$id};
 
@@ -174,6 +191,7 @@ while (my $p = readdir(REP)) {
 					next;
 				}
         	} 
+        push(@replays, $p);
 		$todo_replays ++;
 	}
 }	
@@ -181,14 +199,56 @@ closedir(REP);
 
 &Log("We found $todo_replays new replays", 1);
 
-open(CSV, ">>", "$csv") or &Error("Could not write to $csv: $!");
-
 my $done_replays = 1;
-opendir(REP, $replay_path) or &Error("Could not read dir $replay_path: $!");
-while (my $p = readdir(REP)) {
-	next if $p =~ /^\./;
-	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
-		
+my $start_replays = $games;
+
+#my $pm = Parallel::ForkManager->new($cores);
+
+#REPLAY:
+#foreach my $p (@replays) {
+#	$pm->start and next REPLAY;
+#	print "Working on $p ..\n";
+#	my $done_replays = &doReplay($p);	
+#	my $done = ($done_replays - $start_replays) * 100 / $todo_replays;
+#	$done = sprintf("%.2f", $done);
+#	&Log($done_replays - $start_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
+#	$done_replays ++;
+#	$pm->finish;
+#}
+#$pm->wait_all_children();
+
+
+my $q = new Thread::Queue;
+#$q->limit = $cores;
+
+my @workers;
+for (1 .. $cores) {
+	push @workers, async {
+		while (defined(my $job = $q->dequeue())) {
+			doReplay($job);
+		}	
+	};	
+}
+$q->enqueue($_) for @replays;
+$q->end();
+$_->join() for @workers;
+
+
+sub Games {
+
+	open(my $TEMP, "+<", $temp_num) or die $!;
+	flock($TEMP, LOCK_EX) or die $!;
+	my $games = <$TEMP>;
+	$games ++;
+	seek $TEMP, 0, 0;
+	truncate $TEMP, 0;
+	print $TEMP $games;
+	close $TEMP;
+	return $games;	
+}
+
+sub doReplay {
+	my $p = shift;
 		my $id = $p;
 		if ($p =~ /(.*)\.SC2Replay/) {
 			$id = $1;	
@@ -216,13 +276,15 @@ while (my $p = readdir(REP)) {
 			foreach my $id (sort keys %detail) {
 				
 				my $skip = 0;
-        		foreach  my $d (sort keys %{ $detail{$id} }) {
+        		#foreach  my $d (sort keys %{ $detail{$id} }) {
+        		for (my $d = 1; $d<=6; $d++) {
         			
 	        		if (defined $skip_msg && $skip_msg) {
 						if (defined $skipmsg{$id}{'PLAYER'}) {
 							if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
 								&Log("Skipping $id due to skipmsg", 2);
 								$skip = 1;
+								$skip{$id} = 1;
 								next;
 							}
 						}	
@@ -232,11 +294,13 @@ while (my $p = readdir(REP)) {
 					if (!defined $detail{$id}{$d}{'NAME'}) {
 						&Log("(CSV) Skipping $id due to no NAME", 2);
 						$skip = 1;
+						$skip{$id} = 1;
 						next;
 					}
 					if (!defined $detail{$id}{$d}{'RACE'}) {
 						&Log("(CSV) Skipping $id due to no RACE", 2);
 						$skip = 1;
+						$skip{$id} = 1;
 						next;
 					}
 					if (!defined $detail{$id}{$d}{'RACE2'}) {
@@ -246,16 +310,19 @@ while (my $p = readdir(REP)) {
 					if (!defined $detail{$id}{$d}{'TEAM'}) {
 						&Log("(CSV) Skipping $id due to no TEAM", 2);
 						$skip = 1;
+						$skip{$id} = 1;
 						next;
 					}
 					if (!defined $detail{$id}{$d}{'RESULT'}) {
 						&Log("(CSV) Skipping $id due to no RESULT", 2);
 						$skip = 1;
+						$skip{$id} = 1;
 						next;
 					}
 					if (!defined $detail{$id}{$d}{'GAMETIME'}) {
 						&Log("(CSV) Skipping $id due to no GAMETIME", 2);
 						$skip = 1;
+						$skip{$id} = 1;
 						next;
 					}
 					if (!defined $detail{$id}{$d}{'DURATION'}) {
@@ -272,7 +339,7 @@ while (my $p = readdir(REP)) {
 						#next;
 					}
 					if (!defined $detail{$id}{$d}{'KILLSUM'}) {
-						&Log("(CSV) SkFixingipping $id due to no KILLSUM", 2);
+						&Log("(CSV) Fixing $id due to no KILLSUM", 2);
 						$detail{$id}{$d}{'KILLSUM'} = 0;
 						#$skip = 1;
 						#next;
@@ -289,8 +356,16 @@ while (my $p = readdir(REP)) {
         		}
 
         		if ($skip == 0) {
-        			$games++;
-	        		foreach  my $d (sort keys %{ $detail{$id} }) {       		
+        			
+        			
+        			open(CSV, ">>", "$csv") or &Error("Could not write to $csv: $!");
+        			flock(CSV, LOCK_EX);
+        			$games = &Games();
+        			my $done = ($games - $start_replays) * 100 / $todo_replays;
+					$done = sprintf("%.2f", $done);
+					&Log($games - $start_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
+        			
+	        		for (my $d = 1; $d<=6; $d++) {       		
 						 
     	    			my $ent = $games . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " .
 			        			$detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " .
@@ -298,6 +373,7 @@ while (my $p = readdir(REP)) {
 			                		
         	        	print CSV $ent;
 	        		}
+	        		close(CSV);
         		}
         		
         		if (defined $keep && $keep == 0) {
@@ -316,22 +392,19 @@ while (my $p = readdir(REP)) {
         			
 			}
 			
-			my $done = $done_replays * 100 / $todo_replays;
-			$done = sprintf("%.2f", $done);
-			&Log($done_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
-			$done_replays ++;
+
+
 			
 		}
-		
-
-		
-
-	}
+		return $games;
 }
-close(CSV);
-closedir(REP);
+open(SKIP, ">", $skip_file) or &Error("Could not write to $skip_file: $!");
+foreach (keys %skip) {
+	print SKIP $_ . "\n";	
+}
+close(SKIP);
 
-
+&Log("Elapsed time: " . tv_interval($t0) . " seconds", 0);
 close(LOG);
 
 
@@ -341,7 +414,6 @@ sub GetData {
 	my $path = shift;
 	my $detail = shift;
 	my $getpool = shift;
-	my $cfg = shift;     
 	my $skipmsg = shift;   	
 	        	
 	foreach my $ext (@$getpool) {
@@ -389,7 +461,7 @@ sub GetData {
 		                                }
 		                                
 										
-										if ($name eq $cfg->{'appSettings'}{'add'}{'PLAYER'}{'value'}) {
+										if ($name eq $player) {
 											$skipmsg->{$id}{'PLAYER'} = $player_count;
 										}
 		                        }
@@ -675,6 +747,10 @@ sub Info {
         my $rep = shift;
         if ($rep =~ /SC2Replay$/) {
 
+			my $id = File::Basename::basename($rep);
+			if ($id =~ /(.*)\.SC2Replay$/) {
+				$id = $1;	
+			}
 			my $gametime;
 			
 			# startdate
@@ -719,17 +795,19 @@ sub Info {
 	           	my $temp_file = $store_file . "_temp";
 
 				if (-e $store_file) {
-					&Log("(Info) Skipping $rep - plain file already existing ($store_file)", 1);
+					&Log("(Info) Skipping $rep - plain file already existing ($store_file)", 2);
 				} else {
 					#my $exec = "$python $p_script \"$rep\" --$get > \"$temp_file\"";
+					#my $exec = "START /WAIT /B " . "/" . $priority . " \"Computing replays ..\" \"$s2_cli\" \"$rep\" --$get > \"$temp_file\"";
 					my $exec = "\"$s2_cli\" \"$rep\" --$get > \"$temp_file\"";
 					&Log("(Info) " . $exec, 2);
 					`$exec`;
 					if (-s $temp_file) {
 						&File::Copy::move($temp_file, $store_file) or &Error($!);
 					} else {
-						&Log("(Info) Failed extracting data from $rep - plase check if there is an update availabe.", 0);
+						&Log("(Info) Failed extracting data from $rep - please check if there is an update availabe.", 0);
 						&File::Copy::move($temp_file, $store_file) or &Error($!);
+						$skip{$id} = 1;
 						return;
 					}
 				}
@@ -751,6 +829,21 @@ sub Error {
 	&Log($msg, 0);
 	close(LOG);
 	exit 1;	
+}
+
+sub ReadSkip {
+	my $csv = shift;
+	my $skipref = shift;
+	
+	if (-e $csv) {
+		open(SKIP, "<", "$csv") or &Error("Could not read $csv: $!");
+		while (<SKIP>) {
+			chomp;
+			$skipref->{$_} = 1;	
+		}
+		close(SKIP);	
+	}
+		
 }
 
 sub ReadCSV {
