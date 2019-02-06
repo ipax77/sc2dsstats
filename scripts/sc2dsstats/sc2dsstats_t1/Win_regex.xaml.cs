@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -82,13 +83,13 @@ namespace sc2dsstats
             public string REPLAY { get; set; }
             public string NAME { get; set; }
             public string RACE { get; set; }
-            public string TEAM { get; set; }
-            public string RESULT { get; set; }
-            public string INCOME { get; set; }
-            public string ARMY { get; set; }
-            public string KILLSUM { get; set; }
-            public string DURATION { get; set; }
-            public string GAMETIME { get; set; }
+            public int TEAM { get; set; }
+            public int RESULT { get; set; }
+            public double INCOME { get; set; }
+            public int ARMY { get; set; }
+            public int KILLSUM { get; set; }
+            public int DURATION { get; set; }
+            public double GAMETIME { get; set; }
         }
 
 
@@ -96,10 +97,16 @@ namespace sc2dsstats
         {
             public int ID { get; set; }
             public string REPLAY { get; set; }
-            public string GAMETIME { get; set; }
+            public double GAMETIME { get; set; }
             public int WINNER { get; set; }
             public int DURATION { get; set; }
             public List<gamePlayer> PLAYERS { get; set; }
+            public List<string> RACES { get; set; }
+            public int MINKILLSUM { get; set; }
+            public int MINARMY { get; set; }
+            public double MININCOME { get; set; }
+            public int MAXLEAVER { get; set; }
+            public int PLAYERCOUNT { get; set; }
 
             public myGame()
             {
@@ -139,11 +146,11 @@ namespace sc2dsstats
             public int POS { get; set; }
             public string RACE { get; set; }
             public int TEAM { get; set; }
-            public string KILLSUM { get; set; }
-            public string INCOME { get; set; }
-            public string PDURATION { get; set; }
+            public int KILLSUM { get; set; }
+            public double INCOME { get; set; }
+            public int PDURATION { get; set; }
             public string NAME { get; set; }
-            public string ARMY { get; set; }
+            public int ARMY { get; set; }
             public int RESULT { get; set; }
             
         }
@@ -157,11 +164,137 @@ namespace sc2dsstats
             public int PGAMES { get; set; }
             public int GMVP { get; set; }
             public int PMVP { get; set; }
+            public double GDPS_ARMY { get; set; }
+            public double GDPS_INCOME { get; set; }
+            public double GDPS_DURATION { get; set; }
+            public double PDPS_ARMY { get; set; }
+            public double PDPS_INCOME { get; set; }
+            public double PDPS_DURATION { get; set; }
+            public List<cmdr_data> VS { get; set; }
+            public Hashtable MATCHUP { get; set; }
+
+            public cmdr_data()
+            {
+                this.GGAMES = 0;
+                this.PGAMES = 0;
+                this.GWIN = 0;
+                this.PWIN = 0;
+                this.GMVP = 0;
+                this.PMVP = 0;
+                this.VS = null;
+                this.RACE = "";
+            }
+
+            public cmdr_data(List<cmdr_data> cmdrs_vs)
+            {
+                VS = cmdrs_vs;
+            }
+
+            public double GetGDPS_ARMY()
+            {
+                if (this.GGAMES == 0) return 0;
+                double dps = this.GDPS_ARMY * 100 / this.GGAMES;
+                return dps;
+            }
+
+            public double GetGDPS_INCOME()
+            {
+                if (this.GGAMES == 0) return 0;
+                double dps = this.GDPS_INCOME * 100 / this.GGAMES;
+                return dps;
+            }
+            public double GetGDPS_DURATION()
+            {
+                if (this.GGAMES == 0) return 0;
+                double dps = this.GDPS_DURATION * 100 / this.GGAMES;
+                return dps;
+            }
+            public double GetPDPS_ARMY()
+            {
+                if (this.GGAMES == 0) return 0;
+                double dps = this.PDPS_ARMY * 100 / this.GGAMES;
+                return dps;
+            }
+            public double GetPDPS_INCOME()
+            {
+                if (this.GGAMES == 0) return 0;
+                double dps = this.PDPS_INCOME * 100 / this.GGAMES;
+                return dps;
+            }
+            public double GetPDPS_DURATION()
+            {
+                if (this.GGAMES == 0) return 0;
+                double dps = this.PDPS_DURATION * 100 / this.GGAMES;
+                return dps;
+            }
+
+            public double GetGWR()
+            {
+                if (this.GGAMES == 0) return 0;
+                double wr = this.GWIN * 100 / this.GGAMES;
+                wr = Math.Round(wr, 2);
+                return wr;
+            }
+
+            public double GetPWR()
+            {
+                if (this.PGAMES == 0) return 0;
+                double wr = this.PWIN * 100 / this.PGAMES;
+                wr = Math.Round(wr, 2);
+                return wr;
+            }
+
+            public double GetGMVP()
+            {
+                if (this.GGAMES == 0) return 0;
+                double wr = this.GMVP * 100 / this.GGAMES;
+                wr = Math.Round(wr, 2);
+                return wr;
+            }
+
+            public double GetPMVP()
+            {
+                if (this.PGAMES == 0) return 0;
+                double wr = this.PMVP * 100 / this.PGAMES;
+                wr = Math.Round(wr, 2);
+                return wr;
+            }
+
+            public double GetVSWR(string cmdr, int player)
+            {
+                double wr = 0;
+                cmdr_data mycmdr = new cmdr_data();
+                mycmdr = this.VS.Find(x => x.RACE == cmdr);
+                if (player == 0)
+                {
+                    wr = mycmdr.GetGWR();
+                } else if (player == 1)
+                {
+                    wr = mycmdr.GetPWR();
+                }
+                return wr;
+            }
+
+            public double GetVSMVP(string cmdr, int player)
+            {
+                double wr = 0;
+                cmdr_data mycmdr = new cmdr_data();
+                mycmdr = this.VS.Find(x => x.RACE == cmdr);
+                if (player == 0)
+                {
+                    wr = mycmdr.GetGMVP();
+                }
+                else if (player == 1)
+                {
+                    wr = mycmdr.GetPMVP();
+                }
+                return wr;
+            }
 
         }
 
 
-        private List<myReplay> LoadCollectionData()
+        public List<myGame> LoadCollectionData()
         {
 
             string csv = mw.GetmyVAR("myStats_csv");
@@ -190,18 +323,18 @@ namespace sc2dsstats
 
                 myReplay rep = new myReplay()
                 {
-                    ID = Int32.Parse(myline[0]),
+                    ID = int.Parse(myline[0]),
                     REPLAY = myline[1],
                     NAME = myline[2],
                     RACE = myline[4],
-                    TEAM = myline[5],
-                    RESULT = myline[6],
-                    KILLSUM = myline[7],
-                    DURATION = myline[8],
-                    GAMETIME = myline[9],
+                    TEAM = int.Parse(myline[5]),
+                    RESULT = int.Parse(myline[6]),
+                    KILLSUM = int.Parse(myline[7]),
+                    DURATION = int.Parse(myline[8]),
+                    GAMETIME = double.Parse(myline[9]),
                     PLAYERID = int.Parse(myline[10]),
-                    INCOME = myline[11],
-                    ARMY = myline[12],
+                    INCOME = double.Parse(myline[11], CultureInfo.InvariantCulture),
+                    ARMY = int.Parse(myline[12])
                 };
                 replays.Add(rep);
 
@@ -247,13 +380,12 @@ namespace sc2dsstats
 
 
         
-            return replays;
+            return games;
         }
 
         public void collectData(List<myReplay> single_replays)
         {
             myGame game = new myGame();
-            cmdr_data cmdr = new cmdr_data();
             gamePlayer player = new gamePlayer();
             List<gamePlayer> gameplayer = new List<gamePlayer>();
 
@@ -277,12 +409,12 @@ namespace sc2dsstats
                     player.REPLAY = srep.REPLAY;
                     player.ID = srep.ID;
 
-                    game.DURATION = int.Parse(srep.DURATION);
-                    int result = int.Parse(srep.RESULT);
+                    game.DURATION = srep.DURATION;
+                    int result = srep.RESULT;
                     if (srep.PLAYERID <= 3)
                     {
                         player.TEAM = 0;
-                        if (int.Parse(srep.RESULT) == 1)
+                        if (srep.RESULT == 1)
                         {
                             player.RESULT = 1;
                             game.WINNER = 0;
@@ -295,7 +427,7 @@ namespace sc2dsstats
                     else if (srep.PLAYERID > 3)
                     {
                         player.TEAM = 1;
-                        if (int.Parse(srep.RESULT) == 1)
+                        if (srep.RESULT == 1)
                         {
                             player.RESULT = 1;
                             game.WINNER = 1;
@@ -314,9 +446,67 @@ namespace sc2dsstats
 
             }
 
+            int minkillsum = 0;
+            int minarmy = 0;
+            double minincome = 0;
+            int maxleaver = 0;
+            List<string> races = new List<string>();
 
             foreach (myReplay srep in single_replays)
             {
+
+                game.PLAYERCOUNT++;
+
+                if (minkillsum == 0)
+                {
+                    minkillsum = srep.KILLSUM;
+                } else
+                {
+                    if (srep.KILLSUM < minkillsum)
+                    {
+                        minkillsum = srep.KILLSUM;
+                    }
+                }
+
+                if (minincome == 0)
+                {
+                    minincome = srep.INCOME;
+                }
+                else
+                {
+                    if (srep.INCOME < minincome)
+                    {
+                        minincome = srep.INCOME;
+                    }
+                }
+
+                if (minarmy == 0)
+                {
+                    minarmy = srep.ARMY;
+                }
+                else
+                {
+                    if (srep.ARMY < minarmy)
+                    {
+                        minarmy = srep.ARMY;
+                    }
+                }
+
+                int leaver = game.DURATION - srep.DURATION;
+
+                if (maxleaver == 0)
+                {
+                    maxleaver = leaver;
+                } else
+                {
+                    if (leaver > maxleaver)
+                    {
+                        maxleaver = leaver;
+                    }
+                }
+
+                races.Add(srep.RACE);
+
                 if (String.Equals(srep.NAME, player_name))
                 {
                     gameplayer.Add(player);
@@ -357,8 +547,11 @@ namespace sc2dsstats
                 }
             }
 
-
-
+            game.MAXLEAVER = maxleaver;
+            game.MINARMY = minarmy;
+            game.MININCOME = minincome;
+            game.MINKILLSUM = minkillsum;
+            game.RACES = new List<string>(races);
             game.PLAYERS = new List<gamePlayer>(gameplayer);
             games.Add(game);
 

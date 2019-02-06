@@ -318,8 +318,17 @@ namespace sc2dsstats_t1
             win_otf.Show();
         }
 
+        private void bt_stats_v2_Click(object sender, RoutedEventArgs e)
+        {
+            ///Win_stats_v2 win_stats_v2 = new Win_stats_v2();
+            ///win_stats_v2.Show();
+            ///
 
-            private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
+            Win_stats_v3 win_stats_v3 = new Win_stats_v3();
+            win_stats_v3.Show();
+        }
+
+        private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
         {
 
             // Create OpenFileDialog 
@@ -504,49 +513,50 @@ namespace sc2dsstats_t1
 
         private void dyn_image_Move(object sender, MouseEventArgs e)
         {
-
-            BitmapImage dropBitmap = new BitmapImage();
-
-            try
+            if (myImage != null && e.LeftButton == MouseButtonState.Pressed)
             {
-                Image dropImage = sender as Image;
-                string drop = dropImage.Source.ToString();
-                drop = new Uri(drop).LocalPath;
+                BitmapImage dropBitmap = new BitmapImage();
 
-
-                dropBitmap.BeginInit();
-                dropBitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                dropBitmap.CacheOption = BitmapCacheOption.OnLoad;
-                dropBitmap.UriSource = new Uri(drop);
-                dropBitmap.EndInit();
-
-                string[] files = new string[1];
-                BitmapImage[] dBitmaps = new BitmapImage[1];
-                files[0] = drop;
-                dBitmaps[0] = dropBitmap;
-
-
-
-                DataObject dropObj = new DataObject(DataFormats.FileDrop, files);
-                ///dropObj.SetData(DataFormats.Text, files[0]);
-                dropObj.SetData(DataFormats.Bitmap, dBitmaps[0]);
-
-                if (myImage != null && e.LeftButton == MouseButtonState.Pressed)
+                try
                 {
+                    Image dropImage = sender as Image;
+                    string drop = dropImage.Source.ToString();
+                    drop = new Uri(drop).LocalPath;
+
+
+                    dropBitmap.BeginInit();
+                    dropBitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    dropBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    dropBitmap.UriSource = new Uri(drop);
+                    dropBitmap.EndInit();
+
+                    string[] files = new string[1];
+                    BitmapImage[] dBitmaps = new BitmapImage[1];
+                    files[0] = drop;
+                    dBitmaps[0] = dropBitmap;
+
+
+
+                    DataObject dropObj = new DataObject(DataFormats.FileDrop, files);
+                    ///dropObj.SetData(DataFormats.Text, files[0]);
+                    dropObj.SetData(DataFormats.Bitmap, dBitmaps[0]);
+
+
 
 
                     ///DragDrop.DoDragDrop(myImage, dps_png, DragDropEffects.Copy);
                     DragDrop.DoDragDrop(myImage, dropObj, DragDropEffects.Copy);
 
-                }
-            }
-            catch (System.IO.FileNotFoundException)
-            {
 
-            }
-            finally
-            {
-                dropBitmap = null;
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+
+                }
+                finally
+                {
+                    dropBitmap = null;
+                }
             }
         }
 

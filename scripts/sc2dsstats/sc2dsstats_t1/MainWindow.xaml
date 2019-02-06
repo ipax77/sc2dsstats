@@ -40,8 +40,9 @@
             <Button Content="damage" HorizontalAlignment="Left" Margin="170,0,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_damage_Click"/>
             <Button Content="stats" HorizontalAlignment="Left" Margin="250,0,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.422,0.35" Click="bt_Time_Click"/>
             <Button Content="details" HorizontalAlignment="Left" Margin="330,0,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="bt_details_Click"/>
-            <Button Content="clear" HorizontalAlignment="Left" Margin="410,0,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="Button_Click_3"/>
-            <TextBox x:Name="label1" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" HorizontalAlignment="Left" Margin="490,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Width="963">
+            <Button Content="stats v3" HorizontalAlignment="Left" Margin="410,0,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="bt_stats_v2_Click"/>
+            <Button Content="clear" HorizontalAlignment="Left" Margin="490,0,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.333,0.183" Click="Button_Click_3"/>
+            <TextBox x:Name="label1" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" HorizontalAlignment="Left" Margin="570,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Width="963">
                 <TextBox.Background>
                     <ImageBrush/>
                 </TextBox.Background>

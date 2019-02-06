@@ -50,11 +50,15 @@
                     <DataGridTextColumn Header="GAMETIME"  Binding="{Binding GAMETIME}" Width="120" />
                     <DataGridTextColumn Header="WINNER"  Binding="{Binding WINNER}" Width="20" />
                     <DataGridTextColumn Header="DURATION"  Binding="{Binding DURATION}" Width="100" />
+                    <DataGridTextColumn Header="MAXLEAVER"  Binding="{Binding MAXLEAVER}" Width="100" />
+                    <DataGridTextColumn Header="MINKILLSUM"  Binding="{Binding MINKILLSUM}" Width="100" />
+                    <DataGridTextColumn Header="MININCOME"  Binding="{Binding MININCOME}" Width="100" />
+                    <DataGridTextColumn Header="MINARMY"  Binding="{Binding MINARMY}" Width="100" />
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
 
-        <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="450,120,0,0">
+        <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="850,120,0,0">
             <DataGrid x:Name="dg_player" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
                 <DataGrid.Style>
                     <Style TargetType="DataGrid">
