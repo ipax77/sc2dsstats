@@ -1,5 +1,0 @@
-# Configuration file
-# 
-
-# Obsolete - please use sc2dsstats.exe.config instead.
-

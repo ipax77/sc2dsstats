@@ -1,0 +1,161 @@
+﻿<Window x:Name="mainwindow" x:Class="sc2dsstats_rc1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:sc2dsstats_rc1"
+        Closing="main_Closing"
+        mc:Ignorable="d"
+        Icon="GRAPH.ICO"
+        Title="sc2dsstats" Height="700" Width="1400">
+        
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                <GradientStop Color="Black" Offset="1"/>
+                <GradientStop Color="#FFDEE4F0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid x:Name="gr_firstrun" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="0,100,0,0">
+            <TextBox x:Name="label2" MaxHeight="80" MinWidth="1300" Text="Welcome to sc2dsstats - this is your first run so we need to know some things to make it work .." TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" IsReadOnly="True" Margin="62,10,0,0" FontFamily="Arial Black">
+                <TextBox.Background>
+                    <ImageBrush/>
+                </TextBox.Background>
+            </TextBox>
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" MaxHeight="20" TextWrapping="Wrap" Margin="62,50,0,0" Text="Please enter your ingame Starcraft 2 Player name (without clan tags)" FontWeight="Bold" FontFamily="Courier New" />
+            <TextBox MinWidth="150" x:Name="fr_InputTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,70,0,0" RenderTransformOrigin="0.5,0.5" Height="25"/>
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" TextWrapping="Wrap" MaxHeight="80" FontWeight="Bold" FontFamily="Courier New" Margin="62,115,0,0" >
+                <Run Text="Please select one DS replay in your replay folder. Usually it is something like " />
+                <LineBreak></LineBreak>
+                <Run Text="C:/Users/'username'/Documents/StarCraft II/Accounts/107090000/2-S2-1-220000/Replays/Multiplayer" />
+            </TextBlock>
+            <TextBox MinWidth="150" x:Name="fr_InputTextBox2" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,150,0,0" RenderTransformOrigin="0.5,0.5" Width="222" Height="23"/>
+            <Button x:Name="Browse" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="294,150,0,0" Width="74" Height="24" Content="Browse" Click="ib_BrowseButton_Click"/>
+            <Button x:Name="Ok" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="62,217,0,0" Width="74" Height="24" Content="Ok" Click="ib_OkButton_Click"/>
+
+        </Grid>
+
+        <Grid x:Name="gr_doit" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0">
+            <Label Content="Process priority" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,285,0,0" VerticalAlignment="Top" Width="200"/>
+            <ComboBox x:Name="cb_doit_prio" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,380,0,0" VerticalAlignment="Top" Width="120"/>
+            <Label Content="CPUs" HorizontalAlignment="Left" Margin="160,355,0,0" VerticalAlignment="Top" Width="200"/>
+            <ComboBox x:Name="cb_doit_cpus" HorizontalAlignment="Left" Margin="160,380,0,0" VerticalAlignment="Top" Width="120"/>
+            <Button Content="Start" HorizontalAlignment="Left" Margin ="300, 375, 0, 0" VerticalAlignment="Top" Width="92" Click="doit_Button_Click" Height="31" FontSize="14"/>
+            <Border BorderThickness="1" HorizontalAlignment="Left" Height="350" Margin="10,10,0,0" VerticalAlignment="Top" Width="501" BorderBrush="#FF1434C3">
+                <TextBox x:Name="doit_TextBox1" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TextBox.BorderBrush>
+                        <ImageBrush/>
+                    </TextBox.BorderBrush>
+                    <TextBox.Background>
+                        <ImageBrush/>
+                    </TextBox.Background>
+                </TextBox>
+
+            </Border>
+        </Grid>
+
+        <Button x:Name="bt_show" Content="Show" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <CheckBox x:Name="cb_add" Content="add" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Hidden" ToolTip="Add additional stats to the graph" Click="add_Click" />
+        <CheckBox x:Name="cb_sample" Content="use sample data" HorizontalAlignment="Left" Margin="660,35,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />
+        
+
+        <DockPanel VerticalAlignment="TOP" x:Name="dp_menu" Margin="0,0,0,0" Grid.ColumnSpan="2">
+            <Menu DockPanel.Dock="Top" Height="24" RenderTransformOrigin="0.495,-3.854">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Options" Click="mnu_Options"/>
+                    <MenuItem Header="_Scan" Click="mnu_Scan"/>
+                    <MenuItem Header="_Scan preview .." Click="mnu_Scanpre"/>
+                    <MenuItem Header="_Database" Click="mnu_Database"/>
+                    <Separator />
+                    <MenuItem Header="_Save as .." Click="win_SaveAs_Click"/>
+                    <Separator />
+                    <MenuItem Header="_Reload data" Click="mnu_LoadData_Click"/>
+                    <Separator />
+                    <MenuItem Header="_Log" Click="mnu_log_Click" />
+                    <Separator />
+                    <MenuItem Header="_Exit" Click="mnu_Exit" />
+                </MenuItem>
+
+            </Menu>
+        </DockPanel>
+
+        <Grid x:Name="gr_chart" Margin="0,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+        </Grid>
+        <Grid x:Name="gr_mode" Margin="400, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">
+            <Label Content="Basis" HorizontalAlignment="Left" Margin="0,0,0,0"  VerticalAlignment="Top" Width="54"/>
+            <ComboBox x:Name="cb_mode" HorizontalAlignment="Left" Margin="0,25,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dt_ComboBox_Changed" DropDownClosed="dt_ComboBox_Closed">
+            </ComboBox>
+            <CheckBox x:Name="chb_vs" Content="vs cmdr" HorizontalAlignment="Left" Margin="135,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_vs_Click" />
+            <ComboBox x:Name="cb_vs" HorizontalAlignment="Left" Margin="135,25,0,0" VerticalAlignment="Top" Visibility="Hidden" Width="120" SelectionChanged="vs_ComboBox_Changed" DropDownClosed="vs_ComboBox_Closed">
+            </ComboBox>
+        </Grid>
+
+        <Grid x:Name="gr_filter1" Margin="80,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="65">
+            <CheckBox x:Name="cb_std" Content="std" HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Show games with Protoss, Terran or Zerg" Click="cb_std_Click" />
+            <CheckBox x:Name="cb_all" Content="all" HorizontalAlignment="Left" Margin="60,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Use time filter" Click="cb_all_Click" />
+            <CheckBox x:Name="cb_player" Content="playeronly" HorizontalAlignment="Left" Margin="15,40,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Stats for player or global" Click="cb_player_Click" />
+            <Grid x:Name="gr_date" Visibility="Visible" IsEnabled="false">
+                <Label Content="start_date" HorizontalAlignment="Left" Margin="100,5,0,0"  VerticalAlignment="Top" Width="59"/>
+                <DatePicker x:Name="otf_startdate" SelectedDate="{x:Static sys:DateTime.Now}"  HorizontalAlignment="Left" Margin="165,5,0,0" VerticalAlignment="Top" PreviewKeyDown="tb_fl2_EnterClick" />
+                <Label Content="end_date" HorizontalAlignment="Left" Margin="100,35,0,0"  VerticalAlignment="Top" Width="54"/>
+                <DatePicker x:Name="otf_enddate" SelectedDate="{x:Static sys:DateTime.Now}"  HorizontalAlignment="Left" Margin="165,35,0,0" VerticalAlignment="Top" PreviewKeyDown="tb_fl2_EnterClick" />
+            </Grid>
+            <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Stretch" Margin="10,5,0,5" VerticalAlignment="Stretch" />
+        </Grid>
+        <Grid x:Name="gr_filter2" Margin="10,85,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="55" Visibility="Hidden" >
+            <Label Content="Advanced Filter" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+            <Button Content="Reset" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Visible" ToolTip="Reset setting to default" Click="SetGUIFilter" />
+            <Button x:Name="bt_filter3" Content="v" HorizontalAlignment="Left" Margin="90,30,0,0" VerticalAlignment="Top" Width="13" ToolTip="Info" Click="bt_filter3_Click"/>
+            <CheckBox x:Name="cb_otf" Content="otf" HorizontalAlignment="Left" Margin="110,5,0,0" VerticalAlignment="Top" Click="cb_otf_Click" ToolTip="Live stats (scanning for new replays in background)" />
+            <CheckBox x:Name="cb_yscale" Content="yscale" HorizontalAlignment="Left" Margin="110,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
+            <Grid x:Name="gr_dps" Margin="165,2,0,0" VerticalAlignment="top" HorizontalAlignment="Left" IsEnabled="False">
+            <Border Margin="0, 0, 0, 0" BorderBrush="Gray" BorderThickness="1" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid x:Name="gr_dps1" Margin="0,0,0,0">
+                    <RadioButton x:Name="rb_dps" Content="dps" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" ToolTip="Damage shown as MineralValueKilled / game duration" Click="tb_fl2_Click" />
+                    <RadioButton x:Name="rb_dpv" Content="dpv" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" ToolTip="Damage shown as ArmyValue / MineralValueKilled" Click="tb_fl2_Click" />
+                    <RadioButton x:Name="rb_dpm" Content="dpm" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" ToolTip="Damage shown as Income / MineralValueKilled" Click="tb_fl2_Click" />
+                </Grid>
+            </Border>
+            </Grid>
+            <Grid x:Name="gr_duration" HorizontalAlignment="Left" Margin="225,0,0,0" VerticalAlignment="Top">
+                <CheckBox x:Name="cb_duration" Content="Duration" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays below given gameloops (1 sec = 22,4 loops)" />
+                <TextBox x:Name="tb_duration" HorizontalAlignment="Left" Height="20" Margin="80,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" />
+                <CheckBox x:Name="cb_leaver" Content="Leaver" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player left before given time end (1 sec = 22,4 loops)" />
+                <TextBox x:Name="tb_leaver" HorizontalAlignment="Left" Height="20" Margin="80,28,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" />
+                <CheckBox x:Name="cb_killsum" Content="Kills" HorizontalAlignment="Left" Margin="150,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given KilledArmyValue" />
+                <TextBox x:Name="tb_killsum" HorizontalAlignment="Left" Height="20" Margin="230,28,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" />
+                <CheckBox x:Name="cb_army" Content="Army" HorizontalAlignment="Left" Margin="150,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given ArmyValue" />
+                <TextBox x:Name="tb_army" HorizontalAlignment="Left" Height="20" Margin="230,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" />
+                <CheckBox x:Name="cb_income" Content="Income" HorizontalAlignment="Left" Margin="300,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given Income" />
+                <TextBox x:Name="tb_income" HorizontalAlignment="Left" Height="20" Margin="380,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" />
+                <CheckBox x:Name="cb_beta" Content="Beta" HorizontalAlignment="Left" Margin="450,5,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip beta DS replays" />
+                <CheckBox x:Name="cb_hots" Content="HotS" HorizontalAlignment="Left" Margin="450,30,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip HotS DS replays" />
+                <Border Margin="510, 10,0,0" BorderBrush="Gray" BorderThickness="1" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid Margin="0,0,0,0">
+                        <RadioButton x:Name="rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_rb_horizontal_Click" />
+                        <RadioButton x:Name="rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="tb_fl2_rb_vertical_Click" />
+                    </Grid>
+                </Border>
+                <Border Margin="-5, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Border Margin="145, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Border Margin="295, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+            </Grid>
+            
+        </Grid>
+        <Grid x:Name="gr_info" Margin="10,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="100" Visibility="Hidden" >
+            <TextBox x:Name="lb_info" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100">
+                <TextBox.Background>
+                    <ImageBrush/>
+                </TextBox.Background>
+            </TextBox>
+        </Grid>
+        <Button x:Name="bt_filter2" Content="v" HorizontalAlignment="Left" Margin="72,55,0,0" VerticalAlignment="Top" Width="13" ToolTip="Advanced Filter" Click="bt_filter2_Click"/>
+    </Grid>
+
+
+
+</Window>
