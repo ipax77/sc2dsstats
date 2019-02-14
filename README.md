@@ -1,6 +1,7 @@
 # sc2dsstats
 
 sc2dsstats is a C# WPF application to analyze your Starcraft 2 Direct Strike Replays and generates a GD Graph showing the win rate and damage output for each commander. 
+![sample graph](/images/sample.png)
 
 # Requirements
 The GUI requires Microsoft .NET Framework 4.6.1
