@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -295,73 +296,82 @@ namespace sc2dsstats_rc1
             string id = null;
             char[] cTrim = { ' ' };
             List<myReplay> single_replays = new List<myReplay>();
-            System.IO.StreamReader file_c = new System.IO.StreamReader(csv);
-            int i = 0;
-            while (file_c.ReadLine() != null) { i++; ; }
-            int j = 0;
-            System.IO.StreamReader file = new System.IO.StreamReader(csv);
-            while ((line = file.ReadLine()) != null)
+
+            if (File.Exists(csv))
             {
-                j++;
-                myline = line.Split(';');
 
-                for (int k = 0; k <= 12; k++)
+                System.IO.StreamReader file_c = new System.IO.StreamReader(csv);
+                int i = 0;
+                while (file_c.ReadLine() != null) { i++; ; }
+                int j = 0;
+                System.IO.StreamReader file = new System.IO.StreamReader(csv);
+                while ((line = file.ReadLine()) != null)
                 {
-                    string result = myline[k].Trim(cTrim);
-                    myline[k] = result;
-                }
+                    j++;
+                    myline = line.Split(';');
 
-                myReplay rep = new myReplay()
-                {
-                    ID = int.Parse(myline[0]),
-                    REPLAY = myline[1],
-                    NAME = myline[2],
-                    RACE = myline[4],
-                    TEAM = int.Parse(myline[5]),
-                    RESULT = int.Parse(myline[6]),
-                    KILLSUM = int.Parse(myline[7]),
-                    DURATION = int.Parse(myline[8]),
-                    GAMETIME = double.Parse(myline[9]),
-                    PLAYERID = int.Parse(myline[10]),
-                    INCOME = double.Parse(myline[11], CultureInfo.InvariantCulture),
-                    ARMY = int.Parse(myline[12])
-                };
-                replays.Add(rep);
+                    for (int k = 0; k <= 12; k++)
+                    {
+                        string result = myline[k].Trim(cTrim);
+                        myline[k] = result;
+                    }
 
-                if (id == null)
-                {
-                    id = rep.REPLAY;
-                }
+                    myReplay rep = new myReplay()
+                    {
+                        ID = int.Parse(myline[0]),
+                        REPLAY = myline[1],
+                        NAME = myline[2],
+                        RACE = myline[4],
+                        TEAM = int.Parse(myline[5]),
+                        RESULT = int.Parse(myline[6]),
+                        KILLSUM = int.Parse(myline[7]),
+                        DURATION = int.Parse(myline[8]),
+                        GAMETIME = double.Parse(myline[9]),
+                        PLAYERID = int.Parse(myline[10]),
+                        INCOME = double.Parse(myline[11], CultureInfo.InvariantCulture),
+                        ARMY = int.Parse(myline[12])
+                    };
+                    replays.Add(rep);
 
-                if (String.Equals(id, rep.REPLAY))
-                {
-                    single_replays.Add(rep);
-                } else
-                {
-                    collectData(single_replays);
-                    id = rep.REPLAY;
-                    single_replays.Clear();
-                    single_replays.Add(rep);
-                }
+                    if (id == null)
+                    {
+                        id = rep.REPLAY;
+                    }
 
-                if (j == i)
-                {
-                    collectData(single_replays);
-                }
-                /**
-                foreach (Match m in Regex.Matches(line, pattern))
-                {
-                    string value1 = m.Groups[2].ToString() + ".SC2Replay";
+                    if (String.Equals(id, rep.REPLAY))
+                    {
+                        single_replays.Add(rep);
+                    }
+                    else
+                    {
+                        collectData(single_replays);
+                        id = rep.REPLAY;
+                        single_replays.Clear();
+                        single_replays.Add(rep);
+                    }
+
+                    if (j == i)
+                    {
+                        collectData(single_replays);
+                    }
+                    /**
+                    foreach (Match m in Regex.Matches(line, pattern))
+                    {
+                        string value1 = m.Groups[2].ToString() + ".SC2Replay";
 
 
-                }
-                **/
-                ///if (i > 2000)
+                    }
+                    **/
+                    ///if (i > 2000)
                     ///break;
 
-            }
+                }
 
-            file.Close();
+                file.Close();
+            } else
+            {
+                MessageBox.Show("No data found :(", "sc2dsstats");
+            }
 
 
         

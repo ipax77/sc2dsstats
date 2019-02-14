@@ -7,7 +7,13 @@
         mc:Ignorable="d"
         Title="Log" Height="400.595" Width="1000">
     <Grid>
-        <TextBox x:Name="win_Log_Textbox_Log" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                <GradientStop Color="Black" Offset="1"/>
+                <GradientStop Color="#FFDEE4F0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        <TextBox x:Name="win_Log_Textbox_Log" Visibility="Visible" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TextBox.BorderBrush>
                 <ImageBrush/>
             </TextBox.BorderBrush>
@@ -15,6 +21,50 @@
                 <ImageBrush/>
             </TextBox.Background>
         </TextBox>
+        <RichTextBox x:Name="rtb_info" Visibility="Collapsed" IsDocumentEnabled="True" IsReadOnly="True" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <RichTextBox.Background>
+                <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                    <GradientStop Color="Azure" Offset="1"/>
+                    <GradientStop Color="#FFDEE4F0"/>
+                </LinearGradientBrush>
+            </RichTextBox.Background>
+            <FlowDocument>
+                <Paragraph>
+                    <Run FontSize="24" Text="Info about sc2dsstats"/>
+                </Paragraph>
+                <Paragraph>
+                    <Run Text="Copyright 2019 Philipp Hetzner Open sourced under the GNU General Public License version 3"/>
+                </Paragraph>
+                <Paragraph></Paragraph>
+                <Paragraph>
+                    <TextBlock>
+                    <Run Text="The project can be found"/>
+                    <Hyperlink NavigateUri="https://github.com/ipax77/sc2dsstats" RequestNavigate="Hyperlink_RequestNavigate">here</Hyperlink>
+                    </TextBlock>
+                </Paragraph>
+                <Paragraph>
+                    <TextBlock>
+                    <Run Text="Reporting bugs / Requesting features:"/>
+                    <Hyperlink NavigateUri="https://github.com/ipax77/sc2dsstats/issues" RequestNavigate="Hyperlink_RequestNavigate">issues on GitHub</Hyperlink>
+                    <Run Text="."/>
+                    </TextBlock>
+                </Paragraph>
+                <Paragraph>
+                    <Run Text="Feel free to open a new issue and/or even fix it yourself and create a pull request."/>
+                </Paragraph>
+                <Paragraph>
+                    <Run Text="Or send an email to ph.ilipp@web.de"/>
+                </Paragraph>
+                <Paragraph></Paragraph>
+                <Paragraph>
+                    <TextBlock>
+                    <Run Text="Support the development: "/>
+                        <Hyperlink NavigateUri="https://paypal.me/ipax77" RequestNavigate="Hyperlink_RequestNavigate">Donate via PayPal</Hyperlink>
+                    </TextBlock>
+                </Paragraph>
+                <Paragraph/>
+            </FlowDocument>
+        </RichTextBox>
 
     </Grid>
 </Window>

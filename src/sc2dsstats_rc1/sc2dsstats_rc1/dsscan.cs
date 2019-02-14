@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,9 +41,9 @@ namespace sc2dsstats_rc1
 
             string dir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             string drive = "C:\\";
-
+            var appSettings = ConfigurationManager.AppSettings;
             Hashtable dsreplays = new Hashtable();
-
+            Hashtable dsskip = new Hashtable();
 
             Regex rx = new Regex(@"(\w:\\)");
 
@@ -100,6 +101,27 @@ namespace sc2dsstats_rc1
                 }
             }
 
+            if (File.Exists(appSettings["SKIP_FILE"]))
+            {
+                string line;
+
+                try
+                {
+                    System.IO.StreamReader file = new System.IO.StreamReader(appSettings["SKIP_FILE"]);
+                    while ((line = file.ReadLine()) != null)
+                    {
+
+                        if (line == "") continue;
+                        dsskip.Add(line + ".SC2Replay", 1);
+                    }
+
+                    file.Close();
+                }
+                catch (System.IO.IOException)
+                {
+                }
+            }
+
             if (Directory.Exists(REPLAY_PATH))
             {
                 string[] replays = Directory.GetFiles(REPLAY_PATH);
@@ -114,26 +136,21 @@ namespace sc2dsstats_rc1
                     if (m.Success)
                     {
                         i++;
-                        if (dsreplays.ContainsKey(m.Value))
+                        if (!dsreplays.ContainsKey(m.Value))
                         {
+                            if (!dsskip.ContainsKey(m.Value))
+                                newrep++;
                         }
-                        else
-                        {
-                            newrep++;
+                    
 
-                        }
-
+                        
                     }
                     if (m2.Success)
                     {
                         i++;
-                        if (dsreplays.ContainsKey(m2.Value))
-                        {
-                        }
-                        else
-                        {
-                            newrep++;
-                        }
+                        if (!dsreplays.ContainsKey(m2.Value))
+                            if (!dsskip.ContainsKey(m2.Value))
+                                newrep++;
                     }
                 }
             }

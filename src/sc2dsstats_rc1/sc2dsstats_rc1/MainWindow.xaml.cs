@@ -12,9 +12,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.DataVisualization.Charting;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using Microsoft.Win32;
 
 
@@ -37,6 +39,7 @@ namespace sc2dsstats_rc1
         Chart dynChart = new Chart() { Background = System.Windows.Media.Brushes.FloralWhite };
         string[] s_races = new string[17];
         dsotf otf = new dsotf();
+        public System.Diagnostics.Process p = new System.Diagnostics.Process();
 
         public TextBox dynamicText = null;
         //private bool dps_handle = true;
@@ -52,10 +55,10 @@ namespace sc2dsstats_rc1
         public string myTemp_dir = null;
         public string myData_dir = null;
         public string myAppData_dir = null;
-        public string mySkip_file = null;
         public string myReplay_Path = null;
         public string mySample_csv = null;
         public string myS2cli_exe = null;
+        public string myDoc_pdf = null;
 
         public MainWindow()
         {
@@ -72,9 +75,10 @@ namespace sc2dsstats_rc1
             myTemp_dir = System.IO.Path.GetTempPath() + "\\sc2dsstats\\";
             myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
             myData_dir = myAppData_dir + "\\analyzes";
-            mySkip_file = myAppData_dir + "\\skip.csv";
+            mySkip_csv = myAppData_dir + "\\skip.csv";
             myStats_csv = myAppData_dir + "\\stats.csv";
             mySample_csv = exedir + "\\sample.csv";
+            myDoc_pdf = exedir + "\\doc.pdf";
             myScan_log = myAppData_dir + "\\log.txt";
 
             if (!System.IO.Directory.Exists(myTemp_dir))
@@ -161,26 +165,26 @@ namespace sc2dsstats_rc1
 
             if (appSettings["SKIP_FILE"] == null)
             {
-                config.AppSettings.Settings.Add("SKIP_FILE", mySkip_file);
+                config.AppSettings.Settings.Add("SKIP_FILE", mySkip_csv);
             }
             else if (appSettings["SKIP_FILE"] == "0")
             {
                 config.AppSettings.Settings.Remove("SKIP_FILE");
-                config.AppSettings.Settings.Add("SKIP_FILE", mySkip_file);
+                config.AppSettings.Settings.Add("SKIP_FILE", mySkip_csv);
             }
             else
             {
-                mySkip_file = appSettings["SKIP_FILE"];
+                mySkip_csv = appSettings["SKIP_FILE"];
             }
-            if (!File.Exists(mySkip_file))
+            if (!File.Exists(mySkip_csv))
             {
                 try
                 {
-                    File.Create(mySkip_file);
+                    File.Create(mySkip_csv);
                 }
                 catch (System.IO.IOException)
                 {
-                    MessageBox.Show("Failed to create DataDir " + mySkip_file + ". Please check your options.", "sc2dsstats");
+                    MessageBox.Show("Failed to create DataDir " + mySkip_csv + ". Please check your options.", "sc2dsstats");
                 }
             }
             int cpus = Environment.ProcessorCount;
@@ -659,7 +663,7 @@ namespace sc2dsstats_rc1
                 else return x.Value.CompareTo(y.Value);
             });
 
-            string grace = "TOTAL";
+            string grace = average.ToString();
             if (gwr > 0) cdata.Insert(0, new KeyValuePair<string, double>(grace + " (" + ggames.ToString() + ") ", gwr));
 
             selection.LIST = data;
@@ -1344,7 +1348,8 @@ namespace sc2dsstats_rc1
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-
+            replays.Clear();
+            replays = LoadData(myStats_csv);
             UpdateGraph(null);
 
             if (gr_chart.Children.Contains(dynChart))
@@ -1529,6 +1534,22 @@ namespace sc2dsstats_rc1
             main_Closing(null, null);
         }
 
+        private void mnu_doc(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(myDoc_pdf);
+        }
+
+        private void mnu_info(object sender, RoutedEventArgs e)
+        {
+            Win_log wlog = new Win_log();
+            wlog.Title = "Info";
+            wlog.win_Log_Textbox_Log.Visibility = Visibility.Collapsed;
+            wlog.rtb_info.Visibility = Visibility.Visible;
+            wlog.rtb_info.AddHandler(Hyperlink.RequestNavigateEvent, new RequestNavigateEventHandler(wlog.Hyperlink_RequestNavigate));            
+
+
+            wlog.Show();
+        }
 
         private void mnu_Database(object sender, RoutedEventArgs e)
         {
@@ -1574,11 +1595,13 @@ namespace sc2dsstats_rc1
             {
                 gr_filter2.Visibility = Visibility.Visible;
                 gr_chart.Margin = new Thickness(0, 140, 0, 0);
+                gr_doit.Margin = new Thickness(10, 140, 15, 0);
             }
             else if (gr_filter2.Visibility == Visibility.Visible)
             {
                 gr_filter2.Visibility = Visibility.Hidden;
                 gr_chart.Margin = new Thickness(0, 80, 0, 0);
+                gr_doit.Margin = new Thickness(10, 80, 15, 0);
             }
         }
 
@@ -1588,11 +1611,13 @@ namespace sc2dsstats_rc1
             {
                 gr_info.Visibility = Visibility.Visible;
                 gr_chart.Margin = new Thickness(0, 240, 0, 0);
+                gr_doit.Margin = new Thickness(10, 240, 15, 0);
             }
             else if (gr_info.Visibility == Visibility.Visible)
             {
                 gr_info.Visibility = Visibility.Hidden;
                 gr_chart.Margin = new Thickness(0, 140, 0, 0);
+                gr_doit.Margin = new Thickness(10, 140, 15, 0);
             }
         }
 

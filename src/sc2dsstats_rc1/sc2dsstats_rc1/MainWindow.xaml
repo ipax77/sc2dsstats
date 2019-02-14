@@ -78,7 +78,10 @@
                     <Separator />
                     <MenuItem Header="_Exit" Click="mnu_Exit" />
                 </MenuItem>
-
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_Documentation" Click="mnu_doc"/>
+                    <MenuItem Header="_Info" Click="mnu_info"/>
+                </MenuItem>
             </Menu>
         </DockPanel>
 
@@ -86,7 +89,7 @@
 
         </Grid>
         <Grid x:Name="gr_mode" Margin="400, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">
-            <Label Content="Basis" HorizontalAlignment="Left" Margin="0,0,0,0"  VerticalAlignment="Top" Width="54"/>
+            <Label Content="Mode" HorizontalAlignment="Left" Margin="0,0,0,0"  VerticalAlignment="Top" Width="54"/>
             <ComboBox x:Name="cb_mode" HorizontalAlignment="Left" Margin="0,25,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dt_ComboBox_Changed" DropDownClosed="dt_ComboBox_Closed">
             </ComboBox>
             <CheckBox x:Name="chb_vs" Content="vs cmdr" HorizontalAlignment="Left" Margin="135,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_vs_Click" />
