@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:sc2dsstats_rc1"
         Closing="main_Closing"
         mc:Ignorable="d"
-        Icon="GRAPH.ICO"
+        Icon="sc2dsstats.ico"
         Title="sc2dsstats" Height="700" Width="1400">
         
 

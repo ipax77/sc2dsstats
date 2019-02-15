@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -22,23 +24,26 @@ namespace sc2dsstats_rc1
         public Hashtable hash = new Hashtable()
             {
                 { "ID", 1 },
-                { "PLAYERID", 1 },
                 { "REPLAY", 1 },
-                { "NAME", 1 },
-                { "RACE", 1 },
-                { "TEAM", 1 },
-                { "RESULT", 1 },
-                { "INCOME", 1 },
-                { "ARMY", 1 },
-                { "KILLSUM", 1 },
+                { "GAMETIME", 1 },
+                { "WINNER", 1 },
                 { "DURATION", 1 },
-                { "GAMETIME", 1 }
+                { "MAXLEAVER", 1 },
+                { "MINKILLSUM", 1 },
+                { "MININCOME", 1 },
+                { "MINARMY", 1 },
+                { "RACE", 1 }
             };
         public string player_name = "";
         List<myReplay> replays = new List<myReplay>();
         List<cmdr_data> cmdrs = new List<cmdr_data>();
-        List<myGame> games = new List<myGame>();
+        public List<myGame> games = new List<myGame>();
         List<gamePlayer> players = new List<gamePlayer>();
+        dsdbfilter dbfil = null;
+        List<myGame> fil_games = new List<myGame>();
+        public ObservableCollection<string> DSDBITEMS { get; set; }
+        public string DSDBTEXT { get; set; }
+
 
         public Win_regex()
         {
@@ -53,6 +58,21 @@ namespace sc2dsstats_rc1
             dg_games_cm.Items.Add(win_saveas);
             dg_games.ContextMenu = dg_games_cm;
             dg_games.SelectionChanged += new System.Windows.Controls.SelectionChangedEventHandler(dg_games_DClick);
+
+            dbfil = new dsdbfilter(this);
+
+            tb_filter.KeyUp += new System.Windows.Input.KeyEventHandler(tb_filter_KeyDown);
+
+            DSDBITEMS = new ObservableCollection<string>(mw.s_races);
+
+            //tb_filter.SetBinding(DSDBITEMS);
+
+
+            foreach (var bab in hash.Keys.Cast<String>().OrderBy(c => c))
+            {
+                cb_filter.Items.Add(bab);
+            }
+            cb_filter.SelectedItem = cb_filter.Items[4];
             
         }
 
@@ -573,12 +593,40 @@ namespace sc2dsstats_rc1
                 dg_win_regex.Columns[9].Visibility = Visibility.Hidden;
             }
             dg_win_regex.ItemsSource = LoadCollectionData();
-    **/
+            **/
+            games.Clear();
             LoadCollectionData();
             dg_games.ItemsSource = games;
+            lb_filter.Content = "Games: " + games.Count();
 
             ///Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ProcessRows));
 
+        }
+
+
+        private void bt_filter_Click(object sender, RoutedEventArgs e)
+        {
+            
+            LoadCollectionData();
+
+            string race = tb_filter.Text;
+            
+            
+            dg_games.ItemsSource = fil_games;
+
+            
+        }
+
+        private void tb_filter_KeyDown(object sender, RoutedEventArgs e)
+        {
+            if (tb_filter.Text.Length >= 3)
+            {
+
+                fil_games.Clear();
+                fil_games = dbfil.OTF_Filter();
+                dg_games.ItemsSource = fil_games;
+
+            }
         }
 
         private void dg_games_DClick(object sender, RoutedEventArgs e)
@@ -831,7 +879,114 @@ namespace sc2dsstats_rc1
                 dg_player.Columns[8].Visibility = Visibility.Visible;
             }
         }
-  
+
+        private void cb_ga_ID_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_ID.IsChecked == false)
+            {
+                dg_games.Columns[0].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[0].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_REPLAY_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_REPLAY.IsChecked == false)
+            {
+                dg_games.Columns[1].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[1].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_GAMETIME_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_GAMETIME.IsChecked == false)
+            {
+                dg_games.Columns[2].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[2].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_WINTEAM_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_WINTEAM.IsChecked == false)
+            {
+                dg_games.Columns[3].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[3].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_DURATION_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_DURATION.IsChecked == false)
+            {
+                dg_games.Columns[4].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[4].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_MAXLEAVER_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_MAXLEAVER.IsChecked == false)
+            {
+                dg_games.Columns[5].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[5].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_MINKILLSUM_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_MINKILLSUM.IsChecked == false)
+            {
+                dg_games.Columns[6].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[6].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_MININCOME_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_MININCOME.IsChecked == false)
+            {
+                dg_games.Columns[7].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[7].Visibility = Visibility.Visible;
+            }
+        }
+
+        private void cb_ga_MINARMY_Click(object sender, RoutedEventArgs e)
+        {
+            if (cb_ga_MINARMY.IsChecked == false)
+            {
+                dg_games.Columns[8].Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                dg_games.Columns[8].Visibility = Visibility.Visible;
+            }
+        }
 
         private void Dg_win_regex_CleanUpVirtualizedItem(object sender, CleanUpVirtualizedItemEventArgs e)
         {

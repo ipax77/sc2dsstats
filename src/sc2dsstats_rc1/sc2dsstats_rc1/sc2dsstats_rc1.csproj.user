@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <PublishUrlHistory>D:\github\sc2dsstats\|D:\github\sc2dsstats_rc1\|X:\sc2\rc1\</PublishUrlHistory>
-    <InstallUrlHistory />
+    <PublishUrlHistory>D:\github\sc2dsstats_rc1_publish\|https://github.com/ipax77/sc2dsstats/tree/master/app.publish/|D:\github\sc2dsstats_rc1\sc2dsstats\app.publish\|D:\github\sc2dsstats\|D:\github\sc2dsstats_rc1\</PublishUrlHistory>
+    <InstallUrlHistory>https://github.com/ipax77/sc2dsstats/tree/master/app.publish/|https://github.com/ipax77/sc2dsstats/tree/master/1.0.0.0/app.publish/</InstallUrlHistory>
     <SupportUrlHistory />
     <UpdateUrlHistory />
     <BootstrapperUrlHistory />

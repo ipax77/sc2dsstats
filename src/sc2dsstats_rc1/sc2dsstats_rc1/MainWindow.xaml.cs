@@ -37,7 +37,7 @@ namespace sc2dsstats_rc1
         public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; }
         public List<KeyValuePair<string, double>> Cdata { get; set; }
         Chart dynChart = new Chart() { Background = System.Windows.Media.Brushes.FloralWhite };
-        string[] s_races = new string[17];
+        public string[] s_races = new string[17];
         dsotf otf = new dsotf();
         public System.Diagnostics.Process p = new System.Diagnostics.Process();
 

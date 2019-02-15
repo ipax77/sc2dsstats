@@ -45,15 +45,15 @@
                 </DataGrid.Style>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID"  Binding="{Binding ID}" Width="50" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="ID"  Binding="{Binding ID}" Width="50"/>
                     <DataGridTextColumn Header="REPLAY"  Binding="{Binding REPLAY}" Width="120" />
                     <DataGridTextColumn Header="GAMETIME"  Binding="{Binding GAMETIME}" Width="120" />
-                    <DataGridTextColumn Header="WINNER"  Binding="{Binding WINNER}" Width="20" />
-                    <DataGridTextColumn Header="DURATION"  Binding="{Binding DURATION}" Width="100" />
-                    <DataGridTextColumn Header="MAXLEAVER"  Binding="{Binding MAXLEAVER}" Width="100" />
-                    <DataGridTextColumn Header="MINKILLSUM"  Binding="{Binding MINKILLSUM}" Width="100" />
-                    <DataGridTextColumn Header="MININCOME"  Binding="{Binding MININCOME}" Width="100" />
-                    <DataGridTextColumn Header="MINARMY"  Binding="{Binding MINARMY}" Width="100" />
+                    <DataGridTextColumn Header="WINNER"  Binding="{Binding WINNER}" Visibility="Hidden" Width="20" />
+                    <DataGridTextColumn Header="DURATION"  Binding="{Binding DURATION}" Visibility="Hidden" Width="100" />
+                    <DataGridTextColumn Header="MAXLEAVER"  Binding="{Binding MAXLEAVER}" Visibility="Hidden" Width="100" />
+                    <DataGridTextColumn Header="MINKILLSUM"  Binding="{Binding MINKILLSUM}" Visibility="Hidden" Width="100" />
+                    <DataGridTextColumn Header="MININCOME"  Binding="{Binding MININCOME}" Visibility="Hidden" Width="100" />
+                    <DataGridTextColumn Header="MINARMY"  Binding="{Binding MINARMY}" Visibility="Hidden" Width="100" />
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
@@ -85,7 +85,8 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
-        <Grid x:Name="gr_player_opt" Margin="450,41,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
+        
+        <Grid x:Name="gr_player_opt" Margin="650,41,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
             <CheckBox x:Name="cb_pl_POS" Content="POS" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_POS_Click" />
             <CheckBox x:Name="cb_pl_NAME" Content="NAME" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" Click="cb_NAME_Click" />
             <CheckBox x:Name="cb_pl_RACE" Content="RACE" HorizontalAlignment="Left" Margin="175,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RACE_Click" />
@@ -96,8 +97,26 @@
             <CheckBox x:Name="cb_pl_DURATION" Content="DURATION" HorizontalAlignment="Left" Margin="585,60,0,0" VerticalAlignment="Top" Click="cb_DURATION_Click" />
             <CheckBox x:Name="cb_pl_RESULT" Content="RESULT" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RESULT_Click" />
         </Grid>
+        <Grid x:Name="gr_games_opt" Margin="10,21,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
+            <CheckBox x:Name="cb_ga_ID" Content="ID" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_ID_Click" />
+            <CheckBox x:Name="cb_ga_REPLAY" Content="REPLAY" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_REPLAY_Click" />
+            <CheckBox x:Name="cb_ga_GAMETIME" Content="GAMETIME" HorizontalAlignment="Left" Margin="140,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_GAMETIME_Click" />
+            <CheckBox x:Name="cb_ga_WINTEAM" Content="WIN" HorizontalAlignment="Left" Margin="225,60,0,0" VerticalAlignment="Top" Click="cb_ga_WINTEAM_Click" />
+            <CheckBox x:Name="cb_ga_DURATION" Content="DURATION" HorizontalAlignment="Left" Margin="280,60,0,0" VerticalAlignment="Top" Click="cb_ga_DURATION_Click" />
+            <CheckBox x:Name="cb_ga_MAXLEAVER" Content="MAXLEAVER" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" Click="cb_ga_MAXLEAVER_Click" />
+            <CheckBox x:Name="cb_ga_MINKILLSUM" Content="MINKILLSUM" HorizontalAlignment="Left" Margin="465,60,0,0" VerticalAlignment="Top" Click="cb_ga_MINKILLSUM_Click" />
+            <CheckBox x:Name="cb_ga_MININCOME" Content="MININCOME" HorizontalAlignment="Left" Margin="565,60,0,0" VerticalAlignment="Top" Click="cb_ga_MININCOME_Click" />
+            <CheckBox x:Name="cb_ga_MINARMY" Content="MINARMY" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="False" Click="cb_ga_MINARMY_Click" />
+            
+        </Grid>
         <Button Content="(Re)Load" HorizontalAlignment="Left" Margin="35,11,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-
-
+        <Grid x:Name="gr_filter" Margin="10,21,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
+            <TextBox x:Name="tb_filter" HorizontalAlignment="Left" Height="23" Margin="215,29,0,0" TextWrapping="Wrap"
+                     VerticalAlignment="Top" Width="120">
+            </TextBox>
+            <Button x:Name="bt_filter" Content="filter" HorizontalAlignment="Left" Margin="10,28,0,0" VerticalAlignment="Top" Width="75" Click="bt_filter_Click"/>
+            <ComboBox x:Name="cb_filter" HorizontalAlignment="Left" Margin="90,28,0,0" VerticalAlignment="Top" Width="120"/>
+        </Grid>
+        <Label x:Name="lb_filter" Content="" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.316,0.372" Width="640"/>
     </Grid>
 </Window>

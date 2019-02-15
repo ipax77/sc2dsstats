@@ -16,19 +16,28 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>D:\github\sc2dsstats_rc1\</PublishUrl>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
+    <PublishUrl>D:\github\sc2dsstats_rc1_publish\</PublishUrl>
     <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
+    <InstallFrom>Web</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Background</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdatePeriodically>true</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
+    <InstallUrl>https://github.com/ipax77/sc2dsstats/tree/master/app.publish/</InstallUrl>
+    <UpdateUrl>https://github.com/ipax77/sc2dsstats/tree/master/app.publish/</UpdateUrl>
+    <SupportUrl>https://github.com/ipax77/sc2dsstats</SupportUrl>
+    <ErrorReportUrl>https://github.com/ipax77/sc2dsstats/issues</ErrorReportUrl>
     <TargetCulture>en</TargetCulture>
-    <ApplicationRevision>15</ApplicationRevision>
+    <ProductName>sc2dsstats_rc1</ProductName>
+    <PublisherName>Philipp Hetzner</PublisherName>
+    <SuiteName>sc2dsstats</SuiteName>
+    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
+    <WebPage>publish.htm</WebPage>
+    <ApplicationRevision>16</ApplicationRevision>
     <ApplicationVersion>0.5.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -54,10 +63,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>0C18CF4256CCCB69BF302879291DECA79654D639</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>EC464931409A13261DBDD7C7EA55FB037F2CFDE2</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>sc2dsstats_rc1_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>mycert.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -70,12 +79,10 @@
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup>
-    <ApplicationIcon>GRAPH.ICO</ApplicationIcon>
+    <ApplicationIcon>sc2dsstats.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup />
-  <PropertyGroup>
-    <NoWin32Manifest>true</NoWin32Manifest>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -106,6 +113,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="dsdbfilter.cs" />
     <Compile Include="dsotf.cs" />
     <Compile Include="dsscan.cs" />
     <Compile Include="Win_config.xaml.cs">
@@ -164,6 +172,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="sc2dsstats.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -171,14 +182,12 @@
     <Content Include="doc.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="mycert.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <Resource Include="GRAPH.ICO">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
     <Content Include="sample.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
