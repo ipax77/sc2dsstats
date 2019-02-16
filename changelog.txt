@@ -1,0 +1,9 @@
+
+0.5.0.17
+
+- Filter option added for File->Database
+- Filter for graph improved - you can use < and > for Duration, Army, Income and Kills
+- Info added for cmdrs-Played
+- Some graph design changes
+
+- Fixed Filter1-Grid close while Filter2-Grid is open

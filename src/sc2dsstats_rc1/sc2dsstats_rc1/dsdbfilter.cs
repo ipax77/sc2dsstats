@@ -8,7 +8,7 @@ using static sc2dsstats_rc1.Win_regex;
 
 namespace sc2dsstats_rc1
 {
-    
+
 
     class dsdbfilter
     {
@@ -78,7 +78,8 @@ namespace sc2dsstats_rc1
 
 
                 }
-            } else if (WR.cb_filter.SelectedItem.ToString() == "DURATION")
+            }
+            else if (WR.cb_filter.SelectedItem.ToString() == "DURATION")
             {
                 string mod = WR.tb_filter.Text.Substring(0, 1);
                 string snum = WR.tb_filter.Text.Substring(1, WR.tb_filter.Text.Length - 1);
@@ -86,22 +87,26 @@ namespace sc2dsstats_rc1
                 try
                 {
                     num = double.Parse(snum);
-                } catch { }
+                }
+                catch { }
 
                 if (mod == ">")
                 {
                     fil_games = WR.games.Where(x => x.DURATION >= num).ToList();
                     WR.lb_filter.Content += "Duration => >" + snum + " (" + fil_games.Count() + ") ";
-                } else if (mod == "<")
+                }
+                else if (mod == "<")
                 {
                     fil_games = WR.games.Where(x => x.DURATION <= num).ToList();
                     WR.lb_filter.Content += "Duration => <" + snum + " (" + fil_games.Count() + ") ";
-                } else
+                }
+                else
                 {
                     try
                     {
                         num = double.Parse(WR.tb_filter.Text);
-                    } catch { }
+                    }
+                    catch { }
                     fil_games = WR.games.Where(x => x.DURATION == num).ToList();
                     WR.lb_filter.Content += "Duration => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
@@ -336,6 +341,266 @@ namespace sc2dsstats_rc1
 
 
             return fil_games;
+        }
+
+
+
+
+    }
+
+    class DSfilter
+    {
+        public MainWindow MW { get; set; }
+        public dsfilter FIL { get; set; }
+
+        public DSfilter()
+        {
+            FIL = new dsfilter();
+        }
+
+        public DSfilter(MainWindow mw) : this()
+        {
+            MW = mw;
+        }
+
+        public List<dsreplay> Filter(List<dsreplay> replays)
+        {
+            List<dsreplay> fil_replays = new List<dsreplay>(replays);
+            List<dsreplay> tmprep = new List<dsreplay>();
+            FIL.GAMES = replays.Count;
+
+            if (MW.cb_beta.IsChecked == true)
+            {
+                FIL.Beta = replays.Count;
+                tmprep = new List<dsreplay>(fil_replays.Where(x => !x.REPLAY.Contains("Beta")).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                FIL.Beta -= fil_replays.Count;
+            }
+
+            if (MW.cb_hots.IsChecked == true)
+            {
+                FIL.Hots = fil_replays.Count;
+                tmprep = new List<dsreplay>(fil_replays.Where(x => !x.REPLAY.Contains("HotS")).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                FIL.Hots -= fil_replays.Count;
+            }
+
+            if (MW.cb_std.IsChecked == false)
+            {
+                FIL.Std = fil_replays.Count;
+                tmprep = new List<dsreplay>(fil_replays.Where(x => !x.PLAYERS.Exists(y => y.RACE == "Protoss" || y.RACE == "Terran" || y.RACE == "Zerg")).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                FIL.Std -= fil_replays.Count;
+            }
+
+            if (MW.cb_all.IsChecked == false)
+            {
+                string sd = MW.otf_startdate.SelectedDate.Value.ToString("yyyyMMdd");
+                sd += "000000";
+                double sd_int = double.Parse(sd);
+                string ed = MW.otf_enddate.SelectedDate.Value.ToString("yyyyMMdd");
+                ed += "999999";
+                double ed_int = double.Parse(ed);
+
+                FIL.Gametime = fil_replays.Count;
+                tmprep = new List<dsreplay>(fil_replays.Where(x => (x.GAMETIME > sd_int)).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                tmprep = new List<dsreplay>(fil_replays.Where(x => (x.GAMETIME < ed_int)).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                FIL.Gametime -= fil_replays.Count;
+
+            }
+
+            if (MW.cb_duration.IsChecked == true)
+            {
+                string mod = MW.tb_duration.Text.Substring(0, 1);
+                string snum = MW.tb_duration.Text.Substring(1, MW.tb_duration.Text.Length - 1);
+                double num = 0;
+                FIL.Duration = tmprep.Count;
+
+                try
+                {
+                    num = double.Parse(snum);
+                }
+                catch { }
+
+                if (mod == ">")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.DURATION > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else if (mod == "<")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.DURATION < num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else
+                {
+                    try
+                    {
+                        num = double.Parse(MW.tb_duration.Text);
+                    }
+                    catch { }
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.DURATION > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+
+                }
+                FIL.Duration -= tmprep.Count;
+            }
+
+            if (MW.cb_leaver.IsChecked == true)
+            {
+                string mod = MW.tb_leaver.Text.Substring(0, 1);
+                string snum = MW.tb_leaver.Text.Substring(1, MW.tb_leaver.Text.Length - 1);
+                double num = 0;
+                FIL.Leaver = tmprep.Count;
+
+                try
+                {
+                    num = double.Parse(snum);
+                }
+                catch { }
+
+                if (mod == ">")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.MAXLEAVER < num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else if (mod == "<")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.MAXLEAVER > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else
+                {
+                    try
+                    {
+                        num = double.Parse(MW.tb_leaver.Text);
+                    }
+                    catch { }
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.MAXLEAVER < num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+
+                }
+                FIL.Leaver -= tmprep.Count;
+            }
+
+            if (MW.cb_army.IsChecked == true)
+            {
+                string mod = MW.tb_army.Text.Substring(0, 1);
+                string snum = MW.tb_army.Text.Substring(1, MW.tb_army.Text.Length - 1);
+                double num = 0;
+                FIL.Army = tmprep.Count;
+
+                try
+                {
+                    num = double.Parse(snum);
+                }
+                catch { }
+
+                if (mod == ">")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.ARMY > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else if (mod == "<")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.ARMY < num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else
+                {
+                    try
+                    {
+                        num = double.Parse(MW.tb_army.Text);
+                    }
+                    catch { }
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.MINARMY > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+
+                }
+                FIL.Army -= tmprep.Count;
+            }
+
+            if (MW.cb_income.IsChecked == true)
+            {
+                string mod = MW.tb_income.Text.Substring(0, 1);
+                string snum = MW.tb_income.Text.Substring(1, MW.tb_income.Text.Length - 1);
+                double num = 0;
+                FIL.Income = tmprep.Count;
+
+                try
+                {
+                    num = double.Parse(snum);
+                }
+                catch { }
+
+                if (mod == ">")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.INCOME > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else if (mod == "<")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.INCOME < num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else
+                {
+                    try
+                    {
+                        num = double.Parse(MW.tb_income.Text);
+                    }
+                    catch { }
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.MININCOME > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+
+                }
+                FIL.Income -= tmprep.Count;
+            }
+
+            if (MW.cb_killsum.IsChecked == true)
+            {
+                string mod = MW.tb_killsum.Text.Substring(0, 1);
+                string snum = MW.tb_killsum.Text.Substring(1, MW.tb_killsum.Text.Length - 1);
+                double num = 0;
+                FIL.Killsum = tmprep.Count;
+
+                try
+                {
+                    num = double.Parse(snum);
+                }
+                catch { }
+
+                if (mod == ">")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.KILLSUM > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else if (mod == "<")
+                {
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.KILLSUM < num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+                }
+                else
+                {
+                    try
+                    {
+                        num = double.Parse(MW.tb_killsum.Text);
+                    }
+                    catch { }
+                    tmprep = new List<dsreplay>(fil_replays.Where(x => (x.MINKILLSUM > num)).ToList());
+                    fil_replays = new List<dsreplay>(tmprep);
+
+                }
+                FIL.Killsum -= tmprep.Count;
+            }
+
+
+
+
+            //fil_replays = fil_replays.Distinct().ToList();
+            return fil_replays;
         }
     }
 }

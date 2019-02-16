@@ -4,13 +4,30 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:DVC="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"
         xmlns:local="clr-namespace:sc2dsstats_rc1"
         Closing="main_Closing"
         mc:Ignorable="d"
         Icon="sc2dsstats.ico"
         Title="sc2dsstats" Height="700" Width="1400">
-        
 
+    <Window.Resources>
+        <Style x:Key="MyColumnDataPointStyle" TargetType="DVC:ColumnDataPoint">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate x:Name="myTemplate" TargetType="DVC:ColumnDataPoint">
+                        <Grid>
+                            <Rectangle Fill="{TemplateBinding Background}" Stroke="Black"/>
+                            <Grid Margin="0 -20 0 0" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                <TextBlock Text="{TemplateBinding FormattedDependentValue}" Margin="2"/>
+                            </Grid>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
     <Grid>
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -58,7 +75,8 @@
         </Grid>
 
         <Button x:Name="bt_show" Content="Show" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <CheckBox x:Name="cb_add" Content="add" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Hidden" ToolTip="Add additional stats to the graph" Click="add_Click" />
+        <Button x:Name="bt_chart" Content="Chart" HorizontalAlignment="Left" Margin="800,30,0,0" VerticalAlignment="Top" Width="75" Click="bt_chart_Click"/>
+        <CheckBox x:Name="cb_add" Content="add" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Add additional stats to the graph" Click="add_Click" />
         <CheckBox x:Name="cb_sample" Content="use sample data" HorizontalAlignment="Left" Margin="660,35,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />
         
 

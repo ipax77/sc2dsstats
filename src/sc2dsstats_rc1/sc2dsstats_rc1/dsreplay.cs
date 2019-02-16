@@ -136,6 +136,16 @@ namespace sc2dsstats_rc1
         public dsfilter()
         {
             GAMES = 0;
+            FILTERED = 0;
+            Beta = 0;
+            Hots = 0;
+            Gametime = 0;
+            Duration = 0;
+            Leaver = 0;
+            Killsum = 0;
+            Army = 0;
+            Income = 0;
+            Std = 0;
         }
 
         public string Info()
@@ -143,7 +153,7 @@ namespace sc2dsstats_rc1
             string bab = "Und es war Sommer";
             if (this.GAMES != 0)
             {
-                double filtered = FilterRate(this.FILTERED);
+                
 
                 /**
                 bab = this.FILTERED + " / " + this.GAMES + " filtered (" + filtered.ToString() + "%)";
@@ -168,6 +178,11 @@ namespace sc2dsstats_rc1
                 bab += "Std: " + this.Std + " (" + f + "%)" + Environment.NewLine;
                 **/
 
+                if (this.FILTERED == 0)
+                {
+                    FILTERED = Beta + Hots + Gametime + Duration + Leaver + Killsum + Army + Income + Std;
+                }
+                double filtered = FilterRate(this.FILTERED);
                 bab = this.FILTERED + " / " + this.GAMES + " filtered (" + filtered.ToString() + "%)";
                 bab += Environment.NewLine;
                 double f = FilterRate(this.Beta);
@@ -188,7 +203,6 @@ namespace sc2dsstats_rc1
                 bab += "Income: " + this.Income + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Std);
                 bab += "Std: " + this.Std + " (" + f + "%)" + "; ";
-
             }
             return bab;
         }

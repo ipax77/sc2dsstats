@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Configuration;
@@ -6,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +16,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.DataVisualization.Charting;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -696,6 +699,7 @@ namespace sc2dsstats_rc1
 
             List<string> races = new List<string>();
             dsfilter fil = new dsfilter();
+            Dictionary<string, int> cmdrs_sum = new Dictionary<string, int>();
 
             try
             {
@@ -723,10 +727,15 @@ namespace sc2dsstats_rc1
             dsdps sum_dps_pl = new dsdps();
             sum_dps_pl.Init();
 
-            foreach (dsreplay dsrep in replays)
+            DSfilter dsfil = new DSfilter(this);
+            List<dsreplay> filtered_replays = new List<dsreplay>();
+            filtered_replays = dsfil.Filter(replays);
+
+            //foreach (dsreplay dsrep in replays)
+            foreach (dsreplay dsrep in filtered_replays)
             {
                 if (dsrep.PLAYERCOUNT != 6) continue;
-                if (RepFilter(dsrep, fil, sd_int, ed_int, duration, leaver, killsum, army, income)) continue;
+                //if (RepFilter(dsrep, fil, sd_int, ed_int, duration, leaver, killsum, army, income)) continue;
 
                 dsplayer mvp = new dsplayer();
 
@@ -740,6 +749,14 @@ namespace sc2dsstats_rc1
 
                 foreach (dsplayer pl in dsrep.PLAYERS)
                 {
+                    if (cmdrs_sum.ContainsKey(pl.RACE))
+                    {
+                        cmdrs_sum[pl.RACE]++;
+                    }
+                    else
+                    {
+                        cmdrs_sum.Add(pl.RACE, 1);
+                    }
 
                     if (pl.KILLSUM == dsrep.MAXKILLSUM)
                     {
@@ -794,13 +811,41 @@ namespace sc2dsstats_rc1
             Title = sel.TITLE;
             string yaxis = sel.YAXIS;
             int max_y = sel.YMAX;
-            
-            lb_info.Text = fil.Info();
 
-            Items = new ObservableCollection<KeyValuePair<string, double>>(cdata);
+            //lb_info.Text = fil.Info();
+            lb_info.Text = dsfil.FIL.Info();
+            lb_info.Text += Environment.NewLine;
+            string cmdr_info = "";
+            var ordered = cmdrs_sum.OrderBy(x => x.Value);
+            foreach (var bab in ordered)
+            {
+                double per = 0;
+                per = (double)bab.Value * 100 / (filtered_replays.Count * 6);
+                per = Math.Round(per, 2);
+                cmdr_info += bab.Key + " => " + bab.Value.ToString() + " (" + per.ToString() + "%); ";
+            }
+            lb_info.Text += cmdr_info;
+
+            if (cb_add.IsChecked == false)
+            {
+                Items = new ObservableCollection<KeyValuePair<string, double>>(cdata);
+            } else
+            {
+                foreach (var bab in cdata)
+                {
+                    Items.Add(bab);
+                }
+            }
             SetChartStyle(yaxis, max_y);
 
-            dynChart.Title = Title;
+            //dynChart.Title = Title;
+            dynChart.Title = new TextBlock
+            {
+                Text = Title,
+                FontFamily = new System.Windows.Media.FontFamily("Courier New"),
+                FontWeight = FontWeights.Bold,
+                Foreground = System.Windows.Media.Brushes.DarkBlue
+            };
 
 
 
@@ -910,31 +955,37 @@ namespace sc2dsstats_rc1
                 gr_chart.Visibility = Visibility.Visible;
             }
 
-            if (Items != null)
+            bool doit = true;
+            if (cb_add.IsChecked == true && sender != null) doit = false;
+
+            if (doit)
             {
-                Items.Clear();
-                ///dynChart = null;
-                ///dynChart = new Chart() { Background = System.Windows.Media.Brushes.FloralWhite };
-                ///dynChart.Series.Clear();
-                GetWinrate();
+                if (Items != null)
+                {
+                    if (cb_add.IsChecked == false) Items.Clear();
+                    ///dynChart = null;
+                    ///dynChart = new Chart() { Background = System.Windows.Media.Brushes.FloralWhite };
+                    ///dynChart.Series.Clear();
+                    GetWinrate();
 
 
-                if (rb_horizontal.IsChecked == true)
-                {
-                    tb_fl2_rb_horizontal_Click(null, null);
-                }
-                else if (rb_vertical.IsChecked == true)
-                {
-                    tb_fl2_rb_vertical_Click(null, null);
-                }
+                    if (rb_horizontal.IsChecked == true)
+                    {
+                        tb_fl2_rb_horizontal_Click(null, null);
+                    }
+                    else if (rb_vertical.IsChecked == true)
+                    {
+                        tb_fl2_rb_vertical_Click(null, null);
+                    }
 
-                if (gr_chart.Children.Contains(dynChart))
-                {
+                    if (gr_chart.Children.Contains(dynChart))
+                    {
 
-                }
-                else
-                {
-                    gr_chart.Children.Add(dynChart);
+                    }
+                    else
+                    {
+                        gr_chart.Children.Add(dynChart);
+                    }
                 }
             }
 
@@ -946,32 +997,23 @@ namespace sc2dsstats_rc1
         private void SetChartStyle(string y_Title, int y_max)
         {
 
-            dynChart.Series.Clear();
-            dynChart.Axes.Clear();
+            if (cb_add.IsChecked == false)
+            {
+                dynChart.Series.Clear();
+                dynChart.Axes.Clear();
+            }
 
             Style style = new Style { TargetType = typeof(Grid) };
-            style.Setters.Add(new Setter(Grid.BackgroundProperty, System.Windows.Media.Brushes.LightBlue));
+            //style.Setters.Add(new Setter(Grid.BackgroundProperty, System.Windows.Media.Brushes.LightBlue));
+            style.Setters.Add(new Setter(Grid.BackgroundProperty, System.Windows.Media.Brushes.LightGray));
+
             dynChart.PlotAreaStyle = style;
-
-
-
-
-
-
-
-
-
-            ///dynChart.LegendTitle = "MVP";
 
             Style styleLegand = new Style { TargetType = typeof(Control) };
             styleLegand.Setters.Add(new Setter(Control.WidthProperty, 0d));
             styleLegand.Setters.Add(new Setter(Control.HeightProperty, 0d));
 
             dynChart.LegendStyle = styleLegand;
-
-
-
-
 
             CategoryAxis axisX = new CategoryAxis()
             {
@@ -984,7 +1026,8 @@ namespace sc2dsstats_rc1
             style.Setters.Add(new Setter(AxisLabel.LayoutTransformProperty, new RotateTransform() { Angle = -90 }));
             style.Setters.Add(new Setter(AxisLabel.FontFamilyProperty, new System.Windows.Media.FontFamily("Arial")));
             style.Setters.Add(new Setter(AxisLabel.FontSizeProperty, 15.0));
-            style.Setters.Add(new Setter(AxisLabel.ForegroundProperty, System.Windows.Media.Brushes.Black));
+            //style.Setters.Add(new Setter(AxisLabel.ForegroundProperty, System.Windows.Media.Brushes.Black));
+            style.Setters.Add(new Setter(AxisLabel.ForegroundProperty, System.Windows.Media.Brushes.DarkBlue));
             axisX.AxisLabelStyle = style;
 
 
@@ -997,13 +1040,18 @@ namespace sc2dsstats_rc1
             if (cb_yscale.IsChecked == true)
             {
                 axisY.Minimum = 0;
-                axisY.Maximum = y_max + 1;
+                axisY.Maximum = (double)y_max + (((double)y_max / 100) * 20);
+                if (axisY.Maximum < 1)
+                {
+                    axisY.Maximum = 1;
+                }
+                //axisY.Maximum = 120;
             }
             style = new Style { TargetType = typeof(AxisLabel) };
             style.Setters.Add(new Setter(AxisLabel.FontSizeProperty, 15.0));
             style.Setters.Add(new Setter(AxisLabel.ForegroundProperty, System.Windows.Media.Brushes.Black));
             axisY.AxisLabelStyle = style;
-
+            axisY.ShowGridLines = true;
 
             
 
@@ -1013,8 +1061,73 @@ namespace sc2dsstats_rc1
 
         private void tb_fl2_rb_horizontal_Click(object sender, RoutedEventArgs e)
         {
+            /**
+            System.Windows.Media.Brush arColor = JADEXCODEColor.JADEColor.HCBPAtoARGB(((double)i / a), 1.0, 0.5, 0.5, 0.0);
+            // Setup ToolTip XamlString insert.
 
-            dynChart.Series.Clear();
+            string BarColorsAre = "Red = " + ((SolidColorBrush)BarColor).Color.R.ToString() + ", " +
+                        "Green = " + ((SolidColorBrush)BarColor).Color.G.ToString() + ", " +
+                        "Blue = " + ((SolidColorBrush)BarColor).Color.B.ToString() + ", " +
+                        "Alpha = " + ((SolidColorBrush)BarColor).Color.A.ToString();
+            **/
+            string ctXamlString =
+"<ControlTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:DVC=\"clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" TargetType=\"DVC:ColumnDataPoint\">" +
+"<Border x:Name=\"Root\" Opacity=\"0\" BorderBrush=\"{TemplateBinding BorderBrush}\" BorderThickness=\"{TemplateBinding BorderThickness}\">" +
+"<VisualStateManager.VisualStateGroups>" +
+"<VisualStateGroup x:Name=\"CommonStates\">" +
+"<VisualStateGroup.Transitions>" +
+"<VisualTransition GeneratedDuration=\"0:0:0.1\"/>" +
+"</VisualStateGroup.Transitions>" +
+"<VisualState x:Name=\"Normal\"/>" +
+"<VisualState x:Name=\"MouseOver\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"MouseOverHighlight\" Storyboard.TargetProperty=\"Opacity\" To=\"0.6\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"</VisualStateGroup>" +
+"<VisualStateGroup x:Name=\"SelectionStates\">" +
+"<VisualStateGroup.Transitions>" +
+"<VisualTransition GeneratedDuration=\"0:0:0.1\"/>" +
+"</VisualStateGroup.Transitions>" +
+"<VisualState x:Name=\"Unselected\"/>" +
+"<VisualState x:Name=\"Selected\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"SelectionHighlight\" Storyboard.TargetProperty=\"Opacity\" To=\"0.6\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"</VisualStateGroup>" +
+"<VisualStateGroup x:Name=\"RevealStates\">" +
+"<VisualStateGroup.Transitions>" +
+"<VisualTransition GeneratedDuration=\"0:0:0.5\"/>" +
+"</VisualStateGroup.Transitions>" +
+"<VisualState x:Name=\"Shown\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"Root\" Storyboard.TargetProperty=\"Opacity\" To=\"1\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"<VisualState x:Name=\"Hidden\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"Root\" Storyboard.TargetProperty=\"Opacity\" To=\"0\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"</VisualStateGroup>" +
+"</VisualStateManager.VisualStateGroups>" +
+"<Grid>" +
+"<Rectangle Fill=\"{TemplateBinding Background}\" Stroke=\"DarkBlue\" />" +
+"<Grid Margin=\"0 -20 0 0\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Top\"> " +
+"<Border CornerRadius=\"2\" BorderBrush=\"#88888888\" BorderThickness=\"0.5\">" +
+"<Border CornerRadius=\"2\" BorderBrush=\"#44888888\" BorderThickness=\"0.5\"/>" +
+"</Border>" +
+"<TextBlock Margin=\"2\">" +
+//"<TextBlock Text=\"{TemplateBinding FormattedDependentValue}\" Margin=\"2\"/>" +
+"<Run FontWeight=\"Bold\" Background=\"BlanchedAlmond\" Foreground=\"DarkRed\" FontFamily=\"Courier New\" FontSize=\"13\" Text=\"{TemplateBinding FormattedDependentValue}\"/>" +
+"</TextBlock>" +
+"</Grid>" +
+"</Grid>" +
+"</Border>" +
+"</ControlTemplate>";
+
+    dynChart.Series.Clear();
 
             //Horizontal        
             ColumnSeries columnseries = new ColumnSeries();
@@ -1022,36 +1135,18 @@ namespace sc2dsstats_rc1
             columnseries.DependentValuePath = "Value";
             columnseries.IndependentValuePath = "Key";
 
-            //columnseries.DataPointStyle = (Style)this.Resources["ColumnDataPointStyle"];
-
-
             Style style = new Style { TargetType = typeof(ColumnDataPoint) };
-            style.Setters.Add(new Setter(ColumnDataPoint.IsTabStopProperty, false));
+            //style.Setters.Add(new Setter(ColumnDataPoint.IsTabStopProperty, false));
+
+            ControlTemplate ct;
+            ct = (ControlTemplate)XamlReader.Parse(ctXamlString);
+            style.Setters.Add(new Setter(ColumnDataPoint.TemplateProperty, ct));
             style.Setters.Add(new Setter(ColumnDataPoint.BorderBrushProperty, System.Windows.Media.Brushes.Red));
-            style.Setters.Add(new Setter(ColumnDataPoint.BackgroundProperty, System.Windows.Media.Brushes.DarkBlue));
-            //style.Setters.Add(new Setter(ColumnDataPoint.WidthProperty, 20d));
-            //style.Setters.Add(new Setter(ColumnDataPoint.HeightProperty, 20d));
-            //style.Setters.Add(new Setter(ColumnDataPoint.IsValueShownAsLabel, true));
+            style.Setters.Add(new Setter(ColumnDataPoint.BackgroundProperty, System.Windows.Media.Brushes.DarkSlateBlue));
+
             columnseries.DataPointStyle = style;
+
             dynChart.Series.Add(columnseries);
-
-
-
-
-
-
-
-
-
-
-            style = new Style { TargetType = typeof(DataPoint) };
-            style.Setters.Add(new Setter(DataPoint.IsTabStopProperty, false));
-            style.Setters.Add(new Setter(DataPoint.BorderBrushProperty, System.Windows.Media.Brushes.Red));
-            style.Setters.Add(new Setter(DataPoint.BackgroundProperty, System.Windows.Media.Brushes.DarkBlue));
-            style.Setters.Add(new Setter(DataPoint.WidthProperty, 20d));
-            style.Setters.Add(new Setter(DataPoint.HeightProperty, 20d));
-
-
         }
 
         private void tb_fl2_rb_vertical_Click(object sender, RoutedEventArgs e)
@@ -1599,6 +1694,10 @@ namespace sc2dsstats_rc1
             }
             else if (gr_filter2.Visibility == Visibility.Visible)
             {
+                if (gr_info.Visibility == Visibility.Visible)
+                {
+                    bt_filter3_Click(null, null);
+                }
                 gr_filter2.Visibility = Visibility.Hidden;
                 gr_chart.Margin = new Thickness(0, 80, 0, 0);
                 gr_doit.Margin = new Thickness(10, 80, 15, 0);
@@ -1881,7 +1980,13 @@ namespace sc2dsstats_rc1
             
         }
 
-        private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
+        private void bt_chart_Click (object sender, RoutedEventArgs e)
+        {
+            Win_chart chartwin = new Win_chart(this);
+            chartwin.Show();
+        }
+
+            private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
         {
 
             // Create OpenFileDialog 

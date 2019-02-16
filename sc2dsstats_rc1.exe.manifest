@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="315288">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="331672">
       <assemblyIdentity name="sc2dsstats_rc1" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>zs0ekZrNgfm0SwBV+41cDPltj4rgcWYqDE+dgbWKYPg=</dsig:DigestValue>
+        <dsig:DigestValue>vKn6kpIvxXKydNp6rforbkdv/vu3BPxb1kJRws86aPA=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -123,13 +123,13 @@
       <dsig:DigestValue>HGNjIXl+JUtj8Pj4y4zb8ic0yiOj7si+Ra4RX7YyY7U=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="sc2dsstats_rc1.exe.config" size="904">
+  <file name="sc2dsstats_rc1.exe.config" size="1746">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>lGhoohKFxz+vw/NLm7H3wOq4KQ9LnTMRi/bi9tal8e8=</dsig:DigestValue>
+      <dsig:DigestValue>Q9YoqMkMccpQSmONw/JTt3r3FbvBT73k4XfP4EBkjwo=</dsig:DigestValue>
     </hash>
   </file>
 </asmv1:assembly>
