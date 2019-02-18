@@ -116,6 +116,7 @@
     <Compile Include="dsdbfilter.cs" />
     <Compile Include="dsotf.cs" />
     <Compile Include="dsscan.cs" />
+    <Compile Include="sc2hex.cs" />
     <Compile Include="Win_chart.xaml.cs">
       <DependentUpon>Win_chart.xaml</DependentUpon>
     </Compile>

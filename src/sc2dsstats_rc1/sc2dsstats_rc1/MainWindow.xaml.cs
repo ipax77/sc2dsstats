@@ -294,8 +294,21 @@ namespace sc2dsstats_rc1
 
             if (File.Exists(myStats_csv))
             {
-                replays = LoadData(myStats_csv);
-                ScanPrep();
+                bool doit = false;
+                try
+                {
+                    if (new FileInfo(myStats_csv).Length > 0)
+                    {
+                        doit = true;
+                    }
+                }
+                catch { }
+
+                if (doit)
+                {
+                    replays = LoadData(myStats_csv);
+                    ScanPrep();
+                }
             }
             Items = new ObservableCollection<KeyValuePair<string, double>>();
             Items_sorted = new ObservableCollection<KeyValuePair<string, double>>();
@@ -1223,58 +1236,8 @@ namespace sc2dsstats_rc1
 
                     if (myline[2].Contains("\\"))
                     {
-                        //my $player = "\xd0\x94\xd0\xb0\xd0\xbc\xd0\xb8\xd1\x80";
-                        // K\xc4\xb1l\xc4\xb1\xc3\xa7arslan
-                        //string hex = Regex.Unescape(myline[2]);
-                        //string hex = Regex.Replace(myline[2], "\\\\x", "=", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                        string hex = Regex.Replace(myline[2], "\\\\x", "\\x", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                        // "0xd00x940xd00xb00xd00xbc0xd00xb80xd10x80"
-                        //hex = hex.ToUpper();
-                        string[] enc1 = hex.Split('\\');
-                        List<byte> encl = new List<byte>();
-                        int l = 0;
-                        string name = "";
-                        UTF8Encoding utf8 = new UTF8Encoding();
-                        foreach (var x in enc1)
-                        {
-                            if (x == "") continue;
-                            if (x.Substring(0, 1) == "x")
-                            {
-                                if (x.Length == 3)
-                                {
-                                    string con = x.Substring(1, 2);
-                                    con.ToUpper();
-                                    encl.Add(Convert.ToByte(con, 16));
-                                }
-                                else
-                                {
-                                    string con = x.Substring(1, 2);
-                                    con.ToUpper();
-                                    encl.Add(Convert.ToByte(con, 16));
-                                    name += utf8.GetString(encl.ToArray());
-                                    encl.Clear();
-                                    name += x.Substring(3);
-                                }
-                            }
-                            else
-                            {
-                                if (encl.Count > 0)
-                                {
-                                    name += utf8.GetString(encl.ToArray());
-                                    encl.Clear();
-
-                                }
-                                name += x;
-                            }
-                            
-                            l++;
-                        }
-                        if (encl.Count > 0)
-                        {
-                            name += utf8.GetString(encl.ToArray());
-                        }
-
-                        myline[2] = name;
+                        sc2hex myhex = new sc2hex();
+                        myline[2] = myhex.UTF8Convert(myline[2]);
                     }
 
                     dscsv rep = new dscsv()
@@ -1598,6 +1561,11 @@ namespace sc2dsstats_rc1
             if (appSettings["CORES"] != null && appSettings["CORES"] != "0")
             {
                 cores = int.Parse(appSettings["CORES"]);
+            }
+
+            if (gr_doit.Visibility == Visibility.Visible)
+            {
+                cores = int.Parse(cb_doit_cpus.SelectedItem.ToString());
             }
 
             if (scan_running == false)
