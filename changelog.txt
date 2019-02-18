@@ -1,4 +1,10 @@
 
+0.5.0.18
+
+- UTF 8 playername possible
+
+- Fixed crash opening File-log while scan process still running (thx to GrimoireRag)
+
 0.5.0.17
 
 - Filter option added for File->Database

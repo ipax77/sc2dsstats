@@ -75,7 +75,7 @@
         </Grid>
 
         <Button x:Name="bt_show" Content="Show" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <Button x:Name="bt_chart" Content="Chart" HorizontalAlignment="Left" Margin="800,30,0,0" VerticalAlignment="Top" Width="75" Click="bt_chart_Click"/>
+        <Button x:Name="bt_chart" Content="Chart" HorizontalAlignment="Left" Margin="800,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Collapsed" Click="bt_chart_Click"/>
         <CheckBox x:Name="cb_add" Content="add" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Add additional stats to the graph" Click="add_Click" />
         <CheckBox x:Name="cb_sample" Content="use sample data" HorizontalAlignment="Left" Margin="660,35,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />
         

@@ -467,7 +467,7 @@ sub GetData {
 		                                }
 		                                
 		                                if ($name =~ /\\/) {
-		                                	$name =~ s/\\x(..)/chr hex $1/ge;
+		                                	#$name =~ s/\\x(..)/chr hex $1/ge;
 		                                	#$name = encode("UTF-8", $name);
 		                                }
 		                                

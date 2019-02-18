@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -75,18 +76,24 @@ namespace sc2dsstats_rc1
             myWorker_exe = exedir + "\\scripts\\sc2dsstats_worker.exe";
             myWorker_log = exedir + "\\log_worker.txt";
             myStats_csv = exedir + "\\stats.csv";
-            myTemp_dir = System.IO.Path.GetTempPath() + "\\sc2dsstats\\";
+            //myTemp_dir = System.IO.Path.GetTempPath() + "\\sc2dsstats\\";
             myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
             myData_dir = myAppData_dir + "\\analyzes";
             mySkip_csv = myAppData_dir + "\\skip.csv";
             myStats_csv = myAppData_dir + "\\stats.csv";
+            myTemp_dir = myAppData_dir + "\\";
             mySample_csv = exedir + "\\sample.csv";
             myDoc_pdf = exedir + "\\doc.pdf";
             myScan_log = myAppData_dir + "\\log.txt";
 
             if (!System.IO.Directory.Exists(myTemp_dir))
             {
-                System.IO.Directory.CreateDirectory(myTemp_dir);
+                try
+                {
+                    System.IO.Directory.CreateDirectory(myAppData_dir);
+                } catch {
+                    MessageBox.Show("Failed to create DataDir " + myAppData_dir + ". Please check your options.", "sc2dsstats");
+                }
             }
             var appSettings = ConfigurationManager.AppSettings;
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -1200,6 +1207,27 @@ namespace sc2dsstats_rc1
                     myline[k] = result;
                 }
 
+                if (myline[2].Contains("\\"))
+                {
+                    //my $player = "\xd0\x94\xd0\xb0\xd0\xbc\xd0\xb8\xd1\x80";
+                    //string hex = Regex.Unescape(myline[2]);
+                    string hex = Regex.Replace(myline[2], "\\\\x", "=", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    // "0xd00x940xd00xb00xd00xbc0xd00xb80xd10x80"
+                    hex = hex.ToUpper();
+                    string[] enc1 = hex.Split('=');
+                    byte[] enc = new byte[enc1.Length - 1];
+                    int l = 0;
+                    foreach (var x in enc1) {
+                        if (x == "") continue;
+                        enc[l] = Convert.ToByte(x, 16);
+                        l++;
+                    }
+                    
+
+                    UTF8Encoding utf8 = new UTF8Encoding();
+                    myline[2] = utf8.GetString(enc);
+                }
+
                 dscsv rep = new dscsv()
                 {
                     ID = int.Parse(myline[0]),
@@ -1259,9 +1287,9 @@ namespace sc2dsstats_rc1
 
             foreach (dscsv srep in single_replays)
             {
-                if (game.ID == null) game.ID = srep.ID;
+                if (game.ID == 0) game.ID = srep.ID;
                 if (game.REPLAY == null) game.REPLAY = srep.REPLAY;
-                if (game.GAMETIME == null) game.GAMETIME = srep.GAMETIME;
+                if (game.GAMETIME == 0) game.GAMETIME = srep.GAMETIME;
 
                 if (String.Equals(srep.NAME, player_name))
                 {
@@ -1608,12 +1636,16 @@ namespace sc2dsstats_rc1
             if (File.Exists(myScan_log))
             {
                 string log = "";
-                StreamReader reader = new StreamReader(myScan_log, Encoding.UTF8, true);
-                log = "Log:" + Environment.NewLine;
-                byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+                try
+                {
+                    StreamReader reader = new StreamReader(myScan_log, Encoding.UTF8, true);
 
-                log += Encoding.Default.GetString(bytes);
-                reader.Close();
+                    log = "Log:" + Environment.NewLine;
+                    byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+
+                    log += Encoding.Default.GetString(bytes);
+                    reader.Close();
+                } catch { }
 
                 Win_log lw = new Win_log();
                 lw.win_Log_Textbox_Log.Text = log;
