@@ -161,17 +161,6 @@ namespace sc2dsstats_rc1
             {
                 myStats_csv = appSettings["STATS_FILE"];
             }
-            if (!File.Exists(myStats_csv))
-            {
-                try
-                {
-                    //File.Create(myStats_csv);
-                }
-                catch (System.IO.IOException)
-                {
-                    //MessageBox.Show("Failed to create DataDir " + myStats_csv + ". Please check your options.", "sc2dsstats");
-                }
-            }
 
             if (appSettings["SKIP_FILE"] == null)
             {
@@ -216,6 +205,18 @@ namespace sc2dsstats_rc1
             }
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
+
+            if (!File.Exists(myStats_csv))
+            {
+                try
+                {
+                    File.Create(myStats_csv);
+                }
+                catch (System.IO.IOException)
+                {
+                    MessageBox.Show("Failed to create DataDir " + myStats_csv + ". Please check your options.", "sc2dsstats");
+                }
+            }
 
             cpus /= 2;
 
@@ -1190,91 +1191,133 @@ namespace sc2dsstats_rc1
             string id = null;
             char[] cTrim = { ' ' };
             List<dscsv> single_replays = new List<dscsv>();
-            System.IO.StreamReader file_c = new System.IO.StreamReader(csv);
-            int i = 0;
-            while (file_c.ReadLine() != null) { i++; ; }
-            int j = 0;
-            file_c.Close();
-            System.IO.StreamReader file = new System.IO.StreamReader(csv);
-            while ((line = file.ReadLine()) != null)
+
+            bool doit = false;
+            if (!File.Exists(csv))
             {
-                j++;
-                myline = line.Split(';');
-
-                for (int k = 0; k <= 12; k++)
-                {
-                    string result = myline[k].Trim(cTrim);
-                    myline[k] = result;
-                }
-
-                if (myline[2].Contains("\\"))
-                {
-                    //my $player = "\xd0\x94\xd0\xb0\xd0\xbc\xd0\xb8\xd1\x80";
-                    //string hex = Regex.Unescape(myline[2]);
-                    string hex = Regex.Replace(myline[2], "\\\\x", "=", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                    // "0xd00x940xd00xb00xd00xbc0xd00xb80xd10x80"
-                    hex = hex.ToUpper();
-                    string[] enc1 = hex.Split('=');
-                    byte[] enc = new byte[enc1.Length - 1];
-                    int l = 0;
-                    foreach (var x in enc1) {
-                        if (x == "") continue;
-                        enc[l] = Convert.ToByte(x, 16);
-                        l++;
-                    }
-                    
-
-                    UTF8Encoding utf8 = new UTF8Encoding();
-                    myline[2] = utf8.GetString(enc);
-                }
-
-                dscsv rep = new dscsv()
-                {
-                    ID = int.Parse(myline[0]),
-                    REPLAY = myline[1],
-                    NAME = myline[2],
-                    RACE = myline[4],
-                    TEAM = int.Parse(myline[5]),
-                    RESULT = int.Parse(myline[6]),
-                    KILLSUM = int.Parse(myline[7]),
-                    DURATION = int.Parse(myline[8]),
-                    GAMETIME = double.Parse(myline[9]),
-                    PLAYERID = int.Parse(myline[10]),
-                    INCOME = double.Parse(myline[11], CultureInfo.InvariantCulture),
-                    ARMY = int.Parse(myline[12])
-                };
-
-                if (id == null)
-                {
-                    id = rep.REPLAY;
-                }
-
-                if (String.Equals(id, rep.REPLAY))
-                {
-                    single_replays.Add(rep);
-                }
-                else
-                {
-                    CollectData(single_replays);
-                    id = rep.REPLAY;
-                    single_replays.Clear();
-                    single_replays.Add(rep);
-                }
-
-                if (j == i)
-                {
-                    CollectData(single_replays);
-                }
+                MessageBox.Show("No data found :( - Have you tried File->Scan?", "sc2dsstats");
+            } else
+            {
+                doit = true;
             }
 
-            file.Close();
+            if (doit)
+            {
+                System.IO.StreamReader file_c = new System.IO.StreamReader(csv);
+                int i = 0;
+                while (file_c.ReadLine() != null) { i++; ; }
+                int j = 0;
+                file_c.Close();
+                System.IO.StreamReader file = new System.IO.StreamReader(csv);
 
+                while ((line = file.ReadLine()) != null)
+                {
+                    j++;
+                    myline = line.Split(';');
 
+                    for (int k = 0; k <= 12; k++)
+                    {
+                        string result = myline[k].Trim(cTrim);
+                        myline[k] = result;
+                    }
 
+                    if (myline[2].Contains("\\"))
+                    {
+                        //my $player = "\xd0\x94\xd0\xb0\xd0\xbc\xd0\xb8\xd1\x80";
+                        // K\xc4\xb1l\xc4\xb1\xc3\xa7arslan
+                        //string hex = Regex.Unescape(myline[2]);
+                        //string hex = Regex.Replace(myline[2], "\\\\x", "=", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        string hex = Regex.Replace(myline[2], "\\\\x", "\\x", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        // "0xd00x940xd00xb00xd00xbc0xd00xb80xd10x80"
+                        //hex = hex.ToUpper();
+                        string[] enc1 = hex.Split('\\');
+                        List<byte> encl = new List<byte>();
+                        int l = 0;
+                        string name = "";
+                        UTF8Encoding utf8 = new UTF8Encoding();
+                        foreach (var x in enc1)
+                        {
+                            if (x == "") continue;
+                            if (x.Substring(0, 1) == "x")
+                            {
+                                if (x.Length == 3)
+                                {
+                                    string con = x.Substring(1, 2);
+                                    con.ToUpper();
+                                    encl.Add(Convert.ToByte(con, 16));
+                                }
+                                else
+                                {
+                                    string con = x.Substring(1, 2);
+                                    con.ToUpper();
+                                    encl.Add(Convert.ToByte(con, 16));
+                                    name += utf8.GetString(encl.ToArray());
+                                    encl.Clear();
+                                    name += x.Substring(3);
+                                }
+                            }
+                            else
+                            {
+                                if (encl.Count > 0)
+                                {
+                                    name += utf8.GetString(encl.ToArray());
+                                    encl.Clear();
 
+                                }
+                                name += x;
+                            }
+                            
+                            l++;
+                        }
+                        if (encl.Count > 0)
+                        {
+                            name += utf8.GetString(encl.ToArray());
+                        }
 
+                        myline[2] = name;
+                    }
 
+                    dscsv rep = new dscsv()
+                    {
+                        ID = int.Parse(myline[0]),
+                        REPLAY = myline[1],
+                        NAME = myline[2],
+                        RACE = myline[4],
+                        TEAM = int.Parse(myline[5]),
+                        RESULT = int.Parse(myline[6]),
+                        KILLSUM = int.Parse(myline[7]),
+                        DURATION = int.Parse(myline[8]),
+                        GAMETIME = double.Parse(myline[9]),
+                        PLAYERID = int.Parse(myline[10]),
+                        INCOME = double.Parse(myline[11], CultureInfo.InvariantCulture),
+                        ARMY = int.Parse(myline[12])
+                    };
 
+                    if (id == null)
+                    {
+                        id = rep.REPLAY;
+                    }
+
+                    if (String.Equals(id, rep.REPLAY))
+                    {
+                        single_replays.Add(rep);
+                    }
+                    else
+                    {
+                        CollectData(single_replays);
+                        id = rep.REPLAY;
+                        single_replays.Clear();
+                        single_replays.Add(rep);
+                    }
+
+                    if (j == i)
+                    {
+                        CollectData(single_replays);
+                    }
+                }
+
+                file.Close();
+            }
 
             return replays;
         }
