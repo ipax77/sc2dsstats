@@ -13,7 +13,9 @@
                 <GradientStop Color="#FFDEE4F0"/>
             </LinearGradientBrush>
         </Grid.Background>
-        <TextBox x:Name="win_Log_Textbox_Log" Visibility="Visible" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <TextBox x:Name="win_Log_Textbox_Log" Visibility="Visible" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer"
+                 Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" VerticalScrollBarVisibility="Visible"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TextBox.BorderBrush>
                 <ImageBrush/>
             </TextBox.BorderBrush>

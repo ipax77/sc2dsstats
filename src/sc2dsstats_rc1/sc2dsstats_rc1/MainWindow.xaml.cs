@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -1349,10 +1350,10 @@ namespace sc2dsstats_rc1
 
             }
 
-            int minkillsum = 0;
+            int minkillsum = -1;
             int maxkillsum = 0;
-            int minarmy = 0;
-            double minincome = 0;
+            int minarmy = -1;
+            double minincome = -1;
             int maxleaver = 0;
             List<string> races = new List<string>();
             dsplayer MVP = new dsplayer();
@@ -1361,7 +1362,7 @@ namespace sc2dsstats_rc1
             {
 
                 game.PLAYERCOUNT++;
-                if (minkillsum == 0)
+                if (minkillsum == -1)
                 {
                     minkillsum = srep.KILLSUM;
                 }
@@ -1379,7 +1380,7 @@ namespace sc2dsstats_rc1
                     if (srep.KILLSUM > maxkillsum) maxkillsum = srep.KILLSUM;
                 }
 
-                if (minincome == 0)
+                if (minincome == -1)
                 {
                     minincome = srep.INCOME;
                 }
@@ -1388,7 +1389,7 @@ namespace sc2dsstats_rc1
                     if (srep.INCOME < minincome) minincome = srep.INCOME;
 
                 }
-                if (minarmy == 0)
+                if (minarmy == -1)
                 {
                     minarmy = srep.ARMY;
                 }
@@ -1503,52 +1504,89 @@ namespace sc2dsstats_rc1
 
         public void mnu_Scanpre(object sender, RoutedEventArgs e)
         {
-            gr_chart.Visibility = Visibility.Hidden;
-
-            if (gr_filter1.Visibility == Visibility.Visible)
+            if (sender != null)
             {
-                //gr_doit.Margin = new Thickness(10,160,15,0);
+                gr_chart.Visibility = Visibility.Hidden;
 
-            }
-            if (gr_filter2.Visibility == Visibility.Visible)
-            {
-                //gr_doit.Margin = new Thickness(10, 240, 15, 0);
+                if (gr_filter1.Visibility == Visibility.Visible)
+                {
+                    //gr_doit.Margin = new Thickness(10,160,15,0);
+
+                }
+                if (gr_filter2.Visibility == Visibility.Visible)
+                {
+                    //gr_doit.Margin = new Thickness(10, 240, 15, 0);
+                }
             }
 
             gr_doit.Visibility = Visibility.Visible;
             var appSettings = ConfigurationManager.AppSettings;
             dsscan scan = new dsscan(appSettings["REPLAY_PATH"], appSettings["STATS_FILE"], this);
             scan.GetInfo();
-            
 
-            doit_TextBox1.Text = "We found " + scan.NEWREP + " new Replays (total: " + scan.TOTAL + ")" + Environment.NewLine;
-            doit_TextBox1.Text += Environment.NewLine;
-            doit_TextBox1.Text += Environment.NewLine;
+            doit_TextBox1.Document.Blocks.Clear();
 
-            doit_TextBox1.Text += "Expected time needed: " + scan.ESTTIME + " h" + Environment.NewLine;
-            doit_TextBox1.Text += "(can be decresed by setting more CPUs at the cost of the computers workload)" + Environment.NewLine;
-            doit_TextBox1.Text += Environment.NewLine;
+            TextRange rangeOfText1 = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
+            rangeOfText1.Text = "We found ";
+            rangeOfText1.ApplyPropertyValue(TextElement.ForegroundProperty, System.Windows.Media.Brushes.Black);
+            rangeOfText1.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
+
+            TextRange rangeOfWord = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
+            rangeOfWord.Text = scan.NEWREP.ToString();
+            rangeOfWord.ApplyPropertyValue(TextElement.ForegroundProperty, System.Windows.Media.Brushes.Red);
+            rangeOfWord.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
+
+            TextRange rangeOfText2 = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
+            rangeOfText2.Text = " new Replays (total:  " + scan.TOTAL.ToString() + ")";
+            rangeOfText2.ApplyPropertyValue(TextElement.ForegroundProperty, System.Windows.Media.Brushes.Black);
+            rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
+
+            doit_TextBox1.AppendText(Environment.NewLine);
+
+            //Paragraph para1 = new Paragraph();
+            //para1.Inlines.Add(new Run("We found " + scan.NEWREP + " new Replays (total: " + scan.TOTAL + ")"));
+            //para1.Foreground = System.Windows.Media.Brushes.DarkRed;
+            //doit_TextBox1.Document.Blocks.Add(para1);
+
+            //doit_TextBox1.AppendText("We found " + scan.NEWREP + " new Replays (total: " + scan.TOTAL + ")" + Environment.NewLine);
+            //doit_TextBox1.AppendText(Environment.NewLine);
+            //doit_TextBox1.AppendText(Environment.NewLine);
+
+            doit_TextBox1.AppendText("Expected time needed: " + scan.ESTTIME + " h" + Environment.NewLine);
+            doit_TextBox1.AppendText("(can be decresed by setting more CPUs at the cost of the computers workload)" + Environment.NewLine);
+            //doit_TextBox1.AppendText(Environment.NewLine);
             if (String.Equals(appSettings["KEEP"], "1"))
             {
-                doit_TextBox1.Text += "Expected disk space needed: " + scan.ESTSPACE + " GB" + Environment.NewLine;
-                doit_TextBox1.Text += "(Your current free disk space is " + scan.FREESPACE + " GB)" + Environment.NewLine;
+                doit_TextBox1.AppendText("Expected disk space needed: " + scan.ESTSPACE + " GB" + Environment.NewLine);
+                doit_TextBox1.AppendText("(Your current free disk space is " + scan.FREESPACE + " GB)" + Environment.NewLine);
 
 
                 if (double.Parse(scan.ESTSPACE) > double.Parse(scan.FREESPACE))
                 {
-                    doit_TextBox1.Text += "WARNING: There might be not enough Diskspace available!!!" + Environment.NewLine;
+                    doit_TextBox1.AppendText("WARNING: There might be not enough Diskspace available!!!" + Environment.NewLine);
                 }
             }
-            doit_TextBox1.Text += Environment.NewLine;
+            //doit_TextBox1.AppendText(Environment.NewLine);
 
-            doit_TextBox1.Text += "You can always quit the process, next time it will continue at the last position." + Environment.NewLine;
-            doit_TextBox1.Text += Environment.NewLine;
-            doit_TextBox1.Text += "You can reach this info at 'File->Scan preview' at any time." + Environment.NewLine;
+            doit_TextBox1.AppendText("You can always quit the process, next time it will continue at the last position." + Environment.NewLine);
+            //doit_TextBox1.AppendText(Environment.NewLine);
+            doit_TextBox1.AppendText("You can reach this info at 'File->Scan preview' at any time." + Environment.NewLine);
 
             if (scan_running)
             {
-                doit_TextBox1.Text += Environment.NewLine;
-                doit_TextBox1.Text += "Prozess already running. Please wait." + Environment.NewLine;
+                Paragraph para = new Paragraph();
+                para.Inlines.Add(new Run("Decoding replays. Please wait."));
+                para.Foreground = System.Windows.Media.Brushes.DarkRed;
+                doit_TextBox1.Document.Blocks.Add(para);
+
+                //doit_TextBox1.AppendText("Decoding replays. Please wait." + Environment.NewLine);
+                
+            } else if (sender == null)
+            {
+                Paragraph para = new Paragraph();
+                para.Inlines.Add(new Run("Decoding finished. Have fun."));
+                para.Foreground = System.Windows.Media.Brushes.DarkRed;
+                doit_TextBox1.Document.Blocks.Add(para);
             }
 
             //gr_doit.Visibility = Visibility.Hidden;
@@ -1571,6 +1609,7 @@ namespace sc2dsstats_rc1
             if (scan_running == false)
             {
                 scan_running = true;
+                mnu_Scanpre(null, null);
                 string ExecutableFilePath = myScan_exe;
                 string Arguments = @"--priority=" + "NORMAL" + " "
                                     + "--cores=" + cores.ToString() + " "
@@ -1593,14 +1632,36 @@ namespace sc2dsstats_rc1
 
                     if (File.Exists(ExecutableFilePath))
                     {
-                        doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                        doit.StartInfo.FileName = ExecutableFilePath;
+                        doit.StartInfo.Arguments = Arguments;
+
+
+                        doit.StartInfo.UseShellExecute = false;
+                        doit.StartInfo.RedirectStandardOutput = false;
+                        doit.StartInfo.RedirectStandardError = false;
+
+                        //StringBuilder output = new StringBuilder();
+                        //StringBuilder error = new StringBuilder();
+
+                        //using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+                        //using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
+                        //{
+                        //}
+
+
+
+
+                        //doit = System.Diagnostics.Process.Start(ExecutableFilePath, Arguments);
+                        doit.Start();
                         doit.WaitForExit();
+                        scan_running = false;
+
 
                         replays.Clear();
                         replays = LoadData(myStats_csv);
                         
-                        UpdateGraph(null);
-                        scan_running = false;
+                        //UpdateGraph(null);
+                        
 
                     }
 
@@ -1620,7 +1681,13 @@ namespace sc2dsstats_rc1
                             lb_info.Text = log;
                             
                         }
-
+                        List<Block> myList = doit_TextBox1.Document.Blocks.ToList();
+                        if (myList.Count > 0)
+                        {
+                            myList.RemoveAt(myList.Count - 1);
+                        }
+                        mnu_Scanpre(null, null);
+                        scan_running = false;
                     });
                 }, TaskCreationOptions.AttachedToParent);
             } else

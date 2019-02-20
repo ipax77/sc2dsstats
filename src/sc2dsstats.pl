@@ -418,6 +418,7 @@ foreach my $g (keys %garbage) {
 &Log("Elapsed time: " . tv_interval($t0) . " seconds", 0);
 close(LOG);
 
+exit 0;
 
 sub GetData {
 

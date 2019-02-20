@@ -1,4 +1,11 @@
 
+0.5.0.20
+
+- Update s2protocol to version 4.8.3.72282.0
+- Improved Perl process handling and reporting
+
+- Fixed MIN* values in collectData
+
 0.5.0.19
 
 - UTF 8 playername very possible

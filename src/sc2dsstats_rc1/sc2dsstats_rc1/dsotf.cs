@@ -125,7 +125,7 @@ namespace sc2dsstats_rc1
             }
             else if (replay == DUMMY)
             {
-                // stop it somhow ..
+                // stop it somehow ..
             } else
             {
                 REPLAY = replay;
