@@ -14,7 +14,7 @@
             </LinearGradientBrush>
         </Grid.Background>
         <TextBox x:Name="win_Log_Textbox_Log" Visibility="Visible" IsReadOnly="True" TextWrapping="Wrap" Text="Und es war Sommer"
-                 Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" VerticalScrollBarVisibility="Visible"
+                 Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" VerticalScrollBarVisibility="Visible"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TextBox.BorderBrush>
                 <ImageBrush/>
@@ -23,7 +23,7 @@
                 <ImageBrush/>
             </TextBox.Background>
         </TextBox>
-        <RichTextBox x:Name="rtb_info" Visibility="Collapsed" IsDocumentEnabled="True" IsReadOnly="True" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="Arial" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <RichTextBox x:Name="rtb_info" Visibility="Collapsed" IsDocumentEnabled="True" IsReadOnly="True" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <RichTextBox.Background>
                 <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
                     <GradientStop Color="Azure" Offset="1"/>
