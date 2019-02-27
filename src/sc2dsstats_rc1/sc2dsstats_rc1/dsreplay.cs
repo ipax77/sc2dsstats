@@ -223,7 +223,7 @@ namespace sc2dsstats_rc1
 
 
 
-    class dsstats
+    public class dsstats
     {
         public int GAMES { get; set; }
         public int WINS { get; set; }
@@ -391,7 +391,7 @@ namespace sc2dsstats_rc1
         }
     }
 
-    class dsstats_race : dsstats
+    public class dsstats_race : dsstats
     {
         public string RACE { get; set; }
         public int RGAMES { get; set; }
@@ -487,7 +487,7 @@ namespace sc2dsstats_rc1
     }
 
 
-    class dsmvp : dsstats_race
+    public class dsmvp : dsstats_race
     {
         public int MVP { get; set; }
 
@@ -497,7 +497,7 @@ namespace sc2dsstats_rc1
         }
     }
 
-    class dsstats_vs
+    public class dsstats_vs
     {
         public string RACE { get; set; }
         public int GAMES { get; set; }

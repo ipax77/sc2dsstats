@@ -828,7 +828,7 @@
         </Button>
         <Button x:Name="bt_chart" Content="Chart" HorizontalAlignment="Left" Margin="800,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Collapsed" Click="bt_chart_Click"/>
         <CheckBox x:Name="cb_add" Content="add" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Visible"  ToolTip="Add additional stats to the graph" Click="add_Click" />
-        <CheckBox x:Name="cb_sample" Content="use sample data" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="660,30,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />
+        <CheckBox x:Name="cb_sample" Content="use sample data" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="700,30,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />
 
 
         <DockPanel VerticalAlignment="TOP" x:Name="dp_menu" Margin="0,0,0,0" Grid.ColumnSpan="2">
@@ -859,7 +859,8 @@
             <Label Content="Mode" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="15,0,0,0"  VerticalAlignment="Top" Width="54" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
             <ComboBox x:Name="cb_mode" HorizontalAlignment="Left" Margin="15,25,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="dt_ComboBox_Changed" DropDownClosed="dt_ComboBox_Closed" Style="{DynamicResource ComboBoxStyle1}" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
             <CheckBox x:Name="chb_vs" Content="vs cmdr" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="145,5,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_vs_Click" />
-            <ComboBox x:Name="cb_vs" HorizontalAlignment="Left"  Margin="145,25,0,0" VerticalAlignment="Top" Visibility="Visible" Width="120" SelectionChanged="vs_ComboBox_Changed" DropDownClosed="vs_ComboBox_Closed"/>
+            <CheckBox x:Name="chb_cmdr_vs" Content="cmdr vs" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="220,5,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_cmdr_vs_Click" />
+            <ComboBox x:Name="cb_vs" HorizontalAlignment="Left"  Margin="145,25,0,0" VerticalAlignment="Top" Visibility="Hidden" Width="120" SelectionChanged="vs_ComboBox_Changed" DropDownClosed="vs_ComboBox_Closed"/>
         </Grid>
 
         <Grid x:Name="gr_filter1" Margin="80,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="65">

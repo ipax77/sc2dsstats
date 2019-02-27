@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Configuration;
+using System.Deployment.Application;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -22,6 +23,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Xml.Serialization;
 using Microsoft.Win32;
 
 
@@ -74,6 +76,14 @@ namespace sc2dsstats_rc1
             this.DataContext = dsimg;
 
             Style = (Style)FindResource(typeof(Window));
+
+            Version version = null;
+            if (ApplicationDeployment.IsNetworkDeployed)
+            {
+                version = ApplicationDeployment.CurrentDeployment.CurrentVersion;
+            } 
+            if (version != null) Console.WriteLine(version.ToString());
+
             // config
             string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             myS2cli_exe = exedir + "\\s2_cli.exe";
@@ -447,6 +457,18 @@ namespace sc2dsstats_rc1
             }
         }
 
+        public void DeepCopy<T>(ref T object2Copy, ref T objectCopy)
+        {
+            using (var stream = new MemoryStream())
+            {
+                var serializer = new XmlSerializer(typeof(T));
+
+                serializer.Serialize(stream, object2Copy);
+                stream.Position = 0;
+                objectCopy = (T)serializer.Deserialize(stream);
+            }
+        }
+
         private dsselect GetSelection(dsstats sum, dsstats sum_pl, dsmvp sum_mvp, dsmvp sum_mvp_pl, dsdps sum_dps, dsdps sum_dps_pl)
         {
 
@@ -467,7 +489,7 @@ namespace sc2dsstats_rc1
 
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " " + interest + " vs";
+                        Title += " - " + interest + " vs ...";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -481,7 +503,35 @@ namespace sc2dsstats_rc1
                         gdr = vs.GetDURATION(interest);
 
                     }
-                    else
+                    else if (chb_cmdr_vs.IsChecked == true)
+                    {
+                        Title += " - ... vs " + interest;
+
+                        dsstats_vs vs = new dsstats_vs();
+                        dsstats_race cmdr = new dsstats_race();
+                        dsstats_race data_vs = new dsstats_race();
+                        foreach (var intcmdr in s_races)
+                        {
+                            cmdr = sum_pl.objRace(intcmdr);
+                            vs = cmdr.OPP;
+                            dsstats_race cmdr_vs = new dsstats_race();
+                            cmdr_vs = vs.VS.Find(x => x.RACE == interest);
+                            
+                            if (cmdr_vs != null)
+                            {
+                                dsstats_race cmdr_data = new dsstats_race();
+                                DeepCopy(ref cmdr_vs, ref cmdr_data);
+                                cmdr_data.RACE = intcmdr;
+                                data.Add(cmdr_data);
+                                data_vs.RGAMES += cmdr_data.RGAMES;
+                                data_vs.RDURATION += cmdr_data.RDURATION;
+                                data_vs.RWINS += cmdr_data.RWINS;
+                            }
+                        }
+                        ggames = data_vs.RGAMES;
+                        gwr = data_vs.GetWR();
+                        gdr = data_vs.GetDURATION();
+                    } else
                     {
 
                         data = sum_pl.LRACE;
@@ -496,7 +546,7 @@ namespace sc2dsstats_rc1
                     Title += " world";
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " " + interest + " vs";
+                        Title += " - " + interest + " vs ... ";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -509,6 +559,35 @@ namespace sc2dsstats_rc1
                         gwr = vs.GetWR();
                         gdr = vs.GetDURATION(interest);
 
+                    }
+                    else if (chb_cmdr_vs.IsChecked == true)
+                    {
+                        Title += " - ... vs " + interest;
+
+                        dsstats_vs vs = new dsstats_vs();
+                        dsstats_race cmdr = new dsstats_race();
+                        dsstats_race data_vs = new dsstats_race();
+                        foreach (var intcmdr in s_races)
+                        {
+                            cmdr = sum.objRace(intcmdr);
+                            vs = cmdr.OPP;
+                            dsstats_race cmdr_vs = new dsstats_race();
+                            cmdr_vs = vs.VS.Find(x => x.RACE == interest);
+
+                            if (cmdr_vs != null)
+                            {
+                                dsstats_race cmdr_data = new dsstats_race();
+                                DeepCopy(ref cmdr_vs, ref cmdr_data);
+                                cmdr_data.RACE = intcmdr;
+                                data.Add(cmdr_data);
+                                data_vs.RGAMES += cmdr_data.RGAMES;
+                                data_vs.RDURATION += cmdr_data.RDURATION;
+                                data_vs.RWINS += cmdr_data.RWINS;
+                            }
+                        }
+                        ggames = data_vs.RGAMES;
+                        gwr = data_vs.GetWR();
+                        gdr = data_vs.GetDURATION();
                     }
                     else
                     {
@@ -533,7 +612,7 @@ namespace sc2dsstats_rc1
 
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " " + interest + " vs";
+                        Title += " - " + interest + " vs ...";
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
                         cmdr = sum_mvp_pl.objRace(interest);
@@ -544,6 +623,35 @@ namespace sc2dsstats_rc1
                         ggames = vs.GAMES;
                         gwr = vs.GetWR();
                         gdr = vs.GetDURATION(interest);
+                    }
+                    else if (chb_cmdr_vs.IsChecked == true)
+                    {
+                        Title += " - ... vs " + interest;
+
+                        dsstats_vs vs = new dsstats_vs();
+                        dsstats_race cmdr = new dsstats_race();
+                        dsstats_race data_vs = new dsstats_race();
+                        foreach (var intcmdr in s_races)
+                        {
+                            cmdr = sum_mvp_pl.objRace(intcmdr);
+                            vs = cmdr.OPP;
+                            dsstats_race cmdr_vs = new dsstats_race();
+                            cmdr_vs = vs.VS.Find(x => x.RACE == interest);
+
+                            if (cmdr_vs != null)
+                            {
+                                dsstats_race cmdr_data = new dsstats_race();
+                                DeepCopy(ref cmdr_vs, ref cmdr_data);
+                                cmdr_data.RACE = intcmdr;
+                                data.Add(cmdr_data);
+                                data_vs.RGAMES += cmdr_data.RGAMES;
+                                data_vs.RDURATION += cmdr_data.RDURATION;
+                                data_vs.RWINS += cmdr_data.RWINS;
+                            }
+                        }
+                        ggames = data_vs.RGAMES;
+                        gwr = data_vs.GetWR();
+                        gdr = data_vs.GetDURATION();
                     }
                     else
                     {
@@ -560,7 +668,7 @@ namespace sc2dsstats_rc1
                     Title += " world";
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " " + interest + " vs";
+                        Title += " - " + interest + " vs ...";
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
                         cmdr = sum_mvp.objRace(interest);
@@ -572,6 +680,35 @@ namespace sc2dsstats_rc1
                         gwr = vs.GetWR();
                         gdr = vs.GetDURATION(interest);
 
+                    }
+                    else if (chb_cmdr_vs.IsChecked == true)
+                    {
+                        Title += " - ... vs " + interest;
+
+                        dsstats_vs vs = new dsstats_vs();
+                        dsstats_race cmdr = new dsstats_race();
+                        dsstats_race data_vs = new dsstats_race();
+                        foreach (var intcmdr in s_races)
+                        {
+                            cmdr = sum_mvp.objRace(intcmdr);
+                            vs = cmdr.OPP;
+                            dsstats_race cmdr_vs = new dsstats_race();
+                            cmdr_vs = vs.VS.Find(x => x.RACE == interest);
+
+                            if (cmdr_vs != null)
+                            {
+                                dsstats_race cmdr_data = new dsstats_race();
+                                DeepCopy(ref cmdr_vs, ref cmdr_data);
+                                cmdr_data.RACE = intcmdr;
+                                data.Add(cmdr_data);
+                                data_vs.RGAMES += cmdr_data.RGAMES;
+                                data_vs.RDURATION += cmdr_data.RDURATION;
+                                data_vs.RWINS += cmdr_data.RWINS;
+                            }
+                        }
+                        ggames = data_vs.RGAMES;
+                        gwr = data_vs.GetWR();
+                        gdr = data_vs.GetDURATION();
                     }
                     else
                     {
@@ -596,7 +733,7 @@ namespace sc2dsstats_rc1
 
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " " + interest + " vs";
+                        Title += " - " + interest + " vs ...";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -604,6 +741,35 @@ namespace sc2dsstats_rc1
                         vs = cmdr.OPP;
                         data = vs.VS;
 
+                    }
+                    else if (chb_cmdr_vs.IsChecked == true)
+                    {
+                        Title += " - ... vs " + interest;
+
+                        dsstats_vs vs = new dsstats_vs();
+                        dsstats_race cmdr = new dsstats_race();
+                        dsstats_race data_vs = new dsstats_race();
+                        foreach (var intcmdr in s_races)
+                        {
+                            cmdr = sum_dps_pl.objRace(intcmdr);
+                            vs = cmdr.OPP;
+                            dsstats_race cmdr_vs = new dsstats_race();
+                            cmdr_vs = vs.VS.Find(x => x.RACE == interest);
+
+                            if (cmdr_vs != null)
+                            {
+                                dsstats_race cmdr_data = new dsstats_race();
+                                DeepCopy(ref cmdr_vs, ref cmdr_data);
+                                cmdr_data.RACE = intcmdr;
+                                data.Add(cmdr_data);
+                                data_vs.RGAMES += cmdr_data.RGAMES;
+                                data_vs.RDURATION += cmdr_data.RDURATION;
+                                data_vs.RWINS += cmdr_data.RWINS;
+                            }
+                        }
+                        ggames = data_vs.RGAMES;
+                        gwr = data_vs.GetWR();
+                        gdr = data_vs.GetDURATION();
                     }
                     else
                     {
@@ -615,13 +781,42 @@ namespace sc2dsstats_rc1
                     Title += " world";
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " " + interest + " vs";
+                        Title += " - " + interest + " vs ...";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
                         cmdr = sum_dps.objRace(interest);
                         vs = cmdr.OPP;
                         data = vs.VS;
+                    }
+                    else if (chb_cmdr_vs.IsChecked == true)
+                    {
+                        Title += " - ... vs " + interest;
+
+                        dsstats_vs vs = new dsstats_vs();
+                        dsstats_race cmdr = new dsstats_race();
+                        dsstats_race data_vs = new dsstats_race();
+                        foreach (var intcmdr in s_races)
+                        {
+                            cmdr = sum_dps.objRace(intcmdr);
+                            vs = cmdr.OPP;
+                            dsstats_race cmdr_vs = new dsstats_race();
+                            cmdr_vs = vs.VS.Find(x => x.RACE == interest);
+
+                            if (cmdr_vs != null)
+                            {
+                                dsstats_race cmdr_data = new dsstats_race();
+                                DeepCopy(ref cmdr_vs, ref cmdr_data);
+                                cmdr_data.RACE = intcmdr;
+                                data.Add(cmdr_data);
+                                data_vs.RGAMES += cmdr_data.RGAMES;
+                                data_vs.RDURATION += cmdr_data.RDURATION;
+                                data_vs.RWINS += cmdr_data.RWINS;
+                            }
+                        }
+                        ggames = data_vs.RGAMES;
+                        gwr = data_vs.GetWR();
+                        gdr = data_vs.GetDURATION();
                     }
                     else
                     {
@@ -991,7 +1186,7 @@ namespace sc2dsstats_rc1
             {
                 gr_chart.Visibility = Visibility.Visible;
             }
-
+            if (rb_horizontal.IsChecked == true) gr_images.Visibility = Visibility.Visible;
             bool doit = true;
             if (cb_add.IsChecked == true && sender != null) doit = false;
 
@@ -1173,7 +1368,6 @@ namespace sc2dsstats_rc1
 //"<TextBlock Text=\"{TemplateBinding FormattedDependentValue}\" Margin=\"2\"/>" +
 "<Run FontWeight=\"Bold\" Background=\"BlanchedAlmond\" Foreground=\"DarkRed\" FontFamily=\"Courier New\" FontSize=\"13\" Text=\"{TemplateBinding FormattedDependentValue}\"/>" +
 "</TextBlock>" +
-"<Image Source=\"{Binding Path=ImageLocation}\" Margin=\"0, -100, 0, 0\" />" +
 "</Grid>" +
 "</Grid>" +
 "</Border>" +
@@ -1301,7 +1495,70 @@ namespace sc2dsstats_rc1
 
         private void tb_fl2_rb_vertical_Click(object sender, RoutedEventArgs e)
         {
+
+            gr_images.Visibility = Visibility.Hidden;
             dynChart.Series.Clear();
+
+
+            string ctXamlString =
+
+//"<Style x:Key=\"CmdrImage_Style\" TargetType=\"{x:Type Image}\">" +
+//"</Style>" +
+
+"<ControlTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:src=\"clr-namespace:sc2dsstats_rc1\" xmlns:DVC=\"clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" TargetType=\"DVC:BarDataPoint\">" +
+"<Border x:Name=\"Root\" Opacity=\"0\" BorderBrush=\"{TemplateBinding BorderBrush}\" BorderThickness=\"{TemplateBinding BorderThickness}\">" +
+"<VisualStateManager.VisualStateGroups>" +
+"<VisualStateGroup x:Name=\"CommonStates\">" +
+"<VisualStateGroup.Transitions>" +
+"<VisualTransition GeneratedDuration=\"0:0:0.1\"/>" +
+"</VisualStateGroup.Transitions>" +
+"<VisualState x:Name=\"Normal\"/>" +
+"<VisualState x:Name=\"MouseOver\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"MouseOverHighlight\" Storyboard.TargetProperty=\"Opacity\" To=\"0.6\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"</VisualStateGroup>" +
+"<VisualStateGroup x:Name=\"SelectionStates\">" +
+"<VisualStateGroup.Transitions>" +
+"<VisualTransition GeneratedDuration=\"0:0:0.1\"/>" +
+"</VisualStateGroup.Transitions>" +
+"<VisualState x:Name=\"Unselected\"/>" +
+"<VisualState x:Name=\"Selected\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"SelectionHighlight\" Storyboard.TargetProperty=\"Opacity\" To=\"0.6\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"</VisualStateGroup>" +
+"<VisualStateGroup x:Name=\"RevealStates\">" +
+"<VisualStateGroup.Transitions>" +
+"<VisualTransition GeneratedDuration=\"0:0:0.5\"/>" +
+"</VisualStateGroup.Transitions>" +
+"<VisualState x:Name=\"Shown\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"Root\" Storyboard.TargetProperty=\"Opacity\" To=\"1\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"<VisualState x:Name=\"Hidden\">" +
+"<Storyboard>" +
+"<DoubleAnimation Duration=\"0\" Storyboard.TargetName=\"Root\" Storyboard.TargetProperty=\"Opacity\" To=\"0\"/>" +
+"</Storyboard>" +
+"</VisualState>" +
+"</VisualStateGroup>" +
+"</VisualStateManager.VisualStateGroups>" +
+"<Grid>" +
+"<Rectangle Fill=\"{TemplateBinding Background}\" Stroke=\"DarkBlue\" />" +
+"<Grid Margin=\"0, 0, -45, 0\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\"> " +
+"<Border CornerRadius=\"2\" BorderBrush=\"#88888888\" BorderThickness=\"0.5\">" +
+"<Border CornerRadius=\"2\" BorderBrush=\"#44888888\" BorderThickness=\"0.5\"/>" +
+"</Border>" +
+"<TextBlock Margin=\"0, 0, 0, 0\">" +
+"<Run FontWeight=\"Bold\" Background=\"BlanchedAlmond\" Foreground=\"DarkRed\" FontFamily=\"Courier New\" FontSize=\"13\" Text=\"{TemplateBinding FormattedDependentValue}\"/>" +
+"</TextBlock>" +
+"</Grid>" +
+"</Grid>" +
+"</Border>" +
+"</ControlTemplate>";
 
             //Vertical
             BarSeries barseries = new BarSeries();
@@ -1310,6 +1567,20 @@ namespace sc2dsstats_rc1
             barseries.DependentValuePath = "Value";
             barseries.IndependentValuePath = "Key";
 
+            LinearGradientBrush myLinearGradientBrush = new LinearGradientBrush();
+            myLinearGradientBrush.StartPoint = new System.Windows.Point(0, 0);
+            myLinearGradientBrush.EndPoint = new System.Windows.Point(1, 1);
+            myLinearGradientBrush.GradientStops.Add(new GradientStop(Colors.DarkBlue, 0.0));
+            myLinearGradientBrush.GradientStops.Add(new GradientStop(Colors.DarkRed, 0.5));
+            myLinearGradientBrush.GradientStops.Add(new GradientStop(Colors.DarkBlue, 1.0));
+
+            Style style = new Style { TargetType = typeof(BarDataPoint) };
+            ControlTemplate ct;
+            ct = (ControlTemplate)XamlReader.Parse(ctXamlString);
+            style.Setters.Add(new Setter(BarDataPoint.TemplateProperty, ct));
+            style.Setters.Add(new Setter(BarDataPoint.BorderBrushProperty, System.Windows.Media.Brushes.Red));
+            style.Setters.Add(new Setter(BarDataPoint.BackgroundProperty, myLinearGradientBrush));
+            barseries.DataPointStyle = style;
             dynChart.Series.Add(barseries);
 
 
@@ -1646,7 +1917,7 @@ namespace sc2dsstats_rc1
                     //gr_doit.Margin = new Thickness(10, 240, 15, 0);
                 }
             }
-
+            gr_images.Visibility = Visibility.Hidden;
             gr_doit.Visibility = Visibility.Visible;
             var appSettings = ConfigurationManager.AppSettings;
             dsscan scan = new dsscan(appSettings["REPLAY_PATH"], appSettings["STATS_FILE"], this);
@@ -2001,9 +2272,24 @@ namespace sc2dsstats_rc1
         {
             if (chb_vs.IsChecked == true)
             {
+                if (chb_cmdr_vs.IsChecked == true) chb_cmdr_vs.IsChecked = false;
                 cb_vs.Visibility = Visibility.Visible;
             }
             else if (chb_vs.IsChecked == false)
+            {
+                cb_vs.Visibility = Visibility.Hidden;
+            }
+            UpdateGraph(sender);
+        }
+
+        private void chb_cmdr_vs_Click(object sender, RoutedEventArgs e)
+        {
+            if (chb_cmdr_vs.IsChecked == true)
+            {
+                if (chb_vs.IsChecked == true) chb_vs.IsChecked = false;
+                cb_vs.Visibility = Visibility.Visible;
+            }
+            else if (chb_cmdr_vs.IsChecked == false)
             {
                 cb_vs.Visibility = Visibility.Hidden;
             }
@@ -2497,6 +2783,7 @@ namespace sc2dsstats_rc1
             }
         }
 
+
         public void main_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             foreach (string img in myTempfiles_col)
@@ -2516,6 +2803,10 @@ namespace sc2dsstats_rc1
             Application.Current.Shutdown();
         }
 
+        private void Chb_cmdrvs_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
 
