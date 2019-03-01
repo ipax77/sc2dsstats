@@ -854,6 +854,13 @@
             </Menu>
         </DockPanel>
 
+
+        <Grid x:Name="gr_syn" Margin="0,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Hidden">
+            <Grid x:Name="gr_syn_btn" Margin="220,80,80,80" Width="300" HorizontalAlignment="Left">
+                
+            </Grid>
+            <WebBrowser x:Name="wb_chart" Margin="415,0,0,0"></WebBrowser>
+        </Grid>
         <Grid x:Name="gr_chart" Margin="0,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Grid x:Name="gr_mode" Margin="400, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">
             <Label Content="Mode" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="15,0,0,0"  VerticalAlignment="Top" Width="54" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>

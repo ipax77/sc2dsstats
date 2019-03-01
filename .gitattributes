@@ -46,6 +46,7 @@
 *.manifest binary
 *.application binary
 *.deploy binary
+*.js binary
 
 ###############################################################################
 # diff behavior for common document formats

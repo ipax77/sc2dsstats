@@ -278,7 +278,10 @@ namespace sc2dsstats_rc1
             cb_mode.Items.Add("Winrate");
             cb_mode.Items.Add("Damage");
             cb_mode.Items.Add("MVP");
+            cb_mode.Items.Add("Synergy");
             cb_mode.SelectedItem = cb_mode.Items[0];
+
+      
 
             s_races = new string[]
             {
@@ -301,6 +304,8 @@ namespace sc2dsstats_rc1
                  "Terran",
                  "Zerg"
             };
+
+            GenerateSynBtn();
 
             foreach (string r in s_races)
             {
@@ -1185,9 +1190,21 @@ namespace sc2dsstats_rc1
             if (gr_chart.Visibility == Visibility.Hidden)
             {
                 gr_chart.Visibility = Visibility.Visible;
+                gr_images.Visibility = Visibility.Visible;
+                gr_syn.Visibility = Visibility.Hidden;
             }
             if (rb_horizontal.IsChecked == true) gr_images.Visibility = Visibility.Visible;
             bool doit = true;
+
+            if (cb_mode.SelectedItem.ToString() == "Synergy")
+            {
+                doit = false;
+                gr_chart.Visibility = Visibility.Hidden;
+                gr_images.Visibility = Visibility.Hidden;
+                gr_syn.Visibility = Visibility.Visible;
+                GetSynergy();
+            }
+
             if (cb_add.IsChecked == true && sender != null) doit = false;
 
             if (doit)
@@ -1589,7 +1606,70 @@ namespace sc2dsstats_rc1
 
         }
 
+        public void GenerateSynBtn()
+        {
+            gr_syn_btn.Children.Clear();
+            gr_syn_btn.RowDefinitions.Clear();
+            gr_syn_btn.ColumnDefinitions.Clear();
 
+            ColumnDefinition gridCol1 = new ColumnDefinition();
+            gridCol1.Width = new GridLength(300);
+            gr_syn_btn.ColumnDefinitions.Add(gridCol1);
+            int i = 0;
+            foreach (string r in s_races)
+            {
+                RowDefinition gridRow1 = new RowDefinition();
+                gridRow1.Height = new GridLength(30);
+                gr_syn_btn.RowDefinitions.Add(gridRow1);
+
+                CheckBox cb = new CheckBox();
+                cb.Style = (Style)this.Resources["cb_Style"];
+                cb.Foreground = System.Windows.Media.Brushes.White;
+                cb.Background = System.Windows.Media.Brushes.Yellow;
+                cb.Content = r;
+                cb.Name = "cb_syn_" + r;
+                cb.Click += new RoutedEventHandler(tb_fl2_Click);
+
+                Grid.SetRow(cb, i);
+                Grid.SetColumn(cb, 0);
+                gr_syn_btn.Children.Add(cb);
+                i++;
+            }
+        }
+
+        public void GetSynergy()
+        {
+            List<string> synlist = new List<string>();
+            foreach (var bab in gr_syn_btn.Children)
+            {
+                try
+                {
+                    CheckBox cb = (CheckBox)bab;
+                    if (cb.IsChecked == true)
+                    {
+                        synlist.Add(cb.Content.ToString());
+                    }
+                } catch
+                {
+
+
+                }
+            }
+
+            DSfilter dsfil = new DSfilter(this);
+            List<dsreplay> filtered_replays = new List<dsreplay>();
+            filtered_replays = dsfil.Filter(this.replays);
+
+            if (synlist.Count > 0)
+            {
+                dsradar myradar = new dsradar(this);
+                string myhtml = myradar.GetHTML(synlist, filtered_replays);
+                //Console.WriteLine(myhtml);
+                wb_chart.NavigateToString(myhtml);
+            }
+
+
+        }
 
         /// read in csv
         /// 

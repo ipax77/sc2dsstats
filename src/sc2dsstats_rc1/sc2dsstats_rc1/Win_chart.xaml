@@ -122,31 +122,7 @@
 
 
         </DVC:Chart>
-        <StackPanel>
-            <TextBox Grid.Row="1" Grid.Column="1" Name="tb">
-                <TextBox.Text>
-                    <Binding Source="{StaticResource myDataSource1}" Path="MethodParameters[0]"
-             BindsDirectlyToSource="true" UpdateSourceTrigger="PropertyChanged"
-             >
-
-                    </Binding>
-                </TextBox.Text>
-            </TextBox>
-            <TextBlock x:Name="tb_test1" Height="124" Text="{Binding Source={StaticResource myDataSource1}}">
-            </TextBlock>
-            <Button Content="Button" Width="75" Click="Button_Click">
-
-            </Button>
-            
-            <Image x:Name="img_test1" Source="{Binding ImageLocation}" Height="148" Margin="0,0,505,0"/>
-            <Image x:Name="img_test2"
-                   Source="{Binding Source={StaticResource myDataSource}, Path=ImageLocation}"
-                   Height="120" Margin="500,-100,0,0" RenderTransformOrigin="0.5,0.5"/>
-            <Image x:Name="img_test3"
-                   Source="{Binding Path=GetImage}"
-                   Height="120" Margin="200,-100,0,0" RenderTransformOrigin="0.5,0.5"/>
-            <Grid Height="100"/>
-        </StackPanel>
+<WebBrowser x:Name="wb_chart" />
     </Grid>
 
 </Window>
