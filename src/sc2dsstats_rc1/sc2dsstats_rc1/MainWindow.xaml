@@ -855,11 +855,11 @@
         </DockPanel>
 
 
-        <Grid x:Name="gr_syn" Margin="0,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Hidden">
-            <Grid x:Name="gr_syn_btn" Margin="220,80,80,80" Width="300" HorizontalAlignment="Left">
+        <Grid x:Name="gr_syn" Margin="0,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Hidden">
+            <Grid x:Name="gr_syn_btn" Margin="220,20,80,80" Width="300" HorizontalAlignment="Left">
                 
             </Grid>
-            <WebBrowser x:Name="wb_chart" Margin="415,0,0,0"></WebBrowser>
+            <WebBrowser x:Name="wb_chart" Margin="415,0,0,0" Visibility="Hidden"></WebBrowser>
         </Grid>
         <Grid x:Name="gr_chart" Margin="0,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Grid x:Name="gr_mode" Margin="400, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">

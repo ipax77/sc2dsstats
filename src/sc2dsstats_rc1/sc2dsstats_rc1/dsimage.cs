@@ -167,7 +167,7 @@ namespace sc2dsstats_rc1
             {
                 png = "dummy.png";
             }
-            imgsrc = new BitmapImage(new Uri(png, UriKind.Relative));
+            //imgsrc = new BitmapImage(new Uri(png, UriKind.Relative));
             //Console.WriteLine(png + " => " + cmdr);
             //ImageLocation = imgsrc;
             ImageLocation = "images\\" + png;

@@ -4,7 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Net;
+using System.Web;
+
 
 namespace sc2dsstats_rc1
 {
@@ -19,7 +23,9 @@ namespace sc2dsstats_rc1
         public dsradar()
         {
             string curDir = Directory.GetCurrentDirectory();
-
+            curDir = Regex.Replace(curDir, @"\\", @"/", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            //curDir = Uri.EscapeUriString(curDir);
+            curDir = "file://" + curDir;
             string myhtml_pre =
 "<!DOCTYPE html>" + Environment.NewLine +
 "<html>" + Environment.NewLine +
@@ -27,10 +33,12 @@ namespace sc2dsstats_rc1
 "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" charset=\"UTF-8\" />" + Environment.NewLine +
 "<title> externes JavaScript in HTML einbinden</title>" + Environment.NewLine +
 "</head>" + Environment.NewLine +
-"<script src=\"" + curDir + "/Scripts/Chart.min.js" + "\"></script>" + Environment.NewLine +
-"<body style=\"background - color:BlanchedAlmond; \">" + Environment.NewLine +
+"<script src='" + curDir + "/Scripts/Chart.min.js" + "'></script>" + Environment.NewLine +
+"<body style=\"background-color: #041326; \">" + Environment.NewLine +
  "<div id=\"chartContainer\"></div >" + Environment.NewLine +
-"<div style=\"width:100%\">" + Environment.NewLine +
+"<div style=\"width:50%\">" + Environment.NewLine +
+//"<div>" + Environment.NewLine +
+"<canvas id=\"cannvas\" width=\"450\" height=\"450\"></canvas>" + Environment.NewLine +
 "<canvas id=\"cannvas\"></canvas>" + Environment.NewLine +
 "</div>" + Environment.NewLine +
 "<script type=\"text/javascript\">" + Environment.NewLine +
@@ -77,22 +85,87 @@ string myhtml_data =
 "}]" + Environment.NewLine +
 "}," + Environment.NewLine;
 
-string myhtml_post =
+            
+            string myhtml_post =
 "options: {" + Environment.NewLine +
-"legend: {" + Environment.NewLine +
-"position: 'top'," + Environment.NewLine +
-"}," + Environment.NewLine +
 "title: {" + Environment.NewLine +
 "display: true," + Environment.NewLine +
-"text: 'cmdr synergy'" + Environment.NewLine +
+"fontSize: 22," + Environment.NewLine +
+"fontColor: \"#eaffff\"," + Environment.NewLine +
+"text: 'cmdr synergy'," + Environment.NewLine +
+"position: 'top'" + Environment.NewLine +
 "}," + Environment.NewLine +
 "scale: {" + Environment.NewLine +
+"gridLines: {" + Environment.NewLine +
+"color: \"#808080\"," + Environment.NewLine +
+"lineWidth: 0.5" + Environment.NewLine +
+"}," + Environment.NewLine +
+"angleLines: {" + Environment.NewLine +
+"display: true," + Environment.NewLine +
+"color: \"#808080\"," + Environment.NewLine +
+"lineWidth: 0.25" + Environment.NewLine +
+"}," + Environment.NewLine +
 "ticks: {" + Environment.NewLine +
-"beginAtZero: true" + Environment.NewLine +
+"beginAtZero: true," + Environment.NewLine +
+"color: \"#808080\"," + Environment.NewLine +
+"backdropColor: \"#041326\""  + Environment.NewLine +
+"}," + Environment.NewLine +
+"pointLabels: {" + Environment.NewLine +
+"fontSize: 14," + Environment.NewLine +
+"fontColor: \"#46a2c9\"" + Environment.NewLine +
+"}" + Environment.NewLine +
+"}," + Environment.NewLine +
+"legend: {" + Environment.NewLine +
+"position: 'bottom'," + Environment.NewLine +
+"labels: {" + Environment.NewLine +
+"fontSize: 14," + Environment.NewLine +
+"fontColor: \"#eaffff\"" + Environment.NewLine +
 "}" + Environment.NewLine +
 "}" + Environment.NewLine +
 "}" + Environment.NewLine +
-"};	" + Environment.NewLine +
+"};" + Environment.NewLine +
+"var img_abathur = new Image();" + Environment.NewLine +
+"img_abathur.src = \"" + curDir + "/images/btn-unit-hero-abathur.png\";" + Environment.NewLine +
+"var img_alarak = new Image();" + Environment.NewLine +
+"img_alarak.src = \"" + curDir + "/images/btn-unit-hero-alarak.png\";" + Environment.NewLine +
+"var img_artanis = new Image();" + Environment.NewLine +
+"img_artanis.src = \"" + curDir + "/images/btn-unit-hero-artanis.png\";" + Environment.NewLine +
+"var img_dehaka = new Image();" + Environment.NewLine +
+"img_dehaka.src = \"" + curDir + "/images/btn-unit-hero-dehaka.png\";" + Environment.NewLine +
+"var img_fenix = new Image();" + Environment.NewLine +
+"img_fenix.src = \"" + curDir + "/images/btn-unit-hero-fenix.png\";" + Environment.NewLine +
+"var img_horner = new Image();" + Environment.NewLine +
+"img_horner.src = \"" + curDir + "/images/btn-unit-hero-horner.png\";" + Environment.NewLine +
+"var img_karax = new Image();" + Environment.NewLine +
+"img_karax.src = \"" + curDir + "/images/btn-unit-hero-karax.png\";" + Environment.NewLine +
+"var img_kerrigan = new Image();" + Environment.NewLine +
+"img_kerrigan.src = \"" + curDir + "/images/btn-unit-hero-kerrigan.png\";" + Environment.NewLine +
+"var img_nova = new Image();" + Environment.NewLine +
+"img_nova.src = \"" + curDir + "/images/btn-unit-hero-nova.png\";" + Environment.NewLine +
+"var img_raynor = new Image();" + Environment.NewLine +
+"img_raynor.src = \"" + curDir + "/images/btn-unit-hero-raynor.png\";" + Environment.NewLine +
+"var img_stukov = new Image();" + Environment.NewLine +
+"img_stukov.src = \"" + curDir + "/images/btn-unit-hero-stukov.png\";" + Environment.NewLine +
+"var img_swann = new Image();" + Environment.NewLine +
+"img_swann.src = \"" + curDir + "/images/btn-unit-hero-swann.png\";" + Environment.NewLine +
+"var img_tychus = new Image();" + Environment.NewLine +
+"img_tychus.src = \"" + curDir + "/images/btn-unit-hero-tychus.png\";" + Environment.NewLine +
+"var img_vorazun = new Image();" + Environment.NewLine +
+"img_vorazun.src = \"" + curDir + "/images/btn-unit-hero-vorazun.png\";" + Environment.NewLine +
+"var img_zagara = new Image();" + Environment.NewLine +
+"img_zagara.src = \"" + curDir + "/images/btn-unit-hero-zagara.png\";" + Environment.NewLine +
+"var myimages = [img_abathur, img_alarak, img_artanis, img_dehaka, img_fenix, img_horner, img_karax," + Environment.NewLine +
+"				img_kerrigan, img_nova, img_raynor, img_stukov, img_swann, img_tychus, img_vorazun, img_zagara];" + Environment.NewLine +
+"Chart.pluginService.register({" + Environment.NewLine +
+"afterUpdate: function(chart) {" + Environment.NewLine +
+"myimages.forEach(function(item, index, array) { " + Environment.NewLine +
+"item.width=\"35\";" + Environment.NewLine +
+"item.height=\"35\";" + Environment.NewLine +
+//"chart.config.data.datasets[0]._meta[0].data[index]._model.pointStyle = item;" + Environment.NewLine +
+"});" + Environment.NewLine +
+"}" + Environment.NewLine +
+"});" + Environment.NewLine +
+"" + Environment.NewLine +
 "var myChart = new Chart(ctx, config);" + Environment.NewLine +
 "</script>" + Environment.NewLine +
 "</body>" + Environment.NewLine +

@@ -1611,7 +1611,11 @@ namespace sc2dsstats_rc1
             gr_syn_btn.Children.Clear();
             gr_syn_btn.RowDefinitions.Clear();
             gr_syn_btn.ColumnDefinitions.Clear();
+            dsimage myimg = new dsimage();
 
+            ColumnDefinition gridCol0 = new ColumnDefinition();
+            gridCol0.Width = new GridLength(100);
+            gr_syn_btn.ColumnDefinitions.Add(gridCol0);
             ColumnDefinition gridCol1 = new ColumnDefinition();
             gridCol1.Width = new GridLength(300);
             gr_syn_btn.ColumnDefinitions.Add(gridCol1);
@@ -1624,15 +1628,35 @@ namespace sc2dsstats_rc1
 
                 CheckBox cb = new CheckBox();
                 cb.Style = (Style)this.Resources["cb_Style"];
-                cb.Foreground = System.Windows.Media.Brushes.White;
-                cb.Background = System.Windows.Media.Brushes.Yellow;
+                //cb.Foreground = System.Windows.Media.Brushes.White;
+                //cb.Background = System.Windows.Media.Brushes.LightYellow;
+                cb.VerticalAlignment = VerticalAlignment.Center;
+                cb.HorizontalAlignment = HorizontalAlignment.Left;
                 cb.Content = r;
                 cb.Name = "cb_syn_" + r;
                 cb.Click += new RoutedEventHandler(tb_fl2_Click);
+                if (r == "Abathur")
+                {
+                    cb.IsChecked = true;
+                }
 
                 Grid.SetRow(cb, i);
-                Grid.SetColumn(cb, 0);
+                Grid.SetColumn(cb, 1);
                 gr_syn_btn.Children.Add(cb);
+
+                System.Windows.Controls.Image img_syn = new System.Windows.Controls.Image();
+                BitmapImage bit_syn = new BitmapImage();
+                bit_syn.BeginInit();
+                bit_syn.UriSource = new Uri(myimg.GetImage(r), UriKind.Relative);
+                bit_syn.EndInit();
+                img_syn.Source = bit_syn;
+                img_syn.VerticalAlignment = VerticalAlignment.Center;
+                img_syn.HorizontalAlignment = HorizontalAlignment.Right;
+
+                Grid.SetRow(img_syn, i);
+                Grid.SetColumn(img_syn, 0);
+                gr_syn_btn.Children.Add(img_syn);
+                
                 i++;
             }
         }
@@ -1664,10 +1688,10 @@ namespace sc2dsstats_rc1
             {
                 dsradar myradar = new dsradar(this);
                 string myhtml = myradar.GetHTML(synlist, filtered_replays);
-                //Console.WriteLine(myhtml);
+                Console.WriteLine(myhtml);
                 wb_chart.NavigateToString(myhtml);
             }
-
+            wb_chart.Visibility = Visibility.Visible;
 
         }
 
@@ -1986,7 +2010,7 @@ namespace sc2dsstats_rc1
             if (sender != null)
             {
                 gr_chart.Visibility = Visibility.Hidden;
-
+                gr_syn.Visibility = Visibility.Hidden;
                 if (gr_filter1.Visibility == Visibility.Visible)
                 {
                     //gr_doit.Margin = new Thickness(10,160,15,0);
@@ -2285,6 +2309,7 @@ namespace sc2dsstats_rc1
                 gr_filter2.Visibility = Visibility.Visible;
                 gr_chart.Margin = new Thickness(0, 140, 0, 0);
                 gr_doit.Margin = new Thickness(10, 140, 15, 0);
+                gr_syn.Margin = new Thickness(0, 140, 0, 0);
             }
             else if (gr_filter2.Visibility == Visibility.Visible)
             {
@@ -2295,6 +2320,7 @@ namespace sc2dsstats_rc1
                 gr_filter2.Visibility = Visibility.Hidden;
                 gr_chart.Margin = new Thickness(0, 80, 0, 0);
                 gr_doit.Margin = new Thickness(10, 80, 15, 0);
+                gr_syn.Margin = new Thickness(0, 80, 0, 0);
             }
         }
 
@@ -2305,12 +2331,14 @@ namespace sc2dsstats_rc1
                 gr_info.Visibility = Visibility.Visible;
                 gr_chart.Margin = new Thickness(0, 240, 0, 0);
                 gr_doit.Margin = new Thickness(10, 240, 15, 0);
+                gr_syn.Margin = new Thickness(0, 240, 0, 0);
             }
             else if (gr_info.Visibility == Visibility.Visible)
             {
                 gr_info.Visibility = Visibility.Hidden;
                 gr_chart.Margin = new Thickness(0, 140, 0, 0);
                 gr_doit.Margin = new Thickness(10, 140, 15, 0);
+                gr_syn.Margin = new Thickness(0, 140, 0, 0);
             }
         }
 
