@@ -1,4 +1,8 @@
 
+0.6.0.3
+
+- Fixed GeoTime
+
 0.6.0.2
 
 - Synergy graph design update/bugfix

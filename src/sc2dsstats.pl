@@ -86,6 +86,8 @@ $skip_beta = $cfg->{'appSettings'}{'add'}{'BETA'}{'value'} if defined $cfg->{'ap
 $skip_hots = $cfg->{'appSettings'}{'add'}{'HOTS'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'HOTS'}{'value'};
 $skip_msg = $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'};
 $keep = $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'};
+$s2_cli = $cfg->{'appSettings'}{'add'}{'S2_CLI'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'S2_CLI'}{'value'};
+$store_path = $cfg->{'appSettings'}{'add'}{'STORE_PATH'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'STORE_PATH'}{'value'};
 
 GetOptions (
 	"start_date=s" => \$start_date,
@@ -531,9 +533,11 @@ sub GetData {
 	                        		$offset = int($offset / 10000000);
 	                        		my $geo = $georgian + $offset;
 	                        		my $dt_geo = DateTime->from_epoch( epoch => $geo);
-	                        		my $dgeo = $dt_geo->year - 369;
-	                        		$dt_geo->set( year => $dgeo );
-	                        		$gametime = $dt_geo->ymd('') . $dt_geo->hms(''); 
+	                        		my $dgeo = $dt_geo - DateTime::Duration->new(years => 369);
+	                        		#my $dgeo = $dt_geo->year - 369;
+	                        		#$dt_geo->set( year => $dgeo );
+	                        		#$gametime = $dt_geo->ymd('') . $dt_geo->hms(''); 
+	                        		$gametime = $dgeo->ymd('') . $dt_geo->hms('');
 	                        		for (my $i = 1; $i <= $player_count; $i++) {
 	                        			if (defined $detail->{$id}{$i}) { 
 	                        				$detail->{$id}{$i}{'GAMETIME'} = $gametime;

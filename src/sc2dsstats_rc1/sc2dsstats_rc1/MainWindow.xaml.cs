@@ -1688,7 +1688,7 @@ namespace sc2dsstats_rc1
             {
                 dsradar myradar = new dsradar(this);
                 string myhtml = myradar.GetHTML(synlist, filtered_replays);
-                Console.WriteLine(myhtml);
+                //Console.WriteLine(myhtml);
                 wb_chart.NavigateToString(myhtml);
             }
             wb_chart.Visibility = Visibility.Visible;
