@@ -11,6 +11,7 @@ use File::Basename;
 use Encode qw(decode encode);
 use File::Copy;
 use DateTime qw(from_epoch);
+use DateTime::Format::Epoch;
 use Getopt::Long;
 use Fcntl qw(:flock SEEK_END);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -88,6 +89,8 @@ $skip_msg = $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} if defined $cfg->{
 $keep = $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'KEEP'}{'value'};
 $s2_cli = $cfg->{'appSettings'}{'add'}{'S2_CLI'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'S2_CLI'}{'value'};
 $store_path = $cfg->{'appSettings'}{'add'}{'STORE_PATH'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'STORE_PATH'}{'value'};
+$csv = $cfg->{'appSettings'}{'add'}{'STATS_FILE'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'STATS_FILE'}{'value'};
+$skip_file = $cfg->{'appSettings'}{'add'}{'SKIP_FILE'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'SKIP_FILE'}{'value'};
 
 GetOptions (
 	"start_date=s" => \$start_date,
@@ -125,6 +128,21 @@ my %sum;
 my %skip : shared;
 my $games;
 
+# Windows epochs start on 1 Jan 1601
+my $base_dt   = DateTime->new(
+    year => 1601, 
+    month => 1, 
+    day => 1
+);
+
+my $geo_formatter = DateTime::Format::Epoch->new(
+    epoch             => $base_dt,
+    unit              => 'seconds',
+    type              => 'int',       # or 'float', 'bigint'
+    skip_leap_seconds => 1,
+    start_at          => 0,
+    local_epoch       => undef,
+);
 
 &Log("Reading in stats file ..", 1);
 
@@ -532,12 +550,8 @@ sub GetData {
 	                        		$georgian = int($georgian / 10000000);	
 	                        		$offset = int($offset / 10000000);
 	                        		my $geo = $georgian + $offset;
-	                        		my $dt_geo = DateTime->from_epoch( epoch => $geo);
-	                        		my $dgeo = $dt_geo - DateTime::Duration->new(years => 369);
-	                        		#my $dgeo = $dt_geo->year - 369;
-	                        		#$dt_geo->set( year => $dgeo );
-	                        		#$gametime = $dt_geo->ymd('') . $dt_geo->hms(''); 
-	                        		$gametime = $dgeo->ymd('') . $dt_geo->hms('');
+	                        		my $dgeo = $geo_formatter->parse_datetime($geo);
+	                        		$gametime = $dgeo->ymd('') . $dgeo->hms('');
 	                        		for (my $i = 1; $i <= $player_count; $i++) {
 	                        			if (defined $detail->{$id}{$i}) { 
 	                        				$detail->{$id}{$i}{'GAMETIME'} = $gametime;

@@ -1,4 +1,8 @@
 
+0.6.0.4
+
+- Fixed GeoTime #2
+
 0.6.0.3
 
 - Fixed GeoTime
