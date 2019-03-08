@@ -25,6 +25,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Xml.Serialization;
 using Microsoft.Win32;
+using System.Security.Cryptography;
+
 
 
 namespace sc2dsstats_rc1
@@ -1981,8 +1983,11 @@ namespace sc2dsstats_rc1
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            replays.Clear();
-            replays = LoadData(myStats_csv);
+            if (cb_sample.IsArrangeValid == false)
+            {
+                replays.Clear();
+                replays = LoadData(myStats_csv);
+            }
             UpdateGraph(null);
 
             if (gr_chart.Children.Contains(dynChart))
@@ -2272,6 +2277,92 @@ namespace sc2dsstats_rc1
             win5.Show();
 
         }
+
+        public void mnu_export(object sender, RoutedEventArgs e)
+        {
+
+            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_csv));
+
+            // Create OpenFileDialog 
+            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+
+            string filename = "unknown";
+            // Set filter for file extension and default file extension 
+            dlg.DefaultExt = ".csv";
+
+            // Display OpenFileDialog by calling ShowDialog method 
+            Nullable<bool> result = dlg.ShowDialog();
+
+            // Get the selected file name and display in a TextBox 
+            if (result == true)
+            {
+                // Open document 
+                filename = dlg.FileName;
+            }
+
+            // Write the string array to a new file named "WriteLines.txt".
+            using (StreamWriter outputFile = new StreamWriter(filename))
+            {
+                foreach (string line in ano_stats)
+                    outputFile.WriteLine(line);
+            }
+
+        }
+
+        public void mnu_upload(object sender, RoutedEventArgs e)
+        {
+             string exp_csv = myAppData_dir + "\\export.csv";
+
+            string hash = "";
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                hash = GetHash(sha256Hash, player_name);
+
+            }
+
+            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_csv));
+            using (StreamWriter outputFile = new StreamWriter(exp_csv))
+            {
+                foreach (string line in ano_stats)
+                    outputFile.WriteLine(line);
+            }
+
+            string credential = "All player names (including yours) will be anonymized before sending. By clicking \"Yes\" you agree that your DS-replay data will be used at https://www.pax77.org to generate global charts." + Environment.NewLine + Environment.NewLine; 
+
+
+            if (MessageBox.Show(credential + "Upload anonymized data to https://www.pax77.org?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
+            {
+                //do no stuff
+            }
+            else
+            {
+                //do yes stuff
+                dsclient.StartClient(hash, exp_csv);
+            }
+
+        }
+
+        public static string GetHash(HashAlgorithm hashAlgorithm, string input)
+        {
+
+            // Convert the input string to a byte array and compute the hash.
+            byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+            // Create a new Stringbuilder to collect the bytes
+            // and create a string.
+            var sBuilder = new StringBuilder();
+
+            // Loop through each byte of the hashed data 
+            // and format each one as a hexadecimal string.
+            for (int i = 0; i < data.Length; i++)
+            {
+                sBuilder.Append(data[i].ToString("x2"));
+            }
+
+            // Return the hexadecimal string.
+            return sBuilder.ToString();
+        }
+
 
         private void doit_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -2607,7 +2698,7 @@ namespace sc2dsstats_rc1
             Items.Clear();
             if (cb_sample.IsChecked == true)
             {
-                player_name = "PAX";
+                player_name = "player";
                 if (File.Exists(mySample_csv)) replays = LoadData(mySample_csv);
                 GetWinrate();
                 UpdateGraph(null);

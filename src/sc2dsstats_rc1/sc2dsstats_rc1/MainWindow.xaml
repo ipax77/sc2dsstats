@@ -847,6 +847,10 @@
                     <Separator />
                     <MenuItem Header="_Exit" Click="mnu_Exit" Foreground="{DynamicResource StdTextBrush1}" />
                 </MenuItem>
+                <MenuItem Header="_Export" FontSize="14">
+                    <MenuItem Header="_Export" Click="mnu_export" ToolTip="Export anonymized stats" Foreground="{DynamicResource StdTextBrush1}"/>
+                    <MenuItem Header="_Upload" Click="mnu_upload" ToolTip="Upload anonymized stats for world stats" Foreground="{DynamicResource StdTextBrush1}"/>
+                </MenuItem>
                 <MenuItem Header="_Help" FontSize="14">
                     <MenuItem Header="_Documentation" Click="mnu_doc" Foreground="{DynamicResource StdTextBrush1}"/>
                     <MenuItem Header="_Info" Click="mnu_info" Foreground="{DynamicResource StdTextBrush1}"/>
