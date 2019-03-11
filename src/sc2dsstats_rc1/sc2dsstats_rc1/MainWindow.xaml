@@ -734,11 +734,11 @@
                     <ImageBrush/>
                 </TextBox.Background>
             </TextBox>
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" MaxHeight="20" TextWrapping="Wrap" Margin="62,50,0,0" Text="Please enter your ingame Starcraft 2 Player name (without clan tags)" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" FontSize="14" />
-            <TextBox MinWidth="150" x:Name="fr_InputTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,75,0,0" RenderTransformOrigin="0.5,0.5" Height="25"/>
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" TextWrapping="Wrap" MaxHeight="80" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" Margin="62,115,0,0" FontSize="14" ><Run Text="Please select one DS replay in your replay folder. Usually it is something like " /><LineBreak/><Run Text="C:/Users/'username'/Documents/StarCraft II/Accounts/107090000/2-S2-1-220000/Replays/Multiplayer" /></TextBlock>
-            <TextBox MinWidth="150" x:Name="fr_InputTextBox2" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,160,0,0" RenderTransformOrigin="0.5,0.5" Width="222" Height="23"/>
-            <Button x:Name="Browse" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="294,160,0,0" Width="74" Height="24" Click="ib_BrowseButton_Click" Style="{StaticResource ButtonStyle1}">
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" MaxHeight="20" TextWrapping="Wrap" Margin="62,50,0,0" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" FontSize="14" ><Run Text="Please enter your ingame Starcraft 2 Player name (without clan tags). If you have multiple accounts you can add additional names "/><Run Text="Semikolon"/><Run Text=" (;) separated"/><Run Text="."/></TextBlock>
+            <TextBox MinWidth="300" x:Name="fr_InputTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,75,0,0" RenderTransformOrigin="0.5,0.5" Height="25"/>
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" TextWrapping="Wrap" MaxHeight="80" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" Margin="62,115,0,0" FontSize="14" ><Run Text="Please select one DS replay in your replay folder. Usually it is something like "/><LineBreak/><Run Text="C:/Users/'username'/Documents/StarCraft II/Accounts/107090000/2-S2-1-220000/Replays/Multiplayer"/><Run Text=" . You can add multiple folders Semikolon (;) separated."/><LineBreak/><Run/></TextBlock>
+            <TextBox MinWidth="150" x:Name="fr_InputTextBox2" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,190,0,0" RenderTransformOrigin="0.5,0.5" Width="1100" Height="69"/>
+            <Button x:Name="Browse" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="62,160,0,0" Width="100" Height="24" Click="ib_BrowseButton_Click" Style="{StaticResource ButtonStyle1}">
                 <Button.Background>
                     <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
                         <GradientStop Color="Black"/>
@@ -746,16 +746,16 @@
                     </LinearGradientBrush>
                 </Button.Background>
                 <Grid>
-                    <TextBlock x:Name="bt_browse_textblock1" Text="Browse"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                    <TextBlock x:Name="bt_browse_textblock1" Text="Browse / Add"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
                         <TextBlock.RenderTransform>
                             <TranslateTransform X="0.5" Y="0.5" />
                         </TextBlock.RenderTransform>
                     </TextBlock>
-                    <TextBlock x:Name="bt_browse_textblock2" Text="Browse" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+                    <TextBlock x:Name="bt_browse_textblock2" Text="Browse / Add" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
 
                 </Grid>
             </Button>
-            <Button x:Name="Ok" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="62,217,0,0" Width="74" Height="24" Click="ib_OkButton_Click" Style="{StaticResource ButtonStyle1}">
+            <Button x:Name="Ok" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="62,277,0,0" Width="74" Height="24" Click="ib_OkButton_Click" Style="{StaticResource ButtonStyle1}">
                 <Button.Background>
                     <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
                         <GradientStop Color="Black"/>
@@ -826,6 +826,23 @@
 
             </Grid>
         </Button>
+        <Button x:Name="bt_show_world" HorizontalAlignment="Left" Margin="700,55,0,0" VerticalAlignment="Top" Width="88" Click="btn_show_world_Click" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
+            <Button.Background>
+                <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                    <GradientStop Color="Black"/>
+                    <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                </LinearGradientBrush>
+            </Button.Background>
+            <Grid>
+                <TextBlock x:Name="bt_show_textblock3" Text="World stats"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform X="0.5" Y="0.5" />
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+                <TextBlock x:Name="bt_show_textblock4" Text="World stats" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+
+            </Grid>
+        </Button>
         <Button x:Name="bt_chart" Content="Chart" HorizontalAlignment="Left" Margin="800,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Collapsed" Click="bt_chart_Click"/>
         <CheckBox x:Name="cb_add" Content="add" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Visible"  ToolTip="Add additional stats to the graph" Click="add_Click" />
         <CheckBox x:Name="cb_sample" Content="use sample data" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="700,30,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />
@@ -861,7 +878,7 @@
 
         <Grid x:Name="gr_syn" Margin="0,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Hidden">
             <Grid x:Name="gr_syn_btn" Margin="220,20,80,80" Width="300" HorizontalAlignment="Left">
-                
+
             </Grid>
             <WebBrowser x:Name="wb_chart" Margin="415,0,0,0" Visibility="Hidden"></WebBrowser>
         </Grid>
@@ -969,7 +986,7 @@
             </Button.Background>
         </Button>
         <Grid x:Name="gr_images" Margin="50,400,10,117" Height="80" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-            
+
         </Grid>
     </Grid>
 

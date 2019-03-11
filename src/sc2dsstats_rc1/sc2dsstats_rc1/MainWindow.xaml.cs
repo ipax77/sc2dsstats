@@ -40,8 +40,12 @@ namespace sc2dsstats_rc1
         private bool dt_handle = true;
         private bool vs_handle = true;
         private bool scan_running = false;
-        string player_name = "bab";
         public List<dsreplay> replays = new List<dsreplay>();
+
+        public string player_name { get; set; }
+        List<string> player_list { get; set; }
+        public string myReplay_Path { get; set; }
+        public List<string> myReplay_list { get; set; }
         public ObservableCollection<KeyValuePair<string, double>> Items { get; set; }
         public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; }
         public List<KeyValuePair<string, double>> Cdata { get; set; }
@@ -65,7 +69,6 @@ namespace sc2dsstats_rc1
         public string myTemp_dir = null;
         public string myData_dir = null;
         public string myAppData_dir = null;
-        public string myReplay_Path = null;
         public string mySample_csv = null;
         public string myS2cli_exe = null;
         public string myDoc_pdf = null;
@@ -76,6 +79,9 @@ namespace sc2dsstats_rc1
             InitializeComponent();
             dsimg = new dsimage();
             this.DataContext = dsimg;
+
+            player_list = new List<string>();
+            myReplay_list = new List<string>();
 
             Style = (Style)FindResource(typeof(Window));
 
@@ -221,8 +227,8 @@ namespace sc2dsstats_rc1
                     config.AppSettings.Settings.Add("CORES", cpus.ToString());
                 }
             }
-            config.Save();
             ConfigurationManager.RefreshSection("appSettings");
+            config.Save();
 
             if (!File.Exists(myStats_csv))
             {
@@ -253,27 +259,28 @@ namespace sc2dsstats_rc1
                 FirstRun();
             } else
             {
-                if (!Directory.Exists(appSettings["REPLAY_PATH"]))
+                if (appSettings["0.6.0.7"] != null && appSettings["0.6.0.7"] == "1")
                 {
-                    FirstRun();
-                } else
-                {
-                    myReplay_Path = appSettings["REPLAY_PATH"];
+                    FirstRun_Version();
                 }
+                myReplay_Path = appSettings["REPLAY_PATH"];
+                SetReplayList(myReplay_Path);
             }
 
             // xaml
 
 
             player_name = appSettings["PLAYER"];
+            SetPlayerList(player_name);
 
             if (appSettings["STATS_FILE"] != null && appSettings["STATS_FILE"] != "0")
             {
                 myStats_csv = appSettings["STATS_FILE"];
             }
 
-            otf.REPLAY_PATH = appSettings["REPLAY_PATH"];
-            otf.MW = this;
+            // otf.REPLAY_PATH = appSettings["REPLAY_PATH"];
+            //otf.REPLAY_PATH = myReplay_list[0];
+            //otf.MW = this;
 
             SetGUIFilter(null, null);
 
@@ -345,6 +352,95 @@ namespace sc2dsstats_rc1
             win_saveas.Click += new RoutedEventHandler(win_SaveAs_Click);
             win_cm.Items.Add(win_saveas);
             dynChart.ContextMenu = win_cm;
+
+
+
+        }
+
+        public void FirstRun_Version()
+        {
+            var appSettings = ConfigurationManager.AppSettings;
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+            string backup = myStats_csv + "_bak";
+            // Backup
+            if (File.Exists(myStats_csv))
+            {
+
+                try
+                {
+                    System.IO.File.Copy(myStats_csv, backup, true);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message.ToString());
+                }
+            }
+
+            // MessageBox.Show("Version 0.6.0.7: It is now possile to add multiple player names and multiple replay directories.", "sc2dsstats");
+            string info = "Version 0.6.0.7: It is now possile to add multiple player names and multiple replay directories." + Environment.NewLine + Environment.NewLine;
+            if (MessageBox.Show(info + "Do you want to add multiple player names / replay directory now?", "sc2dsstats",  MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.No)
+            {
+                //do no stuff
+            }
+            else
+            {
+                //do yes stuff
+                MessageBox.Show("If you have multiple replay folders please try to keep the order intact. If you already did a workaround you may need to rescan your replays by renaming the + " + myStats_csv + " file. A backup is availabe at " + backup +
+                    " further information can be found at https://github.com/ipax77/sc2dsstats/issues/2", "sc2dsstats");
+                FirstRun();
+            }
+
+            config.AppSettings.Settings.Remove("0.6.0.7");
+            config.AppSettings.Settings.Add("0.6.0.7", "0");
+            ConfigurationManager.RefreshSection("appSettings");
+            config.Save();
+
+        }
+
+        public void SetPlayerList(string pl)
+        {
+            if (pl.Contains(";"))
+            {
+                pl = string.Concat(pl.Where(c => !char.IsWhiteSpace(c)));
+                if (pl.EndsWith(";")) pl = pl.Remove(pl.Length - 1);
+                player_list = new List<string>(pl.Split(';').ToList());
+                player_list.RemoveAll(RemoveEmpty);
+            }
+            else
+            {
+
+                player_list.Add(pl);
+            }
+        }
+
+        public void SetReplayList(string rep)
+        {
+            if (rep.Contains(";"))
+            {
+                if (rep.EndsWith(";")) rep = rep.Remove(myReplay_Path.Length - 1);
+                myReplay_list = new List<string>(rep.Split(';').ToList());
+                myReplay_list.RemoveAll(RemoveEmpty);
+            }
+            else
+            {
+                myReplay_list.Add(rep);
+            }
+
+            foreach (string rep_path in myReplay_list)
+            {
+                if (!Directory.Exists(rep_path))
+                {
+                    MessageBox.Show("We can't find all directorys in your replay_path - please check in File->Options");
+                    FirstRun();
+                    break;
+                }
+            }
+        }
+
+        private static bool RemoveEmpty(String s)
+        {
+            return s=="";
         }
 
         public void FirstRun()
@@ -356,13 +452,23 @@ namespace sc2dsstats_rc1
             bt_filter2.IsEnabled = false;
             dp_menu.IsEnabled = false;
 
+            var appSettings = ConfigurationManager.AppSettings;
+            if (appSettings["PLAYER"] != "0")
+            {
+                fr_InputTextBox.Text = appSettings["PLAYER"];
+            }
+            if (appSettings["REPLAY_PATH"] != "0")
+            {
+                fr_InputTextBox2.Text = appSettings["REPLAY_PATH"] + ";";
+            }
+
             gr_firstrun.Visibility = Visibility.Visible;
 
         }
 
         public void ScanPrep()
         {
-            dsscan scan = new dsscan(myReplay_Path, myStats_csv, this);
+            dsscan scan = new dsscan(myReplay_list, myStats_csv, this);
 
         }
             
@@ -1001,7 +1107,8 @@ namespace sc2dsstats_rc1
                         sum_dps.AddWin(pl, dsrep.GetOpp(pl.POS));
                     }
 
-                    if (pl.NAME == player_name)
+                    //if (pl.NAME == player_name)
+                    if (player_list.Contains(pl.NAME))
                     {
                         sum_pl.AddGame(pl, dsrep.GetOpp(pl.POS));
                         sum_mvp_pl.AddGame(pl, dsrep.GetOpp(pl.POS));
@@ -1016,7 +1123,8 @@ namespace sc2dsstats_rc1
                     }
                 }
 
-                if (mvp.NAME == player_name)
+                //if (mvp.NAME == player_name)
+                if (player_list.Contains(mvp.NAME))
                 {
                     sum_mvp_pl.AddWin(mvp, dsrep.GetOpp(mvp.POS));
                 }
@@ -1803,7 +1911,8 @@ namespace sc2dsstats_rc1
                 if (game.REPLAY == null) game.REPLAY = srep.REPLAY;
                 if (game.GAMETIME == 0) game.GAMETIME = srep.GAMETIME;
 
-                if (String.Equals(srep.NAME, player_name))
+                //if (String.Equals(srep.NAME, player_name))
+                if (player_list.Contains(srep.NAME))
                 {
 
                     game.GAMETIME = srep.GAMETIME;
@@ -1916,7 +2025,8 @@ namespace sc2dsstats_rc1
                 }
                 races.Add(srep.RACE);
 
-                if (String.Equals(srep.NAME, player_name))
+                //if (String.Equals(srep.NAME, player_name))
+                if (player_list.Contains(srep.NAME))
                 {
                     gameplayer.Add(player);
                 }
@@ -2005,7 +2115,7 @@ namespace sc2dsstats_rc1
         {
 
             ///ClearImage();
-            Win_config win3 = new Win_config();
+            Win_config win3 = new Win_config(this);
             win3.Show();
 
         }
@@ -2029,7 +2139,7 @@ namespace sc2dsstats_rc1
             gr_images.Visibility = Visibility.Hidden;
             gr_doit.Visibility = Visibility.Visible;
             var appSettings = ConfigurationManager.AppSettings;
-            dsscan scan = new dsscan(appSettings["REPLAY_PATH"], appSettings["STATS_FILE"], this);
+            dsscan scan = new dsscan(myReplay_list, appSettings["STATS_FILE"], this);
             scan.GetInfo();
 
             doit_TextBox1.Document.Blocks.Clear();
@@ -2342,6 +2452,23 @@ namespace sc2dsstats_rc1
 
         }
 
+        public void btn_show_world_Click(object sender, RoutedEventArgs e)
+        {
+
+            string credential = "This will open a Website with combined charts of over 3k games (You can upload your data too with the menu Export->Upload to make it even more meaningful)" + Environment.NewLine + Environment.NewLine;
+
+            if (MessageBox.Show(credential + "Do you want to open the external link https://www.pax77.org/sc2dsstats?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
+            {
+                //do no stuff
+            }
+            else
+            {
+                //do yes stuff
+                string targetURL = @"https://www.pax77.org/sc2dsstats";
+                System.Diagnostics.Process.Start(targetURL);
+            }
+        }
+
         public static string GetHash(HashAlgorithm hashAlgorithm, string input)
         {
 
@@ -2435,6 +2562,11 @@ namespace sc2dsstats_rc1
 
         private void cb_otf_Click (object sender, RoutedEventArgs e)
         {
+            otf.REPLAY_PATH = myReplay_list[0];
+            otf.MW = this;
+
+            
+
             if (cb_otf.IsChecked == true)
             {
                 otf.Start();
@@ -2665,6 +2797,8 @@ namespace sc2dsstats_rc1
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
             player_name = input;
+            SetPlayerList(input);
+
             // Clear InputBox.
             fr_InputTextBox.Text = String.Empty;
 
@@ -2675,8 +2809,12 @@ namespace sc2dsstats_rc1
             config.AppSettings.Settings.Add("REPLAY_PATH", filename);
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
-
             config.Save();
+
+            myReplay_Path = filename;
+            SetReplayList(filename);
+
+            
             ConfigurationManager.RefreshSection("appSettings");
             MessageBox.Show("Now we are good to go - have fun :) (There are more options available at File->Options)", "sc2dsstats");
 
@@ -2698,14 +2836,14 @@ namespace sc2dsstats_rc1
             Items.Clear();
             if (cb_sample.IsChecked == true)
             {
-                player_name = "player";
+                //player_name = "player";
+                player_list.Add("player");
                 if (File.Exists(mySample_csv)) replays = LoadData(mySample_csv);
                 GetWinrate();
                 UpdateGraph(null);
             } else if (cb_sample.IsChecked == false)
             {
-                var appSettings = ConfigurationManager.AppSettings;
-                player_name = appSettings["PLAYER"];
+                player_list.Remove("player");
                 if (File.Exists(myStats_csv)) replays = LoadData(myStats_csv);
                 GetWinrate();
                 UpdateGraph(null);
@@ -2719,14 +2857,14 @@ namespace sc2dsstats_rc1
             chartwin.Show();
         }
 
-            private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
+        private void ib_BrowseButton_Click(object sender, RoutedEventArgs e)
         {
 
             // Create OpenFileDialog 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
             /// MessageBox.Show("Thank you. Now we need to know where the SC2Replays are - please select one Replay in your folder. Usually it is something like C:\\Users\\<username>\\Documents\\StarCraft II\\Accounts\\107095918\\2-S2-1-226401\\Replays\\Multiplayer");
-            string filename = "unknown";
+            string filename = "";
             // Set filter for file extension and default file extension 
             dlg.DefaultExt = ".SC2Replay";
 
@@ -2743,7 +2881,7 @@ namespace sc2dsstats_rc1
                 filename = Path.GetDirectoryName(filename);
             }
 
-            fr_InputTextBox2.Text = filename;
+            fr_InputTextBox2.Text += filename + ";";
 
         }
 

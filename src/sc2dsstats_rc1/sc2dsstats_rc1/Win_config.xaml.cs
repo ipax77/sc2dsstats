@@ -12,11 +12,18 @@ namespace sc2dsstats_rc1
     /// </summary>
     public partial class Win_config : Window
     {
+        MainWindow MW { get; set; }
+
         public Win_config()
         {
             InitializeComponent();
             RoutedEventArgs e = new RoutedEventArgs();
             Win_config_global_button_Click(this, e);
+        }
+
+        public Win_config(MainWindow mw) : this()
+        {
+            MW = mw;
         }
 
         List<string> myKeys = new List<string>();
@@ -175,6 +182,12 @@ namespace sc2dsstats_rc1
                 }
             }
             ConfigurationManager.RefreshSection("appSettings");
+            config.Save();
+
+            MW.player_name = appSettings["PLAYER"];
+            MW.SetPlayerList(appSettings["PLAYER"]);
+            MW.myReplay_Path = appSettings["REPLAY_PATH"];
+            MW.SetReplayList(appSettings["REPLAY_PATH"]);
 
             MessageBox.Show("Successfuly saved. :)");
         }

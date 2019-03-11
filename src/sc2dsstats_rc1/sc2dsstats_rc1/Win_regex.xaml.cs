@@ -35,6 +35,7 @@ namespace sc2dsstats_rc1
                 { "RACE", 1 }
             };
         public string player_name = "";
+        public List<string> player_list = new List<string>();
         List<myReplay> replays = new List<myReplay>();
         List<cmdr_data> cmdrs = new List<cmdr_data>();
         public List<myGame> games = new List<myGame>();
@@ -50,6 +51,16 @@ namespace sc2dsstats_rc1
             InitializeComponent();
             var appSettings = ConfigurationManager.AppSettings;
             player_name = appSettings["PLAYER"];
+            if (player_name.Contains(";"))
+            {
+                player_name = string.Concat(player_name.Where(c => !char.IsWhiteSpace(c)));
+                if (player_name.EndsWith(";")) player_name = player_name.Remove(player_name.Length - 1);
+                player_list = player_name.Split(';').ToList();
+            }
+            else
+            {
+                player_list.Add(player_name);
+            }
 
             ContextMenu dg_games_cm = new ContextMenu();
             MenuItem win_saveas = new MenuItem();

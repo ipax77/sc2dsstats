@@ -1,4 +1,8 @@
 
+0.6.0.7
+
+- Multiple playername / replay folder support
+
 0.6.0.5
 
 - Upload function added

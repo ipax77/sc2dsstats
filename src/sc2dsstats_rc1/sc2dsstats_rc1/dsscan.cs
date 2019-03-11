@@ -14,6 +14,7 @@ namespace sc2dsstats_rc1
     class dsscan
     {
         public string REPLAY_PATH { get; set; }
+        public List<string> REPLAY_LIST { get; set; }
         public string STATS_FILE { get; set; }
         public MainWindow MW { get; set; }
         public int NEWREP { get; set; }
@@ -31,10 +32,17 @@ namespace sc2dsstats_rc1
         public dsscan(string replay_path, string stats_file, MainWindow mw)
         {
             REPLAY_PATH = replay_path;
+            REPLAY_LIST = new List<string>();
+            REPLAY_LIST.Add(REPLAY_PATH);
             STATS_FILE = stats_file;
             MW = mw;
         }
-
+        public dsscan(List<string> replay_list, string stats_file, MainWindow mw)
+        {
+            REPLAY_LIST = new List<string>(replay_list);
+            STATS_FILE = stats_file;
+            MW = mw;
+        }
 
         public void Scan()
         {
@@ -121,38 +129,49 @@ namespace sc2dsstats_rc1
                 {
                 }
             }
-
-            if (Directory.Exists(REPLAY_PATH))
+            int rep_count = 0;
+            foreach (string rep_path in REPLAY_LIST)
             {
-                string[] replays = Directory.GetFiles(REPLAY_PATH);
-                foreach (string fileName in replays)
+                //if (Directory.Exists(REPLAY_PATH))
+                if (Directory.Exists(rep_path))
                 {
-                    ///string rx_id = @"(Direct Strike.*)\.SC2Replay$|(Desert Strike.*)\.SC2Replay$";
-                    string rx_id = @"(Direct Strike.*)\.SC2Replay";
-                    string rx_id2 = @"(Desert Strike.*)\.SC2Replay";
-
-                    Match m = Regex.Match(fileName, rx_id, RegexOptions.IgnoreCase);
-                    Match m2 = Regex.Match(fileName, rx_id2, RegexOptions.IgnoreCase);
-                    if (m.Success)
+                    string[] replays = Directory.GetFiles(rep_path);
+                    foreach (string fileName in replays)
                     {
-                        i++;
-                        if (!dsreplays.ContainsKey(m.Value))
+                        ///string rx_id = @"(Direct Strike.*)\.SC2Replay$|(Desert Strike.*)\.SC2Replay$";
+                        string rx_id = @"(Direct Strike.*)\.SC2Replay";
+                        string rx_id2 = @"(Desert Strike.*)\.SC2Replay";
+
+                        Match m = Regex.Match(fileName, rx_id, RegexOptions.IgnoreCase);
+                        Match m2 = Regex.Match(fileName, rx_id2, RegexOptions.IgnoreCase);
+                        if (m.Success)
                         {
-                            if (!dsskip.ContainsKey(m.Value))
-                                newrep++;
-                        }
-                    
+                            i++;
+                            string id = m.Value;
+                            if (rep_count > 0) id += "_" + rep_count.ToString();
+                            
+                            if (!dsreplays.ContainsKey(id))
+                            {
+                                if (!dsskip.ContainsKey(id))
+                                    newrep++;
+                            }
 
-                        
-                    }
-                    if (m2.Success)
-                    {
-                        i++;
-                        if (!dsreplays.ContainsKey(m2.Value))
-                            if (!dsskip.ContainsKey(m2.Value))
-                                newrep++;
+
+
+                        }
+                        if (m2.Success)
+                        {
+                            i++;
+                            string id = m2.Value;
+                            if (rep_count > 0) id += "_" + rep_count.ToString();
+
+                            if (!dsreplays.ContainsKey(id))
+                                if (!dsskip.ContainsKey(id))
+                                    newrep++;
+                        }
                     }
                 }
+                rep_count++;
             }
             TOTAL = i;
             NEWREP = newrep;

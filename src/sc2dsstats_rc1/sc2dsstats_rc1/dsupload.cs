@@ -26,7 +26,18 @@ namespace sc2dsstats_rc1
         {
             List<string> anonymous = new List<string>();
             var appSettings = ConfigurationManager.AppSettings;
-
+            string player_name = appSettings["PLAYER"];
+            List<string> player_list = new List<string>();
+            if (player_name.Contains(";"))
+            {
+                player_name = string.Concat(player_name.Where(c => !char.IsWhiteSpace(c)));
+                if (player_name.EndsWith(";")) player_name = player_name.Remove(player_name.Length - 1);
+                player_list = player_name.Split(';').ToList();
+            }
+            else
+            {
+                player_list.Add(player_name);
+            }
 
 
             if (File.Exists(csv))
@@ -52,7 +63,8 @@ namespace sc2dsstats_rc1
                             else if (m.Groups[11].ToString() == "5") player = "player5";
                             else if (m.Groups[11].ToString() == "6") player = "player6";
 
-                            if (m.Groups[3].ToString() == appSettings["PLAYER"]) player = "player";
+                            //if (m.Groups[3].ToString() == appSettings["PLAYER"]) player = "player";
+                            if (player_list.Contains(m.Groups[3].ToString())) player = "player";
 
                             string newline = "";
                             for (int i = 1; i < m.Groups.Count; i++)
