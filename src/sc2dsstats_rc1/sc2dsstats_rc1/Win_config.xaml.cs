@@ -135,6 +135,21 @@ namespace sc2dsstats_rc1
 
                 });
             }
+
+            configs.Add(new myConfig() {
+                key = "PLAYER",
+                value = Properties.Settings.Default.PLAYER,
+                info = "# Starcraft 2 Player name (without Clan tags). You can add multiple username semicolon (;) separated."
+            });
+
+            configs.Add(new myConfig()
+            {
+                key = "REPLAY_PATH",
+                value = Properties.Settings.Default.REPLAY_PATH,
+                info = "# Path where all the replays are located. You can add multiple folder semicolon (;) separated. Keep the order intact!"
+            });
+
+
             return configs;
         }
 
@@ -152,14 +167,24 @@ namespace sc2dsstats_rc1
 
                 string row = "bab";
                 row = win3_dataGrid.SelectedItems[i].ToString();
+                if (string.Equals("{NewItemPlaceholder}", row)) continue;
+
+                myConfig myCfg = (myConfig)win3_dataGrid.SelectedItems[i];
+
                 if (string.Equals("{NewItemPlaceholder}", row))
                 {
 
+                } else if (myCfg.key.ToString() == "PLAYER")
+                {
+                    Properties.Settings.Default.PLAYER = myCfg.value.ToString();
+                } else if (myCfg.key.ToString() == "REPLAY_PATH")
+                {
+                    Properties.Settings.Default.REPLAY_PATH = myCfg.value.ToString();
                 }
                 else
                 {
 
-                    myConfig myCfg = (myConfig)win3_dataGrid.SelectedItems[i];
+                    //myConfig myCfg = (myConfig)win3_dataGrid.SelectedItems[i];
 
                     sb.Append(myCfg.key.ToString());
                     sb.Append(" => ");
@@ -183,13 +208,14 @@ namespace sc2dsstats_rc1
             }
             ConfigurationManager.RefreshSection("appSettings");
             config.Save();
+            Properties.Settings.Default.Save();
 
-            MW.player_name = appSettings["PLAYER"];
-            MW.SetPlayerList(appSettings["PLAYER"]);
-            MW.myReplay_Path = appSettings["REPLAY_PATH"];
-            MW.SetReplayList(appSettings["REPLAY_PATH"]);
+            MW.player_name = Properties.Settings.Default.PLAYER;
+            MW.SetPlayerList(Properties.Settings.Default.PLAYER);
+            MW.myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
+            MW.SetReplayList(Properties.Settings.Default.REPLAY_PATH);
 
-            MessageBox.Show("Successfuly saved. :)");
+            MessageBox.Show("Successfuly saved. :)", "sc2dsstats");
         }
     }
 }

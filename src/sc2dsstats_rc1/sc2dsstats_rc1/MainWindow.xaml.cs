@@ -254,6 +254,7 @@ namespace sc2dsstats_rc1
             }
             cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[0];
 
+            /**
             if (appSettings["REPLAY_PATH"] == null || appSettings["REPLAY_PATH"] == "0" || appSettings["REPLAY_PATH"] == "")
             {
                 FirstRun();
@@ -266,12 +267,29 @@ namespace sc2dsstats_rc1
                 myReplay_Path = appSettings["REPLAY_PATH"];
                 SetReplayList(myReplay_Path);
             }
+            **/
+
+            if (Properties.Settings.Default.REPLAY_PATH == "0")
+            {
+                FirstRun();
+            } else
+            {
+                if (appSettings["0.6.0.7"] != null && appSettings["0.6.0.7"] == "1")
+                {
+                    FirstRun_Version();
+                }
+                myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
+                SetReplayList(myReplay_Path);
+            }
+
+            //player_name = appSettings["PLAYER"];
+            player_name = Properties.Settings.Default.PLAYER;
+            SetPlayerList(player_name);
 
             // xaml
 
 
-            player_name = appSettings["PLAYER"];
-            SetPlayerList(player_name);
+
 
             if (appSettings["STATS_FILE"] != null && appSettings["STATS_FILE"] != "0")
             {
@@ -426,7 +444,7 @@ namespace sc2dsstats_rc1
             {
                 myReplay_list.Add(rep);
             }
-
+            
             foreach (string rep_path in myReplay_list)
             {
                 if (!Directory.Exists(rep_path))
@@ -453,13 +471,13 @@ namespace sc2dsstats_rc1
             dp_menu.IsEnabled = false;
 
             var appSettings = ConfigurationManager.AppSettings;
-            if (appSettings["PLAYER"] != "0")
+            if (Properties.Settings.Default.PLAYER != "0")
             {
-                fr_InputTextBox.Text = appSettings["PLAYER"];
+                fr_InputTextBox.Text = Properties.Settings.Default.PLAYER;
             }
-            if (appSettings["REPLAY_PATH"] != "0")
+            if (Properties.Settings.Default.REPLAY_PATH != "0")
             {
-                fr_InputTextBox2.Text = appSettings["REPLAY_PATH"] + ";";
+                fr_InputTextBox2.Text = Properties.Settings.Default.REPLAY_PATH + ";";
             }
 
             gr_firstrun.Visibility = Visibility.Visible;
@@ -2236,9 +2254,9 @@ namespace sc2dsstats_rc1
                 string ExecutableFilePath = myScan_exe;
                 string Arguments = @"--priority=" + "NORMAL" + " "
                                     + "--cores=" + cores.ToString() + " "
-                                    + "--player=\"" + appSettings["PLAYER"] + "\" "
+                                    + "--player=\"" + Properties.Settings.Default.PLAYER + "\" "
                                     + "--stats_file=\"" + myStats_csv + "\" "
-                                    + "--replay_path=\"" + appSettings["REPLAY_PATH"] + "\" "
+                                    + "--replay_path=\"" + Properties.Settings.Default.REPLAY_PATH + "\" "
                                     + "--DEBUG=" + appSettings["DEBUG"] + " "
                                     + "--keep=" + appSettings["KEEP"] + " "
                                     + "--store_path=\"" + appSettings["STORE_PATH"] + "\" "
@@ -2791,31 +2809,21 @@ namespace sc2dsstats_rc1
 
             // Do something with the Input
             String input = fr_InputTextBox.Text;
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings.Remove("PLAYER");
-            config.AppSettings.Settings.Add("PLAYER", input);
-            config.Save();
-            ConfigurationManager.RefreshSection("appSettings");
             player_name = input;
             SetPlayerList(input);
+            Properties.Settings.Default.PLAYER = input;
 
             // Clear InputBox.
             fr_InputTextBox.Text = String.Empty;
 
             string filename = fr_InputTextBox2.Text;
 
-
-            config.AppSettings.Settings.Remove("REPLAY_PATH");
-            config.AppSettings.Settings.Add("REPLAY_PATH", filename);
-            config.Save();
-            ConfigurationManager.RefreshSection("appSettings");
-            config.Save();
-
             myReplay_Path = filename;
             SetReplayList(filename);
+            Properties.Settings.Default.REPLAY_PATH = filename;
 
-            
-            ConfigurationManager.RefreshSection("appSettings");
+            Properties.Settings.Default.Save();
+
             MessageBox.Show("Now we are good to go - have fun :) (There are more options available at File->Options)", "sc2dsstats");
 
             gr_filter1.Visibility = System.Windows.Visibility.Visible;

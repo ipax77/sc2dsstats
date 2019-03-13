@@ -142,9 +142,9 @@ namespace sc2dsstats_rc1
                     string ExecutableFilePath = MW.myScan_exe;
                     string Arguments = @"--priority=" + "NORMAL" + " "
                                         + "--cores=" + cores.ToString() + " "
-                                        + "--player=\"" + appSettings["PLAYER"] + "\" "
+                                        + "--player=\"" + Properties.Settings.Default.PLAYER + "\" "
                                         + "--stats_file=\"" + MW.myStats_csv + "\" "
-                                        + "--replay_path=\"" + appSettings["REPLAY_PATH"] + "\" "
+                                        + "--replay_path=\"" + Properties.Settings.Default.REPLAY_PATH + "\" "
                                         + "--DEBUG=" + appSettings["DEBUG"] + " "
                                         + "--keep=" + appSettings["KEEP"] + " "
                                         + "--store_path=\"" + appSettings["STORE_PATH"] + "\" "

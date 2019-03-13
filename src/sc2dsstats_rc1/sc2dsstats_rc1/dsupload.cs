@@ -26,7 +26,7 @@ namespace sc2dsstats_rc1
         {
             List<string> anonymous = new List<string>();
             var appSettings = ConfigurationManager.AppSettings;
-            string player_name = appSettings["PLAYER"];
+            string player_name = Properties.Settings.Default.PLAYER;
             List<string> player_list = new List<string>();
             if (player_name.Contains(";"))
             {
@@ -63,7 +63,7 @@ namespace sc2dsstats_rc1
                             else if (m.Groups[11].ToString() == "5") player = "player5";
                             else if (m.Groups[11].ToString() == "6") player = "player6";
 
-                            //if (m.Groups[3].ToString() == appSettings["PLAYER"]) player = "player";
+                            //if (m.Groups[3].ToString() == Properties.Settings.Default.PLAYER) player = "player";
                             if (player_list.Contains(m.Groups[3].ToString())) player = "player";
 
                             string newline = "";

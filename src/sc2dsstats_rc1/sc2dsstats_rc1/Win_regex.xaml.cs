@@ -50,7 +50,7 @@ namespace sc2dsstats_rc1
         {
             InitializeComponent();
             var appSettings = ConfigurationManager.AppSettings;
-            player_name = appSettings["PLAYER"];
+            player_name = Properties.Settings.Default.PLAYER;
             if (player_name.Contains(";"))
             {
                 player_name = string.Concat(player_name.Where(c => !char.IsWhiteSpace(c)));

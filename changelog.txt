@@ -1,4 +1,9 @@
 
+0.6.0.8
+
+- Added local config for PLAYER and REPLAY_PATH
+- Scan preview fix
+
 0.6.0.7
 
 - Multiple playername / replay folder support

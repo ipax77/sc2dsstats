@@ -88,7 +88,7 @@ namespace sc2dsstats_rc1
                     {
                         foreach (Match m in Regex.Matches(line, pattern))
                         {
-                            string value1 = m.Groups[2].ToString() + ".SC2Replay";
+                            string value1 = m.Groups[2].ToString();
                             if (dsreplays.ContainsKey(value1))
                             {
 
@@ -120,7 +120,8 @@ namespace sc2dsstats_rc1
                     {
 
                         if (line == "") continue;
-                        dsskip.Add(line + ".SC2Replay", 1);
+                        //dsskip.Add(line + ".SC2Replay", 1);
+                        dsskip.Add(line, 1);
                     }
 
                     file.Close();
@@ -139,17 +140,19 @@ namespace sc2dsstats_rc1
                     foreach (string fileName in replays)
                     {
                         ///string rx_id = @"(Direct Strike.*)\.SC2Replay$|(Desert Strike.*)\.SC2Replay$";
-                        string rx_id = @"(Direct Strike.*)\.SC2Replay";
-                        string rx_id2 = @"(Desert Strike.*)\.SC2Replay";
+                        string rx_id = @"(Direct Strike.*)\.SC2Replay|(Desert Strike.*)\.SC2Replay";
+                        //string rx_id2 = @"(Desert Strike.*)\.SC2Replay";
 
-                        Match m = Regex.Match(fileName, rx_id, RegexOptions.IgnoreCase);
-                        Match m2 = Regex.Match(fileName, rx_id2, RegexOptions.IgnoreCase);
-                        if (m.Success)
+                        //Match m = Regex.Match(fileName, rx_id, RegexOptions.IgnoreCase);
+                        //Match m2 = Regex.Match(fileName, rx_id2, RegexOptions.IgnoreCase);
+
+                        foreach (Match m in Regex.Matches(fileName, rx_id))
                         {
+
                             i++;
-                            string id = m.Value;
+                            string id = m.Groups[1].ToString();
                             if (rep_count > 0) id += "_" + rep_count.ToString();
-                            
+
                             if (!dsreplays.ContainsKey(id))
                             {
                                 if (!dsskip.ContainsKey(id))
@@ -158,16 +161,19 @@ namespace sc2dsstats_rc1
 
 
 
-                        }
-                        if (m2.Success)
-                        {
-                            i++;
-                            string id = m2.Value;
-                            if (rep_count > 0) id += "_" + rep_count.ToString();
 
-                            if (!dsreplays.ContainsKey(id))
-                                if (!dsskip.ContainsKey(id))
-                                    newrep++;
+                            /**
+                            if (m2.Success)
+                            {
+                                i++;
+                                string id = m2.Value;
+                                if (rep_count > 0) id += "_" + rep_count.ToString();
+
+                                if (!dsreplays.ContainsKey(id))
+                                    if (!dsskip.ContainsKey(id))
+                                        newrep++;
+                            }
+                            **/
                         }
                     }
                 }

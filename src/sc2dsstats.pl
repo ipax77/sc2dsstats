@@ -117,6 +117,35 @@ GetOptions (
 #$csv = "C:/temp/stats.csv";
 #$s2_cli = "D:/github/sc2dsstats_debug/scripts/s2_cli.exe";
 #$DEBUG = 2;
+my @player;
+my %player;
+if ($player =~ /;/) {
+	$player =~ s/\s+//g;
+	if ($player =~ /(.*);$/) {
+		$player = $1;
+	}
+	@player = split(/;/, $player);
+} else {
+	push(@player, $player);
+}
+foreach (@player) {
+	$player{$_} = 1 if $_;
+}
+
+my @replay_path;
+my %replay_path;
+if ($replay_path =~ /;/) {
+	if ($replay_path =~ /(.*);$/) {
+		$replay_path = $1;
+	}
+	@replay_path = split(/;/, $replay_path);
+} else {
+	push(@replay_path, $replay_path);
+}
+foreach (@replay_path) {
+	$replay_path{$_} = 1 if $_;
+}
+
 
 open(LOG, ">", $logfile) or die $!;
 &Log("Reading in Config file ..", 1);
@@ -162,63 +191,74 @@ close(TEMP);
 
 my $todo_replays = 0;
 my @replays;
-opendir(REP, $replay_path) or &Error("Could not read dir $replay_path: $!");
-while (my $p = readdir(REP)) {
-	next if $p =~ /^\./;
-	if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
-
-			my $id = $p;
-			if ($p =~ /(.*)\.SC2Replay/) {
-				$id = $1;	
-			}
+my $i = 0; 
+foreach my $rep (@replay_path) {
+	
+	opendir(REP, $rep) or &Error("Could not read dir $rep: $!");
+	while (my $p = readdir(REP)) {
+		next if $p =~ /^\./;
+		if ($p =~ /^Direct Strike/ || $p =~ /^Desert Strike/) {
+	
+				my $id = $p;
+				if ($p =~ /(.*)\.SC2Replay/) {
+					$id = $1;	
+					$id .= "_" . $i if $i > 0;
+				}
+				
+				if (defined $skip{$id}) {
+					next;	
+				}
+				
+				my $replay = $rep . "/" . $p;
+				next if defined $sum{$id};
+	
+				my $gametime;
+				# startdate
+				if (defined $start_date && $start_date) {
+					$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );
+					if ($gametime < $start_date) { 
+						&Log("(Info) Skipping $p due to START_DATE", 2);
+						next;
+					}
+	        	} 
+	        	
+	        	# enddate
+				if (defined $end_date && $end_date) {
+					$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );
+					if ($gametime > $end_date) { 
+						&Log("(Info) Skipping $p due to END_DATE", 2);
+						next;
+					}
+	        	} 
+	        	
+	        	# beta
+				if (defined $skip_beta && $skip_beta) {
+					if ($p =~ /Beta/) { 
+						&Log("(Info) Skipping $p due to BETA", 2);
+						next;
+					}
+	        	}
+	        	
+	        	# hots
+				if (defined $skip_hots && $skip_hots) {
+					if ($p =~ /HotS/) { 
+						&Log("(Info) Skipping $p due to HOTS", 2);
+						next;
+					}
+	        	}
+	        if ($i > 0) {
+	        	$p .= "sc2dsstats_" . $i;
+	        } 
+	        push(@replays, $p);
+	        
+			$todo_replays ++;
 			
-			if (defined $skip{$id}) {
-				next;	
-			}
-			
-			my $replay = $replay_path . "/" . $p;
-			next if defined $sum{$id};
-
-			my $gametime;
-			# startdate
-			if (defined $start_date && $start_date) {
-				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );
-				if ($gametime < $start_date) { 
-					&Log("(Info) Skipping $p due to START_DATE", 2);
-					next;
-				}
-        	} 
-        	
-        	# enddate
-			if (defined $end_date && $end_date) {
-				$gametime=POSIX::strftime( "%Y%m%d%H%M%S", localtime(( stat $replay )[9] ) );
-				if ($gametime > $end_date) { 
-					&Log("(Info) Skipping $p due to END_DATE", 2);
-					next;
-				}
-        	} 
-        	
-        	# beta
-			if (defined $skip_beta && $skip_beta) {
-				if ($p =~ /Beta/) { 
-					&Log("(Info) Skipping $p due to BETA", 2);
-					next;
-				}
-        	}
-        	
-        	# hots
-			if (defined $skip_hots && $skip_hots) {
-				if ($p =~ /HotS/) { 
-					&Log("(Info) Skipping $p due to HOTS", 2);
-					next;
-				}
-        	} 
-        push(@replays, $p);
-		$todo_replays ++;
-	}
-}	
-closedir(REP);
-
+		}
+		
+	}	
+	closedir(REP);
+	$i++;
+}
 &Log("We found $todo_replays new replays", 1);
 
 my $done_replays = 1;
@@ -272,14 +312,25 @@ sub Games {
 sub doReplay {
 	my $p = shift;
 		my $id = $p;
+		
+		my $rep_count = 0;
+		if ($p =~ /(.*)sc2dsstats_(\d+)/) {
+			$p = $1;
+			$rep_count = $2;
+		}
+		
 		if ($p =~ /(.*)\.SC2Replay/) {
-			$id = $1;	
+			$id = $1;
+			if ($rep_count) {
+				$id .= "_" . $rep_count;
+			}				
 		}
 		
 		next if defined $sum{$id};
 		
-		my $replay = $replay_path . "/" . $p;
-		my $info_path = &Info($replay);
+		#my $replay = $replay_path . "/" . $p;
+		my $replay = $replay_path[$rep_count] . "/" . $p;
+		my $info_path = &Info($replay, $id);
 		
 		# Extracting data from the decoded Replays
 		#		
@@ -465,7 +516,7 @@ sub GetData {
 				
 			&Log("(GetData) Working on $stat_file ..", 2);	
 		
-	        if ($stat_file =~ /SC2Replay_details\.txt$/) {
+	        if ($stat_file =~ /_details\.txt$/) {
 	                
 	                
 	                $player_count = 0;
@@ -493,7 +544,8 @@ sub GetData {
 		                                }
 		                                
 										
-										if ($name eq $player) {
+										#if ($name eq $player) {
+										if (exists $player{$name}) {
 											$skipmsg->{$id}{'PLAYER'} = $player_count;
 										}
 		                        }
@@ -560,8 +612,8 @@ sub GetData {
 	                        	}	
 	                       }
 	        			}
-		        			
 		                close(ST);
+		                
 		        } elsif ($stat_file =~ /_trackerevents\.txt$/) {
 		                
 		                my $playerid;
@@ -775,12 +827,14 @@ sub GetData {
 
 sub Info {
         my $rep = shift;
+        my $id = shift;
         if ($rep =~ /SC2Replay$/) {
 
-			my $id = File::Basename::basename($rep);
-			if ($id =~ /(.*)\.SC2Replay$/) {
-				$id = $1;	
-			}
+			#my $id = File::Basename::basename($rep);
+			#if ($id =~ /(.*)\.SC2Replay$/) {
+			#	$id = $1;	
+			#}
+			
 			my $gametime;
 			
 			# startdate
@@ -821,7 +875,8 @@ sub Info {
 			   
 			foreach my $get (@getpool) {
 
-	        	my $store_file = $store_path . "/" . basename($rep) . "_" . $get . ".txt";
+	        	#my $store_file = $store_path . "/" . basename($rep) . "_" . $get . ".txt";
+	        	my $store_file = $store_path . "/" . $id . "_" . $get . ".txt";
 	           	my $temp_file = $store_file . "_temp";
 
 				if (-e $store_file) {
@@ -843,7 +898,8 @@ sub Info {
 				}
 	        }
         }
-        my $ret = $store_path . "/" . basename($rep) . "_";
+        #my $ret = $store_path . "/" . basename($rep) . "_";
+        my $ret = $store_path . "/" . $id . "_";
         return $ret;
 }
 
@@ -929,3 +985,4 @@ sub ReadCSV {
 	}
 	
 }
+
