@@ -13,6 +13,7 @@ namespace sc2dsstats_rc1
     class dsdbfilter
     {
         public Win_regex WR { get; set; }
+        public MainWindow MW { get; set; }
         public string[] RACES { get; set; }
 
         public dsdbfilter()
@@ -41,23 +42,24 @@ namespace sc2dsstats_rc1
             };
         }
 
-        public dsdbfilter(Win_regex wr) : this()
+        public dsdbfilter(Win_regex wr, MainWindow mw) : this()
         {
             WR = wr;
+            MW = mw;
         }
 
-        public List<myGame> Filter()
+        public List<dsreplay> Filter()
         {
-            List<myGame> fil_games = new List<myGame>();
+            List<dsreplay> fil_games = new List<dsreplay>();
 
             string race = WR.tb_filter.Text;
-            fil_games = WR.games.Where(x => x.RACES.Contains(race)).ToList();
+            fil_games = MW.replays.Where(x => x.RACES.Contains(race)).ToList();
             return fil_games;
         }
 
-        public List<myGame> OTF_Filter()
+        public List<dsreplay> OTF_Filter()
         {
-            List<myGame> fil_games = new List<myGame>();
+            List<dsreplay> fil_games = new List<dsreplay>();
             string prace = WR.tb_filter.Text;
             string race = "";
             WR.lb_filter.Content = "Filter: ";
@@ -73,7 +75,7 @@ namespace sc2dsstats_rc1
                 }
                 if (race != "")
                 {
-                    fil_games = WR.games.Where(x => x.RACES.Contains(race)).ToList();
+                    fil_games = MW.replays.Where(x => x.RACES.Contains(race)).ToList();
                     WR.lb_filter.Content += "Race => " + race + " (" + fil_games.Count() + ") ";
 
 
@@ -92,12 +94,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.DURATION >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.DURATION >= num).ToList();
                     WR.lb_filter.Content += "Duration => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.DURATION <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.DURATION <= num).ToList();
                     WR.lb_filter.Content += "Duration => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -107,7 +109,7 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.DURATION == num).ToList();
+                    fil_games = MW.replays.Where(x => x.DURATION == num).ToList();
                     WR.lb_filter.Content += "Duration => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -124,12 +126,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.ID >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.ID >= num).ToList();
                     WR.lb_filter.Content += "ID => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.ID <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.ID <= num).ToList();
                     WR.lb_filter.Content += "ID => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -139,7 +141,7 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.ID == num).ToList();
+                    fil_games = MW.replays.Where(x => x.ID == num).ToList();
                     WR.lb_filter.Content += "ID => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -156,18 +158,18 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.GAMETIME >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.GAMETIME >= num).ToList();
                     WR.lb_filter.Content += "GAMETIME => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.GAMETIME <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.GAMETIME <= num).ToList();
                     WR.lb_filter.Content += "GAMETIME => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
                 {
                     string repregex = Regex.Escape(WR.tb_filter.Text).Replace("\\?", ".").Replace("\\*", ".*");
-                    fil_games = WR.games.Where(x => Regex.IsMatch(x.GAMETIME.ToString(), repregex)).ToList();
+                    fil_games = MW.replays.Where(x => Regex.IsMatch(x.GAMETIME.ToString(), repregex)).ToList();
                     WR.lb_filter.Content += "GAMETIME => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -184,12 +186,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.MAXLEAVER >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MAXLEAVER >= num).ToList();
                     WR.lb_filter.Content += "MAXLEAVER => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.MAXLEAVER <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MAXLEAVER <= num).ToList();
                     WR.lb_filter.Content += "MAXLEAVER => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -199,7 +201,7 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.MAXLEAVER == num).ToList();
+                    fil_games = MW.replays.Where(x => x.MAXLEAVER == num).ToList();
                     WR.lb_filter.Content += "MAXLEAVER => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -216,12 +218,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.MINKILLSUM >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MINKILLSUM >= num).ToList();
                     WR.lb_filter.Content += "MINKILLSUM => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.MINKILLSUM <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MINKILLSUM <= num).ToList();
                     WR.lb_filter.Content += "MINKILLSUM => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -231,7 +233,7 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.MINKILLSUM == num).ToList();
+                    fil_games = MW.replays.Where(x => x.MINKILLSUM == num).ToList();
                     WR.lb_filter.Content += "MINKILLSUM => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -248,12 +250,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.MININCOME >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MININCOME >= num).ToList();
                     WR.lb_filter.Content += "MININCOME => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.MININCOME <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MININCOME <= num).ToList();
                     WR.lb_filter.Content += "MININCOME => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -263,7 +265,7 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.MININCOME == num).ToList();
+                    fil_games = MW.replays.Where(x => x.MININCOME == num).ToList();
                     WR.lb_filter.Content += "MININCOME => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -280,12 +282,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.MINARMY >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MINARMY >= num).ToList();
                     WR.lb_filter.Content += "MINARMY => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.MINARMY <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.MINARMY <= num).ToList();
                     WR.lb_filter.Content += "MINARMY => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -295,7 +297,7 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.MINARMY == num).ToList();
+                    fil_games = MW.replays.Where(x => x.MINARMY == num).ToList();
                     WR.lb_filter.Content += "MINARMY => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
@@ -312,12 +314,12 @@ namespace sc2dsstats_rc1
 
                 if (mod == ">")
                 {
-                    fil_games = WR.games.Where(x => x.WINNER >= num).ToList();
+                    fil_games = MW.replays.Where(x => x.WINNER >= num).ToList();
                     WR.lb_filter.Content += "WINNER => >" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else if (mod == "<")
                 {
-                    fil_games = WR.games.Where(x => x.WINNER <= num).ToList();
+                    fil_games = MW.replays.Where(x => x.WINNER <= num).ToList();
                     WR.lb_filter.Content += "WINNER => <" + snum + " (" + fil_games.Count() + ") ";
                 }
                 else
@@ -327,14 +329,14 @@ namespace sc2dsstats_rc1
                         num = double.Parse(WR.tb_filter.Text);
                     }
                     catch { }
-                    fil_games = WR.games.Where(x => x.WINNER == num).ToList();
+                    fil_games = MW.replays.Where(x => x.WINNER == num).ToList();
                     WR.lb_filter.Content += "WINNER => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
                 }
             }
             else if (WR.cb_filter.SelectedItem.ToString() == "REPLAY")
             {
                 string repregex = Regex.Escape(WR.tb_filter.Text).Replace("\\?", ".").Replace("\\*", ".*");
-                fil_games = WR.games.Where(x => Regex.IsMatch(x.REPLAY, repregex)).ToList();
+                fil_games = MW.replays.Where(x => Regex.IsMatch(x.REPLAY, repregex)).ToList();
                 WR.lb_filter.Content += "REPLAY => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
             }
 

@@ -37,7 +37,7 @@
     <SuiteName>sc2dsstats</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>8</ApplicationRevision>
+    <ApplicationRevision>9</ApplicationRevision>
     <ApplicationVersion>0.6.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -137,6 +137,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="dsmmclient.cs" />
     <Compile Include="dsdbfilter.cs" />
     <Compile Include="dsimage.cs" />
     <Compile Include="dsotf.cs" />
@@ -152,6 +153,15 @@
     </Compile>
     <Compile Include="Win_log.xaml.cs">
       <DependentUpon>Win_log.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Win_mm.xaml.cs">
+      <DependentUpon>Win_mm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Win_mmselect.xaml.cs">
+      <DependentUpon>Win_mmselect.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Win_norep.xaml.cs">
+      <DependentUpon>Win_norep.xaml</DependentUpon>
     </Compile>
     <Compile Include="Win_popup.xaml.cs">
       <DependentUpon>Win_popup.xaml</DependentUpon>
@@ -183,6 +193,18 @@
     <Page Include="Win_log.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Win_mm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Win_mmselect.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Win_norep.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Win_popup.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -253,6 +275,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="images\dummy.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="audio\ready.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="s2_cli.exe">
@@ -353,6 +378,7 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

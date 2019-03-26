@@ -155,6 +155,9 @@ namespace sc2dsstats_rc1
                 // If a host has multiple addresses, you will get a list of addresses  
                 IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
                 IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
+
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 // Create a TCP/IP  socket.    

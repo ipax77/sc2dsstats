@@ -46,5 +46,28 @@ namespace sc2dsstats_rc1.Properties {
                 this["REPLAY_PATH"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool MM_CREDENTIAL {
+            get {
+                return ((bool)(this["MM_CREDENTIAL"]));
+            }
+            set {
+                this["MM_CREDENTIAL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.DateTime MM_Deleted {
+            get {
+                return ((global::System.DateTime)(this["MM_Deleted"]));
+            }
+            set {
+                this["MM_Deleted"] = value;
+            }
+        }
     }
 }

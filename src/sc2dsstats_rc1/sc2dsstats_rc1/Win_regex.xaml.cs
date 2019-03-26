@@ -41,7 +41,7 @@ namespace sc2dsstats_rc1
         public List<myGame> games = new List<myGame>();
         List<gamePlayer> players = new List<gamePlayer>();
         dsdbfilter dbfil = null;
-        List<myGame> fil_games = new List<myGame>();
+        List<dsreplay> fil_games = new List<dsreplay>();
         public ObservableCollection<string> DSDBITEMS { get; set; }
         public string DSDBTEXT { get; set; }
 
@@ -70,7 +70,7 @@ namespace sc2dsstats_rc1
             dg_games.ContextMenu = dg_games_cm;
             dg_games.SelectionChanged += new System.Windows.Controls.SelectionChangedEventHandler(dg_games_DClick);
 
-            dbfil = new dsdbfilter(this);
+            dbfil = new dsdbfilter(this, mw);
 
             tb_filter.KeyUp += new System.Windows.Input.KeyEventHandler(tb_filter_KeyDown);
 
@@ -606,8 +606,10 @@ namespace sc2dsstats_rc1
             dg_win_regex.ItemsSource = LoadCollectionData();
             **/
             games.Clear();
-            LoadCollectionData();
-            dg_games.ItemsSource = games;
+            //LoadCollectionData();
+            mw.LoadData(mw.myStats_csv);
+            //dg_games.ItemsSource = games;
+            dg_games.ItemsSource = mw.replays;
             lb_filter.Content = "Games: " + games.Count();
 
             ///Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ProcessRows));
@@ -642,14 +644,15 @@ namespace sc2dsstats_rc1
 
         private void dg_games_DClick(object sender, RoutedEventArgs e)
         {
-            List<gamePlayer> temp = new List<gamePlayer>();
-            gamePlayer pltemp = new gamePlayer();
+            List<dsplayer> temp = new List<dsplayer>();
+            dsplayer pltemp = new dsplayer();
             foreach (var dataItem in dg_games.SelectedItems)
             {
-                myGame game = dataItem as myGame;
+                //myGame game = dataItem as myGame;
+                dsreplay game = dataItem as dsreplay;
                 pltemp.RACE = game.REPLAY;
                 temp.Add(pltemp);
-                foreach (gamePlayer pl in game.PLAYERS)
+                foreach (dsplayer pl in game.PLAYERS)
                 {
                     temp.Add(pl);
                 }
@@ -659,7 +662,7 @@ namespace sc2dsstats_rc1
             if (temp.Count > 300)
             {
                 pltemp.RACE = "Visibility ilmit is 300. Sorry.";
-                List<gamePlayer> bab = new List<gamePlayer>();
+                List<dsplayer> bab = new List<dsplayer>();
                 bab.Add(pltemp);
 
                 dg_player.ItemsSource = bab;
@@ -691,12 +694,12 @@ namespace sc2dsstats_rc1
             {
                 ///var row = dg_player.ItemContainerGenerator.ContainerFromItem(pl) as DataGridRow;
 
-                gamePlayer pl = dg_player.Items[i] as gamePlayer;
+                dsplayer pl = dg_player.Items[i] as dsplayer;
 
                 var row = dg_player.ItemContainerGenerator.ContainerFromIndex(i) as DataGridRow;
                 if (row != null)
                 {
-                    if (pl.NAME == "PAX")
+                    if (player_list.Contains(pl.NAME))
                     {
                         row.Background = Brushes.YellowGreen;
                     }
@@ -718,8 +721,8 @@ namespace sc2dsstats_rc1
             foreach (var dataItem in dg_win_regex.ItemsSource)
             {
 
-                myReplay rep = dataItem as myReplay;
-                if (String.Equals(rep.NAME, "PAX"))
+                dsplayer rep = dataItem as dsplayer;
+                if (player_list.Contains(rep.NAME))
                 {
                     DataGridRow gridRow = dg_win_regex.ItemContainerGenerator.ContainerFromItem(dataItem) as DataGridRow;
                     if (gridRow != null)
@@ -745,12 +748,12 @@ namespace sc2dsstats_rc1
             else
             {
 
-                foreach (myGame game in dg_games.SelectedItems)
+                foreach (dsreplay game in dg_games.SelectedItems)
                 {
                     if (game != null)
                     {
 
-                        foreach (gamePlayer player in game.PLAYERS)
+                        foreach (dsplayer player in game.PLAYERS)
                         {
                             if (player.POS <= 3)
                             {

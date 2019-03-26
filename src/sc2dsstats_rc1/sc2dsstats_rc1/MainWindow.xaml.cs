@@ -42,8 +42,9 @@ namespace sc2dsstats_rc1
         private bool scan_running = false;
         public List<dsreplay> replays = new List<dsreplay>();
 
+        public Task tsscan { get; set; }
         public string player_name { get; set; }
-        List<string> player_list { get; set; }
+        public List<string> player_list { get; set; }
         public string myReplay_Path { get; set; }
         public List<string> myReplay_list { get; set; }
         public ObservableCollection<KeyValuePair<string, double>> Items { get; set; }
@@ -2246,7 +2247,7 @@ namespace sc2dsstats_rc1
             {
                 cores = int.Parse(cb_doit_cpus.SelectedItem.ToString());
             }
-
+            
             if (scan_running == false)
             {
                 scan_running = true;
@@ -2264,10 +2265,11 @@ namespace sc2dsstats_rc1
                                     + "--log_file=\"" + myScan_log + "\" "
                                     + "--s2_cli=\"" + myS2cli_exe + "\" "
                                     + "--num_file=\"" + myAppData_dir + "\\num.txt" + "\" "
+                                    //+ "--ladder=\"" + Properties.Settings.Default.MM_CREDENTIAL + "\" "
                                    ;
                 //MessageBox.Show(Arguments);
 
-                Task.Factory.StartNew(() =>
+                tsscan = Task.Factory.StartNew(() =>
                 {
                     Process doit = new Process();
 
@@ -2469,6 +2471,31 @@ namespace sc2dsstats_rc1
             }
 
         }
+
+        public void mnu_mm(object sender, RoutedEventArgs e)
+        {
+            Win_mm Wmm = new Win_mm(this);
+            Wmm.Show();
+        }
+
+        public void mnu_ladder(object sender, RoutedEventArgs e)
+        {
+        }
+
+        public void mnu_delete(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to delete all external mm-data for all your users?", "sc2dsmm", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
+            {
+                //do no stuff
+            }
+            else
+            {
+                //do yes stuff
+                Win_mm Wmm = new Win_mm(this);
+                Wmm.Delete();
+            }
+        }
+
 
         public void btn_show_world_Click(object sender, RoutedEventArgs e)
         {

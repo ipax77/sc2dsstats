@@ -19,7 +19,7 @@
             
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <DockPanel x:Name="dp_config" Visibility="Visible" HorizontalAlignment="Left">
-                    <DataGrid x:Name="win3_dataGrid" ItemsSource="{Binding}" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
+                    <DataGrid x:Name="win3_dataGrid" ItemsSource="{Binding}" CanUserAddRows="false" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
                         
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="key"  Binding="{Binding key}" Width="120" IsReadOnly="True"/>
