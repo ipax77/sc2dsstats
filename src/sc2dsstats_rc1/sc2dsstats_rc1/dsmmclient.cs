@@ -343,7 +343,7 @@ namespace sc2dsstats_rc1
             else if (client != null)
             {
 
-                Console.WriteLine("Sending stuff ..");
+                //Console.WriteLine("Sending stuff ..");
                 byte[] msgBuf = Encoding.UTF8.GetBytes(msg);
                 client.Send(msgBuf);
 
@@ -356,12 +356,12 @@ namespace sc2dsstats_rc1
                 }
                 else
                 {
-                    Console.WriteLine("Listening again ..");
+                    //Console.WriteLine("Listening again ..");
                     HandleResponse(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, client);
                 }
             }
 
-            string pattern3 = @"^Xpax";
+            string pattern3 = @"^Xpax\d";
             foreach (Match m in Regex.Matches(player, pattern3))
             {
                 StopClient(client);

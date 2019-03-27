@@ -29,7 +29,8 @@ my %players : shared;
 my %players_std_3v3 : shared;
 my %players_cmdr_3v3 : shared;
 my %id : shared;
-
+my @player_pool : shared;
+@player_pool = (\%players, \%players_cmdr_3v3, \%players_std_3v3);
 
 my $log = "log.txt";
 open(LOG, ">>", $log) or die "Could not write to $log: $!\n";
@@ -111,6 +112,7 @@ sub handle_connection {
 	my $id;
 	my $mmid = 0;
 	my $name;
+	my $result = 0;
     my $size_check;
 	my $count = 0;
 	my $plref : shared;
@@ -140,7 +142,8 @@ sub handle_connection {
 					if ($param[1] eq "3v3") {
 						$plref = \%players_cmdr_3v3;
 					}
-				} elsif ($param[0] =~ /^mmid/)	{
+				} elsif ($param[0] =~ /^mmid: (\d+)/)	{
+					$result = $1;
 					my $ref = $mm->Result($name, $param);
 					&SetCache();
 					last;
@@ -152,8 +155,11 @@ sub handle_connection {
 							&Log("Allowing randoms for $name");
 						}
 					}
+				} elsif ($param[0] eq "Deleteme") {
+					&Delete($name);
+					last;
 				}
-
+				
 				{
 					lock (%players);
 					$players{$name} = 0;
@@ -161,6 +167,9 @@ sub handle_connection {
 					$mm->PLAYERS(\%players);
 					($mmid, $response) = $mm->Matchup($name, $db, $plref, $param[2], $param[3]);
 					if ($mmid) {
+
+						$players{$name} = $mmid;
+						$plref->{$name} = $mmid;
 						{
 							lock ($lock_db);
 							if (!$lock_db) {
@@ -237,12 +246,19 @@ sub handle_connection {
             last unless $doit;
         }
     }
-	{
-		lock (%players);
-		delete $players{$name} if exists $players{$name};
-		$mm->PLAYERS(\%players);
-		#delete $plref->{$name} if exists $plref->{$name};
+		
+	if (!$result) {
+		{
+			lock (@player_pool);	
+			foreach my $ref (@player_pool) {
+				#print "Ref: $ref; Name: $name; MMID: $mmid; Ref->name: " . $ref->{$name} . "\n";
+				#delete $ref->{$name} if exists $ref->{$name} && $ref->{$name} == $mmid;
+				delete $ref->{$name} if exists $ref->{$name};
+			}
+			$mm->PLAYERS(\%players);
+		}
 	}
+	
     $socket->close();
 	&Log("$name has disconnected");
 }
@@ -268,6 +284,43 @@ sub CheckID {
     }
     return $good;
 }
+
+sub Delete {
+	my $name = shift;
+
+	{
+		lock (@player_pool);
+		if (exists $mm->MMPLAYERS->{$name}) {
+			delete $mm->MMPLAYERS->{$name};
+		}
+
+		
+
+		foreach my $ref (@player_pool) {
+			if ($ref) {
+				foreach (keys %$ref) {
+					if (exists $ref->{$name}) {
+						delete $ref->{$name};
+					}
+				}
+			}
+		}
+	}
+
+	{
+	lock ($lock_db);
+	$lock_db = 1;
+	&Log("Deleting player $name ..");
+	my $mmdb = new MMdb();
+	$mmdb->Connect();
+	$mmdb->Delete($name);
+	$mmdb->DBH->disconnect or warn $mmdb->DBH->errstr;
+	
+	$lock_db = 0;
+	}
+}
+
+
 
 sub Log {
     my $msg = shift;

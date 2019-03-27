@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
-  <asmv1:assemblyIdentity name="sc2dsstats_rc1.exe" version="0.6.0.9" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" type="win32" />
+  <asmv1:assemblyIdentity name="sc2dsstats_rc1.exe" version="0.6.0.10" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" type="win32" />
   <description asmv2:iconFile="sc2dsstats.ico" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <application />
   <entryPoint>
@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="493464">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="496024">
       <assemblyIdentity name="sc2dsstats_rc1" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>JJW3gFiHGv38ZcUPRWMaqWdC7HXuC1IQuppPJ1AClXY=</dsig:DigestValue>
+        <dsig:DigestValue>La/REDI6LMrE2C0q8TvuQ6Sh9dsWJOEZ2rP+ZTfcwCs=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -483,13 +483,13 @@
       <dsig:DigestValue>y8S5kNbGP33y5rc7ih2+8X47yhk8AGFpboxg9mBbRKY=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="sc2dsstats_rc1.exe.config" size="2748">
+  <file name="sc2dsstats_rc1.exe.config" size="3062">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>Vmw0Y3iw74Yngo1kW4fw88epZc4pPtT60z1Z8tq41CQ=</dsig:DigestValue>
+      <dsig:DigestValue>tl7GJg/7gDngbElB3kZIiUehtNpjgB62Z6NO3VPA0XY=</dsig:DigestValue>
     </hash>
   </file>
   <file name="Scripts\Chart.js" size="402654">

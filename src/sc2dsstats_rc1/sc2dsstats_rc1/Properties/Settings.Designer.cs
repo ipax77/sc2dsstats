@@ -69,5 +69,41 @@ namespace sc2dsstats_rc1.Properties {
                 this["MM_Deleted"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NA")]
+        public string MM_Server {
+            get {
+                return ((string)(this["MM_Server"]));
+            }
+            set {
+                this["MM_Server"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Intermediate")]
+        public string MM_Skill {
+            get {
+                return ((string)(this["MM_Skill"]));
+            }
+            set {
+                this["MM_Skill"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Commander")]
+        public string MM_Mode {
+            get {
+                return ((string)(this["MM_Mode"]));
+            }
+            set {
+                this["MM_Mode"] = value;
+            }
+        }
     }
 }

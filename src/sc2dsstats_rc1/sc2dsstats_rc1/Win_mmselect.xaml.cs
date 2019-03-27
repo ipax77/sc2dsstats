@@ -34,7 +34,6 @@ namespace sc2dsstats_rc1
             dg_games.ContextMenu = dg_games_cm;
             dg_games.SelectionChanged += new System.Windows.Controls.SelectionChangedEventHandler(dg_games_DClick);
 
-
         }
 
         public Win_mmselect(MainWindow mw, Win_mm wm)  : this()

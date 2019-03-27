@@ -25,13 +25,15 @@ use strict;
         return $shared_self;
     };
 
-    has 'POS' => (is => 'rw', isa => 'Num');
+    has 'POS' => (is => 'rw', isa => 'Num', default => 0);
     has 'NAME' => (is => 'rw', isa => 'Str');
     has 'ID' => (is => 'rw', isa => 'Num');
     has 'MMID' => (is => 'rw', isa => 'Num', default => 0);
     has 'GAMES' => (is => 'rw', isa => 'Num', default => 0);
     has 'ELO' => (is => 'rw', isa => 'Num');
-    has 'TEAM' => (is => 'rw', isa => 'Num');
+    has 'TEAM' => (is => 'rw', isa => 'Num', default => 0);
+    has 'GAME' => (is => 'rw', isa => 'Num', default => 0);
+    has 'REPORT' => (is => 'rw', isa => 'Str', default => "0");
     has 'CREATE' => (is => 'rw', isa => 'Num', default => 0);
     has 'SKILL' => (is => 'rw', isa => 'Str');
     has 'SERVER' => (is => 'rw', isa => 'Str', default => "0");

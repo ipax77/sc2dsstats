@@ -14,5 +14,14 @@
     <Setting Name="MM_Deleted" Type="System.DateTime" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="MM_Server" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NA</Value>
+    </Setting>
+    <Setting Name="MM_Skill" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Intermediate</Value>
+    </Setting>
+    <Setting Name="MM_Mode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Commander</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -36,6 +36,7 @@ use strict;
 
     has 'MOD' => (is => 'rw');
     has 'VECTOR' => (is => 'rw');
+    has 'CYCLE' => (is => 'rw', isa => 'Num', default => 0);
     has 'MMPLAYERS' => (
         traits    => ['Hash'],
         is        => 'rw',
@@ -88,12 +89,24 @@ use strict;
 
                 my $valid = 0;
                 my $pcount = 0;
+                my $report;
+
+                # maybe compare multiple reports if ..
+                #if (exists $self->MMPLAYERS->{$name}) {
+                #    $self->MMPLAYERS->{$name}->REPORT($result);
+                #}
+
                 if (exists $self->MMIDS->{$mmid}) {
                     
                     foreach my $i (0 .. $#player) {
                         foreach (@{ $self->MMIDS->{$mmid} }) {
                             if ($player[$i] eq $_->NAME) {
                                 $pcount ++;
+                            }
+                        }
+                        if (exists $self->MMPLAYERS->{$player[$i]}) {
+                            if ($self->MMPLAYERS->{$player[$i]}->REPORT) {
+                                $report ++;
                             }
                         }
                     }
@@ -154,7 +167,7 @@ use strict;
                                 $kval{"2"} += $kval;
                             }
                         } else {
-                            $logres =~ s/$player[$i]/Dummy/g;
+                            $logres =~ s/$player[$i]/Dummy1/g;
                             if ($i <= 3) {
                                 $kval{"1"} += 10;
                             } else {
@@ -166,7 +179,7 @@ use strict;
                     $kval{"1"} /= 3;
                     $kval{"2"} /= 3;
                 
-                    &Log("MMID: $mmid: result: $logres");
+                    &Log("Result from $name: MMID: $mmid: result: $logres");
                     
                    
 
@@ -210,6 +223,7 @@ use strict;
                             }		
                         }
                     }
+                    #$self->MMPLAYERS->{$name}->REPORT(1);
                     delete $self->MMIDS->{$mmid};
                 }
             }
@@ -240,12 +254,14 @@ use strict;
             $mmpl->SERVER($server) if $server;
 
             $self->MMPLAYERS->{$player} = $mmpl;
+        } else {
+            
         }
 
 
         $mmid = &GetPool($self, $player, $players, $db_cache);
         
-        $response = &SetPos($self, $mmid) if $mmid;
+        $response = &SetPos($self, $mmid, $player) if $mmid;
         print "MM: $response\n" if $response;
 
         return $mmid, $response;
@@ -254,6 +270,7 @@ use strict;
     sub SetPos {
         my $self = shift;
         my $mmid = shift;
+        my $player = shift;
 
         my $resp;
         my $creator = 1;
@@ -261,26 +278,69 @@ use strict;
         my $i = 0;
         my %server;
         my $server = "NA";
+        my $ready = 0;
 
         $resp = "sc2dsmm: pos0: $mmid;";
         foreach (@{ $self->MMIDS->{$mmid} }) {
-            $i++;
-            $_->POS($i);
-            $resp .= "sc2dsmm: pos" . $i . ": " . $_->NAME . ";";
-            if ($i <= 3) {
-                $_->TEAM(1);
+            if (!$_->POS) {
+                $i++;
+                $_->POS($i);
+                $resp .= "sc2dsmm: pos" . $i . ": " . $_->NAME . ";";
+                if ($i <= 3) {
+                    $_->TEAM(1);
+                } else {
+                    $_->TEAM(2);
+                }
+                if ($_->GAMES > $games) {
+                    $games = $_->GAMES;
+                    $creator = $_->POS;
+                }
+                if ($_->SERVER) {
+                    $server{$_->SERVER} ++;
+                }
             } else {
-                $_->TEAM(2);
-            }
-            if ($_->GAMES > $games) {
-                $games = $_->GAMES;
-                $creator = $_->POS;
-            }
-            if ($_->SERVER) {
-                $server{$_->SERVER} ++;
+                $resp .= "sc2dsmm: pos" . $_->POS . ": " . $_->NAME . ";";
+                if ($_->CREATE) {
+                    $creator = $_->POS;
+                }
+                if ($_->NAME =~ /^Random(\d)/) {
+                    $ready ++;
+                }
+                if ($_->GAME) {
+                    $ready ++;
+                }
             }
         }
-        
+        $self->MMPLAYERS->{$player}->GAME(1);
+        $ready++;
+
+        if ($ready == 6) {
+            # all players got the mmid and should be playing now
+
+            # reset for next game:
+            foreach my $pl1 (@{ $self->MMIDS->{$mmid}}) {
+                $pl1->POS(0);
+                $pl1->GAME(0);
+                $pl1->CREATE(0);
+                $pl1->SERVER(0);
+                $pl1->RANDOM(0);
+                $pl1->MMID(0);
+
+                # maybe relevant for a propper mm-system
+                foreach my $pl (@{ $self->MMIDS->{$mmid}}) {
+                    next if $pl->NAME eq $pl1->NAME;
+                    $pl1->PLAYED->{$pl->NAME} ++;
+                    if ($pl1->TEAM == $pl->TEAM) {
+                        $pl1->TEAMMATES->{$pl->NAME} ++;
+                    } else {
+                        $pl1->OPPONENTS->{$pl->NAME} ++;
+                    }
+                }
+
+                $pl1->TEAM(0);
+            }
+        }
+
         foreach (sort { $server{$a} <=> $server{$b} } keys %server) {
             $server = $_;
             last;
@@ -338,21 +398,41 @@ use strict;
 
             my $i = 0;
             my $pos = 0;
-            my $cc = scalar keys %pool;
+ 
+            #my $cc = scalar keys %pool;
+            my $cc = 0;
+            my $ncc = 0;
+            foreach my $name (keys %pool) {
+                if (exists $self->MMPLAYERS->{$name}) {
+                    if ($self->MMPLAYERS->{$name}->RANDOM) {
+                        $cc ++;
+                    } else {
+                        $ncc ++;
+                    }
+                }
+            }
+
             my %random;
 
             if ($cc < 6 && $allowrandom >= 2) {
-                for (my $i = 1; $i <= (6 - $cc); $i++) {
-                    my $dummy = new MMplayer();
-                    $dummy->NAME("Random" . $i);
-                    $dummy->POS(0);
-                    $dummy->MMID(0);
-                    $dummy->ELO($std_elo);
-                    $dummy->GAMES(0);
-                    $dummy->ID(0);
-                    $dummy->INDB(0);
-                    $pool{$dummy->NAME} = $dummy->ELO;
-                    $random{$dummy->NAME} = $dummy;
+
+                # fill with randoms - if non random players present wait a bit
+                if (!$ncc || ($ncc && $self->CYCLE > 10)) {
+                    for (my $i = 1; $i <= (6 - $cc); $i++) {
+                        my $dummy = new MMplayer();
+                        $dummy->NAME("Random" . $i);
+                        $dummy->POS(0);
+                        $dummy->MMID(0);
+                        $dummy->ELO($std_elo);
+                        $dummy->GAMES(0);
+                        $dummy->ID(0);
+                        $dummy->INDB(0);
+                        $pool{$dummy->NAME} = $dummy->ELO;
+                        $random{$dummy->NAME} = $dummy;
+                    }
+                    $self->CYCLE(0);
+                } else {
+                    $self->CYCLE($self->CYCLE + 1);
                 }
             }
             $cc = scalar keys %pool;
@@ -366,12 +446,15 @@ use strict;
                     $mmid = 1000 + int rand(9000);
                 }
 
+                my $random = 0;
                 foreach my $name (sort { $pool{$a} <=> $pool{$b} } keys %pool) {
                     my $mmpl = $self->MMPLAYERS->{$name};
                     if ($name =~ /^Random\d/) {
+                        $random = 1;
                         $mmpl = $random{$name};
                     }
                     next if $mmpl->NAME eq $player;
+                    next if !$mmpl->RANDOM  && $random;
                     push(@temp_pool, $mmpl);
                     if ($mmpl->ELO == $self->MMPLAYERS->{$player}->ELO) {
                         $pos = $i;

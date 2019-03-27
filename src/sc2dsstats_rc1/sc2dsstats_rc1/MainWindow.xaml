@@ -843,6 +843,23 @@
 
             </Grid>
         </Button>
+        <Button x:Name="bt_mm" HorizontalAlignment="Left" Margin="800,55,0,0" VerticalAlignment="Top" Width="88" Click="mnu_mm" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
+            <Button.Background>
+                <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                    <GradientStop Color="Black"/>
+                    <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                </LinearGradientBrush>
+            </Button.Background>
+            <Grid>
+                <TextBlock x:Name="bt_show_textblock5" Text="Find players"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform X="0.5" Y="0.5" />
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+                <TextBlock x:Name="bt_show_textblock6" Text="Find players" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+
+            </Grid>
+        </Button>
         <Button x:Name="bt_chart" Content="Chart" HorizontalAlignment="Left" Margin="800,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Collapsed" Click="bt_chart_Click"/>
         <CheckBox x:Name="cb_add" Content="add" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,60,0,0" VerticalAlignment="Top" Visibility="Visible"  ToolTip="Add additional stats to the graph" Click="add_Click" />
         <CheckBox x:Name="cb_sample" Content="use sample data" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="700,30,0,0" VerticalAlignment="Top" Visibility="Visible" ToolTip="Use sample data instead of your own data" Click="sample_Click" />

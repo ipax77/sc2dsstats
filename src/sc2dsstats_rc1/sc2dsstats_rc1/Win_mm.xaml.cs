@@ -31,6 +31,7 @@ namespace sc2dsstats_rc1
 
         public DispatcherTimer _timer;
         public TimeSpan _time;
+        public int downtime = 0;
 
         public Win_mm()
         {
@@ -38,11 +39,46 @@ namespace sc2dsstats_rc1
             if (Properties.Settings.Default.MM_CREDENTIAL == true)
             {
                 mmcb_credential.IsChecked = true;
-            } else
+            }
+            else
             {
                 mmcb_credential.IsChecked = false;
             }
-            
+
+
+            if (Properties.Settings.Default.MM_Server == "NA")
+            {
+                mmcb_server.SelectedItem = mmcb_server.Items[2];
+            }
+            else if (Properties.Settings.Default.MM_Server == "EU")
+            {
+                mmcb_server.SelectedItem = mmcb_server.Items[1];
+            }
+            else if (Properties.Settings.Default.MM_Server == "KOR")
+            {
+                mmcb_server.SelectedItem = mmcb_server.Items[0];
+            }
+
+            if (Properties.Settings.Default.MM_Skill == "Beginner")
+            {
+                mmcb_skill.SelectedItem = mmcb_skill.Items[0];
+            }
+            else if (Properties.Settings.Default.MM_Skill == "Intermediate")
+            {
+                mmcb_skill.SelectedItem = mmcb_skill.Items[1];
+
+            }
+            else if (Properties.Settings.Default.MM_Skill == "Advanced")
+            {
+                mmcb_skill.SelectedItem = mmcb_skill.Items[2];
+            }
+
+            if (Properties.Settings.Default.MM_Mode == "Standard")
+            {
+                mmcb_mode.SelectedItem = mmcb_mode.Items[0];
+            } else if (Properties.Settings.Default.MM_Mode == "Commander") {
+                mmcb_mode.SelectedItem = mmcb_mode.Items[1];
+            }
         }
 
         public Win_mm(MainWindow mw) : this()
@@ -69,7 +105,7 @@ namespace sc2dsstats_rc1
                 lb_pl6.Content = "Player";
                 tb_mmid.Text = "0";
 
-                mmcb_randoms.IsEnabled = true;
+                mmcb_randoms.IsEnabled = false;
                 mmcb_randoms.IsChecked = false;
 
                 string player = mmcb_player.SelectedItem.ToString();
@@ -77,6 +113,11 @@ namespace sc2dsstats_rc1
                 string num = ((ComboBoxItem)mmcb_num.SelectedItem).Content.ToString();
                 string skill = ((ComboBoxItem)mmcb_skill.SelectedItem).Content.ToString();
                 string server = ((ComboBoxItem)mmcb_server.SelectedItem).Content.ToString();
+
+                Properties.Settings.Default.MM_Server = server;
+                Properties.Settings.Default.MM_Skill = skill;
+                Properties.Settings.Default.MM_Mode = mode;
+                Properties.Settings.Default.Save();
 
                 Task FindGame = Task.Factory.StartNew(() =>
                 {
@@ -165,6 +206,7 @@ namespace sc2dsstats_rc1
             else
             {
                 //do yes stuff
+                Properties.Settings.Default.MM_CREDENTIAL = true;
 
                 DateTime d1 = DateTime.Today;
                 DateTime d2 = new DateTime(2019, 3, 3, 0, 0, 0);
@@ -174,15 +216,19 @@ namespace sc2dsstats_rc1
                 }
                 TimeSpan diff1 = d1.Subtract(d2);
 
-                if (diff1.TotalDays > 3)
+                if (diff1.TotalDays >= downtime)
                 {
                     mmcb_credential.IsChecked = true;
                     Properties.Settings.Default.MM_CREDENTIAL = true;
                 } else
                 {
-                    MessageBox.Show("You can rejoin the MM-System in " + diff1.TotalDays.ToString() + " Days.", "sc2dsmm");
+                    mmcb_credential.IsChecked = false;
+                    int uptime = 3 - (int)diff1.TotalDays;
+                    MessageBox.Show("You can rejoin the MM-System in " + uptime.ToString() + " Days.", "sc2dsmm");
+                    Properties.Settings.Default.MM_CREDENTIAL = false;
                 }
             }
+            Properties.Settings.Default.Save();
         }
 
         public void mmcb_randoms_Click(object sender, RoutedEventArgs e)
@@ -219,6 +265,20 @@ namespace sc2dsstats_rc1
             {
                 Properties.Settings.Default.MM_CREDENTIAL = false;
                 Properties.Settings.Default.MM_Deleted = DateTime.Today;
+                Properties.Settings.Default.Save();
+
+                Task senddel = Task.Factory.StartNew(() =>
+                {
+                    foreach (string player in MW.player_list)
+                    {
+                        dsmmclient result = new dsmmclient();
+                        Socket sock = result.StartClient(player, "Deleteme;");
+                    }
+
+                }, TaskCreationOptions.AttachedToParent);
+
+                MessageBox.Show("Deleted. You will be able to rejoin the mm-system in 3 days.", "sc2dsmm");
+
             }
         }
 
