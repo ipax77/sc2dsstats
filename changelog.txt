@@ -1,4 +1,8 @@
 
+0.6.0.11
+
+- MM-System rc1?
+
 0.6.0.10
 
 - MM-System improved

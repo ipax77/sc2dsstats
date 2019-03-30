@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Windows;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
+using System.Threading;
 
 namespace sc2dsstats_rc1
 {
@@ -82,10 +83,6 @@ namespace sc2dsstats_rc1
                     // Create the preBuffer data.
                     string string1 = "Hello from [" + player + "]: " + result + ";" + "\r\n";
                     byte[] preBuf = Encoding.UTF8.GetBytes(string1);
-
-                    // Create the postBuffer data.
-                    string string2 = "Have fun." + "\r\n";
-                    byte[] postBuf = Encoding.UTF8.GetBytes(string2);
 
                     int bytesSent = sender.Send(preBuf);
 
@@ -164,13 +161,8 @@ namespace sc2dsstats_rc1
                     //int bytesSent = sender.Send(msg);
 
                     // Create the preBuffer data.
-                    string string1 = "Hello from [" + player + "]: " + mode + ";" + num + ";" + skill + ";" + server + ";" + "\r\n";
+                    string string1 = "Hello from [" + player + "]: Letmeplay: " + mode + ";" + num + ";" + skill + ";" + server + ";" + "\r\n";
                     byte[] preBuf = Encoding.UTF8.GetBytes(string1);
-
-                    // Create the postBuffer data.
-                    string string2 = "Have fun." + "\r\n";
-                    
-                    byte[] postBuf = Encoding.UTF8.GetBytes(string2);
 
                     int bytesSent = sender.Send(preBuf);
 
@@ -179,7 +171,7 @@ namespace sc2dsstats_rc1
                     Console.WriteLine("Echoed test = {0}",
                         Encoding.UTF8.GetString(bytes, 0, bytesRec));
 
-                    if (sender != null) HandleResponse(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, sender);
+                    if (sender != null) PingPong(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, sender, "0");
 
 
                     // Release the socket.    
@@ -215,158 +207,306 @@ namespace sc2dsstats_rc1
             return s == "";
         }
 
-        public void HandleResponse(string resp, string player, Socket client)
+        public string PingPong(string pong, string player, Socket client, string mmid)
         {
-            string msg = player + ": Thank you." + "\r\n";
-            string mmid = "0";
-            string creator = "0";
-            int mypos = 0;
-            string server = "0";
-
-            MW.Dispatcher.Invoke(() =>
-            {
-                MW.tb_info.Text = resp;
-            });
+            string response = "";
+            string answer = "";
+            //string mmid = "0";
 
             string pattern = @"^sc2dsmm: (.*)";
-            string pattern1 = @"^connected: (.*)";
-            string pattern2 = @"^pos(\d): (.*)";
-            string pattern4 = @"^sum: (.*)";
-
-            if (resp.EndsWith(";")) resp = resp.Remove(resp.Length - 1);
-            List<string> lresp = resp.Split(';').ToList();
-            lresp.RemoveAll(RemoveEmpty);
-
-            MW.Dispatcher.Invoke(() =>
+            foreach (Match m in Regex.Matches(pong, pattern))
             {
-                //MW.tb_info.Text = "";
-            });
-
-            foreach (string myresp in lresp)
+                answer = m.Groups[1].ToString();
+            }
+            if (CheckPong(answer))
             {
-                foreach (Match m in Regex.Matches(myresp, pattern))
+                string pt_letmeplay = @"^Letmeplay: (.*)";
+                string pt_accept = @"^Accept: (.*)";
+                string pt_decline = @"^Decline: (.*)";
+                string pt_findgame = @"^Findgame: (.*)";
+                string pt_ready = @"^Ready: (.*)";
+
+
+                // Matchup ready to go
+                foreach (Match m_ready in Regex.Matches(answer, pt_ready))
                 {
-                    string ent = m.Groups[1].ToString();
-                    foreach (Match m1 in Regex.Matches(ent, pattern1))
+                    string ent = m_ready.Groups[1].ToString();
+                    if (ent == "0")
                     {
-                        string teammate = m1.Groups[1].ToString();
+                        // Someone declined / timed out :(
                         MW.Dispatcher.Invoke(() =>
                         {
-                            //MW.tb_connected.Text += teammate + " connected." + Environment.NewLine;
+                            MW.gr_accept.Visibility = Visibility.Hidden;
+                            MW.tb_gamefound.Visibility = Visibility.Visible;
+                            MW.tb_gamefound.Text = "Someone declined / timed out :( - Searching again ...";
                         });
-                    }
 
-                    foreach (Match m3 in Regex.Matches(ent, pattern4))
+                        // Waiting again
+                        Random rngesus = new Random();
+                        int rng = rngesus.Next(0, 3000);
+                        int mysleep = 5000 + rng;
+                        Thread.Sleep(mysleep);
+                        response = "Findgame: 1";
+
+                    }
+                    else
                     {
-                        string sum = m3.Groups[1].ToString();
+                        // all accepted :)
+                        SetupPos(ent, player);
+                        response = "fin";
+                    }
+                    goto Response;
+                }
+
+                // We are ready!
+                foreach (Match m_accept in Regex.Matches(answer, pt_accept))
+
+                {
+                    mmid = m_accept.Groups[1].ToString();
+                    response = "Ready: " + mmid;
+                    goto Response;
+                }
+                // Searching ...
+                foreach (Match m_findgame in Regex.Matches(answer, pt_findgame))
+                {
+                    mmid = m_findgame.Groups[1].ToString();
+                    if (mmid == "0")
+                    {
+                        // Waiting
+                        Random rngesus = new Random();
+                        int rng = rngesus.Next(0, 3000);
+                        int mysleep = 5000 + rng;
+                        Thread.Sleep(mysleep);
+
+                        response = "Findgame: 0";
+
+                    }
+                    else if (mmid.StartsWith("Games"))
+                    {
                         MW.Dispatcher.Invoke(() =>
                         {
-                            //MW.tb_info.Text += sum;
+                            MW.tb_info.Text = mmid;
                         });
-                    }
-                    
-                    foreach (Match m2 in Regex.Matches(ent, pattern2))
+                        // Waiting
+                        Random rngesus = new Random();
+                        int rng = rngesus.Next(0, 3000);
+                        int mysleep = 5000 + rng;
+                        Thread.Sleep(mysleep);
+                        response = "Findgame: 0";
+                    } else  
                     {
-                        int pos = Int32.Parse(m2.Groups[1].ToString());
-                        string teammate = m2.Groups[2].ToString();
+                        // Matchup ready - waiting for Accept
+                        MW.Dispatcher.Invoke(() =>
+                        {
+                            MW.GameFound(mmid);
+                        });
+                        response = "wait";
+                    }
+                    goto Response;
+                }
+
+                // we declined :(
+                foreach (Match m_decline in Regex.Matches(answer, pt_decline))
+                {
+                    response = "fin";
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        MW.bt_show.IsEnabled = true;
+                        MW.tb_gamefound.Visibility = Visibility.Visible;
+                        MW.tb_gamefound.Text = "Ready process declined :(";
+                        try
+                        {
+                            MW._timer.Stop();
+                        }
+                        catch { }
+                    });
+                    goto Response;
+                }
+                // Find game
+                foreach (Match m_letmeplay in Regex.Matches(answer, pt_letmeplay))
+                {
+                    response = "Findgame: 0";
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        MW.tb_gamefound.Text = "Searching ...";
+                        MW.mmcb_ample.IsChecked = true;
+                        MW.mmcb_ample.Content = "Online";
+                    });
+                    goto Response;
+                }
+            }
+
+            Console.WriteLine("ERR: " + answer);
+
                         
-                        if (teammate == player)
-                        {
-                            mypos = pos;
-                        }
 
-                        Label lb = null;
-                        if (pos == 0)
-                        {
-                            mmid = m2.Groups[2].ToString();
-                        }
-                        else if (pos == 1)
-                        {
-                            lb = MW.lb_pl1;
-                        }
-                        else if (pos == 2)
-                        {
-                            lb = MW.lb_pl2;
-                        }
-                        else if (pos == 3)
-                        {
-                            lb = MW.lb_pl3;
-                        }
-                        else if (pos == 4)
-                        {
-                            lb = MW.lb_pl4;
-                        }
-                        else if (pos == 5)
-                        {
-                            lb = MW.lb_pl5;
-                        }
-                        else if (pos == 6)
-                        {
-                            lb = MW.lb_pl6;
-                        }
-                        else if (pos == 7) {
-                            creator = teammate;
-                        }
-                        else if (pos == 8)
-                        {
-                            server = teammate;
-                        }
-                        else
-                        {
-                            lb = MW.lb_info;
-                        }
-                        MW.Dispatcher.Invoke(() =>
-                        {
-                            if (mmid != "0") MW.tb_mmid.Text = mmid;
-                            if (lb != null) lb.Content = teammate;
-                            if (server != "0") MW.tb_server.Text = server;
-                        });
+            Response:        
+
+            Console.WriteLine(player + ": " + pong + " => " + response);
+
+            if (client != null)
+            {
+
+                if (response == "fin")
+                {
+                    try
+                    {
+                        StopClient(client);
+                        client.Dispose();
+                        client = null;
                     }
-                }
-
-
-
-                if (myresp == "")
-                {
-
-                }
-            }
-
-            if (mmid != "0")
-            {
-                MW.Dispatcher.Invoke(() =>
-                {
-                    MW.GameFound(mypos, creator, mmid);
-                });
-                StopClient(client);
-            }
-            else if (client != null)
-            {
-
-                //Console.WriteLine("Sending stuff ..");
-                byte[] msgBuf = Encoding.UTF8.GetBytes(msg);
-                client.Send(msgBuf);
-
-                byte[] bytes = new byte[1024];
-                int bytesRec = client.Receive(bytes);
-                string fin = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                if (fin == "sc2dsmm: finished.")
-                {
-                    StopClient(client);
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Client closed: {0}", e.ToString());
+                    }
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        MW.mmcb_ample.IsChecked = false;
+                        MW.mmcb_ample.Content = "Offline";
+                    });
                 }
                 else
                 {
-                    //Console.WriteLine("Listening again ..");
-                    HandleResponse(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, client);
+                    if (response != "wait")
+                    {
+                        response = "Hello from [" + player + "]: " + response + "\r\n";
+                        byte[] msgBuf = Encoding.UTF8.GetBytes(response);
+                        try
+                        {
+                            client.Send(msgBuf);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Client closed: {0}", e.ToString());
+                        }
+                    }
+
+
+                    byte[] bytes = new byte[1024];
+                    string fin = "";
+                    int bytesRec = 0;
+                    try
+                    {
+                        bytesRec = client.Receive(bytes);
+                        fin = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Client closed: {0}", e.ToString());
+                    }
+
+                    if (bytesRec > 0) PingPong(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, client, mmid);
+
                 }
+
+            } else
+            {
+                MW.Dispatcher.Invoke(() =>
+                {
+                    MW.mmcb_ample.IsChecked = false;
+                    MW.mmcb_ample.Content = "Offline";
+                });
             }
 
-            string pattern3 = @"^Xpax\d";
-            foreach (Match m in Regex.Matches(player, pattern3))
+            return response;
+        }
+
+        public void SetupPos (string msg, string player)
+        {
+            int mypos = 0;
+            string mmid = "0";
+            string creator = "1";
+            string server = "NA";
+
+            MW.Dispatcher.Invoke(() =>
             {
-                StopClient(client);
+                MW.doit = false;
+                MW.GAME_READY = true;
+                MW.gr_accept.Visibility = Visibility.Hidden;
+            });
+
+                foreach (string p in msg.Split(';'))
+            {
+
+                string pt_pos = @"^pos(\d): (.*)";
+                foreach (Match m2 in Regex.Matches(p, pt_pos))
+                {
+                    int pos = Int32.Parse(m2.Groups[1].ToString());
+                    string teammate = m2.Groups[2].ToString();
+
+                    if (teammate == player)
+                    {
+                        mypos = pos;
+                    }
+
+                    Label lb = null;
+                    if (pos == 0)
+                    {
+                        mmid = m2.Groups[2].ToString();
+                    }
+                    else if (pos == 1)
+                    {
+                        lb = MW.lb_pl1;
+                    }
+                    else if (pos == 2)
+                    {
+                        lb = MW.lb_pl2;
+                    }
+                    else if (pos == 3)
+                    {
+                        lb = MW.lb_pl3;
+                    }
+                    else if (pos == 4)
+                    {
+                        lb = MW.lb_pl4;
+                    }
+                    else if (pos == 5)
+                    {
+                        lb = MW.lb_pl5;
+                    }
+                    else if (pos == 6)
+                    {
+                        lb = MW.lb_pl6;
+                    }
+                    else if (pos == 7)
+                    {
+                        creator = teammate;
+                    }
+                    else if (pos == 8)
+                    {
+                        server = teammate;
+                    }
+                    else
+                    {
+                        lb = MW.lb_info;
+                    }
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        if (mmid != "0") MW.tb_mmid.Text = mmid;
+                        if (lb != null) lb.Content = teammate;
+                        if (server != "0") MW.tb_server.Text = server;
+                        MW.GameReady(mypos, creator, mmid);
+                        MW.tb_gamefound.Visibility = Visibility.Visible;
+                    });
+                }
             }
         }
+
+    
+
+        public bool CheckPong (string msg)
+        {
+            bool check = false;
+            if (msg.Length < 400)
+            {
+                check = true;
+            } else
+            {
+                Console.WriteLine("Response too long :(");
+            }
+            return check;
+        }
+
     }
 }
 

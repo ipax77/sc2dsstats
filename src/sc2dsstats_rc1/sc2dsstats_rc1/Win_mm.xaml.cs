@@ -6,6 +6,7 @@ using System.Media;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +14,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 using System.Windows.Shapes;
@@ -28,14 +30,20 @@ namespace sc2dsstats_rc1
 
         MainWindow MW { get; set; }
         public Socket CLIENT { get; set; }
+        SoundPlayer SP { get; set; }
+        public bool ACCEPTED { get; set; }
+        public bool GAME_READY { get; set; }
 
         public DispatcherTimer _timer;
         public TimeSpan _time;
         public int downtime = 0;
+        public bool doit = true;
+        
 
         public Win_mm()
         {
             InitializeComponent();
+            tb_mmid.Text = "6175";
             if (Properties.Settings.Default.MM_CREDENTIAL == true)
             {
                 mmcb_credential.IsChecked = true;
@@ -79,6 +87,9 @@ namespace sc2dsstats_rc1
             } else if (Properties.Settings.Default.MM_Mode == "Commander") {
                 mmcb_mode.SelectedItem = mmcb_mode.Items[1];
             }
+
+
+
         }
 
         public Win_mm(MainWindow mw) : this()
@@ -91,12 +102,14 @@ namespace sc2dsstats_rc1
             mmcb_player.SelectedItem = mmcb_player.Items[0];
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        public void Button_Click(object sender, RoutedEventArgs e)
         {
             if (mmcb_credential.IsChecked == true)
             {
 
-                tb_gamefound.Text = "Searching ...";
+                gr_accept.Visibility = Visibility.Hidden;
+                tb_accepted.Text = "";
+                
                 lb_pl1.Content = "Player";
                 lb_pl2.Content = "Player";
                 lb_pl3.Content = "Player";
@@ -105,8 +118,9 @@ namespace sc2dsstats_rc1
                 lb_pl6.Content = "Player";
                 tb_mmid.Text = "0";
 
-                mmcb_randoms.IsEnabled = false;
+                mmcb_randoms.IsEnabled = true;
                 mmcb_randoms.IsChecked = false;
+                GAME_READY = false;
 
                 string player = mmcb_player.SelectedItem.ToString();
                 string mode = ((ComboBoxItem)mmcb_mode.SelectedItem).Content.ToString();
@@ -119,35 +133,64 @@ namespace sc2dsstats_rc1
                 Properties.Settings.Default.MM_Mode = mode;
                 Properties.Settings.Default.Save();
 
-                Task FindGame = Task.Factory.StartNew(() =>
+                if (sender != null)
                 {
-                    dsmmclient mm = new dsmmclient(this);
-                    Socket sock = mm.StartClient(this, player, mode, num, skill, server);
-                }, TaskCreationOptions.AttachedToParent);
-
-                //tb_info.Text = mm.INFO;
-
-                _time = TimeSpan.FromSeconds(1);
-
-                _timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
-                {
-                    tb_time.Text = _time.ToString("c");
-
-                    // fill with randoms after ~5min
-                    if (_time == TimeSpan.FromMinutes(1))
+                    tb_gamefound.Text = "Connecting ...";
+                    mmcb_ample.IsChecked = true;
+                    mmcb_ample.Content = "Online";
+                    Task FindGame = Task.Factory.StartNew(() =>
                     {
-                        Dispatcher.Invoke(() =>
+                        dsmmclient mm = new dsmmclient(this);
+                        Socket sock = mm.StartClient(this, player, mode, num, skill, server);
+                        MW.Dispatcher.Invoke(() =>
                         {
-                            mmcb_randoms.IsEnabled = true;
-                            tb_gamefound.Text += " You can fill your lobby with randoms now if you want (check 'allow Randoms' right to the clock)";
+                            mmcb_ample.IsChecked = false;
+                            mmcb_ample.Content = "Offline";
+                            try
+                            {
+                                _timer.Stop();
+                            }
+                            catch
+                            {
+
+                            }
                         });
+                    }, TaskCreationOptions.AttachedToParent);
+
+                    //tb_info.Text = mm.INFO;
+
+                    _time = TimeSpan.FromSeconds(1);
+
+                    _timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
+                    {
+                        tb_time.Text = _time.ToString("c");
+
+                        // fill with randoms after ~5min
+                        if (_time == TimeSpan.FromMinutes(1))
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                //mmcb_randoms.IsEnabled = true;
+                                //tb_gamefound.Text += " You can fill your lobby with randoms now if you want (check 'allow Randoms' right to the clock)";
+                            });
+                        }
+                        _time = _time.Add(TimeSpan.FromSeconds(+1));
+                    }, Application.Current.Dispatcher);
+
+                    _timer.Start();
+
+                    bt_show.IsEnabled = false;
+                } else
+                {
+                    try
+                    {
+                        _timer.Start();
                     }
-                    _time = _time.Add(TimeSpan.FromSeconds(+1));
-                }, Application.Current.Dispatcher);
+                    catch
+                    {
 
-                _timer.Start();
-
-                bt_show.IsEnabled = false;
+                    }
+                }
 
             } else
             {
@@ -160,25 +203,139 @@ namespace sc2dsstats_rc1
 
         }
 
-        public void GameFound(int mypos, string creator, string mmid)
+        public void pb_Accept(bool game_accept, string mmid)
+        {
+            tb_gamefound.Visibility = Visibility.Visible;
+            if (game_accept)
+            {
+                if (CLIENT != null)
+                {
+
+                    try
+                    {
+                        string player = mmcb_player.SelectedItem.ToString();
+                        string string1 = "Hello from [" + player + "]: accept: " + mmid + ";" + "\r\n";
+                        byte[] preBuf = Encoding.UTF8.GetBytes(string1);
+                        CLIENT.Send(preBuf);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            } else
+            {
+                if (CLIENT != null)
+                {
+
+                    try
+                    {
+                        string player = mmcb_player.SelectedItem.ToString();
+                        string string1 = "Hello from [" + player + "]: decline: " + mmid + ";" + "\r\n";
+                        byte[] preBuf = Encoding.UTF8.GetBytes(string1);
+                        CLIENT.Send(preBuf);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+
+
+        }
+
+        private void bt_decline_Click(object sender, RoutedEventArgs e)
+        {
+            if (SP != null) SP.Stop();
+            doit = false;
+            ACCEPTED = false;
+            gr_accept.Visibility = Visibility.Hidden;
+            pb_Accept(false, tb_mmid.Text);
+        }
+
+        private void bt_accept_Click(object sender, RoutedEventArgs e)
+        {
+            if (SP != null) SP.Stop();
+            ACCEPTED = true;
+            pb_Accept(true, tb_mmid.Text);
+            tb_accepted.Text = "TY! Waiting for other players ..";
+        }
+
+        public void GameFound(string mmid)
+        {
+
+            ProgressBar progbar = new ProgressBar();
+            progbar.IsIndeterminate = false;
+            progbar.Orientation = Orientation.Vertical;
+            progbar.Width = 50;
+            progbar.Height = 250;
+            Duration duration = new Duration(TimeSpan.FromSeconds(35));
+            DoubleAnimation doubleanimation = new DoubleAnimation(100.0, duration);
+            progbar.BeginAnimation(ProgressBar.ValueProperty, doubleanimation);
+            progbar.HorizontalAlignment = HorizontalAlignment.Left;
+            gr_accept.Children.Add(progbar);
+            gr_accept.Visibility = Visibility.Visible;
+            tb_gamefound.Visibility = Visibility.Hidden;
+            tb_mmid.Text = mmid;
+            doit = true;
+            Task ts_accept = Task.Factory.StartNew(() =>
+            {
+                bool mydoit = doit;                
+                while (mydoit) {
+                    Thread.Sleep(1000);
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (progbar.Value == 100)
+                        {
+                            gr_accept.Visibility = Visibility.Hidden;
+                            if (ACCEPTED == false)
+                            {
+                                //pb_Accept(false, mmid);
+                                bt_decline_Click(null, null);
+                                //Exit_Click(null, null);
+                            }
+
+                            else if (GAME_READY == false)
+                            {
+                                Button_Click(null, null);
+                            }
+
+                            doit = false;
+
+                        }
+                        if (GAME_READY == true)
+                        {
+                            doit = false;
+                        }
+                        mydoit = doit;
+                    });
+                }
+            }, TaskCreationOptions.AttachedToParent);
+
+            SP = new SoundPlayer(@"audio\ready.wav");
+            SP.Play();
+        }
+
+        public void GameReady(int mypos, string creator, string mmid)
         {
             _timer.Stop();
-
-            SoundPlayer sp = new SoundPlayer(@"audio\ready.wav");
-            sp.Play();
+            GAME_READY = true;
             string msg = "";
-            if (creator == mypos.ToString()) {
+            if (creator == mypos.ToString())
+            {
                 msg = "Game found! You have been elected to be the lobby creator. Please open your Starcraft 2 client on the " + tb_server.Text + " server and create a private Direct Strike Lobby. " +
                     "Join the Channel sc2dsmm by typing ‘/join sc2dsmm’ in the Starcraft 2 chat and post the lobby link combined with the MMID by typing ‘/lobbylink " +
-                    mmid +"’ (without the quotes). Have fun! :)";
-            } else
+                    mmid + "’ (without the quotes). Have fun! :)";
+            }
+            else
             {
                 msg = "Game found! Player " + creator + " has been elected to be the lobby creator. Please open your Starcraft 2 client on the " + tb_server.Text + " server and join the Channel" +
                     " sc2dsmm by typing ‘/join sc2dsmm’ in the Starcraft 2 chat. Wait for the lobby link combined with the MMID " +
                     mmid + " and click on it. Have fun! :)";
             }
             tb_gamefound.Text = msg;
-
+            tb_gamefound.Visibility = Visibility.Visible;
         }
 
         private void lb_switch_CLick(object sender, RoutedEventArgs e)
@@ -233,14 +390,18 @@ namespace sc2dsstats_rc1
 
         public void mmcb_randoms_Click(object sender, RoutedEventArgs e)
         {
-
+            string rng = "0";
+            if (mmcb_randoms.IsChecked == true)
+            {
+                rng = "1";
+            }
             if (CLIENT != null)
             {
                    
                 try
                 {
                     string player = mmcb_player.SelectedItem.ToString();
-                    string string1 = "Hello from [" + player + "]: allowRandoms;"  + "\r\n";
+                    string string1 = "Hello from [" + player + "]: allowRandoms: " + rng + "\r\n";
                     byte[] preBuf = Encoding.UTF8.GetBytes(string1);
                     CLIENT.Send(preBuf);
                 }
@@ -368,6 +529,16 @@ namespace sc2dsstats_rc1
         public void mm_Exit(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Exit_Click(sender, null);
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            //GameFound(1, "1", "1");
+        }
+
+        private void Tb_mmid_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
         }
     }
 }

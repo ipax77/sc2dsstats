@@ -1,0 +1,27 @@
+version: '3.3'
+
+services:
+   db:
+     image: mysql:5.7
+     volumes:
+       - db_data:/var/lib/mysql
+     environment:
+       MYSQL_ROOT_PASSWORD: ganzgeheim
+       MYSQL_DATABASE: sc2dsstats
+       MYSQL_USER: sc2dsstats
+       MYSQL_PASSWORD: geheim
+
+   server:
+     depends_on:
+       - db
+     image: pax77/sc2dsmm_server
+     volumes:
+      - ./data:/code
+     working_dir: /code
+     user: 1000:1000
+     ports:
+       - "144.76.58.9:7891:7891"
+     command: ["perl", "mm.pl"]
+     tty: true
+volumes:
+    db_data: {}

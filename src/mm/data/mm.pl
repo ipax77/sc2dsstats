@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-#
 
 use strict;
 use warnings;
@@ -18,19 +17,15 @@ use Time::HiRes qw(gettimeofday tv_interval);
 use lib ".";
 use MMdb;
 use MMmm;
+use MMid;
+use MMplayer;
 
 use Data::Dumper;
 
 my $out = "./data/bab.txt";
 my $folder = "./data/";
 
-my %status : shared;
-my %players : shared;
-my %players_std_3v3 : shared;
-my %players_cmdr_3v3 : shared;
-my %id : shared;
-my @player_pool : shared;
-@player_pool = (\%players, \%players_cmdr_3v3, \%players_std_3v3);
+my $DEBUG = 2;
 
 my $log = "log.txt";
 open(LOG, ">>", $log) or die "Could not write to $log: $!\n";
@@ -60,14 +55,13 @@ $mmdb->DBH->disconnect or warn $mmdb->DBH->errstr;
 
 my $mm = new MMmm();
 $mm->MMPLAYERS(shared_clone($db));
-
 #print Dumper $mm->MMPLAYERS;
 
-my $t0 = [gettimeofday];
 
 my $lock_db : shared;
 
-#####
+my $t0 = [gettimeofday];
+
 
 &Log("Waiting for connection ..");
 
@@ -94,6 +88,184 @@ while (my $socket = $listen->accept) {
 	
 }
 
+sub handle_connection {
+    my $socket = shift;
+    my $ip = shift;
+    my $output = shift || $socket;
+    my $name = "";
+    my $mmid = 0;
+
+    while (<$socket>) {
+        my $ping = $_;
+        my $pong;
+
+        #print "PING: " . $ping . "\n";
+        
+        if (&CheckPing($ping)) {
+
+            chomp($ping);
+            chop($ping);
+            
+            ($name, $mmid, $pong) = &PingPong($ping);
+            if (!$pong) {
+                last;
+            }
+            $pong = "sc2dsmm: " . $pong;
+            &Log($ping . " => " . $pong) if $DEBUG;
+
+            $socket->send($pong);
+
+        } else {
+            last;
+        }
+
+    }
+    
+    &Log($name . " disconected.") if $DEBUG;
+    # Cleanup
+    if (exists $mm->PLAYERS->{$name}) {
+        {
+            lock (%{ $mm->PLAYERS });
+            delete $mm->PLAYERS->{$name};
+        }
+    }
+}
+
+sub PingPong {
+    my $msg = shift;
+
+    my $response = 0;
+    my $name = "";
+    my $mmid = 0;
+
+    if ($msg =~ /Hello from \[([^\[]+)\]: (.*)/) {
+        $name = $1;
+        my $param = $2;
+        $mmid = 0;
+
+        if (!exists $mm->MMPLAYERS->{$name}) {
+
+            my $player = new MMplayer();
+            $player->NAME($name);
+            $mm->MMPLAYERS->{$name} = $player;
+            print "MMPLAYERS setup for $name\n";
+        } else {
+            
+        }
+
+
+        # Deleteme | Report | Letmeplay | Accept game | Decline game
+
+        if ($param =~ /^Deleteme/) {
+
+            &Log("$name: Deleteme");
+            $response = &Delete($name);
+            $response .= "Delete: ";
+        }
+
+        elsif ($param =~ /^mmid: (\d+); (.*)/) {
+            $mmid = $1;
+            my $report = $2;
+            &Log("Result from $name ($mmid): $report");
+            $response = "Result: ";
+            $response .= $mm->Result($name, $mmid, $report);
+        }
+
+        elsif ($param =~ /Letmeplay: (.*)/) {
+            my $opt = $1;
+            my @opt = split(/;/, $opt);
+            my $mode = $opt[0];
+            my $num = $opt[1];
+            my $skill = $opt[2];
+            my $server = $opt[3];
+            $response = "Letmeplay: ";
+            $response .= $mm->Letmeplay($name, $mode, $num, $skill, $server);
+            
+        }
+
+        elsif ($param =~ /accept: (\d+)/) {
+            $mmid = $1;
+            $response = "Accept: ";
+            $response .= $mm->Accept($name, $mmid);
+            
+        }
+
+        elsif ($param =~ /decline: (\d+)/) {
+            $mmid = $1;
+            $response = "Decline: ";
+            $response .= $mm->Decline($name, $mmid);
+            
+        }
+
+        elsif ($param =~ /Findgame: (\d+)/) {
+            my $ent = $1;
+            $response = "Findgame: ";
+            my $temp_mmid = $mm->FindGame($name, $ent);
+            $temp_mmid = &Status() unless $temp_mmid;
+            $response .= $temp_mmid;
+
+        }
+
+        elsif ($param =~ /Ready: (\d+)/) {
+            $mmid = $1;
+            $response = 0;
+            my $i = 0;
+            while (1) {
+                if (exists $mm->MMIDS->{$mmid}) {
+                    if ($mm->MMIDS->{$mmid}->READY) {
+                        $response = "Ready: ";
+                        $response .= $mm->MMIDS->{$mmid}->RESPONSE;
+                        last;
+                    }
+                } else {
+                    # someone declined :(
+                    $response = "Ready: 0";
+                    last;
+                    
+                }
+                $i++;
+                if ($i > 40) {
+                    last;
+                }
+                sleep 1;
+            }
+            
+        } 
+
+        elsif ($param =~ /^allowRandoms: (\d)/) {
+            my $rng = $1;
+            {
+                lock (%{ $mm->MMPLAYERS });
+                $mm->MMPLAYERS->{$name}->RANDOM($rng);
+            }
+            $response = "Findgame: 0";
+        }
+    }
+    return $name, $mmid, $response;
+}
+
+sub CheckPing {
+    my $msg = shift;
+    my $good = 0;
+    if (length($msg) < 2000) {
+        $good = 1;
+    }
+}
+
+sub Status {
+
+    my %status;
+    foreach my $plname (keys %{ $mm->PLAYERS }) {
+        my $pl = $mm->PLAYERS->{$plname};
+        $status{$pl->MOD . '|' . $pl->NUM} ++;
+    }
+    my $c = scalar keys %{$mm->MMIDS};
+    my $status = "Games: $c; Players searching: ";
+    foreach (sort keys %status) {
+        $status .= $_ . " => " . $status{$_} . "; ";
+    }
+    return $status;
+}
 
 
 sub SetCache {
@@ -103,231 +275,40 @@ sub SetCache {
 	$mmdb->DBH->disconnect or warn $mmdb->DBH->errstr;
 }
 
-sub handle_connection {
-    my $socket = shift;
-    my $ip = shift;
-    my $output = shift || $socket;
-    my $doit = 0;
-    my $fh;
-	my $id;
-	my $mmid = 0;
-	my $name;
-	my $result = 0;
-    my $size_check;
-	my $count = 0;
-	my $plref : shared;
-    while (<$socket>) {
-		#print $_ . "\n";
-        if (/Hello from \[([^\[]+)\]: (.*)/) {
-
-            #$name = encode_utf8($1);
-			$name = $1;
-			my $param = $2;
-			chomp($param);
-			chop($param);
-			chop($param);
-			if (&CheckID($name) && &CheckID($param)) {
-				$doit = 1;
-
-				&Log("Hello from $name ($param)");
-				my $response;
-
-				my @param = split (/;/, $param);
-				
-				if ($param[0] eq "Standard") {
-					if ($param[1] eq "3v3") {
-						$plref = \%players_std_3v3;
-					}
-				} elsif ($param[0] eq "Commander") {
-					if ($param[1] eq "3v3") {
-						$plref = \%players_cmdr_3v3;
-					}
-				} elsif ($param[0] =~ /^mmid: (\d+)/)	{
-					$result = $1;
-					my $ref = $mm->Result($name, $param);
-					&SetCache();
-					last;
-				} elsif ($param[0] eq "allowRandoms") {
-					if (exists $mm->MMPLAYERS->{$name}) {
-						{
-							lock (%players); 
-							$mm->MMPLAYERS->{$name}->RANDOM(1);
-							&Log("Allowing randoms for $name");
-						}
-					}
-				} elsif ($param[0] eq "Deleteme") {
-					&Delete($name);
-					last;
-				}
-				
-				{
-					lock (%players);
-					$players{$name} = 0;
-					$plref->{$name} = 0;
-					$mm->PLAYERS(\%players);
-					($mmid, $response) = $mm->Matchup($name, $db, $plref, $param[2], $param[3]);
-					if ($mmid) {
-
-						$players{$name} = $mmid;
-						$plref->{$name} = $mmid;
-						{
-							lock ($lock_db);
-							if (!$lock_db) {
-								$lock_db = 1;
-								&SetCache();
-								$lock_db = 0;
-							}
-						}
-					}
-				}
-
-				&Log($mmid . ": " . $response) if $response;
-				if ($mmid) {
-					$socket->send($response);
-				} else {
-					$socket->send(&GetSum());
-				}
-			} else {
-				$doit = 0;
-				my $response = "Nice try :/";
-				&Log($response);
-				$socket->send($response);
-				last;
-			}
-        } elsif (/(.*)Have fun\./) {
-        	if ($doit) {
-        	}
-	            my $response = "Data received. TY!";
-	            &Log($response);
-	           $socket->send($response);
-	           shutdown($socket, 1);
-	           
-	          last;
-        } elsif ($doit) {
-            
-			if (/^Result: (\d+): (.*)/) {
-				&Log("Got result from $name");
-				$mm->Result($1, $2);
-			}
-			
-			my $sleep = 3 + int rand(4);
-			#&Log("$name Sleeping for $sleep seconds.");
-			sleep $sleep;
-			my $response;
-			{
-				lock ($plref);
-				($mmid, $response) = $mm->Matchup($name, $db, $plref);
-			}
-			#&Log($response);
-			if ($mmid) {
-				$socket->send($response);
-			} else {
-				$socket->send(&GetSum());
-			}
-			
-
-			#last if $count == 6;
-
-            $size_check .= $_;
-            {
-            	use bytes;
-            	my $bytes_size = length($size_check);
-            	if ($bytes_size > 1048576) {
-            		&Goodbye("Unexpected file size :/", $socket, $ip);
-            		$doit = 0;
-            	}
-            }
-            
-            if (/^([^:]+): Thank you.$/) {
-            	my $response = "sc2dsmm: You are welcome." . "\r\n";
-            	$socket->send($response);
-            }
-            
-            last unless $doit;
-        }
-    }
-		
-	if (!$result) {
-		{
-			lock (@player_pool);	
-			foreach my $ref (@player_pool) {
-				#print "Ref: $ref; Name: $name; MMID: $mmid; Ref->name: " . $ref->{$name} . "\n";
-				#delete $ref->{$name} if exists $ref->{$name} && $ref->{$name} == $mmid;
-				delete $ref->{$name} if exists $ref->{$name};
-			}
-			$mm->PLAYERS(\%players);
-		}
-	}
-	
-    $socket->close();
-	&Log("$name has disconnected");
-}
-
-sub GetSum {
-	my $gtotal = keys %{ $mm->MMIDS };
-	my $total = keys %players;
-	my $cmdr_3v3 = keys %players_cmdr_3v3;
-	my $std_3v3 = keys %players_std_3v3;
-
-	my $sum = "sc2dsmm: sum: Total games: " . $gtotal . "; Players searching: " . $total . "; cmdr_3v3: " . $cmdr_3v3 . "; std_3v3: " . $std_3v3 . "\n";
-	return $sum;
-}
-
-sub CheckID {
-	my $id = shift;
-	my $good = 1;
-	# todo utf8
-	if ($id =~ m/[^a-zA-Z0-9]/) {
-		#$good = 0;
-	} elsif (length($id) > 64) {
-		$good = 0;
-    }
-    return $good;
-}
-
 sub Delete {
 	my $name = shift;
 
 	{
-		lock (@player_pool);
+        lock (%{ $mm->MMPLAYERS });
+        lock (%{ $mm->PLAYERS });
 		if (exists $mm->MMPLAYERS->{$name}) {
 			delete $mm->MMPLAYERS->{$name};
 		}
 
-		
-
-		foreach my $ref (@player_pool) {
-			if ($ref) {
-				foreach (keys %$ref) {
-					if (exists $ref->{$name}) {
-						delete $ref->{$name};
-					}
-				}
-			}
-		}
+        if (exists $mm->PLAYERS->{$name}) {
+            delete $mm->PLAYERS->{$name};
+        }
 	}
 
 	{
-	lock ($lock_db);
-	$lock_db = 1;
-	&Log("Deleting player $name ..");
-	my $mmdb = new MMdb();
-	$mmdb->Connect();
-	$mmdb->Delete($name);
-	$mmdb->DBH->disconnect or warn $mmdb->DBH->errstr;
-	
-	$lock_db = 0;
+        lock ($lock_db);
+        $lock_db = 1;
+        &Log("Deleting player $name ..");
+        my $mmdb = new MMdb();
+        $mmdb->Connect();
+        $mmdb->Delete($name);
+        $mmdb->DBH->disconnect or warn $mmdb->DBH->errstr;
+        
+        $lock_db = 0;
 	}
 }
-
-
 
 sub Log {
     my $msg = shift;
 	if ($msg) {
-		my $log_date = "[" . strftime("%Y%m%d - %H:%M:%S", localtime()) . "] - ";
-		print $log_date . $msg . "\n";
-		print LOG $log_date . $msg . "\n";
+		my $log_date = strftime("%Y%m%d - %H:%M:%S", localtime());
+		print $log_date . ": " . $msg . "\n";
+		print LOG $log_date . ": " . $msg . "\n";
 	}
 }
 
