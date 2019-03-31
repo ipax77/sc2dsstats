@@ -1,9 +1,11 @@
 
+0.6.0.13
+
+-- MM-System: reporting improved
+
 0.6.0.12
 
 - MM-System:adjusted ready sound volume (sry)
-
-
 
 0.6.0.11
 

@@ -497,7 +497,7 @@ namespace sc2dsstats_rc1
         public bool CheckPong (string msg)
         {
             bool check = false;
-            if (msg.Length < 400)
+            if (msg.Length < 2000)
             {
                 check = true;
             } else
@@ -505,6 +505,23 @@ namespace sc2dsstats_rc1
                 Console.WriteLine("Response too long :(");
             }
             return check;
+        }
+
+    }
+
+
+    public class dsmmid
+    {
+        public int MMID { get; set; }
+        public List<KeyValuePair<int, string>> PLAYERS { get; set; }
+        public string SERVER { get; set; }
+        public string MOD { get; set; }
+        public string NUM { get; set; }
+        public int NEED { get; set; } = 0;
+
+        public dsmmid()
+        {
+            PLAYERS = new List<KeyValuePair<int, string>>();
         }
 
     }

@@ -6,6 +6,7 @@ using System.Media;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -33,6 +34,7 @@ namespace sc2dsstats_rc1
         SoundPlayer SP { get; set; }
         public bool ACCEPTED { get; set; }
         public bool GAME_READY { get; set; }
+        public List<dsmmid> MMIDS { get; set; } = new List<dsmmid>();
 
         public DispatcherTimer _timer;
         public TimeSpan _time;
@@ -43,7 +45,6 @@ namespace sc2dsstats_rc1
         public Win_mm()
         {
             InitializeComponent();
-            tb_mmid.Text = "6175";
             if (Properties.Settings.Default.MM_CREDENTIAL == true)
             {
                 mmcb_credential.IsChecked = true;
@@ -118,7 +119,7 @@ namespace sc2dsstats_rc1
                 lb_pl6.Content = "Player";
                 tb_mmid.Text = "0";
 
-                mmcb_randoms.IsEnabled = true;
+                mmcb_randoms.IsEnabled = false;
                 mmcb_randoms.IsChecked = false;
                 GAME_READY = false;
 
@@ -170,8 +171,8 @@ namespace sc2dsstats_rc1
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                //mmcb_randoms.IsEnabled = true;
-                                //tb_gamefound.Text += " You can fill your lobby with randoms now if you want (check 'allow Randoms' right to the clock)";
+                                mmcb_randoms.IsEnabled = true;
+                                tb_gamefound.Text += " You can fill your lobby with randoms now if you want (check 'allow Randoms' right to the clock)";
                             });
                         }
                         _time = _time.Add(TimeSpan.FromSeconds(+1));
@@ -260,6 +261,7 @@ namespace sc2dsstats_rc1
             ACCEPTED = true;
             pb_Accept(true, tb_mmid.Text);
             tb_accepted.Text = "TY! Waiting for other players ..";
+            bt_accept.IsEnabled = false;
         }
 
         public void GameFound(string mmid)
@@ -275,6 +277,7 @@ namespace sc2dsstats_rc1
             progbar.BeginAnimation(ProgressBar.ValueProperty, doubleanimation);
             progbar.HorizontalAlignment = HorizontalAlignment.Left;
             gr_accept.Children.Add(progbar);
+            bt_accept.IsEnabled = true;
             gr_accept.Visibility = Visibility.Visible;
             tb_gamefound.Visibility = Visibility.Hidden;
             tb_mmid.Text = mmid;
@@ -336,6 +339,48 @@ namespace sc2dsstats_rc1
             }
             tb_gamefound.Text = msg;
             tb_gamefound.Visibility = Visibility.Visible;
+
+            tb_info.Text = "Please do not forget to report the game after it is finished (by pressing 'Report game')";
+
+            dsmmid id = new dsmmid();
+            try
+            {
+                id.MMID = int.Parse(tb_mmid.Text);
+            } catch { }
+            id.MOD = ((ComboBoxItem)mmcb_mode.SelectedItem).Content.ToString();
+            id.NUM = ((ComboBoxItem)mmcb_num.SelectedItem).Content.ToString();
+            id.SERVER = ((ComboBoxItem)mmcb_server.SelectedItem).Content.ToString();
+
+
+            var labels = gr_mm.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_pl"));
+            foreach (Label lb in labels)
+            {
+                string pattern = @"^lb_pl(\d)";
+                int i = 1;
+                foreach (Match m in Regex.Matches(lb.Name, pattern))
+                {
+                    try
+                    {
+                        i = int.Parse(m.Groups[1].Value);
+                    } catch { }
+                }
+                
+                KeyValuePair<int, string> pl = new KeyValuePair<int, string>(i, lb.Content.ToString());
+                id.PLAYERS.Add(pl);
+
+                string pattern1 = @"^Random(\d)";
+                Match m2 = Regex.Match(lb.Content.ToString(), pattern1);
+                if (m2.Success)
+                {
+                    // just a random
+                } else
+                {
+                    id.NEED++;
+                }
+
+            }
+
+            MMIDS.Add(id);
         }
 
         private void lb_switch_CLick(object sender, RoutedEventArgs e)
@@ -454,6 +499,7 @@ namespace sc2dsstats_rc1
                     Dispatcher.Invoke(() =>
                     {
                         Win_mmselect msel = new Win_mmselect(MW, this);
+                        msel.tb_rep_mmid.Text = tb_mmid.Text;
                         msel.Show();
                     });
                 });
@@ -486,7 +532,7 @@ namespace sc2dsstats_rc1
 
             }, TaskCreationOptions.AttachedToParent);
 
-            MessageBox.Show("Result sent. Thank you!", "sc2dsmm");
+            //MessageBox.Show("Result sent. Thank you!", "sc2dsmm");
             bt_show.IsEnabled = true;
 
             tb_gamefound.Text = res;

@@ -40,8 +40,15 @@ namespace sc2dsstats_rc1
         {
             MW = mw;
             WM = wm;
-
+            foreach (dsmmid id in WM.MMIDS)
+            {
+                mmcb_mmids.Items.Add(id.MMID);
+            }
             bt_load_Click(null, null);
+
+
+
+
         }
 
         private void bt_scan_Click(object sender, RoutedEventArgs e)
@@ -62,43 +69,146 @@ namespace sc2dsstats_rc1
             List<dsreplay> tmprep = new List<dsreplay>();
             tmprep = new List<dsreplay>(fil_replays.Where(x => (x.GAMETIME > sd_int)).ToList());
 
-            dg_games.ItemsSource = tmprep;
+            CheckValidRep(tmprep);
+            //dg_games.ItemsSource = tmprep;
         }
 
-        private void bt_send_Click(object sender, RoutedEventArgs e)
+        public void CheckValidRep (List<dsreplay> reps)
         {
-            string result1 = "";
-            string result2 = "";
-            string result = "unknown";
+
+            List<dsreplay> glvalid1 = new List<dsreplay>();
+            List<dsreplay> glvalid2 = new List<dsreplay>();
+            List<dsmmid> leftover = new List<dsmmid>(WM.MMIDS);
+
+            foreach (dsmmid id in WM.MMIDS)
+            {
+
+                List<dsreplay> lvalid1 = new List<dsreplay>();
+                List<dsreplay> lvalid2 = new List<dsreplay>();
+
+                int valid = 0;
+                foreach (dsreplay rep in reps)
+                {
+                    foreach (dsplayer plrep in rep.PLAYERS)
+                    {
+                        foreach (KeyValuePair<int, string> plmm in id.PLAYERS)
+                        {
+                            if (plmm.Value == plrep.NAME)
+                            {
+                                valid++;
+                            }
+                        }
+                    }
+
+                    if (valid >= 2)
+                    {
+                        lvalid2.Add(rep);
+                    }
+
+                    if (valid == id.NEED)
+                    {
+                        lvalid1.Add(rep);
+                    }
+                }
+
+                // one valid replay found :)
+                if (lvalid1.Count == 1)
+                {
+                    SendRep(lvalid1.ElementAt(0));
+                    leftover.Remove(id);
+                }
+                else if (lvalid1.Count > 1)
+                {
+                    dg_games.ItemsSource = lvalid1;
+                    glvalid1.AddRange(lvalid1);
+                }
+                else if (lvalid2.Count == 1)
+                {
+                    SendRep(lvalid2.ElementAt(0));
+                    leftover.Remove(id);
+                }
+                else if (lvalid2.Count > 1)
+                {
+                    dg_games.ItemsSource = lvalid2;
+                    glvalid2.AddRange(lvalid2);
+                }
+            }
+
+            if (WM.MMIDS.Count > 0 && leftover.Count == 0)
+            {
+                MessageBox.Show("Report sent - TY!", "sc2dsmm2");
+                this.Close();
+            }
+
+            else if (leftover.Count == 1)
+            {
+                if (glvalid1.Count == 1)
+                {
+                    SendRep(glvalid1.ElementAt(0));
+                }
+                else if (glvalid1.Count > 1)
+                {
+                    dg_games.ItemsSource = glvalid1;
+                }
+                else if (glvalid2.Count == 1)
+                {
+                    SendRep(glvalid2.ElementAt(0));
+                }
+                else if (glvalid2.Count > 1)
+                {
+                    dg_games.ItemsSource = glvalid2;
+                } else
+                {
+                    dg_games.ItemsSource = reps;
+                }
+
+            } else
+            {
+                dg_games.ItemsSource = reps;
+            }
+        }
+
+        public void bt_send_Click(object sender, RoutedEventArgs e)
+        {
+
 
             foreach (var dataItem in dg_games.SelectedItems)
             {
                 dsreplay game = dataItem as dsreplay;
-                if (game != null)
+                game.MMID = tb_rep_mmid.Text;
+                SendRep(game);
+            }
+
+        }
+
+        public void SendRep (dsreplay game)
+        {
+            string result1 = "";
+            string result2 = "";
+            string result = "unknown";
+            if (game != null)
+            {
+
+                foreach (dsplayer player in game.PLAYERS)
                 {
-
-                    foreach (dsplayer player in game.PLAYERS)
+                    if (player.POS <= 3)
                     {
-                        if (player.POS <= 3)
+                        result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
+                        if (player.POS != 3)
                         {
-                            result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                            if (player.POS != 3)
-                            {
-                                result1 += ", ";
-                            }
-                        }
-                        else if (player.POS > 3)
-                        {
-                            result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                            if (player.POS != 6)
-                            {
-                                result2 += ", ";
-                            }
-
+                            result1 += ", ";
                         }
                     }
-                }
+                    else if (player.POS > 3)
+                    {
+                        result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
+                        if (player.POS != 6)
+                        {
+                            result2 += ", ";
+                        }
 
+                    }
+                }
                 if (game.WINNER == 0)
                 {
                     result = result1 + " vs " + result2;
@@ -109,10 +219,10 @@ namespace sc2dsstats_rc1
                 }
                 result1 = "";
                 result2 = "";
-
             }
-            WM.SendResult("mmid: " + WM.tb_mmid.Text + "; result: " + result);
-
+            string mmid = game.MMID;
+            if (mmid == "0") mmid = tb_rep_mmid.Text;
+            WM.SendResult("mmid: " + mmid + "; result: " + result);
         }
 
         private void dg_games_DClick(object sender, RoutedEventArgs e)
@@ -243,8 +353,16 @@ namespace sc2dsstats_rc1
 
         private void bt_norep_Click(object sender, RoutedEventArgs e)
         {
-            Win_norep norep = new Win_norep();
+            Win_norep norep = new Win_norep(WM, tb_rep_mmid.Text);
             norep.Show();
+        }
+
+        private void Mmcb_mmids_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                tb_rep_mmid.Text = mmcb_mmids.SelectedItem.ToString();
+            } catch { }
         }
     }
 }

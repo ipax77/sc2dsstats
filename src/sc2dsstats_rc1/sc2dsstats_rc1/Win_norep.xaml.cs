@@ -26,10 +26,10 @@ namespace sc2dsstats_rc1
             InitializeComponent();
         }
 
-        public Win_norep(Win_mm wm) : this()
+        public Win_norep(Win_mm wm, string mmid) : this()
         {
             WM = wm;
-            tb_mmid.Text = WM.tb_mmid.Text;
+            tb_mmid.Text = mmid;
         }
 
         private void bt_send_Click(object sender, RoutedEventArgs e)

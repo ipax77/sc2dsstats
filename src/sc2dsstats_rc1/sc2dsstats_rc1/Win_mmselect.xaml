@@ -155,6 +155,49 @@
         <SolidColorBrush x:Key="StdTextBrush1" Color="#FF001633" />
         <SolidColorBrush x:Key="GlyphBrush" Color="#444" />
 
+        <SolidColorBrush x:Key="Red" Color="Red" />
+        <SolidColorBrush x:Key="Green" Color="Green" />
+        <SolidColorBrush x:Key="Yellow" Color="Yellow" />
+        
+        <Style x:Key="cb_Style_ample" TargetType="CheckBox">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CheckStates">
+                                    <VisualState x:Name="Unchecked"/>
+                                    <VisualState x:Name="Checked">
+                                    </VisualState>
+                                    <VisualState x:Name="Indeterminate"/>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Ellipse x:Name="blackframe" Stroke="Black" Fill="Blue" Width="16" Height="16"/>
+                            <Ellipse x:Name="background" Margin="2" Fill="AliceBlue" Width="12" Height="12"/>
+                            <ContentPresenter x:Name="contentPresenter" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1" Margin="5,0,0,0"/>
+                            <Path x:Name="tick" Fill="Black" Data="F1 M 4.325,7.852 C 4.175,7.852 4.026,7.807 3.900,7.720 L 0.325,5.262 C -0.016,5.027 -0.103,4.560 0.132,4.219 C 0.367,3.877 0.833,3.792 1.175,4.025 L 4.091,6.030 L 7.478,0.365 C 7.690,0.010 8.151,-0.107 8.506,0.106 C 8.861,0.319 8.978,0.779 8.765,1.135 L 4.969,7.486 C 4.863,7.664 4.688,7.790 4.485,7.834 C 4.432,7.846 4.378,7.852 4.325,7.852 L 4.325,7.852 Z" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="false">
+                                <Setter TargetName="background" Property="Fill" Value="{StaticResource Red}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter TargetName="background" Property="Fill" Value="{StaticResource Green}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <Style x:Key="CheckBoxFocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -590,8 +633,19 @@
             </TextBox.Background>
 
         </TextBox>
+        <CheckBox x:Name="mmcb_ample" Visibility="Collapsed" IsEnabled="False" IsChecked="False" Content="invalid" Style="{StaticResource cb_Style_ample}" HorizontalAlignment="Left" Margin="5,40,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+        <Label Content="MMID:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="10,60,0,0"  VerticalAlignment="Top" Width="54"/>
+        <TextBox x:Name="tb_rep_mmid" Text="000" Width="80" Height="25" BorderThickness="0" IsReadOnly="False" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="5,80,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FFD60D0D" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold">
+            <TextBox.BorderBrush>
+                <ImageBrush/>
+            </TextBox.BorderBrush>
 
-        <Grid x:Name="gr_database_games" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,45,0,0" >
+        </TextBox>
+
+        <Label Content="Switch MMID:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="3,110,0,0"  VerticalAlignment="Top" Width="82"/>
+        <ComboBox x:Name="mmcb_mmids" HorizontalAlignment="Left" Margin="5,130,0,0" VerticalAlignment="Top" Width="80" Style="{DynamicResource ComboBoxStyle1}" IsEnabled="True" SelectionChanged="Mmcb_mmids_SelectionChanged">
+        </ComboBox>
+        <Grid x:Name="gr_database_games" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="90,45,0,0" >
             <DataGrid x:Name="dg_games" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="360" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" MouseDoubleClick="dg_games_DClick" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
                 <DataGrid.Style>
                     <Style TargetType="DataGrid">
@@ -614,7 +668,7 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
-        <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="330,45,0,0">
+        <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="410,45,0,0">
             <DataGrid x:Name="dg_player" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="360" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
                 <DataGrid.Style>
                     <Style TargetType="DataGrid">

@@ -18,6 +18,7 @@ namespace sc2dsstats_rc1
         public double MININCOME { get; set; }
         public int MAXLEAVER { get; set; }
         public int PLAYERCOUNT { get; set; }
+        public string MMID { get; set; } = "0";
 
         public dsreplay()
         {
