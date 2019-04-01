@@ -105,5 +105,17 @@ namespace sc2dsstats_rc1.Properties {
                 this["MM_Mode"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1500")]
+        public string ELO {
+            get {
+                return ((string)(this["ELO"]));
+            }
+            set {
+                this["ELO"] = value;
+            }
+        }
     }
 }

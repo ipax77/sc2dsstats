@@ -42,11 +42,11 @@ namespace sc2dsstats_rc1
             catch { }
         }
 
-        public Socket StartClient(string player, string result)
+        public string StartClient(Win_mm wm, string player, string result)
         {
             Socket sender = null;
             byte[] bytes = new byte[1024];
-
+            string elo = null;
             try
             {
                 // Connect to a Remote server  
@@ -74,12 +74,6 @@ namespace sc2dsstats_rc1
                     Console.WriteLine("Socket connected to {0}",
                         sender.RemoteEndPoint.ToString());
 
-                    // Encode the data string into a byte array.    
-                    byte[] msg = Encoding.UTF8.GetBytes("This is a test" + "\r\n");
-
-                    // Send the data through the socket.    
-                    //int bytesSent = sender.Send(msg);
-
                     // Create the preBuffer data.
                     string string1 = "Hello from [" + player + "]: " + result + ";" + "\r\n";
                     byte[] preBuf = Encoding.UTF8.GetBytes(string1);
@@ -91,9 +85,25 @@ namespace sc2dsstats_rc1
                     Console.WriteLine("Echoed test = {0}",
                         Encoding.UTF8.GetString(bytes, 0, bytesRec));
 
+                    string pattern = @"^sc2dsmm: Result: (.*)";
+                    string ent = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    foreach (Match m in Regex.Matches(ent, pattern))
+                    {
+                        elo = m.Groups[1].Value.ToString();
+                    }
+                    if (elo != null)
+                    {
+                        //wm.Dispatcher.Invoke(() =>
+                        //{
+                            //wm.PresentResult(elo);
+                        //});
+                    }
+
                     // Release the socket.    
                     sender.Shutdown(SocketShutdown.Both);
                     sender.Close();
+
+
 
                 }
                 catch (ArgumentNullException ane)
@@ -114,7 +124,7 @@ namespace sc2dsstats_rc1
             {
                 Console.WriteLine(e.ToString());
             }
-            return sender;
+            return elo;
         }
 
         public Socket StartClient(Win_mm mw, string player, string mode, string num, string skill, string server)
@@ -153,12 +163,6 @@ namespace sc2dsstats_rc1
 
                     Console.WriteLine("Socket connected to {0}",
                         sender.RemoteEndPoint.ToString());
-
-                    // Encode the data string into a byte array.    
-                    byte[] msg = Encoding.UTF8.GetBytes("This is a test" + "\r\n");
-
-                    // Send the data through the socket.    
-                    //int bytesSent = sender.Send(msg);
 
                     // Create the preBuffer data.
                     string string1 = "Hello from [" + player + "]: Letmeplay: " + mode + ";" + num + ";" + skill + ";" + server + ";" + "\r\n";
@@ -252,7 +256,10 @@ namespace sc2dsstats_rc1
                     else
                     {
                         // all accepted :)
-                        SetupPos(ent, player);
+                        MW.Dispatcher.Invoke(() =>
+                        {
+                            MW.SetupPos(ent, player);
+                        });
                         response = "fin";
                     }
                     goto Response;
@@ -347,26 +354,6 @@ namespace sc2dsstats_rc1
             if (client != null)
             {
 
-                if (response == "fin")
-                {
-                    try
-                    {
-                        StopClient(client);
-                        client.Dispose();
-                        client = null;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Client closed: {0}", e.ToString());
-                    }
-                    MW.Dispatcher.Invoke(() =>
-                    {
-                        MW.mmcb_ample.IsChecked = false;
-                        MW.mmcb_ample.Content = "Offline";
-                    });
-                }
-                else
-                {
                     if (response != "wait")
                     {
                         response = "Hello from [" + player + "]: " + response + "\r\n";
@@ -382,24 +369,47 @@ namespace sc2dsstats_rc1
                     }
 
 
-                    byte[] bytes = new byte[1024];
-                    string fin = "";
-                    int bytesRec = 0;
-                    try
-                    {
-                        bytesRec = client.Receive(bytes);
-                        fin = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Client closed: {0}", e.ToString());
-                    }
 
-                    if (bytesRec > 0) PingPong(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, client, mmid);
+
+                    if (response == "fin")
+                    {
+                        try
+                        {
+                            StopClient(client);
+                            client.Dispose();
+                            client = null;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Client closed: {0}", e.ToString());
+                        }
+                        MW.Dispatcher.Invoke(() =>
+                        {
+                            MW.mmcb_ample.IsChecked = false;
+                            MW.mmcb_ample.Content = "Offline";
+                        });
+                    }
+                    else
+                    {
+                        byte[] bytes = new byte[1024];
+                        string fin = "";
+                        int bytesRec = 0;
+                        try
+                        {
+                            bytesRec = client.Receive(bytes);
+                            fin = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Client closed: {0}", e.ToString());
+                        }
+
+                        if (bytesRec > 0) PingPong(Encoding.UTF8.GetString(bytes, 0, bytesRec), player, client, mmid);
+                    }
 
                 }
 
-            } else
+            else
             {
                 MW.Dispatcher.Invoke(() =>
                 {
@@ -411,86 +421,7 @@ namespace sc2dsstats_rc1
             return response;
         }
 
-        public void SetupPos (string msg, string player)
-        {
-            int mypos = 0;
-            string mmid = "0";
-            string creator = "1";
-            string server = "NA";
 
-            MW.Dispatcher.Invoke(() =>
-            {
-                MW.doit = false;
-                MW.GAME_READY = true;
-                MW.gr_accept.Visibility = Visibility.Hidden;
-            });
-
-                foreach (string p in msg.Split(';'))
-            {
-
-                string pt_pos = @"^pos(\d): (.*)";
-                foreach (Match m2 in Regex.Matches(p, pt_pos))
-                {
-                    int pos = Int32.Parse(m2.Groups[1].ToString());
-                    string teammate = m2.Groups[2].ToString();
-
-                    if (teammate == player)
-                    {
-                        mypos = pos;
-                    }
-
-                    Label lb = null;
-                    if (pos == 0)
-                    {
-                        mmid = m2.Groups[2].ToString();
-                    }
-                    else if (pos == 1)
-                    {
-                        lb = MW.lb_pl1;
-                    }
-                    else if (pos == 2)
-                    {
-                        lb = MW.lb_pl2;
-                    }
-                    else if (pos == 3)
-                    {
-                        lb = MW.lb_pl3;
-                    }
-                    else if (pos == 4)
-                    {
-                        lb = MW.lb_pl4;
-                    }
-                    else if (pos == 5)
-                    {
-                        lb = MW.lb_pl5;
-                    }
-                    else if (pos == 6)
-                    {
-                        lb = MW.lb_pl6;
-                    }
-                    else if (pos == 7)
-                    {
-                        creator = teammate;
-                    }
-                    else if (pos == 8)
-                    {
-                        server = teammate;
-                    }
-                    else
-                    {
-                        lb = MW.lb_info;
-                    }
-                    MW.Dispatcher.Invoke(() =>
-                    {
-                        if (mmid != "0") MW.tb_mmid.Text = mmid;
-                        if (lb != null) lb.Content = teammate;
-                        if (server != "0") MW.tb_server.Text = server;
-                        MW.GameReady(mypos, creator, mmid);
-                        MW.tb_gamefound.Visibility = Visibility.Visible;
-                    });
-                }
-            }
-        }
 
     
 
@@ -513,15 +444,16 @@ namespace sc2dsstats_rc1
     public class dsmmid
     {
         public int MMID { get; set; }
-        public List<KeyValuePair<int, string>> PLAYERS { get; set; }
+        public List<KeyValuePair<int, string>> PLAYERS { get; set; } = new List<KeyValuePair<int, string>>();
+        public List<dsplayer> REPORTS { get; set; } = new List<dsplayer>();
         public string SERVER { get; set; }
         public string MOD { get; set; }
         public string NUM { get; set; }
         public int NEED { get; set; } = 0;
+        public int REPORTED { get; set; } = 0;
 
         public dsmmid()
         {
-            PLAYERS = new List<KeyValuePair<int, string>>();
         }
 
     }

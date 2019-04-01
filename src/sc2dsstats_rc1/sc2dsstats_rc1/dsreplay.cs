@@ -19,6 +19,7 @@ namespace sc2dsstats_rc1
         public int MAXLEAVER { get; set; }
         public int PLAYERCOUNT { get; set; }
         public string MMID { get; set; } = "0";
+        public int REPORTED { get; set; } = 0;
 
         public dsreplay()
         {
@@ -56,12 +57,14 @@ namespace sc2dsstats_rc1
         public int POS { get; set; }
         public string RACE { get; set; }
         public int TEAM { get; set; }
-        public int KILLSUM { get; set; }
-        public double INCOME { get; set; }
-        public int PDURATION { get; set; }
+        public int KILLSUM { get; set; } = 0;
+        public double INCOME { get; set; } = 0;
+        public int PDURATION { get; set; } = 0;
         public string NAME { get; set; }
-        public int ARMY { get; set; }
+        public int ARMY { get; set; } = 0;
         public int RESULT { get; set; }
+        public double ELO { get; set; }
+        public double ELO_CHANGE { get; set; }
 
         public dsplayer() { }
 

@@ -1,4 +1,8 @@
 
+0.6.0.14
+
+- MM-System: ELO visualization
+
 0.6.0.13
 
 -- MM-System: reporting improved

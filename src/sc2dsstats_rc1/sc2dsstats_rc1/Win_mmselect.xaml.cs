@@ -40,7 +40,7 @@ namespace sc2dsstats_rc1
         {
             MW = mw;
             WM = wm;
-            foreach (dsmmid id in WM.MMIDS)
+            foreach (dsmmid id in WM.MMIDS.Values)
             {
                 mmcb_mmids.Items.Add(id.MMID);
             }
@@ -69,6 +69,8 @@ namespace sc2dsstats_rc1
             List<dsreplay> tmprep = new List<dsreplay>();
             tmprep = new List<dsreplay>(fil_replays.Where(x => (x.GAMETIME > sd_int)).ToList());
 
+            tb_rep_mmid.Text = WM.tb_mmid.Text;
+
             CheckValidRep(tmprep);
             //dg_games.ItemsSource = tmprep;
         }
@@ -78,10 +80,11 @@ namespace sc2dsstats_rc1
 
             List<dsreplay> glvalid1 = new List<dsreplay>();
             List<dsreplay> glvalid2 = new List<dsreplay>();
-            List<dsmmid> leftover = new List<dsmmid>(WM.MMIDS);
+            List<dsmmid> leftover = new List<dsmmid>(WM.MMIDS.Values);
 
-            foreach (dsmmid id in WM.MMIDS)
+            foreach (dsmmid id in WM.MMIDS.Values)
             {
+                if (id.REPORTED == 1) continue;
 
                 List<dsreplay> lvalid1 = new List<dsreplay>();
                 List<dsreplay> lvalid2 = new List<dsreplay>();
@@ -114,6 +117,7 @@ namespace sc2dsstats_rc1
                 // one valid replay found :)
                 if (lvalid1.Count == 1)
                 {
+                    lvalid1.ElementAt(0).MMID = id.MMID.ToString();
                     SendRep(lvalid1.ElementAt(0));
                     leftover.Remove(id);
                 }
@@ -124,6 +128,7 @@ namespace sc2dsstats_rc1
                 }
                 else if (lvalid2.Count == 1)
                 {
+                    lvalid2.ElementAt(0).MMID = id.MMID.ToString();
                     SendRep(lvalid2.ElementAt(0));
                     leftover.Remove(id);
                 }
@@ -136,8 +141,8 @@ namespace sc2dsstats_rc1
 
             if (WM.MMIDS.Count > 0 && leftover.Count == 0)
             {
-                MessageBox.Show("Report sent - TY!", "sc2dsmm2");
-                this.Close();
+                //MessageBox.Show("Report sent - TY!", "sc2dsmm2");
+                //this.Close();
             }
 
             else if (leftover.Count == 1)
@@ -188,41 +193,81 @@ namespace sc2dsstats_rc1
             string result = "unknown";
             if (game != null)
             {
-
-                foreach (dsplayer player in game.PLAYERS)
+                if (game.REPORTED == 0)
                 {
-                    if (player.POS <= 3)
+
+                    if (WM.MMIDS.Count > 0)
                     {
-                        result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                        if (player.POS != 3)
+                        if (WM.MMIDS[int.Parse(tb_rep_mmid.Text)] != null)
                         {
-                            result1 += ", ";
+                        }
+                        else
+                        {
+                            dsmmid id = new dsmmid();
+                            id.MMID = int.Parse(tb_rep_mmid.Text);
+                            WM.MMIDS.Add(int.Parse(tb_rep_mmid.Text), id);
                         }
                     }
-                    else if (player.POS > 3)
+                    else
                     {
-                        result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                        if (player.POS != 6)
+                        dsmmid id = new dsmmid();
+                        id.MMID = int.Parse(tb_rep_mmid.Text);
+                        WM.MMIDS.Add(int.Parse(tb_rep_mmid.Text), id);
+                    }
+
+                    foreach (dsplayer player in game.PLAYERS)
+                    {
+                        if (player.POS <= 3)
                         {
-                            result2 += ", ";
+                            result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
+                            if (player.POS != 3)
+                            {
+                                result1 += ", ";
+                            }
+                        }
+                        else if (player.POS > 3)
+                        {
+                            result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
+                            if (player.POS != 6)
+                            {
+                                result2 += ", ";
+                            }
+
+                        }
+
+                        dsplayer plid = new dsplayer();
+                        List<dsplayer> ltemp = new List<dsplayer>(WM.MMIDS[int.Parse(tb_rep_mmid.Text)].REPORTS.Where(x => x.NAME == player.NAME).ToList());
+                        if (ltemp.Count > 0)
+                        {
+                            plid = ltemp.ElementAt(0);
+                            plid.ARMY = player.ARMY;
+                            plid.INCOME = player.INCOME;
+                            plid.PDURATION = player.PDURATION;
+                            plid.POS = player.POS;
+                        }
+                        else
+                        {
+                            WM.MMIDS[int.Parse(tb_rep_mmid.Text)].REPORTS.Add(player);
                         }
 
                     }
+                    if (game.WINNER == 0)
+                    {
+                        result = result1 + " vs " + result2;
+                    }
+                    else if (game.WINNER == 1)
+                    {
+                        result = result2 + " vs " + result1;
+                    }
+                    result1 = "";
+                    result2 = "";
+
+                    string mmid = game.MMID;
+                    if (mmid == "0") mmid = tb_rep_mmid.Text;
+                    WM.SendResult("mmid: " + mmid + "; result: " + result, game);
+                    this.Close();
                 }
-                if (game.WINNER == 0)
-                {
-                    result = result1 + " vs " + result2;
-                }
-                else if (game.WINNER == 1)
-                {
-                    result = result2 + " vs " + result1;
-                }
-                result1 = "";
-                result2 = "";
             }
-            string mmid = game.MMID;
-            if (mmid == "0") mmid = tb_rep_mmid.Text;
-            WM.SendResult("mmid: " + mmid + "; result: " + result);
         }
 
         private void dg_games_DClick(object sender, RoutedEventArgs e)

@@ -45,7 +45,7 @@ namespace sc2dsstats_rc1
             }
 
 
-            WM.SendResult("mmid: " + tb_mmid.Text + "; blame:" + blame);
+            WM.SendResult("mmid: " + tb_mmid.Text + "; blame:" + blame, null);
         }
     }
 }

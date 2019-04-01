@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Media;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -34,7 +37,7 @@ namespace sc2dsstats_rc1
         SoundPlayer SP { get; set; }
         public bool ACCEPTED { get; set; }
         public bool GAME_READY { get; set; }
-        public List<dsmmid> MMIDS { get; set; } = new List<dsmmid>();
+        public Dictionary<int, dsmmid> MMIDS { get; set; } = new Dictionary<int, dsmmid>();
 
         public DispatcherTimer _timer;
         public TimeSpan _time;
@@ -89,7 +92,7 @@ namespace sc2dsstats_rc1
                 mmcb_mode.SelectedItem = mmcb_mode.Items[1];
             }
 
-
+            tb_elo.Text = Properties.Settings.Default.ELO;
 
         }
 
@@ -107,6 +110,7 @@ namespace sc2dsstats_rc1
         {
             if (mmcb_credential.IsChecked == true)
             {
+                ClearReport();
 
                 gr_accept.Visibility = Visibility.Hidden;
                 tb_accepted.Text = "";
@@ -352,7 +356,7 @@ namespace sc2dsstats_rc1
             id.SERVER = ((ComboBoxItem)mmcb_server.SelectedItem).Content.ToString();
 
 
-            var labels = gr_mm.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_pl"));
+            var labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_pl"));
             foreach (Label lb in labels)
             {
                 string pattern = @"^lb_pl(\d)";
@@ -380,7 +384,90 @@ namespace sc2dsstats_rc1
 
             }
 
-            MMIDS.Add(id);
+            MMIDS.Add(id.MMID, id);
+        }
+
+        public void SetupPos(string msg, string player)
+        {
+            int mypos = 0;
+            string mmid = "0";
+            string creator = "1";
+            string server = "NA";
+            string elo = "0";
+
+
+            doit = false;
+            GAME_READY = true;
+            gr_accept.Visibility = Visibility.Hidden;
+
+
+            foreach (string p in msg.Split(';'))
+            {
+
+                string pt_pos = @"^pos(\d): (.*)";
+                foreach (Match m2 in Regex.Matches(p, pt_pos))
+                {
+                    int pos = Int32.Parse(m2.Groups[1].ToString());
+                    string teammate = m2.Groups[2].ToString();
+
+                    if (teammate == player)
+                    {
+                        mypos = pos;
+                    }
+
+                    Label lb = null;
+                    if (pos == 0)
+                    {
+                        mmid = m2.Groups[2].ToString();
+                    }
+                    else if (pos == 1)
+                    {
+                        lb = lb_pl1;
+                    }
+                    else if (pos == 2)
+                    {
+                        lb = lb_pl2;
+                    }
+                    else if (pos == 3)
+                    {
+                        lb = lb_pl3;
+                    }
+                    else if (pos == 4)
+                    {
+                        lb = lb_pl4;
+                    }
+                    else if (pos == 5)
+                    {
+                        lb = lb_pl5;
+                    }
+                    else if (pos == 6)
+                    {
+                        lb = lb_pl6;
+                    }
+                    else if (pos == 7)
+                    {
+                        creator = teammate;
+                    }
+                    else if (pos == 8)
+                    {
+                        server = teammate;
+                    }
+                    else if (pos == 9)
+                    {
+                        elo = teammate;
+                    }
+                    else
+                    {
+                        lb = lb_info;
+                    }
+
+                    if (mmid != "0") tb_mmid.Text = mmid;
+                    if (lb != null) lb.Content = teammate;
+                    if (server != "0") tb_server.Text = server;
+                    tb_gamefound.Visibility = Visibility.Visible;
+                }
+            }
+            GameReady(mypos, creator, mmid);
         }
 
         private void lb_switch_CLick(object sender, RoutedEventArgs e)
@@ -477,8 +564,8 @@ namespace sc2dsstats_rc1
                 {
                     foreach (string player in MW.player_list)
                     {
-                        dsmmclient result = new dsmmclient();
-                        Socket sock = result.StartClient(player, "Deleteme;");
+                        dsmmclient result = new dsmmclient(this);
+                        result.StartClient(this, player, "Deleteme;");
                     }
 
                 }, TaskCreationOptions.AttachedToParent);
@@ -492,14 +579,12 @@ namespace sc2dsstats_rc1
         {
             MW.mnu_Scan(sender, e);
             MessageBox.Show("Scanning replays - please wait ..", "sc2dsmm");
-
+            Win_mmselect msel = new Win_mmselect(MW, this);
             try
             {
                 Task showit = MW.tsscan.ContinueWith((antecedent) => {
                     Dispatcher.Invoke(() =>
                     {
-                        Win_mmselect msel = new Win_mmselect(MW, this);
-                        msel.tb_rep_mmid.Text = tb_mmid.Text;
                         msel.Show();
                     });
                 });
@@ -514,28 +599,230 @@ namespace sc2dsstats_rc1
 
         public void SelectReplay()
         {
-            Dispatcher.Invoke(() =>
-            {
-                Win_mmselect msel = new Win_mmselect(MW, this);
-                msel.Show();
-            });
+            Win_mmselect msel = new Win_mmselect(MW, this);
+            msel.Show();
         }
 
-        public void SendResult(string res)
+        public void SendResult(string res, dsreplay rep)
         {
             string player = mmcb_player.SelectedItem.ToString();
+            string report = null;
             Task sendres = Task.Factory.StartNew(() =>
             {
                 dsmmclient result = new dsmmclient();
-                Socket sock = result.StartClient(player, res);
-
+                report = result.StartClient(this, player, res);
 
             }, TaskCreationOptions.AttachedToParent);
 
+            sendres.Wait();
+
+            if (report != null)
+            {
+                if (rep != null) rep.REPORTED = 1;
+                PresentResult(report);
+            }
+
             //MessageBox.Show("Result sent. Thank you!", "sc2dsmm");
             bt_show.IsEnabled = true;
-
             tb_gamefound.Text = res;
+        }
+
+        public void PresentResult(string report)
+        {
+            dsmmid id = new dsmmid();
+            string mmid = "0";
+            foreach (string p in report.Split(';'))
+            {
+                string pt_pos = @"^pos(\d): (.*)";
+                foreach (Match m2 in Regex.Matches(p, pt_pos))
+                {
+                    string i = m2.Groups[1].Value.ToString();
+                    string pos = m2.Groups[2].Value.ToString();
+                    
+                    if (i == "0")
+                    {
+                        mmid = pos;
+                        if (MMIDS.ContainsKey(int.Parse(mmid))) 
+                        {
+                            id = MMIDS[int.Parse(mmid)];
+                        } else
+                        {
+                            // :(
+                            MMIDS.Add(int.Parse(mmid), id);
+                            id = MMIDS[int.Parse(mmid)];
+                        }
+                        id.REPORTED = 1;
+                    }
+                    else if (int.Parse(i) <= 6) 
+                    {
+                        dsplayer pl = new dsplayer();
+                        pl.POS = int.Parse(i);
+
+                        // $response .= "pos" . $pl->POS . ": " . $pl->NAME . "|" . $pl_elo . "|" . $pl_elo_change . "|" . $pl->RACE . "|" . $pl->KILLSUM . ";";
+                        int l = 0;
+                        foreach (string ent in pos.Split('|'))
+                        {
+                            l++;
+                            if (l == 1) pl.NAME = ent;
+                            else if (l == 4) pl.RACE = ent;
+                            else if (l == 2) pl.ELO = double.Parse(ent, new CultureInfo("en-US"));
+                            else if (l == 3) pl.ELO_CHANGE = double.Parse(ent, new CultureInfo("en-US"));
+                            else if (l == 5) pl.KILLSUM = int.Parse(ent);
+                            
+                        }
+
+                        int c = 0;
+                        dsplayer plrm = new dsplayer();
+                        foreach (dsplayer plmm in id.REPORTS)
+                        {
+                            if (plmm.NAME == pl.NAME)
+                            {
+                                c++;
+                                plmm.RACE = pl.RACE;
+                                plmm.ELO = pl.ELO;
+                                plmm.ELO_CHANGE = pl.ELO_CHANGE;
+                                plmm.KILLSUM = pl.KILLSUM;
+                                plmm.POS = pl.POS;
+                            }
+
+                            if (plmm.POS == pl.POS)
+                            {
+                                plrm = plmm;
+                            }
+
+                        }
+                        if (c == 0)
+                        {
+                            if (plrm != null) id.REPORTS.Remove(plrm);
+                            id.REPORTS.Add(pl);
+                        }
+
+                    }
+                }
+            }
+
+            mmcb_report.Items.Clear();
+            if (id != null && id.REPORTS.Count > 0 && MMIDS.Keys.Count > 0)
+            {
+                foreach (int mmid2 in MMIDS.Keys)
+                {
+                    mmcb_report.Items.Add(mmid2.ToString());
+                }
+                mmcb_report.SelectedItem = mmcb_report.Items[0];
+                DisplayReport(mmcb_report.SelectedItem.ToString());
+            } else
+            {
+                DisplayReport(mmid);
+            }
+
+                
+           
+        }
+
+        public void ClearReport()
+        {
+
+            var labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_elo"));
+            foreach (Label l in labels)
+            {
+                l.Content = "";
+            }
+            labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_race"));
+            foreach (Label l in labels)
+            {
+                l.Content = "";
+            }
+
+            labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_race"));
+            foreach (Label l in labels)
+            {
+                l.Content = "";
+            }
+            labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_racename"));
+            foreach (Label l in labels)
+            {
+                l.Content = "";
+            }
+            var pl_images = gr_mm_lb.Children.OfType<System.Windows.Controls.Image>().Where(x => x.Name.StartsWith("img_pl"));
+            foreach (System.Windows.Controls.Image i in pl_images)
+            {
+                i.Source = null;
+            }
+
+
+        }
+
+        public void DisplayReport (string mmid)
+        {
+            ClearReport();
+            tb_info.Text = "Report for MMID " + mmid;
+            var pl_labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_pl"));
+            var elo_labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_elo"));
+            var race_labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_race"));
+            var pl_images = gr_mm_lb.Children.OfType<System.Windows.Controls.Image>().Where(x => x.Name.StartsWith("img_pl"));
+            var racename_lables = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_racename"));
+
+            dsimage myimg = new dsimage();
+            foreach (dsplayer pl in MMIDS[int.Parse(mmid)].REPORTS)
+            {
+                if (pl.POS >= 1 && pl.POS <= 6)
+                {
+                    Label lpl = pl_labels.Where(x => x.Name.Contains(pl.POS.ToString())).ToList()[0];
+                    Label lelo = elo_labels.Where(x => x.Name.Contains(pl.POS.ToString())).ToList()[0];
+                    Label lrace = race_labels.Where(x => x.Name.Contains(pl.POS.ToString())).ToList()[0];
+                    System.Windows.Controls.Image irace = pl_images.Where(x => x.Name.Contains(pl.POS.ToString())).ToList()[0];
+                    Label lracename = racename_lables.Where(x => x.Name.Contains(pl.POS.ToString())).ToList()[0];
+
+                    if (lelo != null && lrace != null && lpl != null && irace != null && lracename != null)
+                    {
+                        lpl.Content = pl.NAME + " ELO: " + pl.ELO; 
+                        lelo.Content = pl.ELO_CHANGE.ToString();
+                        if (pl.ELO_CHANGE < 0)
+                        {
+                            lelo.Foreground = System.Windows.Media.Brushes.Red;
+                        }
+                        else
+                        {
+                            lelo.Foreground = System.Windows.Media.Brushes.Green;
+                        }
+
+                        string army = ((int)pl.ARMY / 1000).ToString() + "k";
+                        string income = ((int)pl.INCOME / 1000).ToString() + "k";
+                        string damage = ((int)pl.KILLSUM / 1000).ToString() + "k";
+
+                        lrace.Content = "Army: " + army + " cash: " + income + " dmg: " + damage;
+                        lracename.Content = pl.RACE;
+
+                        BitmapImage bit_syn = new BitmapImage();
+                        bit_syn.BeginInit();
+                        bit_syn.UriSource = new Uri(myimg.GetImage(pl.RACE), UriKind.Relative);
+                        bit_syn.EndInit();
+                        irace.Source = bit_syn;
+
+
+
+
+
+                    }
+
+                    if (mmcb_player.SelectedItem.ToString() == pl.NAME)
+                    {
+                        tb_elo.Text = pl.ELO.ToString();
+                        lb_elodiff.Content = pl.ELO_CHANGE.ToString();
+                        if (pl.ELO_CHANGE < 0)
+                        {
+                            lb_elodiff.Foreground = System.Windows.Media.Brushes.Red;
+                        }
+                        else
+                        {
+                            lb_elodiff.Foreground = System.Windows.Media.Brushes.Green;
+                        }
+                        Properties.Settings.Default.ELO = pl.ELO.ToString();
+                        Properties.Settings.Default.Save();
+                    }
+                }
+            }
+
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
@@ -582,9 +869,5 @@ namespace sc2dsstats_rc1
             //GameFound(1, "1", "1");
         }
 
-        private void Tb_mmid_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
     }
 }
