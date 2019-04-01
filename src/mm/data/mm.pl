@@ -25,7 +25,7 @@ use Data::Dumper;
 my $out = "./data/bab.txt";
 my $folder = "./data/";
 
-my $DEBUG = 2;
+my $DEBUG = 1; 
 
 my $log = "log.txt";
 open(LOG, ">>", $log) or die "Could not write to $log: $!\n";
@@ -39,7 +39,7 @@ my $listen = IO::Socket::INET->new(
                                    LocalHost => '0.0.0.0',
                                    LocalPort => 7891,
                                    ReuseAddr => 1,
-                                   Listen => 100,
+                                   Listen => 200,
                                    Proto => 'tcp'
                                    ) or die $!;
 
@@ -111,7 +111,7 @@ sub handle_connection {
                 last;
             }
             $pong = "sc2dsmm: " . $pong;
-            &Log($ping . " => " . $pong) if $DEBUG;
+            &Log($ping . " => " . $pong) if $DEBUG > 1;
 
             $socket->send($pong);
 
@@ -256,7 +256,9 @@ sub Status {
 
     my %status;
     foreach my $plname (keys %{ $mm->PLAYERS }) {
+        next if $plname =~ /^Random(\d)/;
         my $pl = $mm->PLAYERS->{$plname};
+        next if $mm->PLAYERS->{$plname}->MMID;
         $status{$pl->MOD . '|' . $pl->NUM} ++;
     }
     my $c = scalar keys %{$mm->MMIDS};

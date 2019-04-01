@@ -26,6 +26,7 @@ use strict;
     };
 
     has 'POS' => (is => 'rw', isa => 'Num', default => 0);
+    has 'QUEUE_POS' => (is => 'rw', isa => 'Num', default => 999);
     has 'NAME' => (is => 'rw', isa => 'Str');
     has 'MOD' => (is => 'rw', isa => 'Str', default => "0");
     has 'NUM' => (is => 'rw', isa => 'Str', default => "0");
@@ -33,6 +34,9 @@ use strict;
     has 'MMID' => (is => 'rw', isa => 'Num', default => 0);
     has 'GAMES' => (is => 'rw', isa => 'Num', default => 0);
     has 'ELO' => (is => 'rw', isa => 'Num', default => 1500);
+    has 'ELO_CHANGE' => (is => 'rw', isa => 'Num', default => 0);
+    has 'RACE' => (is => 'rw', isa => 'Str', default => "0");
+    has 'KILLSUM' => (is => 'rw', isa => 'Str', default => "0");
     has 'TEAM' => (is => 'rw', isa => 'Num', default => 0);
     has 'GAME' => (is => 'rw', isa => 'Num', default => 0);
     has 'REPORT' => (is => 'rw', isa => 'Str', default => "0");
