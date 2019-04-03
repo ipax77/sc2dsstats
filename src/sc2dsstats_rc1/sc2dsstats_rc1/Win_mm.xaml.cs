@@ -749,7 +749,7 @@ namespace sc2dsstats_rc1
                 DisplayReport(mmcb_report.SelectedItem.ToString());
             } else
             {
-                DisplayReport(mmid);
+                if (int.Parse(mmid) > 0) DisplayReport(mmid);
             }
 
                 
