@@ -125,6 +125,7 @@ namespace sc2dsstats_rc1
 
                 mmcb_randoms.IsEnabled = false;
                 mmcb_randoms.IsChecked = false;
+                mmcb_report.IsEnabled = false;
                 GAME_READY = false;
 
                 string player = mmcb_player.SelectedItem.ToString();
@@ -286,6 +287,11 @@ namespace sc2dsstats_rc1
             tb_gamefound.Visibility = Visibility.Hidden;
             tb_mmid.Text = mmid;
             doit = true;
+
+            string player = mmcb_player.SelectedItem.ToString();
+            //Console.WriteLine(player + "waiting for accept (or decline)");
+
+
             Task ts_accept = Task.Factory.StartNew(() =>
             {
                 bool mydoit = doit;                
@@ -296,13 +302,15 @@ namespace sc2dsstats_rc1
                         if (progbar.Value == 100)
                         {
                             gr_accept.Visibility = Visibility.Hidden;
+
+                            // we timed out :(
                             if (ACCEPTED == false)
                             {
-                                //pb_Accept(false, mmid);
+                                GAME_READY = false;
                                 bt_decline_Click(null, null);
-                                //Exit_Click(null, null);
                             }
 
+                            // someone declined - search again
                             else if (GAME_READY == false)
                             {
                                 Button_Click(null, null);
@@ -311,10 +319,15 @@ namespace sc2dsstats_rc1
                             doit = false;
 
                         }
+
+                        // all accepted :)
                         if (GAME_READY == true)
                         {
                             doit = false;
+                            GAME_READY = false;
                         }
+
+                        // waiting for all to accept (or one decline)
                         mydoit = doit;
                     });
                 }
@@ -395,9 +408,6 @@ namespace sc2dsstats_rc1
             string server = "NA";
             string elo = "0";
 
-
-            doit = false;
-            GAME_READY = true;
             gr_accept.Visibility = Visibility.Hidden;
 
 
@@ -697,6 +707,25 @@ namespace sc2dsstats_rc1
                             id.REPORTS.Add(pl);
                         }
 
+                    } else if (int.Parse(i) == 7)
+                    {
+                        // TODO: Player MU|Expose|Sigma
+                        string mu = pos;
+                        double d = 0.0;
+                        try
+                        {
+                            d = double.Parse(mu, new CultureInfo("en-US"));
+                        } catch
+                        {
+
+                        }
+                        if (d > 0)
+                        {
+                            Properties.Settings.Default.ELO = d.ToString();
+                            Properties.Settings.Default.Save();
+                            tb_elo.Text = Properties.Settings.Default.ELO;
+                        }
+
                     }
                 }
             }
@@ -704,11 +733,19 @@ namespace sc2dsstats_rc1
             mmcb_report.Items.Clear();
             if (id != null && id.REPORTS.Count > 0 && MMIDS.Keys.Count > 0)
             {
+                int i = 0;
+                int j = 0;
                 foreach (int mmid2 in MMIDS.Keys)
                 {
                     mmcb_report.Items.Add(mmid2.ToString());
+                    if (mmid2.ToString() == tb_mmid.Text)
+                    {
+                        j = i;
+                    }
+                    i++;
                 }
-                mmcb_report.SelectedItem = mmcb_report.Items[0];
+                mmcb_report.SelectedItem = mmcb_report.Items[j];
+                mmcb_report.IsEnabled = true;
                 DisplayReport(mmcb_report.SelectedItem.ToString());
             } else
             {
@@ -752,6 +789,11 @@ namespace sc2dsstats_rc1
 
         }
 
+        private void Mmcb_report_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (mmcb_report.SelectedItem != null) DisplayReport(mmcb_report.SelectedItem.ToString());
+        }
+
         public void DisplayReport (string mmid)
         {
             ClearReport();
@@ -775,7 +817,7 @@ namespace sc2dsstats_rc1
 
                     if (lelo != null && lrace != null && lpl != null && irace != null && lracename != null)
                     {
-                        lpl.Content = pl.NAME + " ELO: " + pl.ELO; 
+                        lpl.Content = pl.NAME + " MU: " + pl.ELO; 
                         lelo.Content = pl.ELO_CHANGE.ToString();
                         if (pl.ELO_CHANGE < 0)
                         {
@@ -807,7 +849,14 @@ namespace sc2dsstats_rc1
 
                     if (mmcb_player.SelectedItem.ToString() == pl.NAME)
                     {
-                        tb_elo.Text = pl.ELO.ToString();
+                        double d = 0.0;
+                        try
+                        {
+                            d = double.Parse(tb_elo.Text, new CultureInfo("en-US"));
+                        } catch { }
+           
+
+                        if (d == 0) tb_elo.Text = pl.ELO.ToString();
                         lb_elodiff.Content = pl.ELO_CHANGE.ToString();
                         if (pl.ELO_CHANGE < 0)
                         {
@@ -828,6 +877,7 @@ namespace sc2dsstats_rc1
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             bt_show.IsEnabled = true;
+            mmcb_report.IsEnabled = true;
             tb_gamefound.Text = "";
 
 
@@ -868,6 +918,7 @@ namespace sc2dsstats_rc1
         {
             //GameFound(1, "1", "1");
         }
+
 
     }
 }

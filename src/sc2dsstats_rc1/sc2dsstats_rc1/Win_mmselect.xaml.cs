@@ -89,9 +89,10 @@ namespace sc2dsstats_rc1
                 List<dsreplay> lvalid1 = new List<dsreplay>();
                 List<dsreplay> lvalid2 = new List<dsreplay>();
 
-                int valid = 0;
+                
                 foreach (dsreplay rep in reps)
                 {
+                    int valid = 0;
                     foreach (dsplayer plrep in rep.PLAYERS)
                     {
                         foreach (KeyValuePair<int, string> plmm in id.PLAYERS)
@@ -175,13 +176,17 @@ namespace sc2dsstats_rc1
 
         public void bt_send_Click(object sender, RoutedEventArgs e)
         {
-
-
             foreach (var dataItem in dg_games.SelectedItems)
             {
                 dsreplay game = dataItem as dsreplay;
                 game.MMID = tb_rep_mmid.Text;
-                SendRep(game);
+                if (int.Parse(game.MMID) > 0)
+                {
+                    SendRep(game);
+                } else
+                {
+                    MessageBox.Show("No MMID found - you might want to enter it manually in the MMID Textbox)", "sc2dsmm");
+                }
             }
 
         }

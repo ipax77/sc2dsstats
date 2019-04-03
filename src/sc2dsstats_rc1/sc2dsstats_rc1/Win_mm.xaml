@@ -661,8 +661,8 @@
             <CheckBox x:Name="mmcb_randoms" Content="allow Randoms" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="560,30,0,0" VerticalAlignment="Top" IsEnabled="False" ToolTip="If there are not enough players you might want to fill the lobby with randoms (make Lobby public after all players joined)" Visibility="Visible" Click="mmcb_randoms_Click" />
             <CheckBox x:Name="mmcb_ample" IsEnabled="False" IsChecked="False" Content="Offline" Style="{StaticResource cb_Style_ample}" HorizontalAlignment="Left" Margin="470,10,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
             <Button Content="Button" HorizontalAlignment="Left" Margin="563,16,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1" Visibility="Hidden"/>
-            <Label Content="My ELO Rating:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="470,55,0,0"  VerticalAlignment="Top" Width="90"/>
-            <TextBox x:Name="tb_elo" Text="1500.00" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="560,55,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label Content="My MU rating:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="470,55,0,0"  VerticalAlignment="Top" Width="90"/>
+            <TextBox x:Name="tb_elo" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="560,55,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
             <Label x:Name="lb_elodiff" Content="0" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="640,55,0,0"  VerticalAlignment="Top" Width="53" Foreground="{DynamicResource Green}"/>
         </Grid>
 
@@ -694,7 +694,7 @@
             </TextBox>
             <Label x:Name="lb_switch" Content="How do I switch Server?" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="5,125,0,0"  VerticalAlignment="Top" FontSize="8" Foreground="#FF6B92F1" MouseLeftButtonUp="lb_switch_CLick" />
             <Label Content="Reports:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="10,155,0,0"  VerticalAlignment="Top" Width="54"/>
-            <ComboBox x:Name="mmcb_report" HorizontalAlignment="Left" Margin="10,180,0,0" VerticalAlignment="Top" Width="80" Style="{DynamicResource ComboBoxStyle1}" IsEnabled="False">
+            <ComboBox x:Name="mmcb_report" HorizontalAlignment="Left" Margin="10,180,0,0" VerticalAlignment="Top" Width="80" Style="{DynamicResource ComboBoxStyle1}" IsEnabled="False" SelectionChanged="Mmcb_report_SelectionChanged">
             </ComboBox>
             <Grid x:Name="gr_mm_lb" Margin="50,30,0,15">
                 <Label Content="Team 1:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,-25,0,0"  VerticalAlignment="Top" Width="54"/>

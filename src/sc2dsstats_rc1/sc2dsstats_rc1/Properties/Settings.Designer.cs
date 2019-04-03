@@ -108,7 +108,7 @@ namespace sc2dsstats_rc1.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1500")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public string ELO {
             get {
                 return ((string)(this["ELO"]));

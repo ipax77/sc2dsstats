@@ -24,7 +24,7 @@
       <Value Profile="(Default)">Commander</Value>
     </Setting>
     <Setting Name="ELO" Type="System.String" Scope="User">
-      <Value Profile="(Default)">1500</Value>
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>

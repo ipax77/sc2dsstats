@@ -2,6 +2,10 @@
 
 use threads;
 use strict;
+use Inline Python => <<'END_PYTHON';
+from trueskill import Rating, TrueSkill, rate, quality, rate_1vs1, quality_1vs1, setup, expose
+END_PYTHON
+setup(25, 25/3, 25/6, 25/300, 0);
 
 {
     package MMmm;
@@ -18,8 +22,11 @@ use strict;
     use lib ".";
     use MMplayer;
     use MMid;
+    use MMqueue;
 
     my $log;
+    my $DEBUG = 1;
+    my $lock_db : shared;
 
     around 'new' => sub {
         my $orig = shift;
@@ -53,12 +60,13 @@ use strict;
         is        => 'rw',
         default   => sub { {} },
     );
-    has 'QUEUE_CMDR_3v3' => (is => 'rw');
-    has 'QUEUE_CMDR_2v2' => (is => 'rw');
-    has 'QUEUE_CMDR_1v1' => (is => 'rw');
-    has 'QUEUE_STD_3v3' => (is => 'rw');
-    has 'QUEUE_STD_2v2' => (is => 'rw');
-    has 'QUEUE_STD_1v1' => (is => 'rw');
+    has 'QUEUE' => (
+        traits    => ['Hash'],
+        is        => 'rw',
+        default   => sub { {} },
+    );
+
+
 
 
     #Report | Letmeplay | Accept game | Decline game
@@ -75,8 +83,15 @@ use strict;
             my $id = $self->MMIDS->{$mmid};
             
             if ($id->REPORTED) {
-                &Log("Game Reported 1 ($name): MMID: $mmid; $report");
-                return $id->RESPONSE if $id->RESPONSE;
+                &Log("Game Reported 1 ($name): MMID: $mmid; $report") if $DEBUG > 1;
+                if ($id->RESPONSE) {
+                    if (exists $id->PLAYERS->{$name}) {
+                        return $id->RESPONSE . ";pos7: " . sprintf("%.2f", $id->PLAYERS->{$name}->ELO) . ";";
+                    }
+                    else {
+                        return $id->RESPONSE;
+                    }
+                }
             }
 
             if ($report =~ /^blame: (.*)/) {
@@ -94,7 +109,7 @@ use strict;
                 # (PewPewPrince, Protoss, 28070), (PAX, Terran, 26520), (Nedved, Terran, 31295) vs (DerLodi, Terran, 26925), (SeyLerT, Zerg, 23710), (VrangelSERB, Protoss, 31000)
                 # (player1, Nova, 236260), (player2, Abathur, 296070),  vs (player4, Kerrigan, 159330), (player5, Fenix, 294065), 
 
-                my @res = split(/vs/, $result);
+                my @res = split(/ vs /, $result);
                 if ($#res == 1) {
                     my $t1 = 0;
                     my $k = 0;
@@ -103,7 +118,6 @@ use strict;
                         $t =~ s/^\s+//g;
                         
                          my $plrep;
-                         print "i: $i\n";
                         while ($t =~ /^\(([^\(]+)(.*)/) {
                             $k++;
                             my @ent = split(/,/, $1);
@@ -123,7 +137,8 @@ use strict;
                                 } else {
                                     $plrep = new MMplayer();
                                     $plrep->NAME('Dummy');
-                                    print "$mmid: Just a dummy :( " . $ent[0] . "\n";
+                                    $id->PLAYERS->{$ent[0]} = $plrep;
+                                    &Log("$mmid: Just a dummy :( " . $ent[0]) if $DEBUG;
                                 }
                                 $plrep->RACE($ent[1]);
                                 $plrep->KILLSUM($ent[2]);
@@ -145,7 +160,6 @@ use strict;
                             push(@elo_player, $plrep->NAME) if $plrep;
                             $t = $2;
                             $t =~ s/^\s+//g;                            
-                            print "$mmid: the new t is $t\n";
                         }
                     }
                 }
@@ -156,12 +170,18 @@ use strict;
                     # TODO: Check blame / multiple reports / difference / leaver
                     {
                         lock (%{ $self->MMIDS });
-                        $self->SetElo($mmid, \@elo_player) unless $id->REPORTED;
+                        #$self->SetElo($mmid, \@elo_player) unless $id->REPORTED;
+                        #$self->SetMMR($mmid, \@elo_player) unless $id->REPORTED;
+                        
+
+                        $self->SetMMR($mmid) unless $id->REPORTED;
+
+
                         $id->REPORTED($id->REPORTED+1);
-                        #$response = 1;
                     }
+
                 } else {
-                    print "$mmid: Not valid :( \n";
+                    return $mmid;
                 }
 
             }
@@ -176,14 +196,103 @@ use strict;
                     $response .= "pos" . $pl->POS . ": " . $pl->NAME . "|" . $pl_elo . "|" . $pl_elo_change . "|" . $pl->RACE . "|" . $pl->KILLSUM . ";";
                 }
                $id->RESPONSE($response);
+                if ($response) {
+                    if (exists $id->PLAYERS->{$name}) {
+                        $response .= "pos7: " . sprintf("%.2f", $id->PLAYERS->{$name}->ELO) . ";";
+                    }
+                }
+               $self->SetCache();
             }
 
         } else {
             print "$mmid: No MMID :(\n";
             $response = 0;
         }
-        &Log("Game Reported ($name): MMID: $mmid; $report; $response");
+        &Log("Game Reported ($name): MMID: $mmid; $report; $response") if $DEBUG;
+
         return $response;
+    }
+
+
+    sub SetMMR {
+        my $self = shift;
+        my $mmid = shift;
+
+        my %rating;
+        my $pystring;
+        my @t1;
+        my @t2;
+        my @winners;
+        my @loosers;
+        my $maxl = 0;
+
+
+
+        foreach my $plname (keys %{ $self->MMIDS->{$mmid}->PLAYERS }) {
+            my $pl = $self->MMIDS->{$mmid}->PLAYERS->{$plname};
+            my $win = $pl->TEAM;
+            $win = 0 if $pl->TEAM == 2;
+            my $ent = "(" . $pl->NAME . "," . $win . "," . $pl->ELO . "," . $pl->SIGMA . ")";
+            $pystring .= ", " if $pystring;
+            $pystring .= $ent;
+
+            #inline
+            if (!exists $rating{$plname}) {
+                $rating{$plname} = new Rating($pl->ELO, $pl->SIGMA);
+                
+            }
+
+            if ($pl->TEAM == 1) {
+                push(@t1, $rating{$plname});
+                push(@winners, $plname);
+            } elsif ($pl->TEAM == 2) {
+                push(@t2, $rating{$plname});
+                push(@loosers, $plname);
+            }
+            $pl->GAMES($pl->GAMES + 1);
+            if (length($plname) > $maxl) {
+                $maxl = length($plname);
+            }
+        }
+
+
+        my $tie = 0;
+        my $newts = main::rate([\@t1, \@t2], [0, 1]);
+
+
+        for my $wini (0..$#t1) {
+            my $plname = $winners[$wini];
+            my $pl = $self->MMIDS->{$mmid}->PLAYERS->{$plname};
+            $rating{$plname} = new Rating($newts->[0]->[$wini]->{mu}+0, $newts->[0]->[$wini]->{sigma}+0);
+            my $newmmr = $rating{$plname}->{mu}+0;
+            $pl->ELO_CHANGE($newmmr - $pl->ELO);        
+            $pl->ELO($newmmr);
+            my $newsigma = $rating{$plname}->{sigma}+0;
+            $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA);
+            $pl->SIGMA($newsigma);
+            if (length($plname) < $maxl) {
+                $plname .= " " x ($maxl - length($plname));
+            } 
+            &Log("$plname: MMR: " .  sprintf("%.2f", $pl->ELO) . " (" .  sprintf("%.2f", $pl->ELO_CHANGE) . "), SIGMA: " .  sprintf("%.2f", $pl->SIGMA) . " (" .  sprintf("%.2f", $pl->SIGMA_CHANGE) . ")") if $DEBUG > 1;
+        }
+
+        for my $losi (0..$#t2) {
+            my $plname = $loosers[$losi];
+            my $pl = $self->MMIDS->{$mmid}->PLAYERS->{$plname};
+            $rating{$plname} = new Rating($newts->[1]->[$losi]->{mu}+0, $newts->[1]->[$losi]->{sigma}+0);
+            my $newmmr = $rating{$plname}->{mu}+0;
+            $pl->ELO_CHANGE($newmmr - $pl->ELO);        
+            $pl->ELO($newmmr);
+            my $newsigma = $rating{$plname}->{sigma}+0;
+            $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA);
+            $pl->SIGMA($newsigma);
+            if (length($plname) < $maxl) {
+                $plname .= " " x ($maxl - length($plname));
+            } 
+            &Log("$plname: MMR: " .  sprintf("%.2f", $pl->ELO) . " (" .  sprintf("%.2f", $pl->ELO_CHANGE) . "), SIGMA: " .  sprintf("%.2f", $pl->SIGMA) . " (" .  sprintf("%.2f", $pl->SIGMA_CHANGE) . ")") if $DEBUG > 1;
+        }
+
+
     }
 
     sub SetElo {
@@ -248,6 +357,8 @@ use strict;
 
         $kval{"1"} /= ($#player / 2);
         $kval{"2"} /= ($#player / 2);
+
+        print "KVAL Team1: " . int($kval{"1"}) . " | Team2: " . int($kval{"2"}) . "\n";
     
         if (exists $self->MMIDS->{$mmid}) {
             foreach my $pl_name (keys %{ $self->MMIDS->{$mmid}->PLAYERS }) {
@@ -287,7 +398,7 @@ use strict;
                     $elo_change /= $opp_count;
                     $pl->ELO_CHANGE($elo_change);
                     $pl->ELO($pl->ELO + $elo_change) if $pl->NAME ne "Dummy";
-                    &Log($pl->NAME . " new ELO: " . $pl->ELO);
+                    &Log($pl->NAME . " new ELO: " . $pl->ELO . " (" . $elo_change . ")");
                     
                     $pl->GAMES($pl->GAMES + 1);
                     $pl->INDB(2);
@@ -375,7 +486,11 @@ use strict;
                 }
 
                 lock (%{ $self->MMIDS });
-                delete $self->MMIDS->{$mmid};       
+                delete $self->MMIDS->{$mmid};    
+
+                lock (%{ $self->PLAYERS });
+                delete $self->PLAYERS->{$name} if exists $self->PLAYERS->{$name};
+
                 $result = 1;
             }
         }
@@ -396,11 +511,12 @@ use strict;
             lock (%{ $self->PLAYERS });
             if (exists $self->PLAYERS->{$name}) {
                 $mmid = $self->PLAYERS->{$name}->MMID;
+                $self->PLAYERS->{$name}->CYCLE($self->PLAYERS->{$name}->CYCLE+1);
             } else {
 
             }
 
-            if (!$mmid) {        
+            if (!$mmid && $self->PLAYERS->{$name}->CYCLE >= 2) {        
             
                 my $player = $self->MMPLAYERS->{$name};
 
@@ -438,53 +554,16 @@ use strict;
 
                 if ($count >= $need) {
 
-                    $mmid = 1000 + int rand(9000);
-                    while (exists $self->MMIDS->{$mmid}) {
-                        $mmid = 1000 + int rand(9000);
-                    }
-
-                    my $id = new MMid();
-                    $id->MMID($mmid);
-                    $self->MMIDS->{$mmid} = $id;
-
-                    my @pool;
-                    my $pos = 0;
-                    my $i = 0;
-
-                    foreach my $plname (sort { $pool{$a} <=> $pool{$b} } keys %pool) {
-                        push(@pool, $plname);
-                        if ($player->ELO == $self->MMPLAYERS->{$plname}->ELO) {
-                            $pos = $i;
-                        }
-                        $i++;
-                    }
-
-                    my $start_pos = $pos - ($need / 2);
-
-                    my $j = $start_pos;
-
-                    if ($j > (@pool - $need - 1)) {
-                        $j = @pool - $need - 1;
-                    }
-                    $j = 0 if $start_pos < 0;
-
-                    for (0 .. ($need - 1)) {
-                        my $plname = $pool[$j];
-                        $self->MMIDS->{$mmid}->PLAYERS->{$plname} = $self->MMPLAYERS->{$plname};
-                        $self->MMPLAYERS->{$plname}->MMID($mmid);
-                        $j++;
-                    }
+                    my $queue = new MMqueue();
+                    $mmid = $queue->Queue($self, $name, \%pool);
 
                     # Set POS
                     my $server = "NA";
                     my %server;
-                    my $k = 0;
                     my $resp = "pos0: $mmid;";
                     my $creator = 1;
                     my $maxgames = 0;
                     foreach my $plname (keys %{ $self->MMIDS->{$mmid}->PLAYERS }) {
-                        $k++;
-                        $self->MMIDS->{$mmid}->PLAYERS->{$plname}->POS($k);
                         $resp .= "pos" . $self->MMIDS->{$mmid}->PLAYERS->{$plname}->POS . ": " . $self->MMIDS->{$mmid}->PLAYERS->{$plname}->NAME . ";";
                         $server{$self->MMPLAYERS->{$plname}->SERVER} ++;
                         if ($self->MMIDS->{$mmid}->PLAYERS->{$plname}->GAMES > $maxgames) {
@@ -550,62 +629,23 @@ use strict;
                             $pool{$pl->NAME} = $pl->ELO;
                         }
 
-
-
-                        $mmid = 1000 + int rand(9000);
-                        while (exists $self->MMIDS->{$mmid}) {
-                            $mmid = 1000 + int rand(9000);
-                        }
-
-                        my $id = new MMid();
-                        $id->MMID($mmid);
-                        $self->MMIDS->{$mmid} = $id;
-
-                        my @pool;
-                        my $pos = 0;
-                        my $i = 0;
-
-                        foreach my $plname (sort { $pool{$a} <=> $pool{$b} } keys %pool) {
-                            push(@pool, $plname);
-                            if ($player->ELO == $self->MMPLAYERS->{$plname}->ELO) {
-                                $pos = $i;
-                            }
-                            $i++;
-                        }
-
-                        my $start_pos = $pos - ($need / 2);
-
-                        my $j = $start_pos;
-
-                        if ($j > (@pool - $need - 1)) {
-                            $j = @pool - $need - 1;
-                        }
-                        $j = 0 if $start_pos < 0;
-
-                        &Log("Random: $random; Notrandom: $notrandom; CYCLE: " . $self->CYCLE );
-
-                        for (0 .. ($need - 1)) {
-                            my $plname = $pool[$j];
-                            $self->MMIDS->{$mmid}->PLAYERS->{$plname} = $self->MMPLAYERS->{$plname};
-                            $self->MMPLAYERS->{$plname}->MMID($mmid);
-                            $j++;
-                        }
+                        my $queue = new MMqueue();
+                        $mmid = $queue->Queue($self, $name, \%pool);
 
                         # Set POS
                         my $server = "NA";
                         my %server;
-                        my $k = 0;
                         my $resp = "pos0: $mmid;";
                         my $creator = 1;
                         my $maxgames = 0;
                         foreach my $plname (keys %{ $self->MMIDS->{$mmid}->PLAYERS }) {
-                            $k++;
-                            $self->MMIDS->{$mmid}->PLAYERS->{$plname}->POS($k);
                             $resp .= "pos" . $self->MMIDS->{$mmid}->PLAYERS->{$plname}->POS . ": " . $self->MMIDS->{$mmid}->PLAYERS->{$plname}->NAME . ";";
                             $server{$self->MMPLAYERS->{$plname}->SERVER} ++;
                             if ($self->MMIDS->{$mmid}->PLAYERS->{$plname}->GAMES >= $maxgames) {
-                                $maxgames = $self->MMIDS->{$mmid}->PLAYERS->{$plname}->GAMES;
-                                $creator = $self->MMIDS->{$mmid}->PLAYERS->{$plname}->POS if !$self->MMIDS->{$mmid}->PLAYERS->{$plname}->NAME =~ /^Random(\d)/;
+                                if (!$self->MMIDS->{$mmid}->PLAYERS->{$plname}->NAME =~ /^Random(\d)/) {
+                                    $maxgames = $self->MMIDS->{$mmid}->PLAYERS->{$plname}->GAMES;
+                                    $creator = $self->MMIDS->{$mmid}->PLAYERS->{$plname}->POS 
+                                }
                             }
                         }
 
@@ -628,6 +668,17 @@ use strict;
             }
         }
         return $mmid;
+    }
+
+    sub SetCache {
+        my $self = shift;
+        {
+            lock ($lock_db);
+            my $mmdb = new MMdb();
+            $mmdb->Connect();
+            $mmdb->SetCache($self->MMPLAYERS) if $self->MMPLAYERS;
+            $mmdb->DBH->disconnect or warn $mmdb->DBH->errstr;
+        }
     }
 
     sub Log {

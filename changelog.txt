@@ -1,4 +1,8 @@
 
+0.6.0.15
+
+- MM: Trueskill rating
+
 0.6.0.14
 
 - MM-System: ELO visualization

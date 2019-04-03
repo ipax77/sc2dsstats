@@ -220,11 +220,14 @@ sub PingPong {
                 } else {
                     # someone declined :(
                     $response = "Ready: 0";
+                    $mm->MMPLAYERS->{$name}->MMID(0) if exists $mm->MMPLAYERS->{$name};
                     last;
                     
                 }
                 $i++;
-                if ($i > 40) {
+                if ($i > 60) {
+                    $response = "Ready: 0";
+                    $mm->MMPLAYERS->{$name}->MMID(0) if exists $mm->MMPLAYERS->{$name};
                     last;
                 }
                 sleep 1;

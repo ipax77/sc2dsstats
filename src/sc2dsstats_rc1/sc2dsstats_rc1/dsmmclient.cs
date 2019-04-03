@@ -240,6 +240,7 @@ namespace sc2dsstats_rc1
                         // Someone declined / timed out :(
                         MW.Dispatcher.Invoke(() =>
                         {
+                            MW.GAME_READY = false;
                             MW.gr_accept.Visibility = Visibility.Hidden;
                             MW.tb_gamefound.Visibility = Visibility.Visible;
                             MW.tb_gamefound.Text = "Someone declined / timed out :( - Searching again ...";
@@ -258,6 +259,7 @@ namespace sc2dsstats_rc1
                         // all accepted :)
                         MW.Dispatcher.Invoke(() =>
                         {
+                            MW.GAME_READY = true;
                             MW.SetupPos(ent, player);
                         });
                         response = "fin";

@@ -26,6 +26,7 @@ use strict;
     };
 
     has 'MMID' => (is => 'rw', isa => 'Num', default => 0);
+    has 'TIMESTAMP' => (is => 'rw', default   => sub { () });
     has 'SERVER' => (is => 'rw', isa => 'Str', default => "0");
     has 'MOD' => (is => 'rw', isa => 'Str', default => "0");
     has 'NUM' => (is => 'rw', isa => 'Str', default => "0");
