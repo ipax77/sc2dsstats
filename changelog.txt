@@ -1,4 +1,8 @@
 
+0.6.0.16
+
+- MM: manual ladder
+
 0.6.0.15
 
 - MM: Trueskill rating

@@ -11,7 +11,8 @@ https://github.com/ipax77/sc2dsstats/blob/master/app.publish/setup.exe
 # Requirements
 The GUI requires Microsoft .NET Framework 4.6.1
 
-Chart.js (https://github.com/chartjs) and Perl using the Python s2_cli script from s2protocol (https://github.com/Blizzard/s2protocol) are build in.
+Chart.js (https://github.com/chartjs) ,Perl using the Python s2_cli script from s2protocol (https://github.com/Blizzard/s2protocol) 
+and trueskill (https://github.com/sublee/trueskill) are build in.
 
 # License
 

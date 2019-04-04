@@ -16,14 +16,14 @@
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
         <!--
           UAC-Manifestoptionen
-          Wenn Sie die Ebene der Windows-Benutzerkontensteuerung ändern möchten, ersetzen Sie den 
+          Wenn Sie die Ebene der Windows-Benutzerkontensteuerung ändern möchten, ersetzen Sie den
           Knoten "requestedExecutionLevel" durch eine der folgenden Angaben.
 
         <requestedExecutionLevel level="asInvoker" uiAccess="false" />
         <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
         <requestedExecutionLevel level="highestAvailable" uiAccess="false" />
 
-         Wenn Sie Datei- und Registrierungsvirtualisierung für Abwärtskompatibilität 
+         Wenn Sie Datei- und Registrierungsvirtualisierung für Abwärtskompatibilität
          verwenden möchten, löschen Sie den Knoten "requestedExecutionLevel".
     -->
         <requestedExecutionLevel level="asInvoker" uiAccess="false" />
@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="521112">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="545176">
       <assemblyIdentity name="sc2dsstats_rc1" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>P0Qs8xAWPa4a45Vg5yLOPFb7ievs56gWzkRqLYJXXck=</dsig:DigestValue>
+        <dsig:DigestValue>SAe+UXDL2tZ3tywYXF7Dvvqtj4s8pJqPQndZU4MJ2KI=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

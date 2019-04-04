@@ -1,0 +1,10 @@
+version : 0.80
+languages : %
+    Foo : Foo
+    foo : Foo
+types : %
+    Foo : interpreted
+modules : %
+    Foo : Inline::Foo
+suffixes : %
+    Foo : foo

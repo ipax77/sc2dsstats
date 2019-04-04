@@ -46,7 +46,8 @@ namespace sc2dsstats_rc1
         {
             Socket sender = null;
             byte[] bytes = new byte[1024];
-            string elo = null;
+            string response = null;
+
             try
             {
                 // Connect to a Remote server  
@@ -54,8 +55,8 @@ namespace sc2dsstats_rc1
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
 
-                //IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
-                //IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
 
                 IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
                 IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
@@ -87,6 +88,7 @@ namespace sc2dsstats_rc1
 
                     string pattern = @"^sc2dsmm: Result: (.*)";
                     string ent = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    string elo = null;
                     foreach (Match m in Regex.Matches(ent, pattern))
                     {
                         elo = m.Groups[1].Value.ToString();
@@ -95,9 +97,40 @@ namespace sc2dsstats_rc1
                     {
                         //wm.Dispatcher.Invoke(() =>
                         //{
-                            //wm.PresentResult(elo);
+                        //wm.PresentResult(elo);
                         //});
+                        response = elo;
                     }
+
+                    string pattern1 = @"^sc2dsmm: Matchup: (.*)";
+                    string ent1 = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    string matchup = null;
+                    foreach (Match m in Regex.Matches(ent1, pattern1))
+                    {
+                        matchup = m.Groups[1].Value.ToString();
+                    }
+                    if (matchup != null)
+                    {
+                        response = matchup;
+                    }
+
+                    string pattern2 = @"^sc2dsmm: Ladder: (.*)";
+                    string ent2 = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    string ladder = null;
+                    foreach (Match m in Regex.Matches(ent2, pattern2))
+                    {
+                        ladder = m.Groups[1].Value.ToString();
+                    }
+                    if (ladder != null)
+                    {
+                        response = ladder;
+                    }
+
+                    // Create the preBuffer data.
+                    string string2 = "Hello from [" + player + "]: " + "fin" + ";" + "\r\n";
+                    byte[] preBuf1 = Encoding.UTF8.GetBytes(string2);
+
+                    int bytesSent1 = sender.Send(preBuf1);
 
                     // Release the socket.    
                     sender.Shutdown(SocketShutdown.Both);
@@ -124,7 +157,7 @@ namespace sc2dsstats_rc1
             {
                 Console.WriteLine(e.ToString());
             }
-            return elo;
+            return response;
         }
 
         public Socket StartClient(Win_mm mw, string player, string mode, string num, string skill, string server)
@@ -139,8 +172,8 @@ namespace sc2dsstats_rc1
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
 
-                //IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
-                //IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
 
                 IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
                 IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
@@ -458,6 +491,16 @@ namespace sc2dsstats_rc1
         {
         }
 
+    }
+
+    public class dsmmladder
+    {
+        public int POS { get; set; }
+        public string NAME { get; set; }
+        public int GAMES { get; set; } = 0;
+        public double ELO { get; set; } = 0;
+        public double SIGMA { get; set; } = 0;
+        public double EXP { get; set; } = 0;
     }
 }
 

@@ -1,0 +1,17 @@
+version : 0.82
+languages : %
+    Foo : Foo
+    PYTHON : Python
+    Python : Python
+    foo : Foo
+    py : Python
+    python : Python
+types : %
+    Foo : interpreted
+    Python : interpreted
+modules : %
+    Foo : Inline::Foo
+    Python : Inline::Python
+suffixes : %
+    Foo : foo
+    Python : pydat

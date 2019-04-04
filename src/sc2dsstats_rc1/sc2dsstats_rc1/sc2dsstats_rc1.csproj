@@ -151,6 +151,9 @@
     <Compile Include="Win_config.xaml.cs">
       <DependentUpon>Win_config.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Win_ladder.xaml.cs">
+      <DependentUpon>Win_ladder.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Win_log.xaml.cs">
       <DependentUpon>Win_log.xaml</DependentUpon>
     </Compile>
@@ -189,6 +192,10 @@
     <Page Include="Win_config.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Win_ladder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Win_log.xaml">
       <Generator>MSBuild:Compile</Generator>

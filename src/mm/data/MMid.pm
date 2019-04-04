@@ -40,7 +40,8 @@ use strict;
     has 'REPORTS' => (is => 'rw', default   => sub { {} });
     has 'PLAYERS' => (is => 'rw', default   => sub { {} });
     has 'RESPONSE' => (is => 'rw', isa => 'Str', default => "0");
-
+    has 'LADDER' => (is => 'rw', isa => 'Num', default => 0);
+    has 'BEST' => (is => 'rw', isa => 'Str', default => 0);
 
 
 

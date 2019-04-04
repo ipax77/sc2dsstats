@@ -66,9 +66,11 @@ while (<$fh>) {
 
 }
 
+my @pool = ('PAX', 'Panzerfaust', 'Arkos', 'Raggy',  'Bonejury', 'Lolz');
 
 my %pool;
-foreach (keys %{ $mm->MMPLAYERS }) {
+#foreach (keys %{ $mm->MMPLAYERS }) {
+foreach (@pool) {
     $pool{$_} = $mm->MMPLAYERS->{$_}->ELO;
 }
 
@@ -95,7 +97,7 @@ foreach (sort {$plsort{$a} <=> $plsort{$b} } keys %plsort) {
     my $sigma = $mm->MMPLAYERS->{$_}->SIGMA;
     $sigma = sprintf("%.2f", $sigma);
 
-    print "Ladder: " . $_ . "(" . $mm->MMPLAYERS->{$_}->GAMES . ") => " . $mmr . " (" . $sigma . ")" . "\n";
+    print "MU (Sigma): " . $_ . "(" . $mm->MMPLAYERS->{$_}->GAMES . ") => " . $mmr . " (" . $sigma . ")" . "\n";
 }
 
 my %rat;
@@ -103,11 +105,12 @@ foreach my $plname (keys %{ $mm->MMPLAYERS }) {
     my $pl = $mm->MMPLAYERS->{$plname};
     my $rat = new Rating($pl->ELO, $pl->SIGMA);
     my $exp = main::expose($rat);
+    $exp = 0 if $exp < 0;
     $rat{$plname} = $exp;
 }
 
 foreach (sort {$rat{$a} <=> $rat{$b} } keys %rat) {
-    print $_ . " => " . $rat{$_} . "\n";
+    print "Ladder: " . $_ . "(" . $mm->MMPLAYERS->{$_}->GAMES . ") => " . $rat{$_} . "\n";
 }
 
 

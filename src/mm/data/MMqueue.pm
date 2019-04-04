@@ -63,7 +63,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
 
         my @pool;
         foreach (keys %$pool) {
-            next if $name eq $_;
+            next if $name eq $_ && !$mm->MMPLAYERS->{$name}->LADDER;
             push(@pool, $_);
         }
         my @cppool = @pool;
@@ -81,14 +81,23 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             my @p1;
             my @p2;
             my @shuffle;
-            push @shuffle, splice @cppool, rand @cppool, 1 while @shuffle < $self->NEED - 1;
-            splice @shuffle, rand @shuffle, 0, $name;
+            if (!$mm->MMPLAYERS->{$name}->LADDER) {
+                push @shuffle, splice @cppool, rand @cppool, 1 while @shuffle < $self->NEED - 1;
+                splice @shuffle, rand @shuffle, 0, $name;
+            } else {
+                push @shuffle, splice @cppool, rand @cppool, 1 while @shuffle < $self->NEED;
+            }
+
             foreach my $plname (@shuffle) {
                 $i++;
                 my $pl = $mm->MMPLAYERS->{$plname};
                 if (!exists $rating{$plname}) {
                     #print "$name: Setting rat for $plname (" . $pl->ELO . " => " . $pl->SIGMA . ")\n";
-                    $rating{$plname} = new Rating($pl->ELO, $pl->SIGMA);
+                    if (!$pl->LADDER) {
+                        $rating{$plname} = new Rating($pl->ELO, $pl->SIGMA);
+                    } else {
+                        $rating{$plname} = new Rating($pl->ELO_LADDER, $pl->SIGMA_LADDER);
+                    }
                     #print "Setting rating for $plname (" . $pl->ELO . ")\n";
                 }
 
@@ -129,6 +138,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
         print "BEST: " . $best . "\n";
 
         $mmid = $self->Setup($mm, \@b1, \@b2);
+        $mm->MMIDS->{$mmid}->BEST($best);
 
         return $mmid;
     }

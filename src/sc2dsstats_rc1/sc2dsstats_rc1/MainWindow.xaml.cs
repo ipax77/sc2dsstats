@@ -2494,6 +2494,12 @@ namespace sc2dsstats_rc1
             }
         }
 
+        public void mnu_manual(object sender, RoutedEventArgs e)
+        {
+            Win_ladder wld = new Win_ladder(this);
+            wld.Show();
+        }
+
         public void mnu_delete(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Are you sure you want to delete all external mm-data for all your users?", "sc2dsmm", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)

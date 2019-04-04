@@ -613,9 +613,19 @@ namespace sc2dsstats_rc1
             msel.Show();
         }
 
-        public void SendResult(string res, dsreplay rep)
+        public string SendResult(string res, dsreplay rep)
         {
-            string player = mmcb_player.SelectedItem.ToString();
+            string player = null;
+            try
+            {
+                player = mmcb_player.SelectedItem.ToString();
+            }catch { }
+
+            if (player == null)
+            {
+                player = MW.player_list.ElementAt(0);
+            }
+
             string report = null;
             Task sendres = Task.Factory.StartNew(() =>
             {
@@ -635,6 +645,8 @@ namespace sc2dsstats_rc1
             //MessageBox.Show("Result sent. Thank you!", "sc2dsmm");
             bt_show.IsEnabled = true;
             tb_gamefound.Text = res;
+
+            return report;
         }
 
         public void PresentResult(string report)

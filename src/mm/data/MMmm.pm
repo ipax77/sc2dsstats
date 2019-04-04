@@ -78,6 +78,16 @@ setup(25, 25/3, 25/6, 25/300, 0);
         my $report = shift;
 
         my $response = 0;
+        my $ladder = 0;
+
+        if ($mmid < 1000) {
+
+            my $id = new MMid();
+            $id->MMID($mmid);
+            $id->LADDER(1);
+            $self->MMIDS->{$mmid} = $id;
+            $ladder = 1;
+        }
 
         if (exists $self->MMIDS->{$mmid}) {
             my $id = $self->MMIDS->{$mmid};
@@ -135,10 +145,26 @@ setup(25, 25/3, 25/6, 25/300, 0);
                                     $plrep = $id->PLAYERS->{$ent[0]};
 
                                 } else {
-                                    $plrep = new MMplayer();
-                                    $plrep->NAME('Dummy');
-                                    $id->PLAYERS->{$ent[0]} = $plrep;
-                                    &Log("$mmid: Just a dummy :( " . $ent[0]) if $DEBUG;
+                                    if (!$ladder) {
+                                        $plrep = new MMplayer();
+                                        $plrep->NAME('Dummy');
+                                        $id->PLAYERS->{$ent[0]} = $plrep;
+                                        &Log("$mmid: Just a dummy :( " . $ent[0]) if $DEBUG;
+                                    } else {
+
+                                        if (exists $self->MMPLAYERS->{$ent[0]}) {
+                                            $id->PLAYERS->{$ent[0]} = $self->MMPLAYERS->{$ent[0]};
+                                            $self->MMPLAYERS->{$ent[0]}->LADDER(1);
+                                            $plrep = $self->MMPLAYERS->{$ent[0]};
+                                        } else {
+                                            $plrep = new MMplayer();
+                                            $plrep->NAME($ent[0]);
+                                            $plrep->INDB(1);
+                                            $plrep->LADDER(1);
+                                            $id->PLAYERS->{$ent[0]} = $plrep;
+                                            $self->MMPLAYERS->{$ent[0]} = $plrep;
+                                        }
+                                    }
                                 }
                                 $plrep->RACE($ent[1]);
                                 $plrep->KILLSUM($ent[2]);
@@ -165,7 +191,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
                 }
 
                 #if ($valid >= $id->NEED) {
-                if ($valid >= 2) {
+                if ($valid >= 2 || $ladder) {
 
                     # TODO: Check blame / multiple reports / difference / leaver
                     {
@@ -191,7 +217,12 @@ setup(25, 25/3, 25/6, 25/300, 0);
                 $response = "pos0: $mmid;";
                 foreach my $plname (keys %{ $id->PLAYERS }) {
                     my $pl = $id->PLAYERS->{$plname};
-                    my $pl_elo = sprintf("%.2f", $pl->ELO);
+                    my $pl_elo;
+                    if (!$ladder) {
+                        $pl_elo = sprintf("%.2f", $pl->ELO);
+                    } else {
+                        $pl_elo = sprintf("%.2f", $pl->ELO_LADDER);
+                    }
                     my $pl_elo_change = sprintf("%.2f", $pl->ELO_CHANGE);
                     $response .= "pos" . $pl->POS . ": " . $pl->NAME . "|" . $pl_elo . "|" . $pl_elo_change . "|" . $pl->RACE . "|" . $pl->KILLSUM . ";";
                 }
@@ -201,7 +232,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
                         $response .= "pos7: " . sprintf("%.2f", $id->PLAYERS->{$name}->ELO) . ";";
                     }
                 }
-               $self->SetCache();
+               $self->SetCache() unless $ladder;
             }
 
         } else {
@@ -238,7 +269,11 @@ setup(25, 25/3, 25/6, 25/300, 0);
 
             #inline
             if (!exists $rating{$plname}) {
-                $rating{$plname} = new Rating($pl->ELO, $pl->SIGMA);
+                if (!$pl->LADDER) {
+                    $rating{$plname} = new Rating($pl->ELO, $pl->SIGMA);
+                } else {
+                    $rating{$plname} = new Rating($pl->ELO_LADDER, $pl->SIGMA_LADDER);
+                }
                 
             }
 
@@ -249,7 +284,11 @@ setup(25, 25/3, 25/6, 25/300, 0);
                 push(@t2, $rating{$plname});
                 push(@loosers, $plname);
             }
-            $pl->GAMES($pl->GAMES + 1);
+            if (!$pl->LADDER) {
+                $pl->GAMES($pl->GAMES + 1);
+            } else {
+                $pl->GAMES_LADDER($pl->GAMES_LADDER + 1);
+            }
             if (length($plname) > $maxl) {
                 $maxl = length($plname);
             }
@@ -265,11 +304,20 @@ setup(25, 25/3, 25/6, 25/300, 0);
             my $pl = $self->MMIDS->{$mmid}->PLAYERS->{$plname};
             $rating{$plname} = new Rating($newts->[0]->[$wini]->{mu}+0, $newts->[0]->[$wini]->{sigma}+0);
             my $newmmr = $rating{$plname}->{mu}+0;
-            $pl->ELO_CHANGE($newmmr - $pl->ELO);        
-            $pl->ELO($newmmr);
-            my $newsigma = $rating{$plname}->{sigma}+0;
-            $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA);
-            $pl->SIGMA($newsigma);
+            if (!$pl->LADDER) {
+                $pl->ELO_CHANGE($newmmr - $pl->ELO);        
+                $pl->ELO($newmmr);
+                my $newsigma = $rating{$plname}->{sigma}+0;
+                $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA);
+                $pl->SIGMA($newsigma);
+            } else {
+                $pl->ELO_CHANGE($newmmr - $pl->ELO_LADDER);        
+                $pl->ELO_LADDER($newmmr);
+                my $newsigma = $rating{$plname}->{sigma}+0;
+                $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA_LADDER);
+                $pl->SIGMA_LADDER($newsigma);
+
+            }
             if (length($plname) < $maxl) {
                 $plname .= " " x ($maxl - length($plname));
             } 
@@ -281,11 +329,20 @@ setup(25, 25/3, 25/6, 25/300, 0);
             my $pl = $self->MMIDS->{$mmid}->PLAYERS->{$plname};
             $rating{$plname} = new Rating($newts->[1]->[$losi]->{mu}+0, $newts->[1]->[$losi]->{sigma}+0);
             my $newmmr = $rating{$plname}->{mu}+0;
-            $pl->ELO_CHANGE($newmmr - $pl->ELO);        
-            $pl->ELO($newmmr);
-            my $newsigma = $rating{$plname}->{sigma}+0;
-            $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA);
-            $pl->SIGMA($newsigma);
+            if (!$pl->LADDER) {
+                $pl->ELO_CHANGE($newmmr - $pl->ELO);        
+                $pl->ELO($newmmr);
+                my $newsigma = $rating{$plname}->{sigma}+0;
+                $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA);
+                $pl->SIGMA($newsigma);
+            } else {
+                $pl->ELO_CHANGE($newmmr - $pl->ELO_LADDER);        
+                $pl->ELO_LADDER($newmmr);
+                my $newsigma = $rating{$plname}->{sigma}+0;
+                $pl->SIGMA_CHANGE($newsigma - $pl->SIGMA_LADDER);
+                $pl->SIGMA_LADDER($newsigma);
+
+            }
             if (length($plname) < $maxl) {
                 $plname .= " " x ($maxl - length($plname));
             } 
@@ -293,6 +350,81 @@ setup(25, 25/3, 25/6, 25/300, 0);
         }
 
 
+    }
+
+    sub Matchup {
+        my $self = shift;
+        my $msg = shift;
+
+        my $response = "";
+
+        my @players = split(/,/, $msg);
+
+        my %players;
+        my $lastnoeleast = 'PAX';
+        foreach my $ent (@players) {
+            $ent =~ s/\s+//g;
+            $ent =~ s/;+//g;
+            $players{$ent} = 1;
+            $lastnoeleast = $ent;
+        }
+
+        my $q = new MMqueue();
+        my $mmid = $q->Queue($self, $lastnoeleast, \%players);
+
+        if ($mmid) {
+            $self->MMIDS->{$mmid}->LADDER(1);
+            $response = $self->MMIDS->{$mmid}->BEST;
+        }
+        return $response;
+    }
+
+    sub Ladder {
+        my $self = shift;
+        my $msg  = shift;
+
+        my $response = "";
+
+        my %rat;
+        foreach my $plname (keys %{ $self->MMPLAYERS }) {
+            my $pl = $self->MMPLAYERS->{$plname};
+            next unless $pl->LADDER;
+
+            my $rat = new Rating($pl->ELO_LADDER, $pl->SIGMA_LADDER);
+            my $exp = main::expose($rat);
+            $exp = 0 if $exp < 0;
+            $rat{$plname} = $exp;
+        }
+
+        my $i = 0;
+        foreach (reverse sort {$rat{$a} <=> $rat{$b} } keys %rat) {
+            $i++;
+            my $pl = $self->MMPLAYERS->{$_};
+            $response .= "pos" . $i . ": " . $_ . "," . $self->MMPLAYERS->{$_}->GAMES_LADDER . "," . sprintf("%.2f", $rat{$_}) . "," . sprintf("%.2f", $pl->ELO_LADDER) . "," . sprintf("%.2f", $pl->SIGMA_LADDER) . ";";
+
+            {
+                lock (%{ $self->MMPLAYERS });
+                if ($pl->LADDER && $pl->GAMES == 1) {
+                    delete $self->MMPLAYERS->{$_};
+                } else {
+                    if ($pl->LADDER) {
+                        $pl->GAMES_LADDER(0);
+                        $pl->ELO_LADDER(25.0);
+                        $pl->SIGMA_LADDER(25/3);
+                    }
+                }
+            }
+        }
+        {
+            lock (%{ $self->MMIDS });
+            for my $i (1..999) {
+                if (exists $self->MMIDS->{$i}) {
+                    delete $self->MMIDS->{$i};
+                }
+            }
+        }
+
+        return $response;
     }
 
     sub SetElo {
@@ -435,6 +567,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
         $pl->MMID(0);
         $pl->POS(0);
         $pl->RANDOM(0);
+        $pl->LADDER(0);
 
         #$mmid = $self->FindGame($name);
 

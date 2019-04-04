@@ -25,7 +25,7 @@ use Data::Dumper;
 my $out = "./data/bab.txt";
 my $folder = "./data/";
 
-my $DEBUG = 1; 
+my $DEBUG = 2; 
 
 my $log = "log.txt";
 open(LOG, ">>", $log) or die "Could not write to $log: $!\n";
@@ -120,6 +120,8 @@ sub handle_connection {
         }
 
     }
+
+    close $socket;
     
     &Log($name . " disconected.") if $DEBUG;
     # Cleanup
@@ -243,6 +245,16 @@ sub PingPong {
             }
             $response = "Findgame: 0";
         }
+
+        elsif ($param =~ /^Ladder: (.*)/) {
+            $response = "Ladder: ";
+            $response .= $mm->Ladder($1);
+        }
+
+        elsif ($param =~ /^Matchup: (.*)/) {
+            $response = "Matchup: ";
+            $response .= $mm->Matchup($1);
+        }
     }
     return $name, $mmid, $response;
 }
@@ -252,7 +264,7 @@ sub CheckPing {
     my $good = 0;
     if (length($msg) < 2000) {
         $good = 1;
-    }
+    } 
 }
 
 sub Status {

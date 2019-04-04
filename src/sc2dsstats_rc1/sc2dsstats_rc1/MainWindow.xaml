@@ -888,6 +888,7 @@
                 <MenuItem Header="_MM" FontSize="14">
                     <MenuItem Header="_Find Match" Click="mnu_mm" Foreground="{DynamicResource StdTextBrush1}"/>
                     <MenuItem Header="_Ladder" Click="mnu_ladder" Foreground="{DynamicResource StdTextBrush1}"/>
+                    <MenuItem Header="_Manual" Click="mnu_manual" Foreground="{DynamicResource StdTextBrush1}"/>
                     <MenuItem Header="_Delete me" Click="mnu_delete" Foreground="{DynamicResource StdTextBrush1}"/>
                 </MenuItem>
                 <MenuItem Header="_Help" FontSize="14">
