@@ -35,15 +35,15 @@ namespace sc2dsstats_rc1
         MainWindow MW { get; set; }
         public Socket CLIENT { get; set; }
         SoundPlayer SP { get; set; }
-        public bool ACCEPTED { get; set; }
-        public bool GAME_READY { get; set; }
+        public bool ACCEPTED { get; set; } = false;
+        public bool ALL_ACCEPTED { get; set; } = false;
+        public bool DECLINED { get; set; } = false;
+        public bool ALL_DECLINED { get; set; } = false;
         public Dictionary<int, dsmmid> MMIDS { get; set; } = new Dictionary<int, dsmmid>();
 
         public DispatcherTimer _timer;
         public TimeSpan _time;
         public int downtime = 0;
-        public bool doit = true;
-        
 
         public Win_mm()
         {
@@ -123,10 +123,14 @@ namespace sc2dsstats_rc1
                 lb_pl6.Content = "Player";
                 tb_mmid.Text = "0";
 
+                ACCEPTED = false;
+                DECLINED = false;
+                ALL_ACCEPTED = false;
+                ALL_DECLINED = false;
+
                 mmcb_randoms.IsEnabled = false;
                 mmcb_randoms.IsChecked = false;
                 mmcb_report.IsEnabled = false;
-                GAME_READY = false;
 
                 string player = mmcb_player.SelectedItem.ToString();
                 string mode = ((ComboBoxItem)mmcb_mode.SelectedItem).Content.ToString();
@@ -254,8 +258,8 @@ namespace sc2dsstats_rc1
         private void bt_decline_Click(object sender, RoutedEventArgs e)
         {
             if (SP != null) SP.Stop();
-            doit = false;
-            ACCEPTED = false;
+            DECLINED = true;
+            ALL_DECLINED = true;
             gr_accept.Visibility = Visibility.Hidden;
             pb_Accept(false, tb_mmid.Text);
         }
@@ -267,10 +271,17 @@ namespace sc2dsstats_rc1
             pb_Accept(true, tb_mmid.Text);
             tb_accepted.Text = "TY! Waiting for other players ..";
             bt_accept.IsEnabled = false;
+            bt_decline.IsEnabled = false;
         }
 
         public void GameFound(string mmid)
         {
+
+            if (gr_accept.Children.OfType<ProgressBar>().ToList().Count > 0)
+            {
+                var child = gr_accept.Children.OfType<ProgressBar>().First();
+                gr_accept.Children.Remove(child);
+            }
 
             ProgressBar progbar = new ProgressBar();
             progbar.IsIndeterminate = false;
@@ -281,12 +292,14 @@ namespace sc2dsstats_rc1
             DoubleAnimation doubleanimation = new DoubleAnimation(100.0, duration);
             progbar.BeginAnimation(ProgressBar.ValueProperty, doubleanimation);
             progbar.HorizontalAlignment = HorizontalAlignment.Left;
+            progbar.Name = "pb_accept";
             gr_accept.Children.Add(progbar);
             bt_accept.IsEnabled = true;
+            bt_decline.IsEnabled = true;
             gr_accept.Visibility = Visibility.Visible;
             tb_gamefound.Visibility = Visibility.Hidden;
             tb_mmid.Text = mmid;
-            doit = true;
+
 
             string player = mmcb_player.SelectedItem.ToString();
             //Console.WriteLine(player + "waiting for accept (or decline)");
@@ -294,42 +307,60 @@ namespace sc2dsstats_rc1
 
             Task ts_accept = Task.Factory.StartNew(() =>
             {
-                bool mydoit = doit;                
-                while (mydoit) {
+                while (true) {
                     Thread.Sleep(1000);
+
+                    if (progbar == null)
+                    {
+                        break;
+                    }
+
                     Dispatcher.Invoke(() =>
                     {
+                        // timed out
                         if (progbar.Value == 100)
                         {
                             gr_accept.Visibility = Visibility.Hidden;
 
-                            // we timed out :(
                             if (ACCEPTED == false)
                             {
-                                GAME_READY = false;
+                                // we timed out :(
+                                DECLINED = true;
                                 bt_decline_Click(null, null);
                             }
-
-                            // someone declined - search again
-                            else if (GAME_READY == false)
+                            else
                             {
-                                Button_Click(null, null);
+                                Thread.Sleep(5000);
+                                // assuming someone declined - search again
+                                if (!ALL_ACCEPTED && !ALL_DECLINED)
+                                {
+                                    ALL_DECLINED = true;
+                                }
                             }
-
-                            doit = false;
-
                         }
-
-                        // all accepted :)
-                        if (GAME_READY == true)
-                        {
-                            doit = false;
-                            GAME_READY = false;
-                        }
-
-                        // waiting for all to accept (or one decline)
-                        mydoit = doit;
                     });
+
+                    if (ALL_ACCEPTED == true)
+                    {
+                        // all accepted :)
+                        // SetipPos && GameReady is called from dsmmclient
+                        break;
+                    }
+
+                    if (DECLINED == true)
+                    {
+                        ALL_DECLINED = true;
+                        break;
+                    }
+
+                    if (ALL_DECLINED == true)
+                    {
+                        // someone declined :( - search again (if we are up)
+                        if (ACCEPTED == true) Button_Click(null, null);
+                        break;
+                    }
+                    
+
                 }
             }, TaskCreationOptions.AttachedToParent);
 
@@ -340,7 +371,6 @@ namespace sc2dsstats_rc1
         public void GameReady(int mypos, string creator, string mmid)
         {
             _timer.Stop();
-            GAME_READY = true;
             string msg = "";
             if (creator == mypos.ToString())
             {
@@ -595,7 +625,10 @@ namespace sc2dsstats_rc1
                 Task showit = MW.tsscan.ContinueWith((antecedent) => {
                     Dispatcher.Invoke(() =>
                     {
-                        msel.Show();
+                        try
+                        {
+                            msel.Show();
+                        } catch { }
                     });
                 });
             }
@@ -898,7 +931,8 @@ namespace sc2dsstats_rc1
                 // Release the socket.    
                 try
                 {
-                    string string1 = "Exit. Have fun." + "\r\n";
+                    string player = mmcb_player.SelectedItem.ToString();
+                    string string1 = "Hello from [" + player + "]: fin" + "\r\n";
                     byte[] preBuf = Encoding.UTF8.GetBytes(string1);
                     CLIENT.Send(preBuf);
                     CLIENT.Shutdown(SocketShutdown.Both);

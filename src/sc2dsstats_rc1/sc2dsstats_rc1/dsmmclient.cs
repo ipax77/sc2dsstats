@@ -55,11 +55,11 @@ namespace sc2dsstats_rc1
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
 
-                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
-                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
+                IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
 
-                IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
-                IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
+                //IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 // Create a TCP/IP  socket.    
@@ -172,11 +172,11 @@ namespace sc2dsstats_rc1
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
 
-                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
-                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
+                IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
 
-                IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
-                IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
+                //IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 // Create a TCP/IP  socket.    
@@ -273,7 +273,7 @@ namespace sc2dsstats_rc1
                         // Someone declined / timed out :(
                         MW.Dispatcher.Invoke(() =>
                         {
-                            MW.GAME_READY = false;
+                            MW.ALL_DECLINED = true;
                             MW.gr_accept.Visibility = Visibility.Hidden;
                             MW.tb_gamefound.Visibility = Visibility.Visible;
                             MW.tb_gamefound.Text = "Someone declined / timed out :( - Searching again ...";
@@ -292,7 +292,7 @@ namespace sc2dsstats_rc1
                         // all accepted :)
                         MW.Dispatcher.Invoke(() =>
                         {
-                            MW.GAME_READY = true;
+                            MW.ALL_ACCEPTED = true;
                             MW.SetupPos(ent, player);
                         });
                         response = "fin";
@@ -306,6 +306,26 @@ namespace sc2dsstats_rc1
                 {
                     mmid = m_accept.Groups[1].ToString();
                     response = "Ready: " + mmid;
+
+                    if (mmid == "0")
+                    {
+                        // Someone  already declined / timed out :(
+                        MW.Dispatcher.Invoke(() =>
+                        {
+                            MW.ALL_DECLINED = true;
+                            MW.gr_accept.Visibility = Visibility.Hidden;
+                            MW.tb_gamefound.Visibility = Visibility.Visible;
+                            MW.tb_gamefound.Text = "Someone declined / timed out :( - Searching again ...";
+                        });
+
+                        // Waiting again
+                        Random rngesus = new Random();
+                        int rng = rngesus.Next(0, 3000);
+                        int mysleep = 5000 + rng;
+                        Thread.Sleep(mysleep);
+                        response = "Findgame: 1";
+                    }
+
                     goto Response;
                 }
                 // Searching ...

@@ -655,7 +655,7 @@
                 <DataGridTextColumn Header="POS"  Binding="{Binding POS}" Width="50"/>
                 <DataGridTextColumn Header="NAME"  Binding="{Binding NAME}" Width="170" />
                 <DataGridTextColumn Header="EXP"  Binding="{Binding EXP}" Width="70" />
-                <DataGridTextColumn Header="ELO"  Binding="{Binding ELO}" Width="70" />
+                <DataGridTextColumn Header="MU"  Binding="{Binding ELO}" Width="70" />
                 <DataGridTextColumn Header="SIGMA"  Binding="{Binding SIGMA}" Width="70" />
                 <DataGridTextColumn Header="GAMES"  Binding="{Binding GAMES}" Width="50" />
                 </DataGrid.Columns>

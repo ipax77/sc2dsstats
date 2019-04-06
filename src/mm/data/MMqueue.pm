@@ -17,12 +17,14 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
     use open OUT => ":utf8";
 
     use Data::Dumper;
-    use Time::HiRes qw(gettimeofday tv_interval);
+    use Time::Local;
 
     use lib ".";
     use MMmm;
     use MMplayer;
     use MMid;
+
+    my $DEBUG = 2;
 
     around 'new' => sub {
         my $orig = shift;
@@ -47,6 +49,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
         my $mm = shift;
         my $name = shift;
         my $pool = shift;
+        my $ladder = shift || 0;
 
         my $mmid = 0;
         my $c = scalar keys %$pool;
@@ -57,7 +60,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
 
         # generate mmid
 
-        print $c . "\n";
+        #print $c . "\n";
         my %rating;
         my $j;
 
@@ -69,6 +72,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
         my @cppool = @pool;
 
         my $mindiff = 0;
+        my $quality = 0;
         my $best;
         my @best;
         my @b1;
@@ -112,7 +116,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             }
 
             my $bab;
-            my $quality = main::quality([\@t1, \@t2]);
+            $quality = main::quality([\@t1, \@t2]);
             foreach (@p1) {
                 $bab .= $_ . " ";
             }
@@ -130,17 +134,77 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             }
 
             @cppool = @pool;
+            last if ($j); # DEBUG
             last if ($mindiff > 0.5 && $j > 10);
             last if ($mindiff > 0.4 && $j > 50);
             last if ($j > 216);
         }
 
-        print "BEST: " . $best . "\n";
+        #print "BEST: " . $best . "\n";
 
-        $mmid = $self->Setup($mm, \@b1, \@b2);
-        $mm->MMIDS->{$mmid}->BEST($best);
+        if ($ladder || $self->CheckQuality($mm, $name, $quality)) {
+            {
+                lock (%{ $mm->PLAYERS });
+                $mmid = $self->Setup($mm, \@b1, \@b2);
+                $mm->MMIDS->{$mmid}->BEST($best);
+            }
+        }
+
+        if ($mmid && $mmid > 999) {
+            my $t0 = timelocal(localtime());
+            $mm->TIMESTAMP->{$mmid} = shared_clone($t0);
+            $mm->MMIDS->{$mmid}->TIMESTAMP(shared_clone($t0));
+        }
 
         return $mmid;
+    }
+
+    sub CheckQuality {
+        my $self = shift;
+        my $mm = shift;
+        my $name = shift;
+        my $quality = shift;
+
+        my $good = 0;
+
+        return 1; # DEBUG
+
+        # TODO: maybe every player has a right for quality?
+
+        if ($quality >= 0.5) {
+            $good = 1;
+            return $good;
+        }
+
+        my $pl = $mm->MMPLAYERS->{$name};
+
+        if ($pl->CYCLE >= 101) {
+            $good = 1;
+            return $good;
+        }
+
+        my $waittime = 15;
+        $waittime = 30 if $pl->MOD eq "2v2";
+        $waittime = 60 if $pl->MOD eq "1v1";
+        
+        if ($quality >= 0.4 && $pl->CYCLE > ($waittime / 3)) {
+            $good = 1;
+            return $good;
+        }
+
+
+        if ($quality >= 0.3 && $pl->CYCLE > ($waittime / 2)) {
+            $good = 1;
+            return $good;
+        }
+
+        if ($quality >= 0.2 && $pl->CYCLE > ($waittime)) {
+            $good = 1;
+            return $good;
+        }
+
+
+        return $good;
     }
 
     sub Setup {
@@ -173,10 +237,17 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             $pl->POS($i+1+$#t1+1);
             $pl->TEAM(2);
             $pl->MMID($mmid);
+            $pl->MMIDS->{$mmid} = 1;
             $id->PLAYERS->{$pl->NAME} = $pl;
         }
-        #my $t0 = [gettimeofday];
-        #$id->TIMESTAMP(\$t0);
+        
+        if ($DEBUG > 1) {
+            my $msg = "LOGQU: $mmid: ";
+            foreach (keys %{ $id->PLAYERS }) {
+                $msg .= "$_;";
+            }
+            print $msg . "\n";
+        }
 
         return $mmid;
     }

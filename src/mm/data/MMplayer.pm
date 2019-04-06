@@ -34,12 +34,17 @@ use strict;
     has 'NUM' => (is => 'rw', isa => 'Str', default => "0");
     has 'ID' => (is => 'rw', isa => 'Num', default => 0);
     has 'MMID' => (is => 'rw', isa => 'Num', default => 0);
+    has 'MMIDS' => (is => 'rw', default   => sub { {} });
+    has 'ACCEPTED' => (is => 'rw', isa => 'Num', default => 0);
+    has 'DECLINED' => (is => 'rw', isa => 'Num', default => 0);
     has 'GAMES' => (is => 'rw', isa => 'Num', default => 0);
     has 'GAMES_LADDER' => (is => 'rw', isa => 'Num', default => 0);
     has 'ELO' => (is => 'rw', default => 25.0);
+    has 'ELO_TEMP' => (is => 'rw', default => 0);
     has 'ELO_LADDER' => (is => 'rw', default => 25.0);
     has 'ELO_CHANGE' => (is => 'rw', default => 0);
     has 'SIGMA' => (is => 'rw', default => 25/3);
+    has 'SIGMA_TEMP' => (is => 'rw', default => 0);
     has 'SIGMA_LADDER' => (is => 'rw', default => 25/3);
     has 'SIGMA_CHANGE' => (is => 'rw', default => 0);
     has 'RATING' => (is => 'rw', default => 0);
@@ -54,10 +59,11 @@ use strict;
     has 'RANDOM' => (is => 'rw', isa => 'Num', default => 0);
     has 'KVAL' => (is => 'rw', isa => 'Num', default => 40);
     has 'INDB' => (is => 'rw', isa => 'Num', default => 0);
-    has 'CREDENTIAL' => (is => 'rw', isa => 'Num', default => 1);
+    has 'CREDENTIAL' => (is => 'rw', isa => 'Num', default => 0);
     has 'TEAMMATES' => (is => 'rw', default   => sub { {} });
     has 'OPPONENTS' => (is => 'rw', default   => sub { {} });
     has 'PLAYED' => (is => 'rw', default   => sub { {} });
+    
 
 
 

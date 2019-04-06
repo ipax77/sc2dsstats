@@ -12,7 +12,7 @@ use threads;
 use threads::shared;
 use IO::Socket;
 use POSIX qw(strftime);
-use Time::HiRes qw(gettimeofday tv_interval);
+use Time::Local;
 
 use lib ".";
 use MMdb;
@@ -39,8 +39,8 @@ my $listen = IO::Socket::INET->new(
                                    LocalHost => '0.0.0.0',
                                    LocalPort => 7891,
                                    ReuseAddr => 1,
-                                   Listen => 200,
-                                   Proto => 'tcp'
+                                   Listen => 500,
+                                   Proto => 'tcp',
                                    ) or die $!;
 
 
@@ -60,7 +60,7 @@ $mm->MMPLAYERS(shared_clone($db));
 
 my $lock_db : shared;
 
-my $t0 = [gettimeofday];
+my $t0 = timelocal(localtime());
 
 
 &Log("Waiting for connection ..");
@@ -73,18 +73,21 @@ while (my $socket = $listen->accept) {
 	#binmode $socket, ':encoding(UTF-8)';
 	binmode $socket;
     async(\&handle_connection, $socket, $client_address)->detach;
-	{
-		lock ($lock_db);
-
-		my $diff = tv_interval($t0);
-		if ($diff > 300 && !$lock_db) {
-			$lock_db = 1;
-			&Log("Writing data do db ..");
-			&SetCache();
-			$t0 = [gettimeofday];
-			$lock_db = 0;
-		}
-	}
+	
+    my $diff = timelocal(localtime()) - $t0;
+    if ($diff > 300 && !$lock_db) {
+        my $t0 = timelocal(localtime());
+        {
+            lock ($lock_db);
+            $lock_db = 1;
+            &Log("Writing data do db ..");
+            &SetCache();
+            
+            $lock_db = 0;
+        }
+        &CleanupMMIDS($t0);
+    }
+	
 	
 }
 
@@ -127,6 +130,14 @@ sub handle_connection {
     # Cleanup
     if (exists $mm->PLAYERS->{$name}) {
         {
+            #  is there a pending mmid?
+            # TODO - Disconnect? - Delete?
+            if ($mm->PLAYERS->{$name}->MMID) {
+                if (exists $mm->MMIDS->{$mm->PLAYERS->{$name}->MMID}) {
+                    $mm->MMIDS->{$mm->PLAYERS->{$name}->MMID}->DISCONNECT(1);
+                }
+                
+            }
             lock (%{ $mm->PLAYERS });
             delete $mm->PLAYERS->{$name};
         }
@@ -282,6 +293,38 @@ sub Status {
         $status .= $_ . " => " . $status{$_} . "; ";
     }
     return $status;
+}
+
+sub CleanupMMIDS {
+    my $t0 = shift;
+
+    {
+        lock (%{ $mm->MMIDS });
+        foreach my $mmid (keys %{ $mm->MMIDS }) {
+
+            my $id = $mm->MMIDS->{$mmid};
+
+            if ($id->REPORTED == $id->NEED) {
+                {
+                    lock (%{ $mm->MMPLAYERS });
+                    foreach my $plname (keys %{ $id->PLAYERS }) {
+                        my $pl = $id->PLAYERS->{$plname};
+                        if (exists $pl->MMIDS->{$mmid}) {
+                            delete $pl->MMIDS->{$mmid};
+                        }
+                    }
+
+                }
+                delete $mm->MMIDS->{$mmid};
+                &Log("Deleting(1) $mmid.") if $DEBUG;
+            }
+
+            elsif ($id->TIMESTAMP && ($t0 - $id->TIMESTAMP) > 86400) {
+                delete $mm->MMIDS->{$mmid};
+                &Log("Deleting(2) $mmid.") if $DEBUG;
+            }
+        }
+    }
 }
 
 

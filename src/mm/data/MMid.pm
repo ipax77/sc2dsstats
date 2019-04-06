@@ -26,7 +26,6 @@ use strict;
     };
 
     has 'MMID' => (is => 'rw', isa => 'Num', default => 0);
-    has 'TIMESTAMP' => (is => 'rw', default   => sub { () });
     has 'SERVER' => (is => 'rw', isa => 'Str', default => "0");
     has 'MOD' => (is => 'rw', isa => 'Str', default => "0");
     has 'NUM' => (is => 'rw', isa => 'Str', default => "0");
@@ -36,13 +35,15 @@ use strict;
     has 'DECLINED' => (is =>'rw', isa => 'Num', default => 0);
     has 'DISCONNECT' => (is =>'rw', isa => 'Num', default => 0);
     has 'REPORTED' => (is =>'rw', isa => 'Num', default => 0);
+    has 'REPORT_QUALITY' => (is =>'rw', isa => 'Num', default => 0);
+    has 'REPORT_SAVED' => (is =>'rw', isa => 'Num', default => 0);
     has 'BLAMED' => (is =>'rw', isa => 'Num', default => 0);
     has 'REPORTS' => (is => 'rw', default   => sub { {} });
     has 'PLAYERS' => (is => 'rw', default   => sub { {} });
     has 'RESPONSE' => (is => 'rw', isa => 'Str', default => "0");
     has 'LADDER' => (is => 'rw', isa => 'Num', default => 0);
     has 'BEST' => (is => 'rw', isa => 'Str', default => 0);
-
+    has 'TIMESTAMP' => (is => 'rw', isa => 'Num', default => 0);
 
 
 

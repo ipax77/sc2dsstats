@@ -115,6 +115,7 @@ namespace sc2dsstats_rc1
             {
                 PresentLadder(ladder);
             }
+            //wm.Show();
         }
 
         public void PresentLadder (string ladder)

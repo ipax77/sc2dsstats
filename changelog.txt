@@ -1,4 +1,9 @@
 
+0.6.0.17
+
+- MM: Queue logic
+- MM: Report logic
+
 0.6.0.16
 
 - MM: manual ladder

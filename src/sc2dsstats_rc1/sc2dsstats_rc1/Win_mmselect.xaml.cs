@@ -269,8 +269,15 @@ namespace sc2dsstats_rc1
 
                     string mmid = game.MMID;
                     if (mmid == "0") mmid = tb_rep_mmid.Text;
-                    WM.SendResult("mmid: " + mmid + "; result: " + result, game);
-                    this.Close();
+                    string response = WM.SendResult("mmid: " + mmid + "; result: " + result, game);
+                    if (response == "sc2dsmm: Result: 0")
+                    {
+
+                    }
+                    else
+                    {
+                        this.Close();
+                    }
                 }
             }
         }

@@ -14,6 +14,7 @@ use Data::Dumper;
 use lib ".";
 use MMplayer;
 
+my $DEBUG = 1;
 
 has 'DBH' => (is => 'rw');
 has 'SALT' => (is => 'rw', isa => 'Str');
@@ -72,7 +73,7 @@ sub GetCache {
 	my %data;
 	while (my @data = $sth->fetchrow_array()) {
 		my $mm = new MMplayer;
-		print "MMDB: GetCache: $data[1]\n";
+		print "MMDB: GetCache: $data[1] => $data[2]\n" if $DEBUG;
 		$mm->NAME($data[1]);
 		$mm->ID($data[0]);
 		$mm->ELO($data[2]);
@@ -122,7 +123,7 @@ sub AddPlayer {
 	my $sigma = shift || 25/3;
 	my $id = shift || 0;
 	
-	print "MMDB: Adding player $player\n";
+	print "MMDB: Adding player $player\n" if $DEBUG;
 
 	my $insert_handle = $self->DBH->prepare_cached('INSERT INTO mm_players VALUES (?,?,?,?,?,?)')
 		or warn "Could not prepare_cached statement: " . $self->DBH->errstr;
@@ -166,7 +167,7 @@ sub SetELO {
 	my $newelo = shift;
 	my $games = shift;
 	my $sigma = shift;
-	print "MMDB: Setting ELO for player $id ($newelo)\n";
+	print "MMDB: Setting ELO for player $id ($newelo)\n" if $DEBUG;
 	if ($newelo && $id) {
 		my $update_handle = $self->DBH->prepare_cached('UPDATE mm_players SET ELO = ?, GAMES = ?, SIGMA = ?  WHERE ID = ?')
 			or warn "Could not prepare_cached statement: " . $self->DBH->errstr;
