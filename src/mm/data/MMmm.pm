@@ -25,6 +25,8 @@ setup(25, 25/3, 25/6, 25/300, 0);
     use MMqueue;
 
     my $log;
+    my $msg_bak = "";
+    my $msg_count = 0;
     my $DEBUG = 2;
     my $lock_db : shared;
 
@@ -195,7 +197,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
 
 
                             } else {
-                                print "$mmid: this should not happen ..\n";
+                                &Log("$mmid: this should not happen ..") if $DEBUG;
                                 last;
                             }
                             push(@player, $plrep) if $plrep;
@@ -208,7 +210,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
 
                 #if ($valid >= $id->NEED) {
                 if ($valid >= 2 || $ladder) {
-
+                    &Log("Report: Valid1: $valid") if $DEBUG > 1;
                     # TODO: Check blame / multiple reports / difference / leaver
                     {
                         lock (%{ $self->MMIDS });
@@ -239,6 +241,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
                                                 $ppl->SIGMA_TEMP(0);
 
                                                 delete $ppl->MMIDS->{$pmmid};
+                                                &Log("Report:  Previous: $plname: " . $ppl->ELO) if $DEBUG > 1;
                                             }
                                         }
                                     }
@@ -259,11 +262,12 @@ setup(25, 25/3, 25/6, 25/300, 0);
                         my $valid2 = 0;
                         foreach my $plname (keys %{$id->PLAYERS }) {
                             my $pl = $id->PLAYERS->{$plname};
-                            next if $pl->ELO_TEMP == 0 && $pl->ELO_SIGMA == 0;
+                            next if $pl->ELO_TEMP == 0 && $pl->SIGMA_TEMP == 0;
                             if ($elo_temp{$plname} == $pl->ELO_TEMP && $sigma_temp{$plname} == $pl->SIGMA_TEMP) {
                                 $valid2 ++;
                             }
                         }
+                        &Log("Report: Valid2: $valid2") if $DEBUG > 1;
                         $quality = $valid + $valid2;
                         
 
@@ -290,7 +294,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
                             }
                         }
                         $id->REPORT_QUALITY($quality) if $quality > $id->REPORT_QUALITY;
-                        Log("LOGMM: $name: " . $mmid . " quality => " . $id->REPORT_QUALITY);
+                        Log("LOGMM: $name: " . $mmid . " quality => " . $id->REPORT_QUALITY) if $DEBUG;
                         $id->REPORTED($id->REPORTED+1);
                     }
 
@@ -307,7 +311,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
                     my $pl = $id->PLAYERS->{$plname};
                     my $pl_elo;
                     if (!$ladder) {
-                        if ($id->REPORT_QUALITY && $id->REPORTED >= 2) {
+                        if ($id->REPORT_SAVED) {
                             $pl_elo = sprintf("%.2f", $pl->ELO);
                         } else {
                             $pl_elo = sprintf("%.2f", $pl->ELO_TEMP);
@@ -322,7 +326,7 @@ setup(25, 25/3, 25/6, 25/300, 0);
                $id->RESPONSE($response) if $quality >= $id->REPORT_QUALITY;
                 if ($response) {
                     if (exists $id->PLAYERS->{$name}) {
-                        if ($id->REPORT_QUALITY && $id->REPORTED >= 2) {
+                        if ($id->REPORT_SAVED) {
                             $myelo = "pos7: " . sprintf("%.2f", $id->PLAYERS->{$name}->ELO) . ";";
                             $self->SetCache() unless $ladder;
                         } else {
@@ -644,32 +648,42 @@ setup(25, 25/3, 25/6, 25/300, 0);
     sub Letmeplay {
         my $self = shift;
         my $name = shift;
-        my $mod = shift;
-        my $num = shift;
-        my $skill = shift;
-        my $server = shift;
+        my $mod = shift || 0;
+        my $num = shift || 0;
+        my $skill = shift || 0;
+        my $server = shift || 0;
 
         my $mmid = 0;
 
-        if (exists $self->PLAYERS->{$name}) {
-            # reset
-            
-
+        if ($mod) {
+            if (exists $self->PLAYERS->{$name}) {
+                # reset
+                {
+                    lock (%{ $self->PLAYERS });
+                    delete $self->PLAYERS->{$name};
+                }
+                sleep 9;
+                $self->PLAYERS->{$name} = $self->MMPLAYERS->{$name};
+            } else {
+                $self->PLAYERS->{$name} = $self->MMPLAYERS->{$name};
+            }
         } else {
+            # searching again after one (or more) declined
             $self->PLAYERS->{$name} = $self->MMPLAYERS->{$name};
         }
 
         {
             lock (%{ $self->PLAYERS });
             my $pl = $self->PLAYERS->{$name};
-            $pl->MOD($mod);
-            $pl->NUM($num);
-            $pl->SKILL($skill);
-            $pl->SERVER($server);
+            $pl->MOD($mod) if $mod;
+            $pl->NUM($num) if $num;
+            $pl->SKILL($skill) if $skill;
+            $pl->SERVER($server) if $server;
             $pl->GAME(0);
             $pl->MMID(0);
+            $pl->INQUEUE(0);
             $pl->POS(0);
-            $pl->CYCLE(0);
+            $pl->CYCLE(0) if $mod;
             $pl->RANDOM(0);
             $pl->LADDER(0);
             $pl->ACCEPTED(0);
@@ -697,7 +711,15 @@ setup(25, 25/3, 25/6, 25/300, 0);
 
         my $result = 0;
 
+        if (!exists $self->MMPLAYERS->{$name}) {
+            return "fin";
+        }
         my $player = $self->MMPLAYERS->{$name};
+
+        # TODO: fix dirty fix
+        #if ($player->MMID != $mmid) {
+        #    $mmid = $player->MMID;
+        #}
 
         if (exists $self->MMIDS->{$mmid}) {
         
@@ -706,23 +728,28 @@ setup(25, 25/3, 25/6, 25/300, 0);
                 $self->MMIDS->{$mmid}->ACCEPTED($self->MMIDS->{$mmid}->ACCEPTED + 1);
                 if ($self->MMIDS->{$mmid}->ACCEPTED >= $self->MMIDS->{$mmid}->NEED) {
                     $self->MMIDS->{$mmid}->READY(1);
-                    &Log("Game accepted: MMID: $mmid; " . $self->MMIDS->{$mmid}->RESPONSE);
+                    &Log("$name: Game accepted: MMID: $mmid; " . $self->MMIDS->{$mmid}->RESPONSE) if $DEBUG;
                 }
                 $result = $mmid;
 
-                lock (%{ $self->PLAYERS });
-                $self->PLAYERS->{$name}->ACCEPTED(1);
-
+                lock (%{ $self->MMPLAYERS });
+                $self->MMPLAYERS->{$name}->ACCEPTED(1);
             }
+
         } else {
-            if (exists $self->PLAYERS->{$name}) {
-                {
-                    lock (%{ $self->PLAYERS });
-                    $self->PLAYERS->{$name}->ACCEPTED(1);
-                    $self->PLAYERS->{$name}->MMID(0);
+            if (exists $self->MMPLAYERS->{$name}) {
+                if ($self->MMPLAYERS->{$name}->MMID == $mmid) {
+                    {
+                        lock (%{ $self->MMPLAYERS });
+                        $self->MMPLAYERS->{$name}->ACCEPTED(0);
+                        $self->MMPLAYERS->{$name}->MMID(0);
+                        &Log($name . " reset2.") if $DEBUG > 1;
+                    }
+                } else {
+
                 }
             }
-        }
+        } 
 
         return $result;
     }
@@ -734,6 +761,18 @@ setup(25, 25/3, 25/6, 25/300, 0);
 
         my $result = 0;
 
+       if (!exists $self->MMPLAYERS->{$name}) {
+            return "fin";
+        }
+
+        if (!$mmid) {
+            if (exists $self->MMPLAYERS->{$name}) {
+                if ($self->MMPLAYERS->{$name}->MMID) {
+                    $mmid = $self->PLAYERS->{$name}->MMID;
+                }
+            }
+        }
+
         # TODO: Let it life and fill with next
         if (exists $self->MMIDS->{$mmid}) {
             {
@@ -741,23 +780,103 @@ setup(25, 25/3, 25/6, 25/300, 0);
                 foreach my $plname (keys %{ $self->MMIDS->{$mmid}->PLAYERS }) {
                     if (exists $self->PLAYERS->{$plname}) {
                         if ($self->PLAYERS->{$plname}->ACCEPTED || $self->PLAYERS->{$plname}->DECLINED) {
-                            $self->PLAYERS->{$plname}->MMID(0);
+                            #$self->PLAYERS->{$plname}->MMID(0);
+                            #$self->PLAYERS->{$plname}->ACCEPTED(0);
+                            #&Log($name . ": " . $plname . " reset.") if $DEBUG > 1;
                         }
                     }
                 }
 
                 lock (%{ $self->MMIDS });
-                delete $self->MMIDS->{$mmid};    
+                $self->MMIDS->{$mmid}->DECLINED($self->MMIDS->{$mmid}->DECLINED+1);    
 
-                lock (%{ $self->PLAYERS });
-                $self->PLAYERS->{$name}->DECLINED(1);
+                lock (%{ $self->MMPLAYERS });
+                $self->MMPLAYERS->{$name}->DECLINED(1);
                 delete $self->PLAYERS->{$name} if exists $self->PLAYERS->{$name};
-
+                if ($self->MMIDS->{$mmid}->ACCEPTED + $self->MMIDS->{$mmid}->DECLINED >= $self->MMIDS->{$mmid}->NEED) {
+                    delete $self->MMIDS->{$mmid};
+                }
                 $result = 1;
             }
         }
 
+
         return $result;
+    }
+
+    sub ReadyStatus {
+        my $self = shift;
+        my $mmid = shift;
+        my $name = shift;
+
+        my $response = "Status: 0";
+
+        if (!exists $self->MMPLAYERS->{$name}) {
+            return "fin";
+        }
+
+        if (exists $self->MMIDS->{$mmid}) {
+            my $id = $self->MMIDS->{$mmid};
+
+            # someone declined :(
+            if ($id->DECLINED) {
+                $response = "Ready: 0";
+                if (exists $self->MMPLAYERS->{$name}) {
+                    {
+                        lock (%{ $self->MMPLAYERS });
+                        $self->MMPLAYERS->{$name}->MMID(0);
+                        $self->MMPLAYERS->{$name}->ACCEPTED(0);
+                        $self->MMPLAYERS->{$name}->DECLINED(0);
+                    }
+                }
+                return $response;
+            }
+            
+
+            # all accepted?
+            if ($self->MMIDS->{$mmid}->READY) {
+                $response = "Ready: ";
+                $response .= $self->MMIDS->{$mmid}->RESPONSE;
+                return $response;
+            }
+
+            my $players;
+            my $pl_count = 0;
+            my $pl_acc = 0;
+            # current status of acceptance
+            $response = "Status: ";
+            my $result = "";
+            {
+                lock (%{ $self->MMIDS });
+                foreach my $plname (sort { $id->PLAYERS->{$a}->POS <=> $id->PLAYERS->{$b}->POS } keys %{ $id->PLAYERS }) {
+                    $result .= $id->PLAYERS->{$plname}->ACCEPTED . ";";
+                    $players .= "$plname(" . $id->PLAYERS->{$plname}->ACCEPTED . ");";
+                    $pl_count++;
+                    if ($id->PLAYERS->{$plname}->ACCEPTED) {
+                        $pl_acc ++;
+                    }
+                }
+            }
+            &Log("$mmid: $players - ($pl_acc/$pl_count)");
+            $result = "0" unless $result;
+            $response .= $result;
+            return $response;
+
+        } else {
+            # someone declined :(
+            $response = "Ready: 0";
+            if (exists $self->MMPLAYERS->{$name}) {
+                {
+                    lock (%{ $self->MMPLAYERS });
+                    $self->MMPLAYERS->{$name}->MMID(0);
+                    $self->MMPLAYERS->{$name}->ACCEPTED(0);
+                    $self->MMPLAYERS->{$name}->DECLINED(0);
+                }
+            }
+            return $response;
+        }
+
+        return $response;
     }
 
 
@@ -766,15 +885,30 @@ setup(25, 25/3, 25/6, 25/300, 0);
         my $name = shift;
         my $ent = shift;
 
+        if (!exists $self->MMPLAYERS->{$name}) {
+            return "fin";
+        }
+
         my $mmid = 0;
         my $random = 0;
         my $notrandom = 0;
         {
-            lock (%{ $self->PLAYERS });
-            if (exists $self->PLAYERS->{$name}) {
-                $mmid = $self->PLAYERS->{$name}->MMID;
+            lock (%{ $self->MMPLAYERS });
+            if (exists $self->MMPLAYERS->{$name}) {
+                $mmid = $self->MMPLAYERS->{$name}->MMID;
+                if (!$mmid) {
+                    $self->MMPLAYERS->{$name}->ACCEPTED(0);
+                } else {
+                    &Log("$name: mmid: $mmid");
+                    return $mmid;
+                }
                 $self->PLAYERS->{$name}->CYCLE($self->PLAYERS->{$name}->CYCLE+1);
             } else {
+
+            }
+
+            if (!exists $self->PLAYERS->{$name}) {
+                &Log("indahouse") if $DEBUG > 1;
 
             }
 
@@ -815,9 +949,11 @@ setup(25, 25/3, 25/6, 25/300, 0);
                 }
 
                 if ($count >= $need) {
-
-                    my $queue = new MMqueue();
-                    $mmid = $queue->Queue($self, $name, \%pool);
+                    { 
+                        lock (%{ $self->MMIDS });
+                        my $queue = new MMqueue();
+                        $mmid = $queue->Queue($self, $name, \%pool);
+                    }
 
                     if ($mmid) {
                         # Set POS
@@ -948,8 +1084,14 @@ setup(25, 25/3, 25/6, 25/300, 0);
     sub Log {
         my $msg = shift;
         if ($msg) {
-            print $log "LOGMM: $msg\n";
-            print "LOGMM: $msg\n";
+            if ($msg ne $msg_bak) {
+                print $log "LOGMM: $msg\n";
+                print "LOGMM: $msg\n";
+                $msg_bak = $msg;
+            } else {
+                $msg_count ++;
+            }
+
         }
     }
 
@@ -957,3 +1099,4 @@ setup(25, 25/3, 25/6, 25/300, 0);
     __PACKAGE__->meta->make_immutable(inline_constructor => 0);
 
 }
+

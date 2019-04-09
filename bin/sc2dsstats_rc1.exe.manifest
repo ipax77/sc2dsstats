@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="545688">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="sc2dsstats_rc1.exe" size="560536">
       <assemblyIdentity name="sc2dsstats_rc1" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>q8jo6WfQfhQYjRGOocq/xdUxZM7n8aw3M7Xd+M+M8/U=</dsig:DigestValue>
+        <dsig:DigestValue>AxVSZLNgV5sEPZKZkgKlfkKXoKCASWa2f+zMTUwv7VA=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

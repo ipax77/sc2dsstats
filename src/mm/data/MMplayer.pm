@@ -28,6 +28,7 @@ use strict;
     has 'POS' => (is => 'rw', isa => 'Num', default => 0);
     has 'LADDER' => (is => 'rw', isa => 'Num', default => 0);
     has 'QUEUE_POS' => (is => 'rw', isa => 'Num', default => 999);
+    has 'INQUEUE' => (is => 'rw', isa => 'Num', default => 0);
     has 'CYCLE' => (is => 'rw', isa => 'Num', default => 0);
     has 'NAME' => (is => 'rw', isa => 'Str');
     has 'MOD' => (is => 'rw', isa => 'Str', default => "0");

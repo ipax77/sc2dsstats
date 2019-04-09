@@ -26,6 +26,8 @@ my $out = "./data/bab.txt";
 my $folder = "./data/";
 
 my $DEBUG = 2; 
+my $msg_back = "";
+my $msg_count;
 
 my $log = "log.txt";
 open(LOG, ">>", $log) or die "Could not write to $log: $!\n";
@@ -76,7 +78,7 @@ while (my $socket = $listen->accept) {
 	
     my $diff = timelocal(localtime()) - $t0;
     if ($diff > 300 && !$lock_db) {
-        my $t0 = timelocal(localtime());
+        $t0 = timelocal(localtime());
         {
             lock ($lock_db);
             $lock_db = 1;
@@ -111,6 +113,9 @@ sub handle_connection {
             
             ($name, $mmid, $pong) = &PingPong($ping);
             if (!$pong) {
+                last;
+            } elsif ($pong =~ /fin$/) {
+                &Log("$name: fin") if $DEBUG > 1;
                 last;
             }
             $pong = "sc2dsmm: " . $pong;
@@ -186,14 +191,18 @@ sub PingPong {
 
         elsif ($param =~ /Letmeplay: (.*)/) {
             my $opt = $1;
-            my @opt = split(/;/, $opt);
-            my $mode = $opt[0];
-            my $num = $opt[1];
-            my $skill = $opt[2];
-            my $server = $opt[3];
             $response = "Letmeplay: ";
-            $response .= $mm->Letmeplay($name, $mode, $num, $skill, $server);
-            
+            if ($opt eq "1") {
+                $response .= $mm->Letmeplay($name);
+            } else {
+                my @opt = split(/;/, $opt);
+                my $mode = $opt[0];
+                my $num = $opt[1];
+                my $skill = $opt[2];
+                my $server = $opt[3];
+                
+                $response .= $mm->Letmeplay($name, $mode, $num, $skill, $server);
+            }            
         }
 
         elsif ($param =~ /accept: (\d+)/) {
@@ -247,6 +256,18 @@ sub PingPong {
             }
             
         } 
+
+        elsif ($param =~ /Ready_v2: (\d+)/) {
+            $mmid = $1;
+
+            $response = $mm->ReadyStatus($mmid, $name);
+        }
+
+        elsif ($param =~ /Status: (\d+)/) {
+            my $mmid = $1;
+            
+            $response = $mm->ReadyStatus($mmid, $name);
+        }
 
         elsif ($param =~ /^allowRandoms: (\d)/) {
             my $rng = $1;
@@ -366,9 +387,16 @@ sub Delete {
 sub Log {
     my $msg = shift;
 	if ($msg) {
-		my $log_date = strftime("%Y%m%d - %H:%M:%S", localtime());
-		print $log_date . ": " . $msg . "\n";
-		print LOG $log_date . ": " . $msg . "\n";
+        if ($msg ne $msg_back) {
+            my $log_date = strftime("%Y%m%d - %H:%M:%S", localtime());
+            print $log_date . ": " . $msg . "\n";
+            print LOG $log_date . ": " . $msg . "\n";
+            $msg_back = $msg;
+            $msg_count = 0;
+        } else {
+            $msg_count++;
+        }
+
 	}
 }
 

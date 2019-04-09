@@ -14,9 +14,13 @@ using System.Threading;
 
 namespace sc2dsstats_rc1
 {
-    class dsmmclient
+
+    public class dsmmclient
     {
         private const int port = 7891;
+        public bool STATUS { get; set; } = false;
+
+
         Win_mm MW { get; set; }
         List<KeyValuePair<int, string>> PLPOS { get; set; }
         public string INFO { get; set; }
@@ -55,11 +59,11 @@ namespace sc2dsstats_rc1
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
 
-                IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
-                IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
 
-                //IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
-                //IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
+                IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 // Create a TCP/IP  socket.    
@@ -162,6 +166,7 @@ namespace sc2dsstats_rc1
 
         public Socket StartClient(Win_mm mw, string player, string mode, string num, string skill, string server)
         {
+            STATUS = false;
             Socket sender = null;
             byte[] bytes = new byte[1024];
 
@@ -172,11 +177,11 @@ namespace sc2dsstats_rc1
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
 
-                IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
-                IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
+                //IPHostEntry ipHostInfo = Dns.GetHostEntry("userver4");
+                //IPAddress ipAddress = IPAddress.Parse("192.168.178.28");
 
-                //IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
-                //IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
+                IPHostEntry ipHostInfo = Dns.GetHostEntry("pax77.org");
+                IPAddress ipAddress = IPAddress.Parse("144.76.58.9");
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 // Create a TCP/IP  socket.    
@@ -262,7 +267,7 @@ namespace sc2dsstats_rc1
                 string pt_decline = @"^Decline: (.*)";
                 string pt_findgame = @"^Findgame: (.*)";
                 string pt_ready = @"^Ready: (.*)";
-
+                string pt_status = @"^Status: (.*)";
 
                 // Matchup ready to go
                 foreach (Match m_ready in Regex.Matches(answer, pt_ready))
@@ -271,21 +276,49 @@ namespace sc2dsstats_rc1
                     if (ent == "0")
                     {
                         // Someone declined / timed out :(
+               
                         MW.Dispatcher.Invoke(() =>
                         {
                             MW.ALL_DECLINED = true;
-                            MW.gr_accept.Visibility = Visibility.Hidden;
-                            MW.tb_gamefound.Visibility = Visibility.Visible;
-                            MW.tb_gamefound.Text = "Someone declined / timed out :( - Searching again ...";
                         });
 
                         // Waiting again
-                        Random rngesus = new Random();
-                        int rng = rngesus.Next(0, 3000);
-                        int mysleep = 5000 + rng;
-                        Thread.Sleep(mysleep);
-                        response = "Findgame: 1";
-
+                        // We need to responde too
+                        if (MW.WAITING == false && MW.DECLINED == false)
+                        {
+                            Random rngesus = new Random();
+                            int rng = rngesus.Next(0, 3000);
+                            int mysleep = 5000 + rng;
+                            Thread.Sleep(mysleep);
+                            // response = "Findgame: 1";
+                            response = "Letmeplay: 1";
+                            mmid = "0";
+                            //Console.WriteLine("PP: " + mmid + " " + player + " pt_ready => Someone declined => waiting again");
+                        } else
+                        {
+                            // we accepted
+                            if (MW.ACCEPTED == true && STATUS == false)
+                            {
+                                response = "accept: " + mmid;
+                                STATUS = true;
+                                //Console.WriteLine("PP: " + mmid + " " + player + " pt_ready => Someone declined => we accepted");
+                            
+                            }
+                            // we declined
+                            else if (MW.DECLINED == true && STATUS == false)
+                            {
+                                response = "decline: " + mmid;
+                                STATUS = true;
+                                mmid = "0";
+                                //Console.WriteLine("PP: " + mmid + " " + player + " pt_ready => Someone declined => we declined");
+                            }
+                            else
+                            {
+                                Thread.Sleep(200);
+                                response = "Status: " + mmid;
+                                //Console.WriteLine("PP: " + mmid + " " + player + " pt_ready => Someone declined => wait(Status)");
+                            }
+                        }
                     }
                     else
                     {
@@ -296,7 +329,72 @@ namespace sc2dsstats_rc1
                             MW.SetupPos(ent, player);
                         });
                         response = "fin";
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_ready => Someone declined => all accepted");
                     }
+
+                    goto Response;
+                }
+
+                // How many players accepted?
+                foreach (Match m_status in Regex.Matches(answer, pt_status))
+                {
+                    response = "Status: " + mmid;
+
+                    int i = 0;
+                    int j = 0;
+
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        var pl_cb = MW.gr_mmacc.Children.OfType<CheckBox>().Where(x => x.Name.StartsWith("mmcb_acc"));
+                        CheckBox cb_last = null;
+
+                        foreach (string acc in m_status.Groups[1].ToString().Split(';'))
+                        {
+                            i++;
+                            if (pl_cb != null)
+                            {
+                                List<CheckBox> llcb = pl_cb.Where(x => x.Name.Contains(i.ToString())).ToList();
+                                CheckBox lcb = null;
+                                if (llcb.Count > 0) lcb = llcb.ElementAt(0);
+                                if (lcb != null)
+                                {
+                                    if (acc == "1")
+                                    {
+                                        lcb.IsChecked = true;
+                                        j++;
+                                    }
+                                    else if (acc == "-1") 
+                                    {
+                                        lcb.IsChecked = false;
+                                    }
+                                    if (i == 6)
+                                    {
+                                        cb_last = lcb;
+                                    }
+                                }
+                            }
+                        }
+                        if (cb_last != null) cb_last.Content = j.ToString() + "/6";
+                    });
+
+                    // we accepted
+                    if (MW.ACCEPTED == true && STATUS == false)
+                    {
+                        response = "accept: " + mmid;
+                        STATUS = true;
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_status => we accepted");
+                     // we declined
+                    } else if (MW.DECLINED == true && STATUS == false)
+                    {
+                        response = "decline: " + mmid;
+                        STATUS = true;
+                        mmid = "0";
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_status => we declined");
+                    } else
+                    {
+                        Thread.Sleep(400);
+                    }
+
                     goto Response;
                 }
 
@@ -305,7 +403,7 @@ namespace sc2dsstats_rc1
 
                 {
                     mmid = m_accept.Groups[1].ToString();
-                    response = "Ready: " + mmid;
+                    response = "Ready_v2: " + mmid;
 
                     if (mmid == "0")
                     {
@@ -313,9 +411,6 @@ namespace sc2dsstats_rc1
                         MW.Dispatcher.Invoke(() =>
                         {
                             MW.ALL_DECLINED = true;
-                            MW.gr_accept.Visibility = Visibility.Hidden;
-                            MW.tb_gamefound.Visibility = Visibility.Visible;
-                            MW.tb_gamefound.Text = "Someone declined / timed out :( - Searching again ...";
                         });
 
                         // Waiting again
@@ -323,7 +418,9 @@ namespace sc2dsstats_rc1
                         int rng = rngesus.Next(0, 3000);
                         int mysleep = 5000 + rng;
                         Thread.Sleep(mysleep);
-                        response = "Findgame: 1";
+                        response = "Letmeplay: 1";
+                        mmid = "0";
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_accept => already declined => wait");
                     }
 
                     goto Response;
@@ -331,8 +428,8 @@ namespace sc2dsstats_rc1
                 // Searching ...
                 foreach (Match m_findgame in Regex.Matches(answer, pt_findgame))
                 {
-                    mmid = m_findgame.Groups[1].ToString();
-                    if (mmid == "0")
+                    string ent = m_findgame.Groups[1].ToString();
+                    if (ent == "0")
                     {
                         // Waiting
                         Random rngesus = new Random();
@@ -342,12 +439,13 @@ namespace sc2dsstats_rc1
 
                         response = "Findgame: 0";
 
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_findgame => Searching");
                     }
-                    else if (mmid.StartsWith("Games"))
+                    else if (ent.StartsWith("Games"))
                     {
                         MW.Dispatcher.Invoke(() =>
                         {
-                            MW.tb_info.Text = mmid;
+                            MW.tb_info.Text = ent;
                         });
                         // Waiting
                         Random rngesus = new Random();
@@ -355,14 +453,18 @@ namespace sc2dsstats_rc1
                         int mysleep = 5000 + rng;
                         Thread.Sleep(mysleep);
                         response = "Findgame: 0";
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_findgame => Games");
                     } else  
                     {
+                        mmid = ent;
                         // Matchup ready - waiting for Accept
                         MW.Dispatcher.Invoke(() =>
                         {
                             MW.GameFound(mmid);
                         });
-                        response = "wait";
+                        // response = "wait";
+                        response = "Status: " + mmid;
+                        //Console.WriteLine("PP: " + mmid + " " + player + " pt_findgame => GameFound");
                     }
                     goto Response;
                 }
@@ -371,8 +473,10 @@ namespace sc2dsstats_rc1
                 foreach (Match m_decline in Regex.Matches(answer, pt_decline))
                 {
                     response = "fin";
+                    mmid = "0";
                     MW.Dispatcher.Invoke(() =>
                     {
+                        MW.DECLINED = false;
                         MW.bt_show.IsEnabled = true;
                         MW.tb_gamefound.Visibility = Visibility.Visible;
                         MW.tb_gamefound.Text = "Ready process declined :(";
@@ -382,11 +486,13 @@ namespace sc2dsstats_rc1
                         }
                         catch { }
                     });
+                    //Console.WriteLine("PP: " + mmid + " " + player + " pt_decline => we declined");
                     goto Response;
                 }
                 // Find game
                 foreach (Match m_letmeplay in Regex.Matches(answer, pt_letmeplay))
                 {
+                    //mmid = "0";
                     response = "Findgame: 0";
                     MW.Dispatcher.Invoke(() =>
                     {
@@ -394,6 +500,7 @@ namespace sc2dsstats_rc1
                         MW.mmcb_ample.IsChecked = true;
                         MW.mmcb_ample.Content = "Online";
                     });
+                    //Console.WriteLine("PP: " + mmid + " " + player + " pt_letmeplay => Searching");
                     goto Response;
                 }
             }
@@ -404,7 +511,7 @@ namespace sc2dsstats_rc1
 
             Response:        
 
-            Console.WriteLine(player + ": " + pong + " => " + response);
+            //Console.WriteLine(player + ": " + pong + " => " + response);
 
             if (client != null)
             {
@@ -506,6 +613,8 @@ namespace sc2dsstats_rc1
         public string NUM { get; set; }
         public int NEED { get; set; } = 0;
         public int REPORTED { get; set; } = 0;
+        public int DURATION { get; set; } = 0;
+        public dsreplay REPLAY {get; set; }
 
         public dsmmid()
         {

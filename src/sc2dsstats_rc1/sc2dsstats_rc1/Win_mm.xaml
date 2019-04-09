@@ -7,7 +7,7 @@
         xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
         mc:Ignorable="d"
         Closing="mm_Exit"
-        Title="Win_mm" Height="500" Width="800">
+        Title="Win_mm" Height="500" Width="900">
     <Window.Resources>
         <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
         <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
@@ -159,6 +159,36 @@
         <SolidColorBrush x:Key="Red" Color="Red" />
         <SolidColorBrush x:Key="Green" Color="Green" />
         <SolidColorBrush x:Key="Yellow" Color="Yellow" />
+
+        <Style x:Key="cb_Style_ample1" TargetType="CheckBox">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <BulletDecorator Background="Transparent">
+                            <BulletDecorator.Bullet>
+                                <Border x:Name="Border" Width="13" Height="13" Background="{StaticResource Red}" BorderThickness="1" BorderBrush="Black">
+                                </Border>
+                            </BulletDecorator.Bullet>
+                            <ContentPresenter Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" RecognizesAccessKey="True"/>
+                        </BulletDecorator>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource Green}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="false">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource Red}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="{x:Null}">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource Yellow}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style x:Key="cb_Style_ample" TargetType="CheckBox">
             <Setter Property="SnapsToDevicePixels" Value="true"/>
@@ -664,6 +694,8 @@
             <Label Content="My MU rating:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="470,55,0,0"  VerticalAlignment="Top" Width="90"/>
             <TextBox x:Name="tb_elo" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="560,55,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
             <Label x:Name="lb_elodiff" Content="0" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="640,55,0,0"  VerticalAlignment="Top" Width="53" Foreground="{DynamicResource Green}"/>
+            <Button x:Name="button" Visibility="Collapsed" Content="Test players" HorizontalAlignment="Left" Margin="681,29,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+            <Button x:Name="button1" Visibility="Collapsed" Content="Find" HorizontalAlignment="Left" Margin="681,58,0,0" VerticalAlignment="Top" Width="75" Click="Button1_Click"/>
         </Grid>
 
         <Grid x:Name="gr_mm_info" HorizontalAlignment="Left" Height="80" Margin="10,90,0,0" VerticalAlignment="Top" Width="772">
@@ -696,7 +728,7 @@
             <Label Content="Reports:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="10,155,0,0"  VerticalAlignment="Top" Width="54"/>
             <ComboBox x:Name="mmcb_report" HorizontalAlignment="Left" Margin="10,180,0,0" VerticalAlignment="Top" Width="80" Style="{DynamicResource ComboBoxStyle1}" IsEnabled="False" SelectionChanged="Mmcb_report_SelectionChanged">
             </ComboBox>
-            <Grid x:Name="gr_mm_lb" Margin="50,30,0,15">
+            <Grid x:Name="gr_mm_lb" Margin="50,30,112,15">
                 <Label Content="Team 1:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,-25,0,0"  VerticalAlignment="Top" Width="54"/>
                 <Label Content="Team 2:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="384,-25,0,0"  VerticalAlignment="Top" Width="54"/>
                 <Label x:Name="lb_pl1" Content="Player" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,5,0,0"  VerticalAlignment="Top" Width="180" Background="{DynamicResource PressedBorderBrush}" Foreground="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
@@ -800,6 +832,32 @@
                 </TextBox.Background>
 
             </TextBox>
+            <Grid x:Name="gr_mmacc" HorizontalAlignment="Center" Height="100" VerticalAlignment="Bottom" Margin="20,20,0,0">
+                <CheckBox x:Name="mmcb_acc1" IsEnabled="True" IsChecked="{x:Null}" Content="" Style="{StaticResource cb_Style_ample1}" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+                <CheckBox x:Name="mmcb_acc2" IsEnabled="False" IsChecked="{x:Null}" Content="" Style="{StaticResource cb_Style_ample1}" HorizontalAlignment="Left" Margin="30,20,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+                <CheckBox x:Name="mmcb_acc3" IsEnabled="False" IsChecked="{x:Null}" Content="" Style="{StaticResource cb_Style_ample1}" HorizontalAlignment="Left" Margin="60,20,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+                <CheckBox x:Name="mmcb_acc4" IsEnabled="False" IsChecked="{x:Null}" Content="" Style="{StaticResource cb_Style_ample1}" HorizontalAlignment="Left" Margin="90,20,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+                <CheckBox x:Name="mmcb_acc5" IsEnabled="False" IsChecked="{x:Null}" Content="" Style="{StaticResource cb_Style_ample1}" HorizontalAlignment="Left" Margin="120,20,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+                <CheckBox x:Name="mmcb_acc6" IsEnabled="False" IsChecked="{x:Null}" Content="0/6" Style="{StaticResource cb_Style_ample1}" HorizontalAlignment="Left" Margin="150,20,0,0" VerticalAlignment="Top" Foreground="{DynamicResource NormalBrush1}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Medium"/>
+            </Grid>
+        </Grid>
+        <Grid x:Name="gr_summary" Width="210" Visibility="Hidden" Height="299" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,10">
+            <Label Content="Summary:" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,0,0,0"  VerticalAlignment="Top" Width="60"/>
+            <Label Content="Team 1" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="5,20,0,0"  VerticalAlignment="Top" Width="54"/>
+            <Label Content="Team 2" Style="{StaticResource lb_Style}" HorizontalAlignment="right" Margin="6,20,5,0"  VerticalAlignment="Top" Width="54"/>
+            <Label Content="destroyed army value" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,35,0,0"  VerticalAlignment="Top" Width="120" HorizontalContentAlignment="Center" FontSize="10"/>
+            <TextBox x:Name="tb_dmg1" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="5,55,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label x:Name="lb_dmgdiff" Content="0" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,55,0,0"  VerticalAlignment="Top" Width="50" Foreground="{DynamicResource Green}" HorizontalContentAlignment="Center" FontSize="10"/>
+            <TextBox x:Name="tb_dmg2" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="right" Margin="0,55,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label Content="income" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,75,0,0"  VerticalAlignment="Top" Width="120" HorizontalContentAlignment="Center" FontSize="10"/>
+            <TextBox x:Name="tb_cash1" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="5,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label x:Name="lb_cashdiff" Content="0" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,95,0,0"  VerticalAlignment="Top" Width="50" Foreground="{DynamicResource Green}" HorizontalContentAlignment="Center" FontSize="10"/>
+            <TextBox x:Name="tb_cash2" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="right" Margin="0,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label Content="army value" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,115,0,0"  VerticalAlignment="Top" Width="120" HorizontalContentAlignment="Center" FontSize="10"/>
+            <TextBox x:Name="tb_army1" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="5,135,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label x:Name="lb_armydiff" Content="0" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="0,135,0,0"  VerticalAlignment="Top" Width="50" Foreground="{DynamicResource Green}" HorizontalContentAlignment="Center" FontSize="10"/>
+            <TextBox x:Name="tb_army2" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="right" Margin="0,135,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
+            <Label x:Name="lb_duration" Content="Duration: 15:00 min" Style="{StaticResource lb_Style}" HorizontalAlignment="Center" Margin="5,165,0,0"  VerticalAlignment="Top" Width="120" HorizontalContentAlignment="Center"/>
         </Grid>
     </Grid>
 

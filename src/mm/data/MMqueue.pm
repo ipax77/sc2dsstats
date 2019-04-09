@@ -58,17 +58,31 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             return $mmid;
         }
 
-        # generate mmid
-
         #print $c . "\n";
         my %rating;
         my $j;
 
         my @pool;
+        my $mc = "0";
+        my $qc = "0";
         foreach (keys %$pool) {
             next if $name eq $_ && !$mm->MMPLAYERS->{$name}->LADDER;
+            if ($mm->MMPLAYERS->{$_}->MMID) {
+                $mc ++;
+                next;
+            }
             push(@pool, $_);
         }
+        
+        my $cc = @pool;
+        if ($cc < ($self->NEED - 1)) {
+            
+            print "MMQU: $name: $cc => " . $mc . "\n";
+            return $mmid if !$ladder;
+        } else {
+            print "MMQU: good\n";
+        }
+
         my @cppool = @pool;
 
         my $mindiff = 0;
@@ -91,7 +105,6 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             } else {
                 push @shuffle, splice @cppool, rand @cppool, 1 while @shuffle < $self->NEED;
             }
-
             foreach my $plname (@shuffle) {
                 $i++;
                 my $pl = $mm->MMPLAYERS->{$plname};
@@ -134,19 +147,29 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
             }
 
             @cppool = @pool;
-            last if ($j); # DEBUG
+            #last if ($j); # DEBUG
             last if ($mindiff > 0.5 && $j > 10);
             last if ($mindiff > 0.4 && $j > 50);
             last if ($j > 216);
         }
 
-        #print "BEST: " . $best . "\n";
+        print "BEST: " . $best . "\n";
 
         if ($ladder || $self->CheckQuality($mm, $name, $quality)) {
             {
                 lock (%{ $mm->PLAYERS });
                 $mmid = $self->Setup($mm, \@b1, \@b2);
-                $mm->MMIDS->{$mmid}->BEST($best);
+                $mm->MMIDS->{$mmid}->BEST($best) if $mmid || $ladder;
+
+                if ($mmid) {
+                    # remove from queue
+                    foreach (keys %{ $mm->MMIDS->{$mmid}->PLAYERS }) {
+                        if (exists $mm->PLAYERS->{$_}) {
+                            delete $mm->PLAYERS->{$_};
+                        }
+                    }
+                }
+
             }
         }
 
@@ -167,7 +190,7 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
 
         my $good = 0;
 
-        return 1; # DEBUG
+        #return 1; # DEBUG
 
         # TODO: maybe every player has a right for quality?
 
@@ -227,18 +250,22 @@ setup(25, 25/3, 25/6, 25/300, 1129/61928);
 
         for my $i (0..$#t1) {
             my $pl = $mm->MMPLAYERS->{$t1[$i]};
+            #return 0 if $pl->MMID;
             $pl->POS($i+1);
             $pl->TEAM(1);
             $pl->MMID($mmid);
             $id->PLAYERS->{$pl->NAME} = $pl;
+            
         }
         for my $i (0..$#t2) {
             my $pl = $mm->MMPLAYERS->{$t2[$i]};
+            #return 0 if $pl->MMID;
             $pl->POS($i+1+$#t1+1);
             $pl->TEAM(2);
             $pl->MMID($mmid);
             $pl->MMIDS->{$mmid} = 1;
             $id->PLAYERS->{$pl->NAME} = $pl;
+            
         }
         
         if ($DEBUG > 1) {

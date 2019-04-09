@@ -1010,7 +1010,7 @@ namespace sc2dsstats_rc1
             if (gdr > 0)
             {
                 TimeSpan t = TimeSpan.FromSeconds(gdr);
-                Title += " (" + average.ToString() + " duration: " + t.Minutes + ":" + t.Seconds + " min)";
+                Title += " (" + average.ToString() + " duration: " + t.Minutes + ":" + t.Seconds.ToString("D2") + " min)";
             }
             cdata.Sort(delegate (KeyValuePair<string, double> x, KeyValuePair<string, double> y)
             {

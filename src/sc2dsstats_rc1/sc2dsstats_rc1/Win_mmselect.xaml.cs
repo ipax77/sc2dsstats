@@ -200,24 +200,30 @@ namespace sc2dsstats_rc1
             {
                 if (game.REPORTED == 0)
                 {
-
-                    if (WM.MMIDS.Count > 0)
+                    int mmid = 0;
+                    try
                     {
-                        if (WM.MMIDS[int.Parse(tb_rep_mmid.Text)] != null)
+                        mmid = int.Parse(tb_rep_mmid.Text);
+                    } catch { }
+
+
+                    if (mmid > 0 && WM.MMIDS.Count > 0)
+                    {
+                        if (WM.MMIDS.ContainsKey(mmid) == true)
                         {
                         }
                         else
                         {
                             dsmmid id = new dsmmid();
-                            id.MMID = int.Parse(tb_rep_mmid.Text);
-                            WM.MMIDS.Add(int.Parse(tb_rep_mmid.Text), id);
+                            id.MMID = mmid;
+                            WM.MMIDS.Add(mmid, id);
                         }
                     }
                     else
                     {
                         dsmmid id = new dsmmid();
-                        id.MMID = int.Parse(tb_rep_mmid.Text);
-                        WM.MMIDS.Add(int.Parse(tb_rep_mmid.Text), id);
+                        id.MMID = mmid;
+                        WM.MMIDS.Add(mmid, id);
                     }
 
                     foreach (dsplayer player in game.PLAYERS)
@@ -241,7 +247,7 @@ namespace sc2dsstats_rc1
                         }
 
                         dsplayer plid = new dsplayer();
-                        List<dsplayer> ltemp = new List<dsplayer>(WM.MMIDS[int.Parse(tb_rep_mmid.Text)].REPORTS.Where(x => x.NAME == player.NAME).ToList());
+                        List<dsplayer> ltemp = new List<dsplayer>(WM.MMIDS[mmid].REPORTS.Where(x => x.NAME == player.NAME).ToList());
                         if (ltemp.Count > 0)
                         {
                             plid = ltemp.ElementAt(0);
@@ -252,7 +258,7 @@ namespace sc2dsstats_rc1
                         }
                         else
                         {
-                            WM.MMIDS[int.Parse(tb_rep_mmid.Text)].REPORTS.Add(player);
+                            WM.MMIDS[mmid].REPORTS.Add(player);
                         }
 
                     }
@@ -267,8 +273,11 @@ namespace sc2dsstats_rc1
                     result1 = "";
                     result2 = "";
 
-                    string mmid = game.MMID;
-                    if (mmid == "0") mmid = tb_rep_mmid.Text;
+                    WM.MMIDS[mmid].REPLAY = game;
+                    WM.MMIDS[mmid].DURATION = game.DURATION;
+
+                    string smmid = game.MMID;
+                    if (smmid == "0") smmid = tb_rep_mmid.Text;
                     string response = WM.SendResult("mmid: " + mmid + "; result: " + result, game);
                     if (response == "sc2dsmm: Result: 0")
                     {

@@ -39,7 +39,10 @@ namespace sc2dsstats_rc1
         public bool ALL_ACCEPTED { get; set; } = false;
         public bool DECLINED { get; set; } = false;
         public bool ALL_DECLINED { get; set; } = false;
+        public bool WAITING { get; set; } = false;
+        public List<Win_mm> TESTWIN { get; set; } = new List<Win_mm>();
         public Dictionary<int, dsmmid> MMIDS { get; set; } = new Dictionary<int, dsmmid>();
+        public dsmmclient MM { get; set; }
 
         public DispatcherTimer _timer;
         public TimeSpan _time;
@@ -106,6 +109,58 @@ namespace sc2dsstats_rc1
             mmcb_player.SelectedItem = mmcb_player.Items[0];
         }
 
+        public static int ShowDialog1(string text, string caption)
+        {
+            int result = 0;
+
+            Window prompt = new Window();
+            prompt.Width = 250;
+            prompt.Height = 250;
+            prompt.Title = "credential";
+            Grid panel = new Grid();
+            TextBox tb = new TextBox();
+            tb.Width = 230;
+            tb.Height = 150;
+            tb.Margin = new Thickness(5, 5, 5, 5);
+            tb.Text = text;
+            tb.HorizontalAlignment = HorizontalAlignment.Center;
+            tb.VerticalAlignment = VerticalAlignment.Top;
+
+            CheckBox chk = new CheckBox();
+            chk.Content = "Allow ladder";
+            chk.Margin = new Thickness(5, 0, 15, 5);
+            chk.HorizontalAlignment = HorizontalAlignment.Center;
+            chk.VerticalAlignment = VerticalAlignment.Bottom;
+            Button ok = new Button();
+            ok.Content = "Yes";
+            ok.Width = 50;
+            ok.Margin = new Thickness(5, 0, 5, 5);
+
+            ok.Click += (sender, e) => { result++; prompt.Close(); };
+            ok.HorizontalAlignment = HorizontalAlignment.Left;
+            ok.VerticalAlignment = VerticalAlignment.Bottom;
+            Button no = new Button();
+            no.Content = "No";
+            no.Width = 50;
+            no.Margin = new Thickness(5, 0, 5, 5);
+            no.Click += (sender, e) => { result++; prompt.Close(); };
+            no.HorizontalAlignment = HorizontalAlignment.Right;
+            no.VerticalAlignment = VerticalAlignment.Bottom;
+
+            panel.Children.Add(tb);
+            panel.Children.Add(chk);
+            //panel.SetFlowBreak(chk, true);
+            panel.Children.Add(ok);
+            panel.Children.Add(no);
+            prompt.Content = panel;
+            prompt.Show();
+
+            
+            if (chk.IsChecked == true) result++;
+
+            return result;
+        }
+
         public void Button_Click(object sender, RoutedEventArgs e)
         {
             if (mmcb_credential.IsChecked == true)
@@ -127,10 +182,18 @@ namespace sc2dsstats_rc1
                 DECLINED = false;
                 ALL_ACCEPTED = false;
                 ALL_DECLINED = false;
+                if (sender == null && MM != null) MM.STATUS = false;
 
                 mmcb_randoms.IsEnabled = false;
                 mmcb_randoms.IsChecked = false;
                 mmcb_report.IsEnabled = false;
+
+                mmcb_acc1.IsChecked = null;
+                mmcb_acc2.IsChecked = null;
+                mmcb_acc3.IsChecked = null;
+                mmcb_acc4.IsChecked = null;
+                mmcb_acc5.IsChecked = null;
+                mmcb_acc6.IsChecked = null;
 
                 string player = mmcb_player.SelectedItem.ToString();
                 string mode = ((ComboBoxItem)mmcb_mode.SelectedItem).Content.ToString();
@@ -151,6 +214,7 @@ namespace sc2dsstats_rc1
                     Task FindGame = Task.Factory.StartNew(() =>
                     {
                         dsmmclient mm = new dsmmclient(this);
+                        MM = mm;
                         Socket sock = mm.StartClient(this, player, mode, num, skill, server);
                         MW.Dispatcher.Invoke(() =>
                         {
@@ -215,6 +279,11 @@ namespace sc2dsstats_rc1
 
         public void pb_Accept(bool game_accept, string mmid)
         {
+
+        }
+
+        public void pb_Accept_off(bool game_accept, string mmid)
+        {
             tb_gamefound.Visibility = Visibility.Visible;
             if (game_accept)
             {
@@ -259,7 +328,6 @@ namespace sc2dsstats_rc1
         {
             if (SP != null) SP.Stop();
             DECLINED = true;
-            ALL_DECLINED = true;
             gr_accept.Visibility = Visibility.Hidden;
             pb_Accept(false, tb_mmid.Text);
         }
@@ -281,6 +349,7 @@ namespace sc2dsstats_rc1
             {
                 var child = gr_accept.Children.OfType<ProgressBar>().First();
                 gr_accept.Children.Remove(child);
+                child = null;
             }
 
             ProgressBar progbar = new ProgressBar();
@@ -300,15 +369,22 @@ namespace sc2dsstats_rc1
             tb_gamefound.Visibility = Visibility.Hidden;
             tb_mmid.Text = mmid;
 
-
             string player = mmcb_player.SelectedItem.ToString();
             //Console.WriteLine(player + "waiting for accept (or decline)");
+            ALL_DECLINED = false;
+            ALL_ACCEPTED = false;
+            ACCEPTED = false;
+            DECLINED = false;
 
-
+            WAITING = true;
             Task ts_accept = Task.Factory.StartNew(() =>
             {
-                while (true) {
-                    Thread.Sleep(1000);
+
+                bool timeout = false;
+
+                while (true)
+                {
+                    Thread.Sleep(600);
 
                     if (progbar == null)
                     {
@@ -320,49 +396,177 @@ namespace sc2dsstats_rc1
                         // timed out
                         if (progbar.Value == 100)
                         {
-                            gr_accept.Visibility = Visibility.Hidden;
-
-                            if (ACCEPTED == false)
-                            {
-                                // we timed out :(
-                                DECLINED = true;
-                                bt_decline_Click(null, null);
-                            }
-                            else
-                            {
-                                Thread.Sleep(5000);
-                                // assuming someone declined - search again
-                                if (!ALL_ACCEPTED && !ALL_DECLINED)
-                                {
-                                    ALL_DECLINED = true;
-                                }
-                            }
+                            timeout = true;                            
                         }
                     });
 
-                    if (ALL_ACCEPTED == true)
+                    if (gr_accept.Visibility == Visibility.Hidden)
                     {
-                        // all accepted :)
-                        // SetipPos && GameReady is called from dsmmclient
+                        //Console.WriteLine(player + ": Break 0");
                         break;
                     }
 
-                    if (DECLINED == true)
+                    if (timeout == true)
                     {
-                        ALL_DECLINED = true;
-                        break;
+                        if (ACCEPTED == false)
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                DECLINED = true;
+                            });
+                            if (MM != null)
+                            {
+                                int i = 0;
+                                while (MM.STATUS == false)
+                                {
+                                    Thread.Sleep(100);
+                                    i++;
+                                    if (i > 20)
+                                    {
+                                        //Console.WriteLine(player + ": Timeout 1");
+                                        break;
+                                    }
+                                    if (MM == null)
+                                    {
+                                        //Console.WriteLine(player + ": Timeout 2");
+                                        break;
+                                    }
+                                }
+                            }
+                            //Console.WriteLine(player + ": Timeout 3");
+                            break;
+                        } else if (DECLINED == true)
+                        {
+
+                        } else  
+                        {
+                            int i = 0;
+                            while (!ALL_ACCEPTED && !ALL_DECLINED)
+                            {
+                                Thread.Sleep(100);
+                                i++;
+                                if (i > 20)
+                                {
+                                    Dispatcher.Invoke(() =>
+                                    {
+                                        ALL_DECLINED = true;
+                                        ACCEPTED = false;
+                                    });
+                                    Console.WriteLine(player + ": Timeout 4");
+                                    break;
+                                }
+                            }
+                            //Console.WriteLine(player + ": Timeout 5");
+                            //break;
+                        }
+                    }
+
+                    if (ACCEPTED == true)
+                    {
+                        if (ALL_ACCEPTED == true)
+                        {
+                            break;
+                        }
+
+                        if (ALL_DECLINED == true)
+                        {
+                            // reset
+                            Dispatcher.Invoke(() =>
+                            {
+                                tb_gamefound.Text = "Someone declined :( - Searching again ..";
+                                Button_Click(null, null);
+                            });
+                            break;
+                        }
                     }
 
                     if (ALL_DECLINED == true)
                     {
-                        // someone declined :( - search again (if we are up)
-                        if (ACCEPTED == true) Button_Click(null, null);
+                        if (ACCEPTED == true)
+                        {
+                            // reset
+                            Dispatcher.Invoke(() =>
+                            {
+                                tb_gamefound.Text = "Someone declined :( - Searching again ..";
+                                Button_Click(null, null);
+                            });
+                            //Console.WriteLine(player + ": Break 1");
+                            break;
+                        }
+
+                        if (DECLINED == true)
+                        {
+                            if (MM != null)
+                            {
+                                int i = 0;
+                                while (MM.STATUS == false)
+                                {
+                                    Thread.Sleep(100);
+                                    i++;
+                                    if (i > 20)
+                                    {
+                                        //Console.WriteLine(player + ": Break 2");
+                                        break;
+                                    }
+                                    if (MM == null)
+                                    {
+                                        //Console.WriteLine(player + ": Break 3");
+                                        break;
+                                    }
+                                }
+                            }
+                            //Console.WriteLine(player + ": Break 4");
+                            break;
+                        }
+                    }
+
+                    if (DECLINED == true)
+                    {
+                        if (MM != null)
+                        {
+                            int i = 0;
+                            while (MM.STATUS == false)
+                            {
+                                Thread.Sleep(100);
+                                i++;
+                                if (i > 20)
+                                {
+                                    //Console.WriteLine(player + ": Break 4");
+                                    break;
+                                }
+                                if (MM == null)
+                                {
+                                    //Console.WriteLine(player + ": Break 5");
+                                    break;
+                                }
+                            }
+                        }
+                        //Console.WriteLine(player + ": Break 6");
                         break;
                     }
-                    
+
+
+
 
                 }
+                Dispatcher.Invoke(() =>
+                {
+                    if (gr_accept.Children.OfType<ProgressBar>().ToList().Count > 0)
+                    {
+                        var child = gr_accept.Children.OfType<ProgressBar>().First();
+                        gr_accept.Children.Remove(child);
+                        child = null;
+                    }
+                    gr_accept.Visibility = Visibility.Hidden;
+                    tb_gamefound.Visibility = Visibility.Visible;
+                    
+                    WAITING = false;
+
+                });
+
             }, TaskCreationOptions.AttachedToParent);
+
+
 
             SP = new SoundPlayer(@"audio\ready.wav");
             SP.Play();
@@ -426,8 +630,7 @@ namespace sc2dsstats_rc1
                 }
 
             }
-
-            MMIDS.Add(id.MMID, id);
+            if (!MMIDS.ContainsKey(id.MMID)) MMIDS.Add(id.MMID, id);
         }
 
         public void SetupPos(string msg, string player)
@@ -518,6 +721,9 @@ namespace sc2dsstats_rc1
 
         private void mmcb_credential_Click(object sender, RoutedEventArgs e)
         {
+
+            //int bab = ShowDialog1("bla", "blub");
+            //Console.WriteLine("Credential: " + bab);
 
             string info = "";
             info = "By using this matchmaking system you agree, that your SC2-username and skill information will be stored to generate the games" +
@@ -830,7 +1036,25 @@ namespace sc2dsstats_rc1
             {
                 i.Source = null;
             }
+            //PressedBorderBrush
+            var pl_labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_pl"));
+            foreach (Label l in pl_labels) {
+                l.Background = this.Resources["PressedBorderBrush"] as LinearGradientBrush;
 
+            }
+
+            lb_duration.Content = "";
+            tb_dmg1.Text = "0";
+            tb_dmg2.Text = "0";
+            tb_cash1.Text = "0";
+            tb_cash2.Text = "0";
+            tb_army1.Text = "0";
+            tb_army2.Text = "0";
+            lb_dmgdiff.Content = "0";
+            lb_cashdiff.Content = "0";
+            lb_armydiff.Content = "0";
+
+            gr_summary.Visibility = Visibility.Hidden;
 
         }
 
@@ -850,6 +1074,16 @@ namespace sc2dsstats_rc1
             var racename_lables = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_racename"));
 
             dsimage myimg = new dsimage();
+            Label lb_mvp = null;
+            Label lb_player = null;
+            double max_killsum = 0;
+            double t1_dmg = 0;
+            double t2_dmg = 0;
+            double t1_cash = 0;
+            double t2_cash = 0;
+            double t1_army = 0;
+            double t2_army = 0;
+
             foreach (dsplayer pl in MMIDS[int.Parse(mmid)].REPORTS)
             {
                 if (pl.POS >= 1 && pl.POS <= 6)
@@ -862,6 +1096,8 @@ namespace sc2dsstats_rc1
 
                     if (lelo != null && lrace != null && lpl != null && irace != null && lracename != null)
                     {
+
+                        lpl.Background = this.Resources["PressedBorderBrush"] as LinearGradientBrush;
                         lpl.Content = pl.NAME + " MU: " + pl.ELO; 
                         lelo.Content = pl.ELO_CHANGE.ToString();
                         if (pl.ELO_CHANGE < 0)
@@ -876,6 +1112,28 @@ namespace sc2dsstats_rc1
                         string army = ((int)pl.ARMY / 1000).ToString() + "k";
                         string income = ((int)pl.INCOME / 1000).ToString() + "k";
                         string damage = ((int)pl.KILLSUM / 1000).ToString() + "k";
+
+                        if (pl.POS <= 3) {
+                            t1_army += pl.ARMY;
+                            t1_cash += pl.INCOME;
+                            t1_dmg += pl.KILLSUM;
+                        } else if (pl.POS <= 6)
+                        {
+                            t2_army += pl.ARMY;
+                            t2_cash += pl.INCOME;
+                            t2_dmg += pl.KILLSUM;
+                        }
+
+                        if (pl.KILLSUM > max_killsum)
+                        {
+                            lb_mvp = lpl;
+                            max_killsum = pl.KILLSUM;
+                        }
+
+                        if (MW.player_list.Contains(pl.NAME))
+                        {
+                            lb_player = lpl;
+                        }
 
                         lrace.Content = "Army: " + army + " cash: " + income + " dmg: " + damage;
                         lracename.Content = pl.RACE;
@@ -916,6 +1174,79 @@ namespace sc2dsstats_rc1
                     }
                 }
             }
+
+            if (lb_player != null)
+            {
+                lb_player.Background = new SolidColorBrush(Colors.DarkBlue);
+            }
+
+            if (lb_mvp != null)
+            {
+                lb_mvp.Background = new SolidColorBrush(Colors.DarkViolet);
+            }
+
+            if (t1_dmg > 0 && t2_dmg > 0)
+            {
+                double diff = t1_dmg - t2_dmg;
+                double per = diff / t1_dmg;
+                lb_dmgdiff.Content = per.ToString("P", CultureInfo.InvariantCulture);
+                tb_dmg1.Text = (t1_dmg / 1000).ToString("N", CultureInfo.CreateSpecificCulture("es-ES")) + "k";
+                tb_dmg2.Text = (t2_dmg / 1000).ToString("N", CultureInfo.CreateSpecificCulture("es-ES")) + "k";
+
+                if (per < 0)
+                {
+                    lb_dmgdiff.Foreground = System.Windows.Media.Brushes.Red;
+                } else
+                {
+                    lb_dmgdiff.Foreground = System.Windows.Media.Brushes.Green;
+                }
+            }
+
+            if (t1_cash > 0 && t2_cash > 0)
+            {
+                double diff = t1_cash - t2_cash;
+                double per = diff / t1_cash;
+                lb_cashdiff.Content = per.ToString("P", CultureInfo.InvariantCulture);
+                tb_cash1.Text = (t1_cash / 1000).ToString("N", CultureInfo.CreateSpecificCulture("es-ES")) + "k";
+                tb_cash2.Text = (t2_cash / 1000).ToString("N", CultureInfo.CreateSpecificCulture("es-ES")) + "k";
+
+                if (per < 0)
+                {
+                    lb_cashdiff.Foreground = System.Windows.Media.Brushes.Red;
+                }
+                else
+                {
+                    lb_cashdiff.Foreground = System.Windows.Media.Brushes.Green;
+                }
+            }
+
+            if (t1_army > 0 && t2_army > 0)
+            {
+                double diff = t1_army - t2_army;
+                double per = diff / t1_army;
+                lb_armydiff.Content = per.ToString("P", CultureInfo.InvariantCulture);
+                tb_army1.Text = (t1_army / 1000).ToString("N", CultureInfo.CreateSpecificCulture("es-ES")) + "k";
+                tb_army2.Text = (t2_army / 1000).ToString("N", CultureInfo.CreateSpecificCulture("es-ES")) + "k";
+
+                if (per < 0)
+                {
+                    lb_armydiff.Foreground = System.Windows.Media.Brushes.Red;
+                }
+                else
+                {
+                    lb_armydiff.Foreground = System.Windows.Media.Brushes.Green;
+                }
+            }
+
+
+            TimeSpan t = TimeSpan.FromSeconds(MMIDS[int.Parse(mmid)].DURATION / 22.4);
+            lb_duration.Content = "Duration: " + t.Minutes + ":" + t.Seconds.ToString("D2") + " min";
+            if (t.Hours > 0)
+            {
+                lb_duration.Content = "Duration: " + t.Hours + ":" + t.Minutes.ToString("D2") + ":" + t.Seconds.ToString("D2") + " min";
+            }
+
+            gr_summary.Visibility = Visibility.Visible;
 
         }
 
@@ -965,6 +1296,148 @@ namespace sc2dsstats_rc1
             //GameFound(1, "1", "1");
         }
 
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < 6; i++)
+            {
 
+                Win_mm mmtest = new Win_mm(MW);
+                TESTWIN.Add(mmtest);
+
+                if (mmcb_credential.IsChecked == true)
+                {
+                    mmtest.ClearReport();
+
+                    mmtest.gr_accept.Visibility = Visibility.Hidden;
+                    mmtest.tb_accepted.Text = "";
+
+                    mmtest.lb_pl1.Content = "Player";
+                    mmtest.lb_pl2.Content = "Player";
+                    mmtest.lb_pl3.Content = "Player";
+                    mmtest.lb_pl4.Content = "Player";
+                    mmtest.lb_pl5.Content = "Player";
+                    mmtest.lb_pl6.Content = "Player";
+                    mmtest.tb_mmid.Text = "0";
+
+                    mmtest.ACCEPTED = false;
+                    mmtest.DECLINED = false;
+                    mmtest.ALL_ACCEPTED = false;
+                    mmtest.ALL_DECLINED = false;
+                    if (sender == null && mmtest.MM != null) mmtest.MM.STATUS = false;
+
+                    mmtest.mmcb_randoms.IsEnabled = false;
+                    mmtest.mmcb_randoms.IsChecked = false;
+                    mmtest.mmcb_report.IsEnabled = false;
+
+                    mmtest.mmcb_acc1.IsChecked = null;
+                    mmtest.mmcb_acc2.IsChecked = null;
+                    mmtest.mmcb_acc3.IsChecked = null;
+                    mmtest.mmcb_acc4.IsChecked = null;
+                    mmtest.mmcb_acc5.IsChecked = null;
+                    mmtest.mmcb_acc6.IsChecked = null;
+
+                    string player = "player" + (i + 2).ToString();
+                    mmtest.mmcb_player.Items.Clear();
+                    mmtest.mmcb_player.Items.Add(player);
+                    mmtest.mmcb_player.SelectedItem = mmtest.mmcb_player.Items[0];
+
+
+                    string mode = ((ComboBoxItem)mmtest.mmcb_mode.SelectedItem).Content.ToString();
+                    string num = ((ComboBoxItem)mmtest.mmcb_num.SelectedItem).Content.ToString();
+                    string skill = ((ComboBoxItem)mmtest.mmcb_skill.SelectedItem).Content.ToString();
+                    string server = ((ComboBoxItem)mmtest.mmcb_server.SelectedItem).Content.ToString();
+
+                    if (sender != null)
+                    {
+                        mmtest.tb_gamefound.Text = "Connecting ...";
+                        mmtest.mmcb_ample.IsChecked = true;
+                        mmtest.mmcb_ample.Content = "Online";
+                        Task FindGame = Task.Factory.StartNew(() =>
+                        {
+                            dsmmclient mm = new dsmmclient(mmtest);
+                            mmtest.MM = mm;
+                            Socket sock = mm.StartClient(mmtest, player, mode, num, skill, server);
+                            MW.Dispatcher.Invoke(() =>
+                            {
+                                mmtest.mmcb_ample.IsChecked = false;
+                                mmtest.mmcb_ample.Content = "Offline";
+                                try
+                                {
+                                    mmtest._timer.Stop();
+                                }
+                                catch
+                                {
+
+                                }
+                            });
+                        }, TaskCreationOptions.AttachedToParent);
+
+                        //tb_info.Text = mm.INFO;
+
+                        mmtest._time = TimeSpan.FromSeconds(1);
+
+                        mmtest._timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
+                    {
+                        mmtest.tb_time.Text = _time.ToString("c");
+
+                        // fill with randoms after ~5min
+                        if (mmtest._time == TimeSpan.FromMinutes(1))
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                mmtest.mmcb_randoms.IsEnabled = true;
+                                mmtest.tb_gamefound.Text += " You can fill your lobby with randoms now if you want (check 'allow Randoms' right to the clock)";
+                            });
+                        }
+                        mmtest._time = _time.Add(TimeSpan.FromSeconds(+1));
+                    }, Application.Current.Dispatcher);
+
+                        mmtest._timer.Start();
+
+                        mmtest.bt_show.IsEnabled = false;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            mmtest._timer.Start();
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
+                }
+                else
+                {
+                    mmcb_credential_Click(sender, e);
+                    if (mmcb_credential.IsChecked == true)
+                    {
+                        Button_Click(sender, e);
+                    }
+                }
+
+                mmtest.WindowStartupLocation = WindowStartupLocation.Manual;
+                mmtest.Left = i * 850 - 1700;
+                if (i >= 6)
+                {
+                    mmtest.Left = (i-7) * 850 - 1700;
+                }
+                if (i < 2 ) mmtest.Top = 150;
+                else if  (i <= 6) mmtest.Top = 5;
+                else mmtest.Top = 465;
+                mmtest.Show();
+            }
+
+        }
+
+        private void Button1_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (Win_mm mmtest in TESTWIN)
+            {
+                mmtest.Button_Click(sender, e);
+            }
+        }
     }
 }

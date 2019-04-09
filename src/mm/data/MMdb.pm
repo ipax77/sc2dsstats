@@ -95,6 +95,7 @@ sub SetCache {
 	my %new;
 	$self->DBH->{AutoCommit} = 0;
 	foreach my $name (keys %$ref) {
+		next unless $ref->{$name};
 		next if $name =~ /^Random(\d)/;
 		if ($ref->{$name}->INDB > 1) {
 			$self->SetELO($ref->{$name}->ID, $ref->{$name}->ELO, $ref->{$name}->GAMES, $ref->{$name}->SIGMA);
