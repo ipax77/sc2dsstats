@@ -1,4 +1,8 @@
 
+0.7.0.1
+
+- s2protocol protocol73286 added
+
 0.7.0.0
 
 - MM: test and bugfix

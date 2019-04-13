@@ -103,13 +103,16 @@ namespace sc2dsstats_rc1
                     //Thread.Sleep(20);
                 }
             }
+            Console.WriteLine("Sent games");
 
             //Thread.Sleep(20);
             string players = tb_player.Text;
             string matchup = wm.SendResult("Matchup: " + players, null);
             tb_best.Text = matchup;
+            Console.WriteLine("Sent Matchup");
 
             string ladder = wm.SendResult("Ladder: 0", null);
+            Console.WriteLine("Asking for ladder");
 
             if (ladder != null && ladder.Length > 0)
             {

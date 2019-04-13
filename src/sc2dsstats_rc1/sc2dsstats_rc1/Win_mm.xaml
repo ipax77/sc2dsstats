@@ -694,8 +694,8 @@
             <Label Content="My MU rating:" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="470,55,0,0"  VerticalAlignment="Top" Width="90"/>
             <TextBox x:Name="tb_elo" Text="0" Width="80" Height="25" BorderThickness="2" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="560,55,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="#FF1E17B4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{DynamicResource DarkBrush}" FontFamily="/sc2dsstats_rc1;component/fonts/#Maven Pro Black" FontWeight="Bold" BorderBrush="{DynamicResource DisabledBorderBrush}"/>
             <Label x:Name="lb_elodiff" Content="0" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="640,55,0,0"  VerticalAlignment="Top" Width="53" Foreground="{DynamicResource Green}"/>
-            <Button x:Name="button" Visibility="Collapsed" Content="Test players" HorizontalAlignment="Left" Margin="681,29,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
-            <Button x:Name="button1" Visibility="Collapsed" Content="Find" HorizontalAlignment="Left" Margin="681,58,0,0" VerticalAlignment="Top" Width="75" Click="Button1_Click"/>
+            <Button x:Name="button" Visibility="Visible" Content="Test players" HorizontalAlignment="Left" Margin="681,29,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+            <Button x:Name="button1" Visibility="Visible" Content="Find" HorizontalAlignment="Left" Margin="681,58,0,0" VerticalAlignment="Top" Width="75" Click="Button1_Click"/>
         </Grid>
 
         <Grid x:Name="gr_mm_info" HorizontalAlignment="Left" Height="80" Margin="10,90,0,0" VerticalAlignment="Top" Width="772">

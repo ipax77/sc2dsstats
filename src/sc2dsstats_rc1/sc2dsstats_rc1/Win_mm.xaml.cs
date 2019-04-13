@@ -1298,7 +1298,7 @@ namespace sc2dsstats_rc1
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 5; i++)
             {
 
                 Win_mm mmtest = new Win_mm(MW);
