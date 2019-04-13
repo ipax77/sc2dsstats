@@ -1945,12 +1945,14 @@ namespace sc2dsstats_rc1
                     player.RESULT = 2;
                     player.REPLAY = srep.REPLAY;
                     player.ID = srep.ID;
+                    player.TEAM = srep.TEAM;
 
                     game.DURATION = srep.DURATION;
                     int result = srep.RESULT;
-                    if (srep.PLAYERID <= 3)
-                    {
-                        player.TEAM = 0;
+                    //if (srep.PLAYERID <= 3)
+                    //{
+                     //   player.TEAM = 0;
+                     if (srep.TEAM == 0) { 
                         if (srep.RESULT == 1)
                         {
                             player.RESULT = 1;
@@ -1961,9 +1963,10 @@ namespace sc2dsstats_rc1
                             game.WINNER = 1;
                         }
                     }
-                    else if (srep.PLAYERID > 3)
+                    //else if (srep.PLAYERID > 3)
+                    else if (srep.TEAM == 1)
                     {
-                        player.TEAM = 1;
+                        //player.TEAM = 1;
                         if (srep.RESULT == 1)
                         {
                             player.RESULT = 1;
