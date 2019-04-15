@@ -663,7 +663,7 @@
                 <ComboBoxItem Content="Standard"/>
                 <ComboBoxItem Content="Commander" IsSelected="True"/>
             </ComboBox>
-            <ComboBox x:Name="mmcb_num" HorizontalAlignment="Left" Margin="220,57,0,0" VerticalAlignment="Top" Width="110" Style="{DynamicResource ComboBoxStyle1}" IsEnabled="False">
+            <ComboBox x:Name="mmcb_num" HorizontalAlignment="Left" Margin="220,57,0,0" VerticalAlignment="Top" Width="110" Style="{DynamicResource ComboBoxStyle1}" IsEnabled="True">
                 <ComboBoxItem Content="1v1"/>
                 <ComboBoxItem Content="2v2"/>
                 <ComboBoxItem Content="3v3" IsSelected="True"/>

@@ -1994,10 +1994,9 @@ namespace sc2dsstats_rc1
             List<string> races = new List<string>();
             dsplayer MVP = new dsplayer();
 
+            game.PLAYERCOUNT = single_replays.Count;
             foreach (dscsv srep in single_replays)
             {
-
-                game.PLAYERCOUNT++;
                 if (minkillsum == -1)
                 {
                     minkillsum = srep.KILLSUM;
@@ -2065,7 +2064,7 @@ namespace sc2dsstats_rc1
                     mplayer.REPLAY = srep.REPLAY;
                     mplayer.ID = srep.ID;
                     mplayer.RESULT = 2;
-                    if (srep.PLAYERID <= 3)
+                    if (srep.PLAYERID <= game.PLAYERCOUNT / 2)
                     {
                         mplayer.TEAM = 0;
                         if (game.WINNER == 0)
@@ -2073,7 +2072,7 @@ namespace sc2dsstats_rc1
                             mplayer.RESULT = 1;
                         }
                     }
-                    else if (srep.PLAYERID > 3)
+                    else if (srep.PLAYERID > game.PLAYERCOUNT / 2)
                     {
                         mplayer.TEAM = 1;
                         if (game.WINNER == 1)

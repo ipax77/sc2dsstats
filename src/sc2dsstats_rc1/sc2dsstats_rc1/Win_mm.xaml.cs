@@ -170,12 +170,12 @@ namespace sc2dsstats_rc1
                 gr_accept.Visibility = Visibility.Hidden;
                 tb_accepted.Text = "";
                 
-                lb_pl1.Content = "Player";
-                lb_pl2.Content = "Player";
-                lb_pl3.Content = "Player";
-                lb_pl4.Content = "Player";
-                lb_pl5.Content = "Player";
-                lb_pl6.Content = "Player";
+                lb_pl1.Content = "";
+                lb_pl2.Content = "";
+                lb_pl3.Content = "";
+                lb_pl4.Content = "";
+                lb_pl5.Content = "";
+                lb_pl6.Content = "";
                 tb_mmid.Text = "0";
 
                 ACCEPTED = false;
@@ -615,20 +615,23 @@ namespace sc2dsstats_rc1
                         i = int.Parse(m.Groups[1].Value);
                     } catch { }
                 }
-                
-                KeyValuePair<int, string> pl = new KeyValuePair<int, string>(i, lb.Content.ToString());
-                id.PLAYERS.Add(pl);
 
-                string pattern1 = @"^Random(\d)";
-                Match m2 = Regex.Match(lb.Content.ToString(), pattern1);
-                if (m2.Success)
+                if (lb.Content.ToString().Length > 0)
                 {
-                    // just a random
-                } else
-                {
-                    id.NEED++;
+                    KeyValuePair<int, string> pl = new KeyValuePair<int, string>(i, lb.Content.ToString());
+                    id.PLAYERS.Add(pl);
+
+                    string pattern1 = @"^Random(\d)";
+                    Match m2 = Regex.Match(lb.Content.ToString(), pattern1);
+                    if (m2.Success)
+                    {
+                        // just a random
+                    }
+                    else
+                    {
+                        id.NEED++;
+                    }
                 }
-
             }
             if (!MMIDS.ContainsKey(id.MMID)) MMIDS.Add(id.MMID, id);
         }
@@ -646,7 +649,7 @@ namespace sc2dsstats_rc1
 
             foreach (string p in msg.Split(';'))
             {
-
+                ClearReport();
                 string pt_pos = @"^pos(\d): (.*)";
                 foreach (Match m2 in Regex.Matches(p, pt_pos))
                 {
@@ -1040,7 +1043,7 @@ namespace sc2dsstats_rc1
             var pl_labels = gr_mm_lb.Children.OfType<Label>().Where(x => x.Name.StartsWith("lb_pl"));
             foreach (Label l in pl_labels) {
                 l.Background = this.Resources["PressedBorderBrush"] as LinearGradientBrush;
-
+                //l.Content = "";
             }
 
             lb_duration.Content = "";

@@ -1,4 +1,8 @@
 
+0.7.0.2
+
+- MM: 1v1 & 2v2 unlocked
+
 0.7.0.1
 
 - s2protocol protocol73286 added
