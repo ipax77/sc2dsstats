@@ -1,4 +1,8 @@
 
+0.7.0.3
+
+- Timeline mode 
+
 0.7.0.2
 
 - MM: 1v1 & 2v2 unlocked

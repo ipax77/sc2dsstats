@@ -307,6 +307,7 @@ namespace sc2dsstats_rc1
             cb_mode.Items.Add("Damage");
             cb_mode.Items.Add("MVP");
             cb_mode.Items.Add("Synergy");
+            cb_mode.Items.Add("Timeline");
             cb_mode.SelectedItem = cb_mode.Items[0];
 
       
@@ -611,6 +612,7 @@ namespace sc2dsstats_rc1
             double gdr = 0;
             string interest = cb_vs.SelectedItem.ToString();
             string y_axis = "%";
+            List<KeyValuePair<string, double>> tdata = new List<KeyValuePair<string, double>>();
 
             if (cb_mode.SelectedItem.ToString() == "Winrate")
             {
@@ -648,7 +650,7 @@ namespace sc2dsstats_rc1
                             vs = cmdr.OPP;
                             dsstats_race cmdr_vs = new dsstats_race();
                             cmdr_vs = vs.VS.Find(x => x.RACE == interest);
-                            
+
                             if (cmdr_vs != null)
                             {
                                 dsstats_race cmdr_data = new dsstats_race();
@@ -663,7 +665,8 @@ namespace sc2dsstats_rc1
                         ggames = data_vs.RGAMES;
                         gwr = data_vs.GetWR();
                         gdr = data_vs.GetDURATION();
-                    } else
+                    }
+                    else
                     {
 
                         data = sum_pl.LRACE;
@@ -959,11 +962,129 @@ namespace sc2dsstats_rc1
                 }
 
             }
+            else if (cb_mode.SelectedItem.ToString() == "Timeline")
+            {
+                Title = "Timeline " + interest;
+                //interest = "Nova";
+                cb_vs.Visibility = Visibility.Visible;
+
+
+                DSfilter dsfil = new DSfilter(this);
+                List<dsreplay> filtered_replays = new List<dsreplay>();
+                filtered_replays = dsfil.Filter(replays);
+
+                List<dsreplay> replay_sorted = new List<dsreplay>();
+                replay_sorted = filtered_replays.Where(x => x.RACES.Contains(interest)).OrderBy(o => o.GAMETIME).ToList();
+
+                int total = 0;
+                int games = 0;
+                int wins = 0;
+                int gwins = 0;
+
+                foreach (dsreplay rep in replay_sorted)
+                {
+                    foreach (dsplayer pl in rep.PLAYERS)
+                    {
+                        if (pl.RACE == interest)
+                        {
+                            if (cb_player.IsChecked == true && !player_list.Contains(pl.NAME))
+                            {
+                                continue;
+                            }
+                            total++;
+                            ggames++;
+                        }
+                    }
+                }
+
+                int sep = 0;
+                //if (total > 100)
+                //{
+                    sep = total / 10;
+                //}
+
+                int i = 0;
+                foreach (dsreplay rep in replay_sorted)
+                {
+                    foreach (dsplayer pl in rep.PLAYERS)
+                    {
+                        if (pl.RACE == interest)
+                        {
+                            if (cb_player.IsChecked == true && !player_list.Contains(pl.NAME))
+                            {
+                                continue;
+                            }
+                            i++;
+                            games++;
+                            if (pl.TEAM == rep.WINNER)
+                            {
+                                wins++;
+                                gwins++;
+                            }
+
+                            if (i > sep)
+                            {
+                                if (games > 0)
+                                {
+                                    double wr = 0;
+                                    if (games == 0)
+                                    {
+                                        wr = 0;
+                                    }
+                                    else
+                                    {
+                                        double dwins = wins;
+                                        double dgames = games;
+                                        wr = dwins * 100 / dgames;
+                                        wr = Math.Round(wr, 2);
+                                        i = 0;
+                                        string mtime = rep.GAMETIME.ToString().Substring(0, 8);
+
+                                        KeyValuePair<string, double> ent = new KeyValuePair<string, double>(mtime + " (" + games + ") ", wr);
+                                        tdata.Add(ent);
+                                        games = 0;
+                                        wins = 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (games > 0)
+                {
+                    double wr = 0;
+                    if (games == 0)
+                    {
+                        wr = 0;
+                    }
+                    else
+                    {
+                        double dwins = wins;
+                        double dgames = games;
+                        wr = dwins * 100 / dgames;
+                        wr = Math.Round(wr, 2);
+                        i = 0;
+                        string mtime = otf_enddate.SelectedDate.Value.ToString("yyyyMMdd");
+
+                        KeyValuePair<string, double> ent = new KeyValuePair<string, double>(mtime + " (" + games + ") ", wr);
+                        tdata.Add(ent);
+                    }
+                }
+
+                gwr = (double)gwins * 100 / (double)ggames;
+                gwr = Math.Round(gwr, 2);
+                Console.WriteLine("Nova: " + wins + "/" + games);
+
+
+
+            }
 
             List<KeyValuePair<string, double>> cdata = new List<KeyValuePair<string, double>>();
             string add = "";
 
             double max = 0;
+
             foreach (dsstats_race cmdr in data)
             {
                 double wr = 0;
@@ -992,10 +1113,11 @@ namespace sc2dsstats_rc1
                 {
                     wr = cmdr.GetWR();
                 }
-                
+
                 if (cmdr.RGAMES > 0)
                 {
-                    if (!Double.IsInfinity(wr)) { // strange things happen ..
+                    if (!Double.IsInfinity(wr))
+                    { // strange things happen ..
                         if (wr > max)
                         {
                             max = wr;
@@ -1019,6 +1141,11 @@ namespace sc2dsstats_rc1
                 else if (y.Value == 0) return 1;
                 else return x.Value.CompareTo(y.Value);
             });
+
+            if (cb_mode.SelectedItem.ToString() == "Timeline")
+            {
+                cdata = tdata;
+            }
 
             string grace = average.ToString();
             if (gwr > 0) cdata.Insert(0, new KeyValuePair<string, double>(grace + " (" + ggames.ToString() + ") ", gwr));
