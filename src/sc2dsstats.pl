@@ -74,6 +74,7 @@ if (defined $cfg->{'appSettings'}{'add'}{'SKIP_MSG'}{'value'} && $cfg->{'appSett
 	push(@getpool, 'messageevents');
 }
 
+my $csv_units = "";
 my $replay_path;
 my $skip_beta;
 my $skip_hots;
@@ -91,12 +92,15 @@ $s2_cli = $cfg->{'appSettings'}{'add'}{'S2_CLI'}{'value'} if defined $cfg->{'app
 $store_path = $cfg->{'appSettings'}{'add'}{'STORE_PATH'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'STORE_PATH'}{'value'};
 $csv = $cfg->{'appSettings'}{'add'}{'STATS_FILE'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'STATS_FILE'}{'value'};
 $skip_file = $cfg->{'appSettings'}{'add'}{'SKIP_FILE'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'SKIP_FILE'}{'value'};
+$csv_units = $cfg->{'appSettings'}{'add'}{'UNITS_FILE'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'UNITS_FILE'}{'value'};
+$cores = $cfg->{'appSettings'}{'add'}{'CORES'}{'value'} if defined $cfg->{'appSettings'}{'add'}{'CORES'}{'value'};
 
 GetOptions (
 	"start_date=s" => \$start_date,
 	"end_date=s" => \$end_date,
 	"player=s" => \$player,
 	"stats_file=s" => \$csv,
+	"units_file=s" => \$csv_units,
 	"replay_path=s" => \$replay_path,
 	"DEBUG=i" => \$DEBUG,
 	"skip_beta=i" => \$skip_beta,
@@ -341,91 +345,92 @@ sub doReplay {
 			
 			my %detail;
 			my %skipmsg;
+			my %unitsum;
 			
-			
-			
-			&GetData($id, $info_path, \%detail, \@getpool, $cfg, \%skipmsg);	
+			&GetData($id, $info_path, \%detail, \@getpool, \%skipmsg, \%unitsum);	
 			
 			foreach my $id (sort keys %detail) {
 				
 				my $skip = 0;
-        		#foreach  my $d (sort keys %{ $detail{$id} }) {
-        		for (my $d = 1; $d<=6; $d++) {
-        			
-	        		if (defined $skip_msg && $skip_msg) {
-						if (defined $skipmsg{$id}{'PLAYER'}) {
-							if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
-								&Log("Skipping $id due to skipmsg", 2);
-								$skip = 1;
-								$skip{$id} = 1;
-								next;
-							}
-						}	
-					}
-					  
-					
-					if (!defined $detail{$id}{$d}{'NAME'}) {
-						&Log("(CSV) Skipping $id due to no NAME", 2);
-						$skip = 1;
-						$skip{$id} = 1;
-						next;
-					}
-					if (!defined $detail{$id}{$d}{'RACE'}) {
-						&Log("(CSV) Skipping $id due to no RACE", 2);
-						$skip = 1;
-						$skip{$id} = 1;
-						next;
-					}
-					if (!defined $detail{$id}{$d}{'RACE2'}) {
-						# STD games
-						$detail{$id}{$d}{'RACE2'} = $detail{$id}{$d}{'RACE'}; 
-					}
-					if (!defined $detail{$id}{$d}{'TEAM'}) {
-						&Log("(CSV) Skipping $id due to no TEAM", 2);
-						$skip = 1;
-						$skip{$id} = 1;
-						next;
-					}
-					if (!defined $detail{$id}{$d}{'RESULT'}) {
-						&Log("(CSV) Skipping $id due to no RESULT", 2);
-						$skip = 1;
-						$skip{$id} = 1;
-						next;
-					}
-					if (!defined $detail{$id}{$d}{'GAMETIME'}) {
-						&Log("(CSV) Skipping $id due to no GAMETIME", 2);
-						$skip = 1;
-						$skip{$id} = 1;
-						next;
-					}
-					if (!defined $detail{$id}{$d}{'DURATION'}) {
-						&Log("(CSV) Fixing $id due to no DURATION", 2);
-						$detail{$id}{$d}{'DURATION'} = 0;
-						#$skip = 1;
-						#next;
-					}
-					
-					if (!defined $detail{$id}{$d}{'ARMY'}) {
-						&Log("(CSV) Fixing $id due to no ARMY", 2);
-						$detail{$id}{$d}{'ARMY'} = 0;
-						#$skip = 1;
-						#next;
-					}
-					if (!defined $detail{$id}{$d}{'KILLSUM'}) {
-						&Log("(CSV) Fixing $id due to no KILLSUM", 2);
-						$detail{$id}{$d}{'KILLSUM'} = 0;
-						#$skip = 1;
-						#next;
-					}
-					if (!defined $detail{$id}{$d}{'INCOME'}) {
-						&Log("(CSV) Fixing $id due to no INCOME", 2);
-						$detail{$id}{$d}{'INCOME'} = 0;
-						#$skip = 1;
-						#next;
-					}
-
-
-        					
+        		foreach  my $d (sort keys %{ $detail{$id} }) {
+        		#for (my $d = 1; $d<=6; $d++) {
+	        		if ($d >= 1 && $d <= 6) {
+	        			
+		        		if (defined $skip_msg && $skip_msg) {
+							if (defined $skipmsg{$id}{'PLAYER'}) {
+								if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
+									&Log("Skipping $id due to skipmsg", 2);
+									$skip = 1;
+									$skip{$id} = 1;
+									next;
+								}
+							}	
+						}
+						  
+						
+						if (!defined $detail{$id}{$d}{'NAME'}) {
+							&Log("(CSV) Skipping $id due to no NAME", 2);
+							$skip = 1;
+							$skip{$id} = 1;
+							next;
+						}
+						if (!defined $detail{$id}{$d}{'RACE'}) {
+							&Log("(CSV) Skipping $id due to no RACE", 2);
+							$skip = 1;
+							$skip{$id} = 1;
+							next;
+						}
+						if (!defined $detail{$id}{$d}{'RACE2'}) {
+							# STD games
+							$detail{$id}{$d}{'RACE2'} = $detail{$id}{$d}{'RACE'}; 
+						}
+						if (!defined $detail{$id}{$d}{'TEAM'}) {
+							&Log("(CSV) Skipping $id due to no TEAM", 2);
+							$skip = 1;
+							$skip{$id} = 1;
+							next;
+						}
+						if (!defined $detail{$id}{$d}{'RESULT'}) {
+							&Log("(CSV) Skipping $id due to no RESULT", 2);
+							$skip = 1;
+							$skip{$id} = 1;
+							next;
+						}
+						if (!defined $detail{$id}{$d}{'GAMETIME'}) {
+							&Log("(CSV) Skipping $id due to no GAMETIME", 2);
+							$skip = 1;
+							$skip{$id} = 1;
+							next;
+						}
+						if (!defined $detail{$id}{$d}{'DURATION'}) {
+							&Log("(CSV) Fixing $id due to no DURATION", 2);
+							$detail{$id}{$d}{'DURATION'} = 0;
+							#$skip = 1;
+							#next;
+						}
+						
+						if (!defined $detail{$id}{$d}{'ARMY'}) {
+							&Log("(CSV) Fixing $id due to no ARMY", 2);
+							$detail{$id}{$d}{'ARMY'} = 0;
+							#$skip = 1;
+							#next;
+						}
+						if (!defined $detail{$id}{$d}{'KILLSUM'}) {
+							&Log("(CSV) Fixing $id due to no KILLSUM", 2);
+							$detail{$id}{$d}{'KILLSUM'} = 0;
+							#$skip = 1;
+							#next;
+						}
+						if (!defined $detail{$id}{$d}{'INCOME'}) {
+							&Log("(CSV) Fixing $id due to no INCOME", 2);
+							$detail{$id}{$d}{'INCOME'} = 0;
+							#$skip = 1;
+							#next;
+						}
+	
+	
+	        					
+	        		}
         		}
 
         		if ($skip == 0) {
@@ -438,15 +443,35 @@ sub doReplay {
 					$done = sprintf("%.2f", $done);
 					&Log($games - $start_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
         			
-	        		for (my $d = 1; $d<=6; $d++) {       		
+	        		foreach  my $d (sort keys %{ $detail{$id} }) {
+        			#for (my $d = 1; $d<=6; $d++) {
+	        			if ($d >= 1 && $d <= 6) {      		
 						 
-    	    			my $ent = $games . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " .
-			        			$detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " .
-			                	$detail{$id}{$d}{'DURATION'} . "; " . $detail{$id}{$d}{'GAMETIME'} . "; " . $d . "; " . $detail{$id}{$d}{'INCOME'} . "; " . $detail{$id}{$d}{'ARMY'} . ";\n";
-			                		
-        	        	print CSV $ent;
+	    	    			my $ent = $games . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " .
+				        			$detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " .
+				                	$detail{$id}{$d}{'DURATION'} . "; " . $detail{$id}{$d}{'GAMETIME'} . "; " . $d . "; " . $detail{$id}{$d}{'INCOME'} . "; " . $detail{$id}{$d}{'ARMY'} . ";\n";
+				                		
+	        	        	print CSV $ent;
+	        			}
 	        		}
 	        		close(CSV);
+	        		
+	        		
+	        		if ($csv_units) {
+	        			open(CSV_UNITS, ">>", "$csv_units") or &Error("Could not write to $csv_units: $!");
+	        			print CSV_UNITS $id . ";";
+	        			foreach my $id (keys %unitsum) {
+	        				print CSV_UNITS $id . ";";
+	        				foreach my $bp (keys %{ $unitsum{$id}}) {
+	        					print CSV_UNITS $bp . ";";
+	        					foreach my $unit (keys %{ $unitsum{$id}{$bp} }) {
+	        						print CSV_UNITS $unit . "," . $unitsum{$id}{$bp}{$unit} . ";";
+	        					}
+	        				}
+	        			}
+	        			print CSV_UNITS "\n";
+	        			close(CSV_UNITS);
+	        		}
         		}
         		
         		if (defined $keep && $keep == 0) {
@@ -498,13 +523,21 @@ sub GetData {
 	my $detail = shift;
 	my $getpool = shift;
 	my $skipmsg = shift;   	
-	        	
+    my $unitsum = shift;
+    
+    my %units;
+    my %breakpoints;
+    $breakpoints{"5min"} = 6720;
+    $breakpoints{"10min"} = 13440;
+    $breakpoints{"15min"} = 20160;
+    my $player_count = 0;	
 	foreach my $ext (@$getpool) {
-	        	
+	        
+
 		my $stat_file = $path . $ext . ".txt";        	
         	my $duration;
 			my $gameloop;
-			my $player_count = 0;
+			
 			my $gametime;
 			my $fix = 0;
 			my %fix;
@@ -664,6 +697,15 @@ sub GetData {
 			        		} elsif (/m_scoreValueMineralsCollectionRate'\: (\d+),$/) {
 			        			if (defined $detail->{$id}{$playerid}) {
 									$m_scoreValueMineralsCollectionRate{$playerid}{$gameloop} = $1;
+									#if ($1 >= 1000) {
+									#	if ($gameloop > 1000) {
+									#		if ($playerid > $player_count / 2) {
+									#			$breakpoints{"Bunker_Team1"} = $gameloop;
+									#		} else {
+									#			$breakpoints{"Bunker_Team2"} = $gameloop;
+									#		}
+									#	}
+									#}
 			        			}
 							#} elsif (/m_scoreValueMineralsLostArmy'\: (\d+),$/) {
 							#	
@@ -672,6 +714,10 @@ sub GetData {
 									$m_scoreValueMineralsUsedActiveForces{$playerid}{$gameloop} = $1;
 								}
 							}	
+			        		
+			        		elsif (/m_creatorAbilityName'\: '([^']+)Place',/) {
+			        			$units{$playerid}{$gameloop}{$1}++;
+			        		}
 			        		
 			        		if ($fix) {
 			        				if (/'_event'\: 'NNet.Replay.Tracker.SUnitBornEvent',$/) {
@@ -715,6 +761,8 @@ sub GetData {
 			        		
 		                }
 		                close(TRACKEREVENTS);
+		                
+		                $breakpoints{"fin"} = $gameloop;
 		                
 		                foreach my $p (keys %m_scoreValueMineralsCollectionRate) {
 						
@@ -819,6 +867,18 @@ sub GetData {
 			        	close(MSGEVENTS);
 		        	}	        	
 				}
+        }
+        
+        foreach my $bp (sort keys %breakpoints) {
+        	foreach my $id (sort keys %units) {
+        		foreach my $gt (sort keys %{ $units{$id} }) {
+        			foreach my $unit (sort keys %{ $units{$id}{$gt} }) {
+						if ($gt <= $breakpoints{$bp}) {
+	        				$unitsum->{$id}{$bp . "," . $breakpoints{$bp}}{$unit} ++;
+	        			}
+	        		}
+        		}
+        	}
         }
 }
 

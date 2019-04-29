@@ -123,6 +123,10 @@ namespace sc2dsstats_rc1
                     cdesc = "# Number of CPU cores used to decode replays";
                 if (String.Equals(ckey, "STATS_FILE"))
                     cdesc = "# Databasefile";
+                if (String.Equals(ckey, "UNITS"))
+                    cdesc = "# 0 to disable, 1 to enable replay scanning for units";
+                if (String.Equals(ckey, "UNITS_FILE"))
+                    cdesc = "# Units Databasefile";
                 if (String.Equals(ckey, "SKIP_FILE"))
                     cdesc = "# Skipfile";
                 if (String.Equals(ckey, "STORE_PATH"))

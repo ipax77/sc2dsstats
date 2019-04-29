@@ -50,6 +50,8 @@ namespace sc2dsstats_rc1
         public ObservableCollection<KeyValuePair<string, double>> Items { get; set; }
         public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; }
         public List<KeyValuePair<string, double>> Cdata { get; set; }
+        public dsunits UNITS { get; set; }
+
         Chart dynChart = new Chart() { Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF041326"))
     };
         public string[] s_races = new string[17];
@@ -63,6 +65,7 @@ namespace sc2dsstats_rc1
         public string myWorker_exe = null;
         public string myWorker_log = null;
         public string myStats_csv = null;
+        public string myUnits_csv = null;
         public string mySkip_csv = null;
         public string myTemp_png = null;
         public string myWorker_png = null;
@@ -101,11 +104,13 @@ namespace sc2dsstats_rc1
             myWorker_exe = exedir + "\\scripts\\sc2dsstats_worker.exe";
             myWorker_log = exedir + "\\log_worker.txt";
             myStats_csv = exedir + "\\stats.csv";
+            myUnits_csv = exedir + "\\units.csv";
             //myTemp_dir = System.IO.Path.GetTempPath() + "\\sc2dsstats\\";
             myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
             myData_dir = myAppData_dir + "\\analyzes";
             mySkip_csv = myAppData_dir + "\\skip.csv";
             myStats_csv = myAppData_dir + "\\stats.csv";
+            myUnits_csv = myAppData_dir + "\\units.csv";
             myTemp_dir = myAppData_dir + "\\";
             mySample_csv = exedir + "\\sample.csv";
             myDoc_pdf = exedir + "\\doc.pdf";
@@ -159,6 +164,7 @@ namespace sc2dsstats_rc1
                 }
             }
 
+            // STATS_FILE
             if (appSettings["STATS_FILE"] == null)
             {
                 config.AppSettings.Settings.Add("STATS_FILE", myStats_csv);
@@ -185,6 +191,35 @@ namespace sc2dsstats_rc1
             else
             {
                 myStats_csv = appSettings["STATS_FILE"];
+            }
+
+            // UNITS_FILE
+            if (appSettings["UNITS_FILE"] == null)
+            {
+                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
+            }
+            else if (appSettings["UNITS_FILE"] == "0")
+            {
+                config.AppSettings.Settings.Remove("UNITS_FILE");
+                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
+            }
+            else
+            {
+                myUnits_csv = appSettings["UNITS_FILE"];
+            }
+
+            if (appSettings["UNITS_FILE"] == null)
+            {
+                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
+            }
+            else if (appSettings["UNITS_FILE"] == "0")
+            {
+                config.AppSettings.Settings.Remove("UNITS_FILE");
+                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
+            }
+            else
+            {
+                myUnits_csv = appSettings["UNITS_FILE"];
             }
 
             if (appSettings["SKIP_FILE"] == null)
@@ -255,30 +290,11 @@ namespace sc2dsstats_rc1
             }
             cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[0];
 
-            /**
-            if (appSettings["REPLAY_PATH"] == null || appSettings["REPLAY_PATH"] == "0" || appSettings["REPLAY_PATH"] == "")
-            {
-                FirstRun();
-            } else
-            {
-                if (appSettings["0.6.0.7"] != null && appSettings["0.6.0.7"] == "1")
-                {
-                    FirstRun_Version();
-                }
-                myReplay_Path = appSettings["REPLAY_PATH"];
-                SetReplayList(myReplay_Path);
-            }
-            **/
-
             if (Properties.Settings.Default.REPLAY_PATH == "0")
             {
                 FirstRun();
             } else
             {
-                if (appSettings["0.6.0.7"] != null && appSettings["0.6.0.7"] == "1")
-                {
-                    FirstRun_Version();
-                }
                 myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
                 SetReplayList(myReplay_Path);
             }
@@ -308,9 +324,12 @@ namespace sc2dsstats_rc1
             cb_mode.Items.Add("MVP");
             cb_mode.Items.Add("Synergy");
             cb_mode.Items.Add("Timeline");
+            cb_mode.Items.Add("Builds");
             cb_mode.SelectedItem = cb_mode.Items[0];
 
-      
+            UNITS = new dsunits(this);
+            UNITS.GetData(@"C:\temp\bab\units.csv");
+
 
             s_races = new string[]
             {
@@ -373,7 +392,10 @@ namespace sc2dsstats_rc1
             win_cm.Items.Add(win_saveas);
             dynChart.ContextMenu = win_cm;
 
-
+            if (Properties.Settings.Default.V7 == false)
+            {
+                FirstRun_Version();
+            }
 
         }
 
@@ -398,21 +420,43 @@ namespace sc2dsstats_rc1
             }
 
             // MessageBox.Show("Version 0.6.0.7: It is now possile to add multiple player names and multiple replay directories.", "sc2dsstats");
-            string info = "Version 0.6.0.7: It is now possile to add multiple player names and multiple replay directories." + Environment.NewLine + Environment.NewLine;
-            if (MessageBox.Show(info + "Do you want to add multiple player names / replay directory now?", "sc2dsstats",  MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.No)
+            string info = "Version 0.7.0.5: It is now possile to generate some Units statistics." + Environment.NewLine + Environment.NewLine;
+            if (MessageBox.Show(info + "Do you want to enable the Unit statistics now? (You can enable/disable it at any time at File->Options", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.No)
             {
                 //do no stuff
+                config.AppSettings.Settings.Remove("UNITS");
+                config.AppSettings.Settings.Add("UNITS", "0");
             }
             else
             {
                 //do yes stuff
-                MessageBox.Show("If you have multiple replay folders please try to keep the order intact. If you already did a workaround you may need to rescan your replays by renaming the + " + myStats_csv + " file. A backup is availabe at " + backup +
-                    " further information can be found at https://github.com/ipax77/sc2dsstats/issues/2", "sc2dsstats");
-                FirstRun();
+                config.AppSettings.Settings.Remove("UNITS");
+                config.AppSettings.Settings.Add("UNITS", "1");
+
+                string info2 = "To have the Units statistic available for your old replays we have to rescan all replays - this may take a long time." + Environment.NewLine + Environment.NewLine;
+                if (MessageBox.Show(info2 + "Do you want to rescan all your replays, now? (You can do this later by renaming the STATS_FILE)", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.No)
+                {
+                    //do no stuff
+                }
+                else
+                {
+                    //do yes stuff
+                    string mbackup = myStats_csv + "_moved";
+                    
+                    try
+                    {
+                        System.IO.File.Move(myStats_csv, mbackup);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message.ToString());
+                    }
+                    mnu_Scanpre(null, null);
+                }
             }
 
-            config.AppSettings.Settings.Remove("0.6.0.7");
-            config.AppSettings.Settings.Add("0.6.0.7", "0");
+            Properties.Settings.Default.V7 = true;
+            Properties.Settings.Default.Save();
             ConfigurationManager.RefreshSection("appSettings");
             config.Save();
 
@@ -1074,10 +1118,6 @@ namespace sc2dsstats_rc1
 
                 gwr = (double)gwins * 100 / (double)ggames;
                 gwr = Math.Round(gwr, 2);
-                Console.WriteLine("Nova: " + wins + "/" + games);
-
-
-
             }
 
             List<KeyValuePair<string, double>> cdata = new List<KeyValuePair<string, double>>();
@@ -1433,6 +1473,12 @@ namespace sc2dsstats_rc1
 
         }
 
+        public void dg_build_MouseUp(object sender, EventArgs e)
+        {
+            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(UNITS.ProcessRows_units));
+        }
+
+
 
         // chart
 
@@ -1460,6 +1506,18 @@ namespace sc2dsstats_rc1
                 gr_syn.Visibility = Visibility.Visible;
                 GetSynergy();
             }
+
+            if (cb_mode.SelectedItem.ToString() == "Builds")
+            {
+                doit = false;
+                gr_chart.Visibility = Visibility.Hidden;
+                gr_images.Visibility = Visibility.Hidden;
+                gr_syn.Visibility = Visibility.Visible;
+                cb_vs.Visibility = Visibility.Visible;
+                wb_chart.Visibility = Visibility.Hidden;
+                GetBuilds();
+            }
+
 
             if (cb_add.IsChecked == true && sender != null) doit = false;
 
@@ -1951,6 +2009,59 @@ namespace sc2dsstats_rc1
 
         }
 
+        public void GetBuilds()
+        {
+            if (cb_build_sum.IsChecked == true)
+            {
+                UNITS.SumSum();
+                return;
+            } 
+
+            List<string> synlist = new List<string>();
+            foreach (var cbcmdr in gr_syn_btn.Children)
+            {
+                try
+                {
+                    CheckBox cb = (CheckBox)cbcmdr;
+                    if (cb.IsChecked == true)
+                    {
+                        synlist.Add(cb.Content.ToString());
+                    }
+                }
+                catch
+                {
+
+
+                }
+            }
+            string gametime = "10min";
+            if (rb_10min.IsChecked == true)
+            {
+                gametime = "10min";
+            } else if (rb_fin.IsChecked == true)
+            {
+                gametime = "fin";
+            } else if (rb_5min.IsChecked == true)
+            {
+                gametime = "5min";
+            } else if (rb_15min.IsChecked == true)
+            {
+                gametime = "15min";
+            }
+
+            if (synlist.Count > 0)
+            {
+                UNITS.Sum(cb_vs.SelectedItem.ToString(), synlist.ElementAt(0), gametime);
+                
+            } else
+            {
+                UNITS.Sum(cb_vs.SelectedItem.ToString(), null, gametime);
+            }
+
+
+
+        }
+
         /// read in csv
         /// 
 
@@ -2397,6 +2508,8 @@ namespace sc2dsstats_rc1
                                     //+ "--ladder=\"" + Properties.Settings.Default.MM_CREDENTIAL + "\" "
                                    ;
                 //MessageBox.Show(Arguments);
+
+                if (appSettings["UNITS"] == "1") Arguments += "--units_file=\"" + appSettings["UNITS_FILE"] + "\" ";
 
                 tsscan = Task.Factory.StartNew(() =>
                 {
@@ -3325,6 +3438,11 @@ namespace sc2dsstats_rc1
         private void Chb_cmdrvs_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            UNITS.GenJson();
         }
     }
 

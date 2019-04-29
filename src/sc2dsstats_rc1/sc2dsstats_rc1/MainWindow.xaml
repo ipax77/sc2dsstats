@@ -904,7 +904,42 @@
 
             </Grid>
             <WebBrowser x:Name="wb_chart" Margin="415,0,0,0" Visibility="Hidden"></WebBrowser>
+            <Grid x:Name="gr_builds" Margin="415,50,-427,-289">
+                <Grid x:Name="gr_rb_build" Margin="0,0,0,0">
+                    <RadioButton x:Name="rb_5min" Content="5min" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                    <RadioButton x:Name="rb_10min" Content="10min" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                    <RadioButton x:Name="rb_15min" Content="15min" HorizontalAlignment="Left" Margin="150,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                    <RadioButton x:Name="rb_fin" Content="all" HorizontalAlignment="Left" Margin="220,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                </Grid>
+                <CheckBox x:Name="cb_build_sum" Content="sum" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="300,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
+                <TextBox x:Name="tb_build" Text="" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Height="100" Foreground="White">
+                    <TextBox.BorderBrush>
+                        <ImageBrush/>
+                    </TextBox.BorderBrush>
+                    <TextBox.Background>
+                        <ImageBrush/>
+                    </TextBox.Background>
+
+                </TextBox>
+                <Grid x:Name="gr_dg_builds" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,110,0,0" >
+                    <DataGrid x:Name="dg_build" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="360" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629" MouseUp="dg_build_MouseUp" ColumnDisplayIndexChanged="dg_build_MouseUp" Sorting="dg_build_MouseUp" >
+                        <DataGrid.Style>
+                            <Style TargetType="DataGrid">
+                                <Setter Property="RowBackground" Value="White">
+
+                                </Setter>
+                            </Style>
+                        </DataGrid.Style>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Unit"  Binding="{Binding UNIT}" Width="200"/>
+                            <DataGridTextColumn Header="Count"  Binding="{Binding COUNT}" Width="60" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Grid>
         </Grid>
+
         <Grid x:Name="gr_chart" Margin="0,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Grid x:Name="gr_mode" Margin="400, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">
             <Label Content="Mode" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="15,0,0,0"  VerticalAlignment="Top" Width="54" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
@@ -1011,6 +1046,7 @@
         <Grid x:Name="gr_images" Margin="50,400,10,117" Height="80" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
 
         </Grid>
+        <Button x:Name="button" Visibility="Collapsed" Content="Button" HorizontalAlignment="Left" Margin="913,54,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
     </Grid>
 
 

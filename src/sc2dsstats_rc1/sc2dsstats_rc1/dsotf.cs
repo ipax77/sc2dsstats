@@ -153,6 +153,7 @@ namespace sc2dsstats_rc1
                                         + "--s2_cli=\"" + MW.myS2cli_exe + "\" "
                                         + "--num_file=\"" + MW.myAppData_dir + "\\num.txt" + "\" "
                                        ;
+                    if (appSettings["UNITS"] == "1") Arguments += "--units_file=\"" + appSettings["UNITS_FILE"] + "\" ";
                     Process doit = new Process();
 
                     if (File.Exists(ExecutableFilePath))
