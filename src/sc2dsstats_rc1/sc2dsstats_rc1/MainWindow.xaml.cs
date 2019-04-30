@@ -2710,6 +2710,9 @@ namespace sc2dsstats_rc1
             {
                 //do yes stuff
                 dsclient.StartClient(hash, exp_csv);
+                if (File.Exists(myUnits_csv)) {
+                    dsclient.StartClient(hash + "_units", myUnits_csv);
+                }
             }
 
         }
