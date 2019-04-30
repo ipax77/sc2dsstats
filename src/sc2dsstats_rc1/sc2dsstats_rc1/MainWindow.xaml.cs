@@ -328,7 +328,7 @@ namespace sc2dsstats_rc1
             cb_mode.SelectedItem = cb_mode.Items[0];
 
             UNITS = new dsunits(this);
-            UNITS.GetData(@"C:\temp\bab\units.csv");
+            UNITS.GetData(myUnits_csv);
 
 
             s_races = new string[]

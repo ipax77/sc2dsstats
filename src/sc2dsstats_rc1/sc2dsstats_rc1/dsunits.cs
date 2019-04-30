@@ -201,7 +201,7 @@ namespace sc2dsstats_rc1
             
             foreach (string cmdr in MW.s_races)
             {
-                string jsonfile = outdir + "units_" + cmdr + ".json";
+                string jsonfile = outdir + "units_Feralan_" + cmdr + ".json";
                 string json = "{" + Environment.NewLine;
                 json += "\"" + cmdr + "\": {" + Environment.NewLine;
                 foreach (string bp in bp_list.Keys)

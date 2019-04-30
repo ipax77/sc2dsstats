@@ -715,8 +715,10 @@ sub GetData {
 								}
 							}	
 			        		
-			        		elsif (/m_creatorAbilityName'\: '([^']+)Place',/) {
-			        			$units{$playerid}{$gameloop}{$1}++;
+			        		elsif (/m_creatorAbilityName'\: '([^']+)Place([^']+)?',/) {
+			        			my $temp_unit = $1;
+			        			$temp_unit .= $2 if ($2);
+			        			$units{$playerid}{$gameloop}{$temp_unit}++;
 			        		}
 			        		
 			        		if ($fix) {
