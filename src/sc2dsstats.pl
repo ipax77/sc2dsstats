@@ -459,6 +459,7 @@ sub doReplay {
 	        		
 	        		if ($csv_units) {
 	        			open(CSV_UNITS, ">>", "$csv_units") or &Error("Could not write to $csv_units: $!");
+	        			flock(CSV_UNITS, LOCK_EX);
 	        			print CSV_UNITS $id . ";";
 	        			foreach my $id (keys %unitsum) {
 	        				print CSV_UNITS $id . ";";

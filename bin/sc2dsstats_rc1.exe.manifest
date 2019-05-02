@@ -477,13 +477,13 @@
       <dsig:DigestValue>qJJpumnAXNH7gp48qe+PYfqcNh0kGt7V1xfOoaK5vBI=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="sc2dsstats.exe" size="7540821">
+  <file name="sc2dsstats.exe" size="7540829">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>Qj/qE7f7d7GtjbyU0pprX/yac9Fn3WYTjCh52ZvRlyk=</dsig:DigestValue>
+      <dsig:DigestValue>vv2QgtqgPwERArj55K3nO5fSNvryQPFOXdqqQ+zxvtw=</dsig:DigestValue>
     </hash>
   </file>
   <file name="sc2dsstats.ico" size="99275">

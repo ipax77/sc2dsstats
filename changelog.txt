@@ -1,4 +1,8 @@
 
+0.7.0.7
+
+- bugfix lock units.csv
+
 0.7.0.6
 
 - bugfix
