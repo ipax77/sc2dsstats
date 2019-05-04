@@ -292,6 +292,12 @@ namespace sc2dsstats_rc1
 
             if (Properties.Settings.Default.REPLAY_PATH == "0")
             {
+                Properties.Settings.Default.V7 = true;
+                Properties.Settings.Default.Save();
+                config.AppSettings.Settings.Remove("UNITS");
+                config.AppSettings.Settings.Add("UNITS", "1");
+                ConfigurationManager.RefreshSection("appSettings");
+                config.Save();
                 FirstRun();
             } else
             {
