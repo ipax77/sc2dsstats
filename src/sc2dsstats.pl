@@ -352,10 +352,11 @@ sub doReplay {
 			foreach my $id (sort keys %detail) {
 				
 				my $skip = 0;
+				my $playercount = 0;
         		foreach  my $d (sort keys %{ $detail{$id} }) {
         		#for (my $d = 1; $d<=6; $d++) {
 	        		if ($d >= 1 && $d <= 6) {
-	        			
+						$playercount ++;	        			
 		        		if (defined $skip_msg && $skip_msg) {
 							if (defined $skipmsg{$id}{'PLAYER'}) {
 								if (defined $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}} && $skipmsg{$id}{$skipmsg{$id}{'PLAYER'}}) {
@@ -438,35 +439,64 @@ sub doReplay {
         			
         			open(CSV, ">>", "$csv") or &Error("Could not write to $csv: $!");
         			flock(CSV, LOCK_EX);
+
         			$games = &Games();
         			my $done = ($games - $start_replays) * 100 / $todo_replays;
 					$done = sprintf("%.2f", $done);
 					&Log($games - $start_replays . " / " . $todo_replays . " (" . $done . "% complete)", 1);
         			
+        			my %pos;
 	        		foreach  my $d (sort keys %{ $detail{$id} }) {
         			#for (my $d = 1; $d<=6; $d++) {
 	        			if ($d >= 1 && $d <= 6) {      		
-						 
+							$detail{$id}{$d}{'POS'} = $d if !exists $detail{$id}{$d}{'POS'} && !$detail{$id}{$d}{'POS'};
+							if (exists $pos{$detail{$id}{$d}{'POS'}}) {
+								for (my $np = 1; $np <=6; $np++) {
+									next if $playercount == 2 && ($np == 2 || $np == 3 || $np == 5 || $np == 6);
+									next if $playercount == 4 && ($np == 3 || $np == 6);
+									if (!exists $pos{$np}) {
+										&Log("(CSV) Fixing $id due to DOUBLEPOS (" . $pos{$detail{$id}{$d}{'POS'}} . " => $np", 2);
+										$pos{$detail{$id}{$d}{'POS'}} = $np;
+										last;
+									}
+								}
+							}  else {
+								$pos{$detail{$id}{$d}{'POS'}} = 1;
+							}
 	    	    			my $ent = $games . "; " . $id . "; " . $detail{$id}{$d}{'NAME'} . "; " . $detail{$id}{$d}{'RACE'} . "; " . $detail{$id}{$d}{'RACE2'}. "; " .
 				        			$detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . "; " . $detail{$id}{$d}{'KILLSUM'} . "; " .
-				                	$detail{$id}{$d}{'DURATION'} . "; " . $detail{$id}{$d}{'GAMETIME'} . "; " . $d . "; " . $detail{$id}{$d}{'INCOME'} . "; " . $detail{$id}{$d}{'ARMY'} . ";\n";
+				                	$detail{$id}{$d}{'DURATION'} . "; " . $detail{$id}{$d}{'GAMETIME'} . "; " . $detail{$id}{$d}{'POS'} . "; " . $detail{$id}{$d}{'INCOME'} . "; " . $detail{$id}{$d}{'ARMY'} . ";\n";
 				                		
 	        	        	print CSV $ent;
 	        			}
 	        		}
 	        		close(CSV);
-	        		
+        		    #open(CSVNEW, ">>", "$csv" . "_new") or &Error("Could not write to $csv new: $!");
+        			#flock(CSVNEW, LOCK_EX);
+					#print CSVNEW $replay . ";" . $detail{$id}{1}{'GAMETIME'} . ";";
+					#foreach  my $d (sort keys %{ $detail{$id} }) {
+				#		if ($d >= 1 && $d <= 6) {  
+				#			#$detail{$id}{$d}{'POS'} = $d if !exists $detail{$id}{$d}{'POS'} && !$detail{$id}{$d}{'POS'};
+			#				my $ent = "P" . $detail{$id}{$d}{'POS'} . ";" . $detail{$id}{$d}{'NAME'} . ";" . $detail{$id}{$d}{'RACE'} . ";" . $detail{$id}{$d}{'RACE2'}. ";" .
+			#	        			$detail{$id}{$d}{'TEAM'} . "; " . $detail{$id}{$d}{'RESULT'} . ";" . $detail{$id}{$d}{'KILLSUM'} . ";" .
+			#	                	$detail{$id}{$d}{'DURATION'} . ";" . $detail{$id}{$d}{'INCOME'} . ";" . $detail{$id}{$d}{'ARMY'} . ";";
+		     #           	print CSVNEW $ent;
+				#		}
+				#		
+				#	}	        		
+	        	#	print CSVNEW "\n";
+	        	#	close(CSVNEW);
 	        		
 	        		if ($csv_units) {
 	        			open(CSV_UNITS, ">>", "$csv_units") or &Error("Could not write to $csv_units: $!");
 	        			flock(CSV_UNITS, LOCK_EX);
 	        			print CSV_UNITS $id . ";";
-	        			foreach my $id (keys %unitsum) {
-	        				print CSV_UNITS $id . ";";
-	        				foreach my $bp (keys %{ $unitsum{$id}}) {
+	        			foreach my $pos (keys %unitsum) {
+	        				print CSV_UNITS $detail{$id}{$pos}{'POS'} . ";";
+	        				foreach my $bp (keys %{ $unitsum{$pos}}) {
 	        					print CSV_UNITS $bp . ";";
-	        					foreach my $unit (keys %{ $unitsum{$id}{$bp} }) {
-	        						print CSV_UNITS $unit . "," . $unitsum{$id}{$bp}{$unit} . ";";
+	        					foreach my $unit (keys %{ $unitsum{$pos}{$bp} }) {
+	        						print CSV_UNITS $unit . "," . $unitsum{$pos}{$bp}{$unit} . ";";
 	        					}
 	        				}
 	        			}
@@ -639,7 +669,7 @@ sub GetData {
 	                        		my $dgeo = $geo_formatter->parse_datetime($geo);
 	                        		$gametime = $dgeo->ymd('') . $dgeo->hms('');
 	                        		for (my $i = 1; $i <= $player_count; $i++) {
-	                        			if (defined $detail->{$id}{$i}) { 
+	                        			if (exists $detail->{$id}{$i}) { 
 	                        				$detail->{$id}{$i}{'GAMETIME'} = $gametime;
 	                        			}
 	                        		}
@@ -653,12 +683,34 @@ sub GetData {
 		                my $playerid;
 		                my $controlPlayerId;
 		                my $event;
+
+						my $unit = 0;
+						my $x = 0;
+						my $y = 0;
 		
 		                open(TRACKEREVENTS, "<", $stat_file) or &Error("Could not read $stat_file: $!");
 		
 		                while (<TRACKEREVENTS>) {
 		
-			                if (/m_controlPlayerId/) {
+							if ($unit) {
+								
+								if (exists $detail->{$id}{$playerid}{'POS'} && $detail->{$id}{$playerid}{'POS'}) {
+									$unit = 0;
+									next;
+								}
+								if (/m_x': (\d+)/) {
+									$x = $1;
+								} elsif (/m_y': (\d+)/) {
+									$y = $1;
+									my $pos = &GetPos($x, $y, $unit);
+									$detail->{$id}{$playerid}{'POS'} = $pos if $pos;
+									#print "POS: $pos ($playerid)\n" if $pos != $playerid;
+									#print "$unit ($x|$y)\n" unless $pos;
+									$unit = 0;
+								}
+							}
+		
+			                elsif (/m_controlPlayerId/) {
 				                if (/(\d+),$/) {
 			    	                $playerid = $1;
 
@@ -720,7 +772,10 @@ sub GetData {
 			        			my $temp_unit = $1;
 			        			$temp_unit .= $2 if ($2);
 			        			$units{$playerid}{$gameloop}{$temp_unit}++;
+			        			$unit = $temp_unit;
 			        		}
+			        		
+			        		
 			        		
 			        		if ($fix) {
 			        				if (/'_event'\: 'NNet.Replay.Tracker.SUnitBornEvent',$/) {
@@ -813,7 +868,7 @@ sub GetData {
 							# Dirty quick
 							
 							for (my $i = 1; $i <= $player_count; $i++) {
-								if (defined $detail->{$id}{$i}{'RACE2'}) {
+								if (exists $detail->{$id}{$i}{'RACE2'}) {
 									if ($detail->{$id}{$i}{'RACE2'} eq "Nova") {
 										$fix{$i} = 250;	
 									} elsif ($detail->{$id}{$i}{'RACE2'} eq "Zagara") {
@@ -965,6 +1020,139 @@ sub Info {
         my $ret = $store_path . "/" . $id . "_";
         return $ret;
 }
+
+sub GetPos {
+	my $x = shift;
+	my $y = shift;
+	my $unit = shift;
+	
+	
+	my %p;
+	$p{'x'} = $x;
+	$p{'y'} = $y;
+	
+	
+	my %pos;
+	
+	$pos{'P1'}{'Ax'} = 115;
+	$pos{'P1'}{'Ay'} = 202;
+	$pos{'P1'}{'Bx'} = 154;
+	$pos{'P1'}{'By'} = 177;
+	$pos{'P1'}{'Cx'} = 184;
+	$pos{'P1'}{'Cy'} = 208;
+	$pos{'P1'}{'Dx'} = 153;
+	$pos{'P1'}{'Dy'} = 239;
+	
+	$pos{'P2'}{'Ax'} = 151;
+	$pos{'P2'}{'Ay'} = 178;
+	$pos{'P2'}{'Bx'} = 179;
+	$pos{'P2'}{'By'} = 151;
+	$pos{'P2'}{'Cx'} = 210;
+	$pos{'P2'}{'Cy'} = 181;
+	$pos{'P2'}{'Dx'} = 183;
+	$pos{'P2'}{'Dy'} = 208;
+	
+	$pos{'P3'}{'Ax'} = 179;
+	$pos{'P3'}{'Ay'} = 151;
+	$pos{'P3'}{'Bx'} = 206;
+	$pos{'P3'}{'By'} = 108;
+	$pos{'P3'}{'Cx'} = 243;
+	$pos{'P3'}{'Cy'} = 150;
+	$pos{'P3'}{'Dx'} = 210;
+	$pos{'P3'}{'Dy'} = 181;
+	
+	$pos{'P4'}{'Ax'} = 6;
+	$pos{'P4'}{'Ay'} = 90;
+	$pos{'P4'}{'Bx'} = 32;
+	$pos{'P4'}{'By'} = 60;
+	$pos{'P4'}{'Cx'} = 64;
+	$pos{'P4'}{'Cy'} = 94;
+	$pos{'P4'}{'Dx'} = 36;
+	$pos{'P4'}{'Dy'} = 122;
+	
+	$pos{'P5'}{'Ax'} = 28;
+	$pos{'P5'}{'Ay'} = 55;
+	$pos{'P5'}{'Bx'} = 56;
+	$pos{'P5'}{'By'} = 27;
+	$pos{'P5'}{'Cx'} = 92;
+	$pos{'P5'}{'Cy'} = 66;
+	$pos{'P5'}{'Dx'} = 65;
+	$pos{'P5'}{'Dy'} = 93;
+	
+	$pos{'P6'}{'Ax'} = 61;
+	$pos{'P6'}{'Ay'} = 32;
+	$pos{'P6'}{'Bx'} = 91;
+	$pos{'P6'}{'By'} = 0;
+	$pos{'P6'}{'Cx'} = 126;
+	$pos{'P6'}{'Cy'} = 33;
+	$pos{'P6'}{'Dx'} = 96;
+	$pos{'P6'}{'Dy'} = 62;
+	
+	
+	my $pos = 0;
+	foreach my $pl (keys %pos) {
+		
+		#print "$pl" . "\n";
+		
+		my $indahouse = 0;
+		
+		$indahouse = &PointInTriangle($p{'x'}, $p{'y'}, $pos{$pl}{'Ax'}, $pos{$pl}{'Ay'}, $pos{$pl}{'Bx'}, $pos{$pl}{'By'}, $pos{$pl}{'Cx'}, $pos{$pl}{'Cy'});
+		$indahouse = &PointInTriangle($p{'x'}, $p{'y'}, $pos{$pl}{'Ax'}, $pos{$pl}{'Ay'}, $pos{$pl}{'Dx'}, $pos{$pl}{'Dy'}, $pos{$pl}{'Cx'}, $pos{$pl}{'Cy'}) unless $indahouse;
+		
+		
+		if ($indahouse) {
+			if ($pos > 0) {
+				print "double hit ($x|$y) :( $unit\n";
+			}
+			if ($pl =~ /(\d+)$/) {
+				$pos = $1; 
+			}
+		}
+		
+	}
+	return $pos;
+}
+
+sub PointInTriangle {
+	
+	my $Px = shift;
+	my $Py = shift;
+	my $Ax = shift;
+	my $Ay = shift;
+	my $Bx = shift;
+	my $By = shift;
+	my $Cx = shift;
+	my $Cy = shift;
+	
+	my $b1 = 0;
+	my $b2 = 0;
+	my $b3 = 0;
+	
+	$b1 = 1 if &sign($Px, $Py, $Ax, $Ay, $Bx, $By) < 0;
+	$b2 = 1 if &sign($Px, $Py, $Bx, $By, $Cx, $Cy) < 0;
+	$b3 = 1 if &sign($Px, $Py, $Cx, $Cy, $Ax, $Ay) < 0;
+
+	#print "In: b1: $b1; b2: $b2; b3: $b3\n";
+
+	my $indahouse = 0;	
+	$indahouse = 1 if (($b1 == $b2) && ($b2 == $b3));
+	return $indahouse;
+}
+
+sub sign {
+	
+	my $Ax = shift;
+	my $Ay = shift;
+	my $Bx = shift;
+	my $By = shift;
+	my $Cx = shift;
+	my $Cy = shift;
+	
+	my $sign = ($Ax - $Cx) * ($By - $Cy) - ($Bx - $Cx) * ($Ay - $Cy);
+	#print "sign: $sign\n";
+	return $sign;
+}
+
 
 sub Log {
 	my $msg = shift;	

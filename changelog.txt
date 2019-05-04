@@ -1,6 +1,10 @@
 
 0.7.0.8
 
+- bugfix playerpos
+
+0.7.0.8
+
 - bugfix FirstRun
 
 0.7.0.7

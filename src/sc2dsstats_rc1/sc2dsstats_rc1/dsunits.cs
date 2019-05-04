@@ -403,8 +403,13 @@ namespace sc2dsstats_rc1
                         plf.UNITS = new Dictionary<string, List<KeyValuePair<string, int>>>(units);
                         pl_list.Add(plf);
                     }
-
-                    UNITLIST.Add(id, pl_list);
+                    if (UNITLIST.ContainsKey(id))
+                    {
+                    }
+                    else
+                    {
+                        UNITLIST.Add(id, pl_list);
+                    }
 
                 }
             }
