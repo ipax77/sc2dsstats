@@ -255,7 +255,7 @@ namespace sc2dsstats_rc1
                             plid.INCOME = player.INCOME;
                             plid.PDURATION = player.PDURATION;
                             plid.POS = player.POS;
-                            plid.WINNER = player.WINNER;
+                            //plid.WINNER = player.WINNER;
                         }
                         else
                         {
@@ -381,18 +381,18 @@ namespace sc2dsstats_rc1
 
                         foreach (dsplayer player in game.PLAYERS)
                         {
-                            if (player.POS <= 3)
+                            if (player.REALPOS <= 3)
                             {
                                 result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                                if (player.POS != 3)
+                                if (player.REALPOS != 3)
                                 {
                                     result1 += ", ";
                                 }
                             }
-                            else if (player.POS > 3)
+                            else if (player.REALPOS > 3)
                             {
                                 result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                                if (player.POS != 6)
+                                if (player.REALPOS != 6)
                                 {
                                     result2 += ", ";
                                 }

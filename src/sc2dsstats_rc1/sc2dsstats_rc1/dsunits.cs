@@ -64,25 +64,29 @@ namespace sc2dsstats_rc1
             {
                 if (mingametime > 0 && rep.DURATION < mingametime) continue;
 
-                if (UNITLIST.ContainsKey(rep.REPLAY))
-                {
+                //if (UNITLIST.ContainsKey(rep.REPLAY))
+                //{
                     foreach (dsplayer pl in rep.PLAYERS)
                     {
                         if (pl.RACE == interest)
                         {
                             if ((MW.cb_player.IsChecked == true && MW.player_list.Contains(pl.NAME)) || MW.cb_player.IsChecked == false)
                             {
-                                List<dsunits_player> pl_units = UNITLIST[rep.REPLAY].Where(x => int.Parse(x.PLAYERID) == pl.POS).ToList();
+                            /**
+                            List<dsunits_player> pl_units = UNITLIST[rep.REPLAY].Where(x => int.Parse(x.PLAYERID) == pl.POS).ToList();
                                 if (pl_units.Count > 0)
                                 {
                                     if (pl_units.ElementAt(0).UNITS.ContainsKey(gametime))
                                     {
-                                        List<KeyValuePair<string, int>> units = pl_units.ElementAt(0).UNITS[gametime];
-                                        if (units.Count > 0)
+                            **/
+                                if (pl.UNITS.ContainsKey(gametime)) {
+                                //List<KeyValuePair<string, int>> units = pl_units.ElementAt(0).UNITS[gametime];
+                                Dictionary<string, int> units = new Dictionary<string, int>(pl.UNITS[gametime]);
+                                if (units.Count > 0)
                                         {
                                             if (vs != null)
                                             {
-                                                if (rep.GetOpp(pl.POS).RACE != vs)
+                                                if (rep.GetOpp(pl.REALPOS).RACE != vs)
                                                 {
                                                     continue;
                                                 }
@@ -102,12 +106,12 @@ namespace sc2dsstats_rc1
                                                 }
                                             }
                                         }
-                                    }
+                                    //}
                                 }
                             }
                         }
                     }
-                }
+                //}
             }
 
             double wr = 0;
@@ -410,7 +414,6 @@ namespace sc2dsstats_rc1
                     {
                         UNITLIST.Add(id, pl_list);
                     }
-
                 }
             }
         }

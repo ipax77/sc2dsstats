@@ -5,6 +5,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -17,12 +18,12 @@ namespace sc2dsstats_rc1
         public List<string> REPLAY_LIST { get; set; }
         public string STATS_FILE { get; set; }
         public MainWindow MW { get; set; }
-        public int NEWREP { get; set; }
-        public double FS { get; set; }
-        public string FREESPACE { get; set; }
-        public string ESTTIME { get; set; }
-        public string ESTSPACE { get; set; }
-        public int TOTAL { get; set; }
+        public int NEWREP { get; set; } = 0;
+        public double FS { get; set; } = 0;
+        public string FREESPACE { get; set; } = "0";
+        public string ESTTIME { get; set; } = "0";
+        public string ESTSPACE { get; set; } = "0";
+        public int TOTAL { get; set; } = 0;
 
         public dsscan()
         {
@@ -44,7 +45,74 @@ namespace sc2dsstats_rc1
             MW = mw;
         }
 
-        public void Scan()
+        public static List<string> Scan(MainWindow mw)
+        {
+            int total = 0;
+            return Scan(mw, out total);
+        }
+
+        public static List<string> Scan(MainWindow mw, out int total)
+        {
+            List<string> todo_replays = new List<string>();
+            List<dsreplay> replays = new List<dsreplay>(mw.LoadData(mw.myStats_json));
+            List<string> skiplist = new List<string>();
+            int count = 0;
+            if (File.Exists(mw.mySkip_csv))
+            {
+                string line;
+
+                try
+                {
+                    System.IO.StreamReader file = new System.IO.StreamReader(mw.mySkip_csv);
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        if (line == "") continue;
+                        skiplist.Add(line);
+                    }
+                    file.Close();
+                }
+                catch (System.IO.IOException)
+                {
+                }
+            }
+
+            Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay|(Desert Strike.*)\.SC2Replay", RegexOptions.Singleline);
+            Dictionary<string, string> replist = new Dictionary<string, string>();
+            foreach (string reppath in mw.myReplay_list)
+            {
+                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(reppath);
+                MD5 md5 = new MD5CryptoServiceProvider();
+                string reppath_md5 = System.BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+
+                if (Directory.Exists(reppath))
+                {
+                    List<string> myreplays = Directory.GetFiles(reppath).ToList();
+                    foreach (string fileName in myreplays)
+                    {
+                        Match m = rx_ds.Match(fileName);
+                        if (m.Success)
+                        {
+                            string id = Path.GetFileNameWithoutExtension(fileName);
+                            string repid = reppath_md5 + "/" + id;
+                            replist.Add(repid, fileName);
+                        }
+                    }
+                }
+            }
+            
+            foreach (string repid in replist.Keys)
+            {
+                count++;
+                if (skiplist.Contains(repid)) continue;
+                List<dsreplay> temp = new List<dsreplay>(replays.Where(x => x.REPLAY == repid).ToList());
+                if (temp.Count > 0) continue;
+                todo_replays.Add(replist[repid]);
+            }
+            total = count;
+            return todo_replays;
+        }
+
+        public List<string> Scan_deprecated()
         {
 
             string dir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
@@ -131,6 +199,7 @@ namespace sc2dsstats_rc1
                 }
             }
             int rep_count = 0;
+            List<string> todo_replays = new List<string>();
             foreach (string rep_path in REPLAY_LIST)
             {
                 //if (Directory.Exists(REPLAY_PATH))
@@ -156,7 +225,10 @@ namespace sc2dsstats_rc1
                             if (!dsreplays.ContainsKey(id))
                             {
                                 if (!dsskip.ContainsKey(id))
+                                {
                                     newrep++;
+                                    todo_replays.Add(fileName);
+                                }
                             }
 
 
@@ -182,12 +254,13 @@ namespace sc2dsstats_rc1
             TOTAL = i;
             NEWREP = newrep;
 
+            return todo_replays;
         }
 
-        public double GetInfo()
+        public double GetInfo_deprecated()
         {
             double ds = 0;
-            Scan();
+            //Scan();
 
             double scalc = 6472659;
             double nsize = NEWREP * scalc;

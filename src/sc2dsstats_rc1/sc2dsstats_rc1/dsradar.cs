@@ -289,7 +289,7 @@ mydataset +
                 foreach (dsplayer player in replay.PLAYERS)
                 {
                     syn.RACES[player.RACE].GAMES++;
-                    List<dsplayer> teammates = new List<dsplayer>(GetTeammates(player, replay));
+                    List<dsplayer> teammates = new List<dsplayer>(replay.GetTeammates(player));
                     foreach (dsplayer teammate in teammates)
                     {
                         synrace = syn.RACES[player.RACE].objRace(teammate.RACE);
@@ -324,42 +324,6 @@ mydataset +
 
             return mylist;
         }
-
-        public List<dsplayer> GetTeammates(dsplayer pl, dsreplay rep)
-        {
-            List<dsplayer> teammates = new List<dsplayer>();
-            if (pl.POS == 1)
-            {
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 2));
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 3));
-            } else if (pl.POS ==2)
-            {
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 1));
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 3));
-            }
-            else if (pl.POS == 3)
-            {
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 1));
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 2));
-            }
-            else if (pl.POS == 4)
-            {
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 5));
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 6));
-            }
-            else if (pl.POS == 5)
-            {
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 4));
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 6));
-            }
-            else if (pl.POS == 6)
-            {
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 4));
-                teammates.Add(rep.PLAYERS.Find(x => x.POS == 5));
-            }
-            return teammates;
-        }
-
     }
 
     class dssynergy

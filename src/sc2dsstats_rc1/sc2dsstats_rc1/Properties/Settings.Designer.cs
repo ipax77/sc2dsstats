@@ -129,5 +129,17 @@ namespace sc2dsstats_rc1.Properties {
                 this["V7"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool V8 {
+            get {
+                return ((bool)(this["V8"]));
+            }
+            set {
+                this["V8"] = value;
+            }
+        }
     }
 }

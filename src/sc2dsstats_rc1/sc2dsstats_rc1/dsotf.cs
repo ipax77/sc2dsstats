@@ -117,7 +117,7 @@ namespace sc2dsstats_rc1
             return running;
         }
 
-        internal void ScanReplays(string replay)
+        internal void ScanReplays_deprecated(string replay)
         {
             if (replay == REPLAY)
             {
@@ -282,8 +282,7 @@ namespace sc2dsstats_rc1
         {
 
             // Ereignisbehandlungsroutine für Erstellungsereignisse
-            Task.Factory.StartNew(() => { ScanReplays(e.FullPath); }, TaskCreationOptions.None);
-
+            //Task.Factory.StartNew(() => { ScanReplays(e.FullPath); }, TaskCreationOptions.None);
         }
 
         private void watcher_Deleted(object sender, FileSystemEventArgs e)

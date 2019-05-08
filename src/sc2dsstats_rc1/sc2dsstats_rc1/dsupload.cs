@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
@@ -22,7 +23,26 @@ namespace sc2dsstats_rc1
 
         }
 
-        public static List<string> GenExport(string csv)
+        public static List<string> GenExport(string csv, MainWindow mw)
+        {
+            List<string> anonymous = new List<string>();
+
+            
+            List<dsreplay> replays = new List<dsreplay>(mw.LoadData(csv));
+
+            foreach (dsreplay replay in replays)
+            {
+                foreach (dsplayer pl in replay.PLAYERS)
+                {
+                    if (mw.player_list.Contains(pl.NAME)) pl.NAME = "player";
+                    else pl.NAME = "player" + pl.REALPOS.ToString();
+                }
+                anonymous.Add(JsonConvert.SerializeObject(replay));
+            }
+            return anonymous;
+        }
+
+        public static List<string> GenExport_deprecated (string csv)
         {
             List<string> anonymous = new List<string>();
             var appSettings = ConfigurationManager.AppSettings;

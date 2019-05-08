@@ -988,7 +988,7 @@
                     </LinearGradientBrush>
                 </Button.Background>
             </Button>
-            <CheckBox x:Name="cb_otf" Content="otf" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,5,0,0" VerticalAlignment="Top" Click="cb_otf_Click" ToolTip="Live stats (scanning for new replays in background)" />
+            <CheckBox x:Name="cb_otf" Visibility="Hidden" Content="otf" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,5,0,0" VerticalAlignment="Top" Click="cb_otf_Click" ToolTip="Live stats (scanning for new replays in background)" />
             <CheckBox x:Name="cb_yscale" Content="yscale" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
             <Grid x:Name="gr_dps" Margin="165,2,0,0" VerticalAlignment="top" HorizontalAlignment="Left" IsEnabled="False">
                 <Border Margin="0, -1, 0, 0" BorderBrush="Gray" BorderThickness="1" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top">

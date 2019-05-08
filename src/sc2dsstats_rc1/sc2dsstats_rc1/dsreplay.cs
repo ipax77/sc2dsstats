@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace sc2dsstats_rc1
 {
@@ -10,7 +11,8 @@ namespace sc2dsstats_rc1
         public double GAMETIME { get; set; }
         public int WINNER { get; set; }
         public int DURATION { get; set; }
-        public List<dsplayer> PLAYERS { get; set; }
+        public List<dsplayer> PLAYERS { get; set; } = new List<dsplayer>();
+        [JsonIgnore]
         public List<string> RACES { get; set; }
         public int MINKILLSUM { get; set; }
         public int MAXKILLSUM { get; set; }
@@ -26,9 +28,15 @@ namespace sc2dsstats_rc1
 
         }
 
-        public dsreplay(List<dsplayer> player)
+        public void Init()
         {
-            PLAYERS = player;
+            RACES = _RACES();
+            MINKILLSUM = _MINKILLSUM();
+            MAXKILLSUM = _MAXKILLSUM();
+            MINARMY = _MINARMY();
+            MININCOME = _MININCOME();
+            MAXLEAVER = _MAXLEAVER();
+            PLAYERCOUNT = PLAYERS.Count;
         }
 
         public dsplayer GetOpp(int pos)
@@ -38,31 +46,124 @@ namespace sc2dsstats_rc1
             if (this.PLAYERCOUNT == 6)
             {
 
-                if (pos == 1) plopp = this.PLAYERS.Find(x => x.POS == 4);
-                if (pos == 2) plopp = this.PLAYERS.Find(x => x.POS == 5);
-                if (pos == 3) plopp = this.PLAYERS.Find(x => x.POS == 6);
-                if (pos == 4) plopp = this.PLAYERS.Find(x => x.POS == 1);
-                if (pos == 5) plopp = this.PLAYERS.Find(x => x.POS == 2);
-                if (pos == 6) plopp = this.PLAYERS.Find(x => x.POS == 3);
+                if (pos == 1) plopp = this.PLAYERS.Find(x => x.REALPOS == 4);
+                if (pos == 2) plopp = this.PLAYERS.Find(x => x.REALPOS == 5);
+                if (pos == 3) plopp = this.PLAYERS.Find(x => x.REALPOS == 6);
+                if (pos == 4) plopp = this.PLAYERS.Find(x => x.REALPOS == 1);
+                if (pos == 5) plopp = this.PLAYERS.Find(x => x.REALPOS == 2);
+                if (pos == 6) plopp = this.PLAYERS.Find(x => x.REALPOS == 3);
                 opp = plopp.RACE;
             }
 
             return plopp;
         }
 
+        public List<dsplayer> GetTeammates(dsplayer pl)
+        {
+            List<dsplayer> teammates = new List<dsplayer>();
+            
+            foreach (dsplayer tm in PLAYERS)
+            {
+                if (pl.POS == tm.POS) continue;
+                if (pl.TEAM == tm.TEAM) teammates.Add(tm);
+            }
+
+            return teammates;
+        }
+
+        public int _MAXLEAVER()
+        {
+            int max = 0;
+            foreach (dsplayer pl in PLAYERS)
+            {
+                int diff = DURATION - pl.PDURATION;
+                if (diff > max) max = diff;
+            }
+            return max;
+        }
+        public int _MAXKILLSUM()
+        {
+            int max = 0;
+            foreach (dsplayer pl in PLAYERS)
+            {
+                if (pl.KILLSUM > max) max = pl.KILLSUM;
+            }
+            return max;
+        }
+
+        public int _MINKILLSUM()
+        {
+            int min = -1;
+            foreach (dsplayer pl in PLAYERS)
+            {
+                if (min == -1) min = pl.KILLSUM;
+                else
+                {
+                    if (pl.KILLSUM < min) min = pl.KILLSUM;
+                }
+            }
+            return min;
+        }
+        public int _MINARMY()
+        {
+            int min = -1;
+            foreach (dsplayer pl in PLAYERS)
+            {
+                if (min == -1) min = pl.ARMY;
+                else
+                {
+                    if (pl.ARMY < min) min = pl.ARMY;
+                }
+            }
+            return min;
+        }
+        public double _MININCOME()
+        {
+            double min = -1;
+            foreach (dsplayer pl in PLAYERS)
+            {
+                if (min == -1) min = pl.INCOME;
+                else
+                {
+                    if (pl.INCOME < min) min = pl.INCOME;
+                }
+            }
+            return min;
+        }
+        public List<string> _RACES()
+        {
+            List<string> races = new List<string>();
+            foreach (dsplayer pl in PLAYERS)
+            {
+                races.Add(pl.RACE);
+            }
+            return races;
+        }
+
+        public dsreplay(List<dsplayer> player)
+        {
+            PLAYERS = player;
+        }
+
+
+
     }
 
-    public class dsplayer : dsreplay
+    public class dsplayer
     {
         public int POS { get; set; }
+        public int REALPOS { get; set; }
+        public string NAME { get; set; }
         public string RACE { get; set; }
+        public int RESULT { get; set; }
         public int TEAM { get; set; }
         public int KILLSUM { get; set; } = 0;
         public double INCOME { get; set; } = 0;
         public int PDURATION { get; set; } = 0;
-        public string NAME { get; set; }
+
         public int ARMY { get; set; } = 0;
-        public int RESULT { get; set; }
+        public Dictionary<string, Dictionary<string, int>> UNITS { get; set; } = new Dictionary<string, Dictionary<string, int>>();
+        [JsonIgnore]
         public double ELO { get; set; }
         public double ELO_CHANGE { get; set; }
 

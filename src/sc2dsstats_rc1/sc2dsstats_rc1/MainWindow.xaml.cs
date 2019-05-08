@@ -26,8 +26,7 @@ using System.Windows.Navigation;
 using System.Xml.Serialization;
 using Microsoft.Win32;
 using System.Security.Cryptography;
-
-
+using Newtonsoft.Json;
 
 namespace sc2dsstats_rc1
 {
@@ -39,8 +38,9 @@ namespace sc2dsstats_rc1
 
         private bool dt_handle = true;
         private bool vs_handle = true;
-        private bool scan_running = false;
-        public List<dsreplay> replays = new List<dsreplay>();
+        public bool scan_running { get; set; } = false;
+        //public List<dsreplay> replays = new List<dsreplay>();
+        public List<dsreplay> replays { get; set; } = new List<dsreplay>();
 
         public Task tsscan { get; set; }
         public string player_name { get; set; }
@@ -50,10 +50,11 @@ namespace sc2dsstats_rc1
         public ObservableCollection<KeyValuePair<string, double>> Items { get; set; }
         public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; }
         public List<KeyValuePair<string, double>> Cdata { get; set; }
-        public dsunits UNITS { get; set; }
 
-        Chart dynChart = new Chart() { Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF041326"))
-    };
+        Chart dynChart = new Chart()
+        {
+            Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF041326"))
+        };
         public string[] s_races = new string[17];
         dsotf otf = new dsotf();
         public System.Diagnostics.Process p = new System.Diagnostics.Process();
@@ -65,6 +66,7 @@ namespace sc2dsstats_rc1
         public string myWorker_exe = null;
         public string myWorker_log = null;
         public string myStats_csv = null;
+        public string myStats_json = null;
         public string myUnits_csv = null;
         public string mySkip_csv = null;
         public string myTemp_png = null;
@@ -73,7 +75,7 @@ namespace sc2dsstats_rc1
         public string myTemp_dir = null;
         public string myData_dir = null;
         public string myAppData_dir = null;
-        public string mySample_csv = null;
+        public string mySample_json = null;
         public string myS2cli_exe = null;
         public string myDoc_pdf = null;
         public dsimage dsimg = null;
@@ -93,14 +95,14 @@ namespace sc2dsstats_rc1
             if (ApplicationDeployment.IsNetworkDeployed)
             {
                 version = ApplicationDeployment.CurrentDeployment.CurrentVersion;
-            } 
+            }
             if (version != null) Console.WriteLine(version.ToString());
 
             // config
             string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
             myS2cli_exe = exedir + "\\s2_cli.exe";
             myScan_exe = exedir + "\\sc2dsstats.exe";
-            
+
             myWorker_exe = exedir + "\\scripts\\sc2dsstats_worker.exe";
             myWorker_log = exedir + "\\log_worker.txt";
             myStats_csv = exedir + "\\stats.csv";
@@ -110,9 +112,10 @@ namespace sc2dsstats_rc1
             myData_dir = myAppData_dir + "\\analyzes";
             mySkip_csv = myAppData_dir + "\\skip.csv";
             myStats_csv = myAppData_dir + "\\stats.csv";
+            myStats_json = myAppData_dir + "\\stats.json";
             myUnits_csv = myAppData_dir + "\\units.csv";
             myTemp_dir = myAppData_dir + "\\";
-            mySample_csv = exedir + "\\sample.csv";
+            mySample_json = exedir + "\\sample.json";
             myDoc_pdf = exedir + "\\doc.pdf";
             myScan_log = myAppData_dir + "\\log.txt";
 
@@ -121,7 +124,9 @@ namespace sc2dsstats_rc1
                 try
                 {
                     System.IO.Directory.CreateDirectory(myAppData_dir);
-                } catch {
+                }
+                catch
+                {
                     MessageBox.Show("Failed to create DataDir " + myAppData_dir + ". Please check your options.", "sc2dsstats");
                 }
             }
@@ -135,7 +140,8 @@ namespace sc2dsstats_rc1
             {
                 config.AppSettings.Settings.Remove("STORE_PATH");
                 config.AppSettings.Settings.Add("STORE_PATH", myData_dir);
-            } else
+            }
+            else
             {
                 myData_dir = appSettings["STORE_PATH"];
             }
@@ -158,10 +164,39 @@ namespace sc2dsstats_rc1
                 try
                 {
                     Directory.CreateDirectory(myData_dir);
-                } catch (System.IO.IOException)
+                }
+                catch (System.IO.IOException)
                 {
                     MessageBox.Show("Failed to create DataDir " + myData_dir + ". Please check your options.", "sc2dsstats");
                 }
+            }
+            // JSON_FILE
+            if (appSettings["JSON_FILE"] == null)
+            {
+                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
+            }
+            else if (appSettings["JSON_FILE"] == "0")
+            {
+                config.AppSettings.Settings.Remove("JSON_FILE");
+                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
+            }
+            else
+            {
+                myStats_json = appSettings["JSON_FILE"];
+            }
+
+            if (appSettings["JSON_FILE"] == null)
+            {
+                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
+            }
+            else if (appSettings["JSON_FILE"] == "0")
+            {
+                config.AppSettings.Settings.Remove("JSON_FILE");
+                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
+            }
+            else
+            {
+                myStats_json = appSettings["JSON_FILE"];
             }
 
             // STATS_FILE
@@ -247,16 +282,19 @@ namespace sc2dsstats_rc1
                 }
             }
             int cpus = Environment.ProcessorCount;
-            if (appSettings["CORES"] == null) 
+            if (appSettings["CORES"] == null)
             {
                 cpus /= 2;
                 config.AppSettings.Settings.Add("CORES", cpus.ToString());
-            } else if (appSettings["CORES"] == "0" || appSettings["CORES"] == "")
+            }
+            else if (appSettings["CORES"] == "0" || appSettings["CORES"] == "")
             {
                 cpus /= 2;
                 config.AppSettings.Settings.Remove("CORES");
                 config.AppSettings.Settings.Add("CORES", cpus.ToString());
-            } else {
+            }
+            else
+            {
                 if (int.Parse(appSettings["CORES"]) > cpus)
                 {
                     config.AppSettings.Settings.Remove("CORES");
@@ -299,7 +337,8 @@ namespace sc2dsstats_rc1
                 ConfigurationManager.RefreshSection("appSettings");
                 config.Save();
                 FirstRun();
-            } else
+            }
+            else
             {
                 myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
                 SetReplayList(myReplay_Path);
@@ -333,10 +372,6 @@ namespace sc2dsstats_rc1
             cb_mode.Items.Add("Builds");
             cb_mode.SelectedItem = cb_mode.Items[0];
 
-            UNITS = new dsunits(this);
-            UNITS.GetData(myUnits_csv);
-
-
             s_races = new string[]
             {
                 "Abathur",
@@ -367,24 +402,6 @@ namespace sc2dsstats_rc1
             }
             cb_vs.SelectedItem = cb_vs.Items[0];
 
-            if (File.Exists(myStats_csv))
-            {
-                bool doit = false;
-                try
-                {
-                    if (new FileInfo(myStats_csv).Length > 0)
-                    {
-                        doit = true;
-                    }
-                }
-                catch { }
-
-                if (doit)
-                {
-                    replays = LoadData(myStats_csv);
-                    ScanPrep();
-                }
-            }
             Items = new ObservableCollection<KeyValuePair<string, double>>();
             Items_sorted = new ObservableCollection<KeyValuePair<string, double>>();
 
@@ -402,7 +419,198 @@ namespace sc2dsstats_rc1
             {
                 FirstRun_Version();
             }
+            if (Properties.Settings.Default.V8 == false || !File.Exists(myStats_json))
+            {
+                FirstRun_Json();
+            } else
+            {
+                replays = LoadData(myStats_json);
+            }
 
+            myStats_csv = myStats_json;
+            Console.WriteLine("MW init finished.");
+        }
+
+        public void FirstRun_Json()
+        {
+            gr_filter1.Visibility = System.Windows.Visibility.Hidden;
+            gr_mode.Visibility = Visibility.Hidden;
+            bt_show.IsEnabled = false;
+            cb_sample.IsEnabled = false;
+            bt_filter2.IsEnabled = false;
+            dp_menu.IsEnabled = false;
+            TextBox mybox = new TextBox();
+            mybox.Width = 300;
+            mybox.Height = 150;
+            mybox.VerticalAlignment = VerticalAlignment.Center;
+            mybox.HorizontalAlignment = HorizontalAlignment.Center;
+            mybox.Text = "Please wait a few seconds ..";
+
+            Regex rx_path = new Regex(@"(.*)_(\d+)$", RegexOptions.Singleline);
+
+            
+            if (File.Exists(myStats_csv) && new FileInfo(myStats_csv).Length > 0)
+            {
+                if (!File.Exists(myStats_json) || new FileInfo(myStats_json).Length == 0)
+                {
+                    dsunits myunit = new dsunits(this);
+                    myunit.GetData(myUnits_csv);
+                    List<dsreplay> replaysold = new List<dsreplay>(LoadData_deprecated(myStats_csv));
+                    dsdecode dsdec = new dsdecode(Environment.ProcessorCount, this);
+                    Task.Factory.StartNew(() =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            gr_chart.Children.Add(mybox);
+                        });
+                        int i = 0;
+                        foreach (dsreplay replay in replaysold)
+                        {
+                            i++;
+                            List<dsplayer> playersng = new List<dsplayer>();
+                            foreach (dsplayer pl in replay.PLAYERS)
+                            {
+                                dsplayer plng = new dsplayer();
+                                plng.POS = pl.POS;
+                                plng.REALPOS = pl.POS;
+                                plng.INCOME = pl.INCOME;
+                                plng.KILLSUM = pl.KILLSUM;
+                                plng.ARMY = pl.ARMY;
+                                plng.NAME = pl.NAME;
+                                plng.PDURATION = pl.PDURATION;
+                                plng.RACE = pl.RACE;
+                                plng.TEAM = pl.TEAM;
+                                plng.RESULT = pl.RESULT;
+
+                                if (myunit.UNITLIST.ContainsKey(replay.REPLAY))
+                                {
+                                    foreach (dsunits_player upl in myunit.UNITLIST[replay.REPLAY])
+                                    {
+                                        if (int.Parse(upl.PLAYERID) == pl.POS)
+                                        {
+                                            if (upl.UNITS.Count > 0)
+                                            {
+                                                foreach (string bp in upl.UNITS.Keys)
+                                                {
+                                                    if (bp == "5min")
+                                                    {
+                                                        if (upl.UNITS[bp].Count > 0)
+                                                        {
+                                                            if (!plng.UNITS.ContainsKey("MIN5")) plng.UNITS.Add("MIN5", new Dictionary<string, int>());
+                                                            foreach (KeyValuePair<string, int> unit in upl.UNITS[bp])
+                                                            {
+                                                                plng.UNITS["MIN5"].Add(unit.Key, unit.Value);
+                                                            }
+                                                        }
+                                                    }
+                                                    else if (bp == "10min")
+                                                    {
+                                                        if (upl.UNITS[bp].Count > 0)
+                                                        {
+                                                            if (!plng.UNITS.ContainsKey("MIN10")) plng.UNITS.Add("MIN10", new Dictionary<string, int>());
+                                                            foreach (KeyValuePair<string, int> unit in upl.UNITS[bp])
+                                                            {
+                                                                plng.UNITS["MIN10"].Add(unit.Key, unit.Value);
+                                                            }
+                                                        }
+                                                    }
+                                                    else if (bp == "15min")
+                                                    {
+                                                        if (upl.UNITS[bp].Count > 0)
+                                                        {
+                                                            if (!plng.UNITS.ContainsKey("MIN15")) plng.UNITS.Add("MIN15", new Dictionary<string, int>());
+                                                            foreach (KeyValuePair<string, int> unit in upl.UNITS[bp])
+                                                            {
+                                                                plng.UNITS["MIN15"].Add(unit.Key, unit.Value);
+                                                            }
+                                                        }
+                                                    }
+                                                    else if (bp == "fin")
+                                                    {
+                                                        if (upl.UNITS[bp].Count > 0)
+                                                        {
+                                                            if (!plng.UNITS.ContainsKey("ALL")) plng.UNITS.Add("ALL", new Dictionary<string, int>());
+                                                            foreach (KeyValuePair<string, int> unit in upl.UNITS[bp])
+                                                            {
+                                                                plng.UNITS["ALL"].Add(unit.Key, unit.Value);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                playersng.Add(plng);
+                            }
+                            dsdec.FixPos(replay);
+                            dsreplay replayng = new dsreplay();
+                            replayng.WINNER = replay.WINNER;
+                            replayng.DURATION = replay.DURATION;
+                            replayng.GAMETIME = replay.GAMETIME;
+                            replayng.PLAYERCOUNT = replay.PLAYERCOUNT;
+
+                            int j = 0;
+                            string repid = replay.REPLAY;
+
+                            foreach (string reppath in myReplay_list)
+                            {
+
+                                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(reppath);
+                                MD5 md5 = new MD5CryptoServiceProvider();
+                                string reppath_md5 = System.BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+                                string id = replay.REPLAY;
+                                repid = reppath_md5 + "/" + id;
+                                Match m = rx_path.Match(id);
+                                if (m.Success)
+                                {
+                                    if (int.Parse(m.Groups[2].Value) == j)
+                                    {
+                                        id = m.Groups[1].Value.ToString();
+                                        repid = reppath_md5 + "/" + id;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                                j++;
+                            }
+                            replayng.REPLAY = repid;
+                            replayng.ID = i;
+                            replayng.PLAYERS = playersng;
+
+                            dsdec.Save(myStats_json, replayng);
+                        }
+                        Dispatcher.Invoke(() =>
+                        {
+                            gr_filter1.Visibility = System.Windows.Visibility.Visible;
+                            gr_mode.Visibility = Visibility.Visible;
+                            bt_show.IsEnabled = true;
+                            cb_sample.IsEnabled = true;
+                            bt_filter2.IsEnabled = true;
+                            dp_menu.IsEnabled = true;
+                            gr_chart.Children.Remove(mybox);
+                            MessageBox.Show("Finished.", "sc2dsstats");
+                            replays = LoadData(myStats_json);
+                        });
+                    }, TaskCreationOptions.AttachedToParent);
+                } else EnableLight();
+            } else EnableLight(); 
+            MessageBox.Show("Version 0.8.0.0: We improved the scan process. Please wait till your data is converted to the new format. This should take a maximum of a few minutes.", "sc2dsstats");
+            Properties.Settings.Default.V8 = true;
+            Properties.Settings.Default.Save();
+        }
+
+        public void EnableLight()
+        {
+            gr_filter1.Visibility = System.Windows.Visibility.Visible;
+            gr_mode.Visibility = Visibility.Visible;
+            bt_show.IsEnabled = true;
+            cb_sample.IsEnabled = true;
+            bt_filter2.IsEnabled = true;
+            dp_menu.IsEnabled = true;
         }
 
         public void FirstRun_Version()
@@ -448,7 +656,7 @@ namespace sc2dsstats_rc1
                 {
                     //do yes stuff
                     string mbackup = myStats_csv + "_moved";
-                    
+
                     try
                     {
                         System.IO.File.Move(myStats_csv, mbackup);
@@ -496,7 +704,7 @@ namespace sc2dsstats_rc1
             {
                 myReplay_list.Add(rep);
             }
-            
+
             foreach (string rep_path in myReplay_list)
             {
                 if (!Directory.Exists(rep_path))
@@ -510,7 +718,7 @@ namespace sc2dsstats_rc1
 
         private static bool RemoveEmpty(String s)
         {
-            return s=="";
+            return s == "";
         }
 
         public void FirstRun()
@@ -535,13 +743,6 @@ namespace sc2dsstats_rc1
             gr_firstrun.Visibility = Visibility.Visible;
 
         }
-
-        public void ScanPrep()
-        {
-            dsscan scan = new dsscan(myReplay_list, myStats_csv, this);
-
-        }
-            
 
         private void SetGUIFilter(object sender, EventArgs e)
         {
@@ -1050,7 +1251,7 @@ namespace sc2dsstats_rc1
                 int sep = 0;
                 //if (total > 100)
                 //{
-                    sep = total / 10;
+                sep = total / 10;
                 //}
 
                 int i = 0;
@@ -1289,27 +1490,27 @@ namespace sc2dsstats_rc1
                     {
                         mvp = pl;
                     }
-                    sum.AddGame(pl, dsrep.GetOpp(pl.POS));
-                    sum_mvp.AddGame(pl, dsrep.GetOpp(pl.POS));
-                    sum_dps.AddGame(pl, dsrep.GetOpp(pl.POS));
+                    sum.AddGame(pl, dsrep.GetOpp(pl.REALPOS));
+                    sum_mvp.AddGame(pl, dsrep.GetOpp(pl.REALPOS));
+                    sum_dps.AddGame(pl, dsrep.GetOpp(pl.REALPOS));
 
                     if (pl.TEAM == dsrep.WINNER)
                     {
-                        sum.AddWin(pl, dsrep.GetOpp(pl.POS));
-                        sum_dps.AddWin(pl, dsrep.GetOpp(pl.POS));
+                        sum.AddWin(pl, dsrep.GetOpp(pl.REALPOS));
+                        sum_dps.AddWin(pl, dsrep.GetOpp(pl.REALPOS));
                     }
 
                     //if (pl.NAME == player_name)
                     if (player_list.Contains(pl.NAME))
                     {
-                        sum_pl.AddGame(pl, dsrep.GetOpp(pl.POS));
-                        sum_mvp_pl.AddGame(pl, dsrep.GetOpp(pl.POS));
-                        sum_dps_pl.AddGame(pl, dsrep.GetOpp(pl.POS));
+                        sum_pl.AddGame(pl, dsrep.GetOpp(pl.REALPOS));
+                        sum_mvp_pl.AddGame(pl, dsrep.GetOpp(pl.REALPOS));
+                        sum_dps_pl.AddGame(pl, dsrep.GetOpp(pl.REALPOS));
 
                         if (pl.TEAM == dsrep.WINNER)
                         {
-                            sum_pl.AddWin(pl, dsrep.GetOpp(pl.POS));
-                            sum_dps_pl.AddWin(pl, dsrep.GetOpp(pl.POS));
+                            sum_pl.AddWin(pl, dsrep.GetOpp(pl.REALPOS));
+                            sum_dps_pl.AddWin(pl, dsrep.GetOpp(pl.REALPOS));
                         }
 
                     }
@@ -1318,11 +1519,11 @@ namespace sc2dsstats_rc1
                 //if (mvp.NAME == player_name)
                 if (player_list.Contains(mvp.NAME))
                 {
-                    sum_mvp_pl.AddWin(mvp, dsrep.GetOpp(mvp.POS));
+                    sum_mvp_pl.AddWin(mvp, dsrep.GetOpp(mvp.REALPOS));
                 }
                 else
                 {
-                    sum_mvp.AddWin(mvp, dsrep.GetOpp(mvp.POS));
+                    sum_mvp.AddWin(mvp, dsrep.GetOpp(mvp.REALPOS));
                 }
             }
 
@@ -1358,7 +1559,8 @@ namespace sc2dsstats_rc1
             if (cb_add.IsChecked == false)
             {
                 Items = new ObservableCollection<KeyValuePair<string, double>>(cdata);
-            } else
+            }
+            else
             {
                 foreach (var bab in cdata)
                 {
@@ -1369,7 +1571,8 @@ namespace sc2dsstats_rc1
             if (cb_all.IsChecked == false)
             {
                 yaxis = "(" + otf_startdate.SelectedDate.Value.ToString("yyyy-MM-dd") + " to " + otf_enddate.SelectedDate.Value.ToString("yyyy-MM-dd") + ")     " + yaxis;
-            } else
+            }
+            else
             {
                 yaxis = "(" + otf_enddate.SelectedDate.Value.ToString("yyyy-MM-dd") + ")          " + yaxis;
             }
@@ -1481,7 +1684,8 @@ namespace sc2dsstats_rc1
 
         public void dg_build_MouseUp(object sender, EventArgs e)
         {
-            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(UNITS.ProcessRows_units));
+            dsunits myunits = new dsunits(this);
+            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(myunits.ProcessRows_units));
         }
 
 
@@ -1592,7 +1796,7 @@ namespace sc2dsstats_rc1
                 Title = "Commanders (generated by https://github.com/ipax77/sc2dsstats)",
                 Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF59bbe0"))
             };
-            
+
 
             style = new Style { TargetType = typeof(AxisLabel) };
             style.Setters.Add(new Setter(AxisLabel.LayoutTransformProperty, new RotateTransform() { Angle = -90 }));
@@ -1602,7 +1806,7 @@ namespace sc2dsstats_rc1
             style.Setters.Add(new Setter(AxisLabel.ForegroundProperty, new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF59bbe0"))));
             style.Setters.Add(new Setter(Grid.BackgroundProperty, new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF041427"))));
             axisX.AxisLabelStyle = style;
-            
+
 
             LinearAxis axisY = new LinearAxis()
             {
@@ -1611,7 +1815,7 @@ namespace sc2dsstats_rc1
                 Title = y_Title,
                 //VerticalContentAlignment = VerticalAlignment.Bottom,
                 Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF59bbe0")),
-                
+
             };
             if (cb_yscale.IsChecked == true)
             {
@@ -1634,7 +1838,7 @@ namespace sc2dsstats_rc1
             dynChart.Axes.Add(axisX);
             dynChart.Axes.Add(axisY);
 
-            
+
 
         }
 
@@ -1775,8 +1979,8 @@ namespace sc2dsstats_rc1
             columnseries.ItemsSource = Items;
             columnseries.DependentValuePath = "Value";
             columnseries.IndependentValuePath = "Key";
-            
-            
+
+
 
             Style style = new Style { TargetType = typeof(ColumnDataPoint) };
             //style.Setters.Add(new Setter(ColumnDataPoint.IsTabStopProperty, false));
@@ -1805,7 +2009,7 @@ namespace sc2dsstats_rc1
             // Some cmdr pics
 
             dsimg.ShowImages(this, Items.ToList());
-        List<KeyValuePair<string, double>> icoList = new List<KeyValuePair<string, double>>();
+            List<KeyValuePair<string, double>> icoList = new List<KeyValuePair<string, double>>();
 
             ColumnSeries icoSeries = new ColumnSeries();
 
@@ -1976,7 +2180,7 @@ namespace sc2dsstats_rc1
                 Grid.SetRow(img_syn, i);
                 Grid.SetColumn(img_syn, 0);
                 gr_syn_btn.Children.Add(img_syn);
-                
+
                 i++;
             }
         }
@@ -1993,7 +2197,8 @@ namespace sc2dsstats_rc1
                     {
                         synlist.Add(cb.Content.ToString());
                     }
-                } catch
+                }
+                catch
                 {
 
 
@@ -2017,11 +2222,14 @@ namespace sc2dsstats_rc1
 
         public void GetBuilds()
         {
+            dsunits myunits = new dsunits(this);
+
+
             if (cb_build_sum.IsChecked == true)
             {
-                UNITS.SumSum();
+                myunits.SumSum();
                 return;
-            } 
+            }
 
             List<string> synlist = new List<string>();
             foreach (var cbcmdr in gr_syn_btn.Children)
@@ -2040,28 +2248,32 @@ namespace sc2dsstats_rc1
 
                 }
             }
-            string gametime = "10min";
+            string gametime = "MIN10";
             if (rb_10min.IsChecked == true)
             {
-                gametime = "10min";
-            } else if (rb_fin.IsChecked == true)
+                gametime = "MIN10";
+            }
+            else if (rb_fin.IsChecked == true)
             {
-                gametime = "fin";
-            } else if (rb_5min.IsChecked == true)
+                gametime = "ALL";
+            }
+            else if (rb_5min.IsChecked == true)
             {
-                gametime = "5min";
-            } else if (rb_15min.IsChecked == true)
+                gametime = "MIN5";
+            }
+            else if (rb_15min.IsChecked == true)
             {
-                gametime = "15min";
+                gametime = "MIN15";
             }
 
             if (synlist.Count > 0)
             {
-                UNITS.Sum(cb_vs.SelectedItem.ToString(), synlist.ElementAt(0), gametime);
-                
-            } else
+                myunits.Sum(cb_vs.SelectedItem.ToString(), synlist.ElementAt(0), gametime);
+
+            }
+            else
             {
-                UNITS.Sum(cb_vs.SelectedItem.ToString(), null, gametime);
+                myunits.Sum(cb_vs.SelectedItem.ToString(), null, gametime);
             }
 
 
@@ -2071,9 +2283,41 @@ namespace sc2dsstats_rc1
         /// read in csv
         /// 
 
-        public List<dsreplay> LoadData(string csv)
+        public List<dsreplay> LoadData(string json)
         {
             replays.Clear();
+
+            string filePath = json;
+            TextReader reader = null;
+            dsreplay rep = null;
+            int maxid = 0;
+            try
+            {
+                reader = new StreamReader(filePath, Encoding.UTF8);
+                string fileContents;
+                while ((fileContents = reader.ReadLine()) != null)
+                {
+                    rep = JsonConvert.DeserializeObject<dsreplay>(fileContents);
+                    if (rep != null)
+                    {
+                        rep.Init();
+                        replays.Add(rep);
+                        if (rep.ID > maxid) maxid = rep.ID;
+                    }
+                }
+            }
+            finally
+            {
+                if (reader != null)
+                    reader.Close();
+            }
+            return replays;
+        }
+
+        public List<dsreplay> LoadData_deprecated(string csv)
+        {
+            //replays.Clear();
+            List<dsreplay> replays_deprecated = new List<dsreplay>();
             string line;
             ///string pattern = @"^(\d+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+); ([^;]+);";
             string[] myline = new string[12];
@@ -2086,7 +2330,8 @@ namespace sc2dsstats_rc1
             if (!File.Exists(csv))
             {
                 MessageBox.Show("No data found :( - Have you tried File->Scan?", "sc2dsstats");
-            } else
+            }
+            else
             {
                 doit = true;
             }
@@ -2144,7 +2389,7 @@ namespace sc2dsstats_rc1
                     }
                     else
                     {
-                        CollectData(single_replays);
+                        replays_deprecated = CollectData(single_replays, replays_deprecated);
                         id = rep.REPLAY;
                         single_replays.Clear();
                         single_replays.Add(rep);
@@ -2152,17 +2397,17 @@ namespace sc2dsstats_rc1
 
                     if (j == i)
                     {
-                        CollectData(single_replays);
+                        replays_deprecated = CollectData(single_replays, replays_deprecated);
                     }
                 }
 
                 file.Close();
             }
 
-            return replays;
+            return replays_deprecated;
         }
 
-        private void CollectData(List<dscsv> single_replays)
+        private List<dsreplay> CollectData(List<dscsv> single_replays, List<dsreplay> replays_deprecated)
         {
             dsreplay game = new dsreplay();
             dsplayer player = new dsplayer();
@@ -2187,16 +2432,17 @@ namespace sc2dsstats_rc1
                     player.INCOME = srep.INCOME;
                     player.ARMY = srep.ARMY;
                     player.RESULT = 2;
-                    player.REPLAY = srep.REPLAY;
-                    player.ID = srep.ID;
+                    //player.REPLAY = srep.REPLAY;
+                    //player.ID = srep.ID;
                     player.TEAM = srep.TEAM;
 
                     game.DURATION = srep.DURATION;
                     int result = srep.RESULT;
                     //if (srep.PLAYERID <= 3)
                     //{
-                     //   player.TEAM = 0;
-                     if (srep.TEAM == 0) { 
+                    //   player.TEAM = 0;
+                    if (srep.TEAM == 0)
+                    {
                         if (srep.RESULT == 1)
                         {
                             player.RESULT = 1;
@@ -2305,8 +2551,8 @@ namespace sc2dsstats_rc1
                     mplayer.PDURATION = srep.DURATION;
                     mplayer.INCOME = srep.INCOME;
                     mplayer.ARMY = srep.ARMY;
-                    mplayer.REPLAY = srep.REPLAY;
-                    mplayer.ID = srep.ID;
+                    //mplayer.REPLAY = srep.REPLAY;
+                    //mplayer.ID = srep.ID;
                     mplayer.RESULT = 2;
                     if (srep.PLAYERID <= game.PLAYERCOUNT / 2)
                     {
@@ -2336,12 +2582,12 @@ namespace sc2dsstats_rc1
             game.MAXKILLSUM = maxkillsum;
             game.RACES = new List<string>(races);
             game.PLAYERS = new List<dsplayer>(gameplayer);
-            replays.Add(game);
+            replays_deprecated.Add(game);
 
 
             gameplayer.Clear();
 
-
+            return replays_deprecated;
         }
 
         public string GetTempPNG()
@@ -2361,7 +2607,7 @@ namespace sc2dsstats_rc1
             if (cb_sample.IsArrangeValid == false)
             {
                 replays.Clear();
-                replays = LoadData(myStats_csv);
+                replays = LoadData(myStats_json);
             }
             UpdateGraph(null);
 
@@ -2404,9 +2650,10 @@ namespace sc2dsstats_rc1
             gr_images.Visibility = Visibility.Hidden;
             gr_doit.Visibility = Visibility.Visible;
             var appSettings = ConfigurationManager.AppSettings;
-            dsscan scan = new dsscan(myReplay_list, appSettings["STATS_FILE"], this);
-            scan.GetInfo();
 
+            int total = 0;
+            List<string> todo_replays = dsscan.Scan(this, out total);
+            int todo = todo_replays.Count;
             doit_TextBox1.Document.Blocks.Clear();
 
             TextRange rangeOfText1 = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
@@ -2416,13 +2663,13 @@ namespace sc2dsstats_rc1
             rangeOfText1.ApplyPropertyValue(TextElement.FontFamilyProperty, new System.Windows.Media.FontFamily("/sc2dsstats_rc1;component/#Titillium Web"));
 
             TextRange rangeOfWord = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
-            rangeOfWord.Text = scan.NEWREP.ToString();
+            rangeOfWord.Text = todo.ToString();
             rangeOfWord.ApplyPropertyValue(TextElement.ForegroundProperty, System.Windows.Media.Brushes.Red);
             rangeOfWord.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
             rangeOfWord.ApplyPropertyValue(TextElement.FontFamilyProperty, new System.Windows.Media.FontFamily("/sc2dsstats_rc1;component/#Titillium Web"));
 
             TextRange rangeOfText2 = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
-            rangeOfText2.Text = " new Replays (total:  " + scan.TOTAL.ToString() + ")";
+            rangeOfText2.Text = " new Replays (total:  " + total.ToString() + ")";
             rangeOfText2.ApplyPropertyValue(TextElement.ForegroundProperty, System.Windows.Media.Brushes.White);
             rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
             rangeOfText2.ApplyPropertyValue(TextElement.FontFamilyProperty, new System.Windows.Media.FontFamily("/sc2dsstats_rc1;component/#Titillium Web"));
@@ -2438,16 +2685,18 @@ namespace sc2dsstats_rc1
             //doit_TextBox1.AppendText(Environment.NewLine);
             //doit_TextBox1.AppendText(Environment.NewLine);
 
-            doit_TextBox1.AppendText("Expected time needed: " + scan.ESTTIME + " h" + Environment.NewLine);
+            double time = todo * 7.2;
+            string st_time = string.Format("{0:0.00}", time);
+            doit_TextBox1.AppendText("Expected time needed: " + st_time + " h" + Environment.NewLine);
             doit_TextBox1.AppendText("(can be decresed by setting more CPUs at the cost of the computers workload)" + Environment.NewLine);
             //doit_TextBox1.AppendText(Environment.NewLine);
             if (String.Equals(appSettings["KEEP"], "1"))
             {
-                doit_TextBox1.AppendText("Expected disk space needed: " + scan.ESTSPACE + " GB" + Environment.NewLine);
-                doit_TextBox1.AppendText("(Your current free disk space is " + scan.FREESPACE + " GB)" + Environment.NewLine);
+                doit_TextBox1.AppendText("Expected disk space needed: " + "0" + " GB" + Environment.NewLine);
+                doit_TextBox1.AppendText("(Your current free disk space is " + "0" + " GB)" + Environment.NewLine);
 
 
-                if (double.Parse(scan.ESTSPACE) > double.Parse(scan.FREESPACE))
+                if (double.Parse("0") > double.Parse("0"))
                 {
                     doit_TextBox1.AppendText("WARNING: There might be not enough Diskspace available!!!" + Environment.NewLine);
                 }
@@ -2467,8 +2716,9 @@ namespace sc2dsstats_rc1
                 doit_TextBox1.Document.Blocks.Add(para);
 
                 //doit_TextBox1.AppendText("Decoding replays. Please wait." + Environment.NewLine);
-                
-            } else if (sender == null)
+
+            }
+            else if (sender == null)
             {
                 Paragraph para = new Paragraph();
                 para.Inlines.Add(new Run("Decoding finished. Have fun."));
@@ -2482,6 +2732,31 @@ namespace sc2dsstats_rc1
 
         public void mnu_Scan(object sender, RoutedEventArgs e)
         {
+            if (scan_running == false)
+            {
+                scan_running = true;
+                var appSettings = ConfigurationManager.AppSettings;
+                int cores = Environment.ProcessorCount;
+                if (appSettings["CORES"] != null && appSettings["CORES"] != "0")
+                {
+                    cores = int.Parse(appSettings["CORES"]);
+                }
+
+                if (gr_doit.Visibility == Visibility.Visible)
+                {
+                    cores = int.Parse(cb_doit_cpus.SelectedItem.ToString());
+                }
+                dsdecode dsdec = new dsdecode(cores, this);
+                dsdec.Scan();
+                mnu_Scanpre(null, null);
+            } else
+            {
+                MessageBox.Show("Scan already running. Please wait. (You can do 'File->Reload data' to see the processed data)", "sc2dsstats");
+            }
+        }
+
+        public void mnu_Scan_deprecated(object sender, RoutedEventArgs e)
+        {
             var appSettings = ConfigurationManager.AppSettings;
             int cores = 2;
             if (appSettings["CORES"] != null && appSettings["CORES"] != "0")
@@ -2493,7 +2768,7 @@ namespace sc2dsstats_rc1
             {
                 cores = int.Parse(cb_doit_cpus.SelectedItem.ToString());
             }
-            
+
             if (scan_running == false)
             {
                 scan_running = true;
@@ -2511,7 +2786,7 @@ namespace sc2dsstats_rc1
                                     + "--log_file=\"" + myScan_log + "\" "
                                     + "--s2_cli=\"" + myS2cli_exe + "\" "
                                     + "--num_file=\"" + myAppData_dir + "\\num.txt" + "\" "
-                                    //+ "--ladder=\"" + Properties.Settings.Default.MM_CREDENTIAL + "\" "
+                                   //+ "--ladder=\"" + Properties.Settings.Default.MM_CREDENTIAL + "\" "
                                    ;
                 //MessageBox.Show(Arguments);
 
@@ -2549,10 +2824,10 @@ namespace sc2dsstats_rc1
 
 
                         replays.Clear();
-                        replays = LoadData(myStats_csv);
-                        
+                        replays = LoadData(myStats_json);
+
                         //UpdateGraph(null);
-                        
+
 
                     }
 
@@ -2570,7 +2845,7 @@ namespace sc2dsstats_rc1
                             log += Encoding.Default.GetString(bytes);
                             reader.Close();
                             lb_info.Text = log;
-                            
+
                         }
                         List<Block> myList = doit_TextBox1.Document.Blocks.ToList();
                         if (myList.Count > 0)
@@ -2581,7 +2856,8 @@ namespace sc2dsstats_rc1
                         scan_running = false;
                     });
                 }, TaskCreationOptions.AttachedToParent);
-            } else
+            }
+            else
             {
                 MessageBox.Show("Scan already running. Please wait. (You can do 'File->Reload data' to see the processed data)", "sc2dsstats");
             }
@@ -2590,11 +2866,12 @@ namespace sc2dsstats_rc1
         private void mnu_LoadData_Click(object sender, RoutedEventArgs e)
         {
             replays.Clear();
-            if (File.Exists(myStats_csv))
+            if (File.Exists(myStats_json))
             {
-                replays = LoadData(myStats_csv);
+                replays = LoadData(myStats_json);
                 UpdateGraph(null);
-            } else
+            }
+            else
             {
                 MessageBox.Show("No data found :(", "sc2dsstats");
             }
@@ -2614,7 +2891,8 @@ namespace sc2dsstats_rc1
 
                     log += Encoding.Default.GetString(bytes);
                     reader.Close();
-                } catch { }
+                }
+                catch { }
 
                 Win_log lw = new Win_log();
                 lw.win_Log_Textbox_Log.Text = log;
@@ -2641,7 +2919,7 @@ namespace sc2dsstats_rc1
             wlog.Title = "Info";
             wlog.win_Log_Textbox_Log.Visibility = Visibility.Collapsed;
             wlog.rtb_info.Visibility = Visibility.Visible;
-            wlog.rtb_info.AddHandler(Hyperlink.RequestNavigateEvent, new RequestNavigateEventHandler(wlog.Hyperlink_RequestNavigate));            
+            wlog.rtb_info.AddHandler(Hyperlink.RequestNavigateEvent, new RequestNavigateEventHandler(wlog.Hyperlink_RequestNavigate));
 
 
             wlog.Show();
@@ -2659,7 +2937,7 @@ namespace sc2dsstats_rc1
         public void mnu_export(object sender, RoutedEventArgs e)
         {
 
-            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_csv));
+            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_csv, this));
 
             // Create OpenFileDialog 
             Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
@@ -2689,7 +2967,7 @@ namespace sc2dsstats_rc1
 
         public void mnu_upload(object sender, RoutedEventArgs e)
         {
-             string exp_csv = myAppData_dir + "\\export.csv";
+            string exp_csv = myAppData_dir + "\\export.csv";
 
             string hash = "";
             using (SHA256 sha256Hash = SHA256.Create())
@@ -2698,14 +2976,14 @@ namespace sc2dsstats_rc1
 
             }
 
-            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_csv));
+            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_json, this));
             using (StreamWriter outputFile = new StreamWriter(exp_csv))
             {
                 foreach (string line in ano_stats)
                     outputFile.WriteLine(line);
             }
 
-            string credential = "All player names (including yours) will be anonymized before sending. By clicking \"Yes\" you agree that your DS-replay data will be used at https://www.pax77.org to generate global charts." + Environment.NewLine + Environment.NewLine; 
+            string credential = "All player names (including yours) will be anonymized before sending. By clicking \"Yes\" you agree that your DS-replay data will be used at https://www.pax77.org to generate global charts." + Environment.NewLine + Environment.NewLine;
 
 
             if (MessageBox.Show(credential + "Upload anonymized data to https://www.pax77.org?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
@@ -2716,9 +2994,10 @@ namespace sc2dsstats_rc1
             {
                 //do yes stuff
                 dsclient.StartClient(hash, exp_csv);
-                if (File.Exists(myUnits_csv)) {
-                    dsclient.StartClient(hash + "_units", myUnits_csv);
-                }
+                //if (File.Exists(myUnits_csv))
+                //{
+                //    dsclient.StartClient(hash + "_units", myUnits_csv);
+                //}
             }
 
         }
@@ -2874,18 +3153,19 @@ namespace sc2dsstats_rc1
             }
         }
 
-        private void cb_otf_Click (object sender, RoutedEventArgs e)
+        private void cb_otf_Click(object sender, RoutedEventArgs e)
         {
             otf.REPLAY_PATH = myReplay_list[0];
             otf.MW = this;
 
-            
+
 
             if (cb_otf.IsChecked == true)
             {
                 otf.Start();
 
-            } else
+            }
+            else
             {
                 otf.Stop();
             }
@@ -3019,7 +3299,8 @@ namespace sc2dsstats_rc1
             if (cb_mode.SelectedItem == cb_mode.Items[1])
             {
                 gr_dps.IsEnabled = true;
-            } else
+            }
+            else
             {
                 gr_dps.IsEnabled = false;
             }
@@ -3142,20 +3423,21 @@ namespace sc2dsstats_rc1
             {
                 //player_name = "player";
                 player_list.Add("player");
-                if (File.Exists(mySample_csv)) replays = LoadData(mySample_csv);
-                GetWinrate();
-                UpdateGraph(null);
-            } else if (cb_sample.IsChecked == false)
-            {
-                player_list.Remove("player");
-                if (File.Exists(myStats_csv)) replays = LoadData(myStats_csv);
+                if (File.Exists(mySample_json)) replays = LoadData(mySample_json);
                 GetWinrate();
                 UpdateGraph(null);
             }
-            
+            else if (cb_sample.IsChecked == false)
+            {
+                player_list.Remove("player");
+                if (File.Exists(myStats_csv)) replays = LoadData(myStats_json);
+                GetWinrate();
+                UpdateGraph(null);
+            }
+
         }
 
-        private void bt_chart_Click (object sender, RoutedEventArgs e)
+        private void bt_chart_Click(object sender, RoutedEventArgs e)
         {
             Win_chart chartwin = new Win_chart(this);
             chartwin.Show();
@@ -3451,7 +3733,7 @@ namespace sc2dsstats_rc1
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            UNITS.GenJson();
+            //UNITS.GenJson();
         }
     }
 

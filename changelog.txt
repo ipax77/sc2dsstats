@@ -1,4 +1,9 @@
 
+0.8.0.0
+
+- Decode Prozess port to IronPython
+- Parse Prozess port to Serialize Json
+
 0.7.0.8
 
 - bugfix playerpos

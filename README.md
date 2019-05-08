@@ -14,6 +14,14 @@ The GUI requires Microsoft .NET Framework 4.6.1
 Chart.js (https://github.com/chartjs) ,Perl using the Python s2_cli script from s2protocol (https://github.com/Blizzard/s2protocol) 
 and trueskill (https://github.com/sublee/trueskill) are build in.
 
+# Acknowledgements
+Chart.js (https://github.com/chartjs) used for the radar Chart
+s2protocol (https://github.com/Blizzard/s2protocol) used for decoding the replays
+trueskill (https://github.com/sublee/trueskill) used for matchmaking
+IronPython (https://ironpython.net/) to run s2protocol within C#
+And all other packages used but not mentioned here.
+
+
 # License
 
 Copyright (c) 2019, Philipp Hetzner
