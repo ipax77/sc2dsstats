@@ -2686,6 +2686,8 @@ namespace sc2dsstats_rc1
             //doit_TextBox1.AppendText(Environment.NewLine);
 
             double time = todo * 7.2;
+            time /= 60;
+            time /= 60;
             string st_time = string.Format("{0:0.00}", time);
             doit_TextBox1.AppendText("Expected time needed: " + st_time + " h" + Environment.NewLine);
             doit_TextBox1.AppendText("(can be decresed by setting more CPUs at the cost of the computers workload)" + Environment.NewLine);
