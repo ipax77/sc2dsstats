@@ -563,6 +563,7 @@ namespace sc2dsstats_rc1
 
                 // fail safe
                 FixPos(replay);
+                FixWinner(replay);
 
                 foreach (dsplayer pl in replay.PLAYERS)
                 {
@@ -605,6 +606,78 @@ namespace sc2dsstats_rc1
             }
 
             Interlocked.Decrement(ref THREADS);
+        }
+
+        public void FixWinner(dsreplay replay)
+        {
+            bool withplayer = false;
+            foreach (dsplayer pl in replay.PLAYERS)
+            {
+                if (MW.player_list.Contains(pl.NAME))
+                {
+                    withplayer = true;
+                    if (pl.RESULT == 1)
+                    {
+                        replay.WINNER = 0;
+                    } else
+                    {
+                        replay.WINNER = 1;
+                    }
+                }
+            }
+            if (withplayer == true)
+            {
+                foreach (dsplayer pl in replay.PLAYERS)
+                {
+                    if (pl.TEAM == replay.WINNER)
+                    {
+                        pl.RESULT = 1;
+                    } else
+                    {
+                        pl.RESULT = 2;
+                    }
+                }
+            } else
+            {
+                bool winner = false;
+                foreach (dsplayer pl in replay.PLAYERS)
+                {
+                    if (pl.RESULT == 1)
+                    {
+                        winner = true;
+                        replay.WINNER = pl.TEAM;
+                    } 
+                }
+                if (winner == true)
+                {
+                    foreach (dsplayer pl in replay.PLAYERS)
+                    {
+                        if (pl.TEAM == replay.WINNER)
+                        {
+                            pl.RESULT = 1;
+                        }
+                        else
+                        {
+                            pl.RESULT = 2;
+                        }
+                    }
+                } else
+                {
+                    Console.WriteLine("Fail safe replay winner set to 1 for " + replay.REPLAY);
+                    replay.WINNER = 1;
+                    foreach (dsplayer pl in replay.PLAYERS)
+                    {
+                        if (pl.TEAM == replay.WINNER)
+                        {
+                            pl.RESULT = 1;
+                        }
+                        else
+                        {
+                            pl.RESULT = 2;
+                        }
+                    }
+                }
+            }
         }
 
         public void FixPos(dsreplay replay)

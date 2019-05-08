@@ -37,7 +37,7 @@
     <SuiteName>sc2dsstats</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>0.8.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -1382,7 +1382,9 @@
     <None Include="pylib\site-packages\s2protocol\__init__.spec">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="sample.json" />
+    <None Include="sample.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="sc2dsstats_rc1_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>

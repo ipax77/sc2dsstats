@@ -304,18 +304,6 @@ namespace sc2dsstats_rc1
             ConfigurationManager.RefreshSection("appSettings");
             config.Save();
 
-            if (!File.Exists(myStats_csv))
-            {
-                try
-                {
-                    File.Create(myStats_csv);
-                }
-                catch (System.IO.IOException)
-                {
-                    MessageBox.Show("Failed to create DataDir " + myStats_csv + ". Please check your options.", "sc2dsstats");
-                }
-            }
-
             cpus /= 2;
 
             int usedCpus = 1;
@@ -415,17 +403,30 @@ namespace sc2dsstats_rc1
             win_cm.Items.Add(win_saveas);
             dynChart.ContextMenu = win_cm;
 
-            if (Properties.Settings.Default.V7 == false)
+            if (!File.Exists(myStats_json))
             {
-                FirstRun_Version();
-            }
-            if (Properties.Settings.Default.V8 == false || !File.Exists(myStats_json))
-            {
-                FirstRun_Json();
+                try
+                {
+                    File.Create(myStats_json);
+                } catch
+                {
+                    MessageBox.Show("Failed creating JSON_FILE: " + myStats_json + ". Please Check in File->Options.", "sc2dsstats");
+                }
             } else
             {
                 replays = LoadData(myStats_json);
             }
+
+            if (Properties.Settings.Default.V7 == false)
+            {
+                FirstRun_Version();
+            }
+            if (Properties.Settings.Default.V8 == false)
+            {
+                FirstRun_Json();
+            }
+
+
 
             myStats_csv = myStats_json;
             Console.WriteLine("MW init finished.");
