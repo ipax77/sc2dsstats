@@ -36,12 +36,13 @@ namespace sc2dsstats_rc1
     public partial class MainWindow : Window
     {
 
+        public int DEBUG { get; set; } = 0;
         private bool dt_handle = true;
         private bool vs_handle = true;
         public bool scan_running { get; set; } = false;
         //public List<dsreplay> replays = new List<dsreplay>();
         public List<dsreplay> replays { get; set; } = new List<dsreplay>();
-
+        
         public Task tsscan { get; set; }
         public string player_name { get; set; }
         public List<string> player_list { get; set; }
@@ -109,6 +110,7 @@ namespace sc2dsstats_rc1
             myUnits_csv = exedir + "\\units.csv";
             //myTemp_dir = System.IO.Path.GetTempPath() + "\\sc2dsstats\\";
             myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
+            if (DEBUG > 1) myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats2";
             myData_dir = myAppData_dir + "\\analyzes";
             mySkip_csv = myAppData_dir + "\\skip.csv";
             myStats_csv = myAppData_dir + "\\stats.csv";
@@ -118,6 +120,8 @@ namespace sc2dsstats_rc1
             mySample_json = exedir + "\\sample.json";
             myDoc_pdf = exedir + "\\doc.pdf";
             myScan_log = myAppData_dir + "\\log.txt";
+
+
 
             if (!System.IO.Directory.Exists(myTemp_dir))
             {
@@ -132,6 +136,13 @@ namespace sc2dsstats_rc1
             }
             var appSettings = ConfigurationManager.AppSettings;
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+            try
+            {
+                DEBUG = int.Parse(appSettings["DEBUG"]);
+            } catch { }
+            if (DEBUG > 1) Debug();
+
             if (appSettings["STORE_PATH"] == null)
             {
                 config.AppSettings.Settings.Add("STORE_PATH", myData_dir);
@@ -309,19 +320,19 @@ namespace sc2dsstats_rc1
             int usedCpus = 1;
             cb_doit_cpus.Items.Add(usedCpus.ToString());
 
-            while (usedCpus < cpus)
+            while (usedCpus <= cpus)
             {
                 cb_doit_cpus.Items.Add(usedCpus.ToString());
                 usedCpus += 1;
             }
-            cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[0];
+            cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[cb_doit_cpus.Items.Count  -1];
 
             if (Properties.Settings.Default.REPLAY_PATH == "0")
             {
                 Properties.Settings.Default.V7 = true;
                 Properties.Settings.Default.Save();
                 config.AppSettings.Settings.Remove("UNITS");
-                config.AppSettings.Settings.Add("UNITS", "1");
+                config.AppSettings.Settings.Add("UNITS", "0");
                 ConfigurationManager.RefreshSection("appSettings");
                 config.Save();
                 FirstRun();
@@ -331,6 +342,8 @@ namespace sc2dsstats_rc1
                 myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
                 SetReplayList(myReplay_Path);
             }
+
+            
 
             //player_name = appSettings["PLAYER"];
             player_name = Properties.Settings.Default.PLAYER;
@@ -407,7 +420,7 @@ namespace sc2dsstats_rc1
             {
                 try
                 {
-                    File.Create(myStats_json);
+                    File.Create(myStats_json).Dispose();
                 } catch
                 {
                     MessageBox.Show("Failed creating JSON_FILE: " + myStats_json + ". Please Check in File->Options.", "sc2dsstats");
@@ -417,10 +430,10 @@ namespace sc2dsstats_rc1
                 replays = LoadData(myStats_json);
             }
 
-            if (Properties.Settings.Default.V7 == false)
-            {
-                FirstRun_Version();
-            }
+            //if (Properties.Settings.Default.V7 == false)
+            //{
+            //    FirstRun_Version();
+            //}
             if (Properties.Settings.Default.V8 == false)
             {
                 FirstRun_Json();
@@ -430,6 +443,49 @@ namespace sc2dsstats_rc1
 
             myStats_csv = myStats_json;
             Console.WriteLine("MW init finished.");
+        }
+
+        public void Debug()
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var appSettings = ConfigurationManager.AppSettings;
+
+            config.AppSettings.Settings.Remove("CORES");
+            config.AppSettings.Settings.Add("CORES", "4");
+
+            config.AppSettings.Settings.Remove("JSON_FILE");
+            config.AppSettings.Settings.Add("JSON_FILE", "0");
+
+            config.AppSettings.Settings.Remove("SKIP_FILE");
+            config.AppSettings.Settings.Add("SKIP_FILE", "0");
+
+            config.AppSettings.Settings.Remove("STATS_FILE");
+            config.AppSettings.Settings.Add("STATS_FILE", "0");
+
+            config.AppSettings.Settings.Remove("STORE_PATH");
+            config.AppSettings.Settings.Add("STORE_PATH", "0");
+
+            config.AppSettings.Settings.Remove("UNITS_FILE");
+            config.AppSettings.Settings.Add("UNITS_FILE", "0");
+
+            config.AppSettings.Settings.Remove("JSON_FILE");
+            config.AppSettings.Settings.Add("JSON_FILE", "0");
+            ConfigurationManager.RefreshSection("appSettings");
+            config.Save();
+
+
+
+            Properties.Settings.Default.PLAYER = "PAX;Xpax;";
+            Properties.Settings.Default.REPLAY_PATH = @"C:\temp\bab\replays\1";
+
+            Properties.Settings.Default.V8 = false;
+
+            Properties.Settings.Default.Save();
+
+            //SetPlayerList(Properties.Settings.Default.PLAYER);
+            //SetReplayList(Properties.Settings.Default.REPLAY_PATH);
+
+
         }
 
         public void FirstRun_Json()

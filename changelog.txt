@@ -1,4 +1,11 @@
 
+
+0.8.0.3
+
+- bugfix
+- sequential scan for 1 core
+
+
 0.8.0.2
 
 - bugfix

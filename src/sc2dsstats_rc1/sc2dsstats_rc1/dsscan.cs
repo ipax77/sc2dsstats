@@ -94,7 +94,7 @@ namespace sc2dsstats_rc1
                         {
                             string id = Path.GetFileNameWithoutExtension(fileName);
                             string repid = reppath_md5 + "/" + id;
-                            replist.Add(repid, fileName);
+                            if (!replist.ContainsKey(repid)) replist.Add(repid, fileName);
                         }
                     }
                 }

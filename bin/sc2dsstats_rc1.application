@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xrml="urn:mpeg:mpeg21:2003:01-REL-R-NS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
-  <assemblyIdentity name="sc2dsstats_rc1.application" version="0.8.0.2" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" xmlns="urn:schemas-microsoft-com:asm.v1" />
+  <assemblyIdentity name="sc2dsstats_rc1.application" version="0.8.0.3" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <description asmv2:publisher="Philipp Hetzner" co.v1:suiteName="sc2dsstats" asmv2:product="sc2dsstats_rc1" asmv2:supportUrl="https://github.com/ipax77/sc2dsstats" co.v1:errorReportUrl="https://github.com/ipax77/sc2dsstats/issues" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <deployment install="true" mapFileExtensions="true">
     <subscription>
@@ -15,13 +15,13 @@
   </compatibleFrameworks>
   <dependency>
     <dependentAssembly dependencyType="install" codebase="sc2dsstats_rc1.exe.manifest" size="139093">
-      <assemblyIdentity name="sc2dsstats_rc1.exe" version="0.8.0.2" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" type="win32" />
+      <assemblyIdentity name="sc2dsstats_rc1.exe" version="0.8.0.3" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>WOszx4LGKsGIMoEE576b/1BH63OLz/aZGQe6dGeTtJ4=</dsig:DigestValue>
+        <dsig:DigestValue>ENnu3rJQ2bSHlqtAsy1c9ASd9D5gaydPyxRtfEo0YMo=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

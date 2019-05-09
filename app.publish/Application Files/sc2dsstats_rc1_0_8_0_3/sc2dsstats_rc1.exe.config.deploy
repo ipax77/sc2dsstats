@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <sectionGroup name="userSettings" type="System.Configuration.UserSettingsGroup, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" >
+      <section name="sc2dsstats_rc1.Properties.Settings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" allowExeDefinition="MachineToLocalUser" requirePermission="false" />
+    </sectionGroup>
+  </configSections>
+  <appSettings>
+    <add key="STORE_PATH" value="0" />
+    <add key="SKIP_STD" value="1" />
+    <add key="SKIP" value="240" />
+    <add key="START_DATE" value="0" />
+    <add key="END_DATE" value="0" />
+    <add key="DEBUG" value="1" />
+    <add key="SKIP_MSG" value="0" />
+    <add key="FIRST_RUN" value="1" />
+    <add key="BETA" value="1" />
+    <add key="HOTS" value="1" />
+    <add key="DURATION" value="5376" />
+    <add key="LEAVER" value="2000" />
+    <add key="KILLSUM" value="1500" />
+    <add key="INCOME" value="1500" />
+    <add key="ARMY" value="1500" />
+    <add key="KEEP" value="0" />
+    <add key="CORES" value="2" />
+    <add key="JSON_FILE" value="0" />
+    <add key="STATS_FILE" value="0" />
+    <add key="UNITS_FILE" value="0" />
+    <add key="UNITS" value="1" />
+    <add key="SKIP_FILE" value="0" />
+    <add key="UPLOAD_CREDENTIAL" value="0" />
+    <add key="ClientSettingsProvider.ServiceUri" value="" />
+  </appSettings>
+  <system.web>
+    <membership defaultProvider="ClientAuthenticationMembershipProvider">
+      <providers>
+        <add name="ClientAuthenticationMembershipProvider" type="System.Web.ClientServices.Providers.ClientFormsAuthenticationMembershipProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" />
+      </providers>
+    </membership>
+    <roleManager defaultProvider="ClientRoleProvider" enabled="true">
+      <providers>
+        <add name="ClientRoleProvider" type="System.Web.ClientServices.Providers.ClientRoleProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" cacheTimeout="86400" />
+      </providers>
+    </roleManager>
+  </system.web>
+  <userSettings>
+    <sc2dsstats_rc1.Properties.Settings>
+      <setting name="PLAYER" serializeAs="String">
+        <value>0</value>
+      </setting>
+      <setting name="REPLAY_PATH" serializeAs="String">
+        <value>0</value>
+      </setting>
+      <setting name="MM_CREDENTIAL" serializeAs="String">
+        <value>False</value>
+      </setting>
+      <setting name="MM_Deleted" serializeAs="String">
+        <value />
+      </setting>
+      <setting name="MM_Server" serializeAs="String">
+        <value>NA</value>
+      </setting>
+      <setting name="MM_Skill" serializeAs="String">
+        <value>Intermediate</value>
+      </setting>
+      <setting name="MM_Mode" serializeAs="String">
+        <value>Commander</value>
+      </setting>
+      <setting name="ELO" serializeAs="String">
+        <value>0</value>
+      </setting>
+      <setting name="V7" serializeAs="String">
+        <value>False</value>
+      </setting>
+      <setting name="V8" serializeAs="String">
+        <value>False</value>
+      </setting>
+    </sc2dsstats_rc1.Properties.Settings>
+  </userSettings>
+</configuration>

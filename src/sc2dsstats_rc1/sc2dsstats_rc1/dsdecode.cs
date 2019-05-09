@@ -56,6 +56,9 @@ namespace sc2dsstats_rc1
         public static int MIN10 = 13440;
         public static int MIN15 = 20160;
         public static int CORES = 1;
+        private static int DEBUG = 0;
+        private static string EXEDIR;
+        
         public Dictionary<string, int> BREAKPOINTS { get; set; } = new Dictionary<string, int>();
 
         public dsdecode(int numThreads, MainWindow mw)
@@ -68,22 +71,21 @@ namespace sc2dsstats_rc1
             BREAKPOINTS.Add("MIN15", MIN15);
             BREAKPOINTS.Add("ALL", 0);
 
+        }
 
-
-            /**
-            for (int i = 0; i < numThreads; i++)
+        private void Log(string msg)
+        {
+            if (DEBUG > 1)
             {
-                var thread = new Thread(OnHandlerStart_parse)
-                { IsBackground = true };//Mark 'false' if you want to prevent program exit until jobs finish
-                thread.Start();
+                _readWriteLock.EnterWriteLock();
+                File.AppendAllText(MW.myScan_log, msg + Environment.NewLine);
+                _readWriteLock.ExitWriteLock();
             }
-            **/
-
-
         }
 
         private void Run()
         {
+            Log("Starting thread handler with " + CORES + " cores ..");
             LoadEngine();
             for (int i = 0; i < CORES; i++)
             {
@@ -100,13 +102,15 @@ namespace sc2dsstats_rc1
                 }
                 Console.WriteLine("Scan complete.");
                 MW.scan_running = false;
+                MW.replays = MW.LoadData(MW.myStats_json);
             }, TaskCreationOptions.AttachedToParent);
         }
 
-        private void LoadEngine()
+        private ScriptEngine LoadEngine()
         {
-
+            Log("Loading Engine ..");
             string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            EXEDIR = exedir;
             string pylib1 = exedir + @"\pylib";
             string pylib2 = exedir + @"\pylib\site-packages";
             ScriptEngine engine = IronPython.Hosting.Python.CreateEngine();
@@ -121,14 +125,16 @@ namespace sc2dsstats_rc1
 
             ScriptScope scope = engine.CreateScope();
 
-            dynamic result = engine.ExecuteFile(exedir + @"\pylib\site-packages\mpyq.py", scope);
+            dynamic result = null;
+            result = engine.ExecuteFile(exedir + @"\pylib\site-packages\mpyq.py", scope);
             if (result != null) Console.WriteLine(result);
             result = engine.Execute("from s2protocol import versions", scope);
             if (result != null) Console.WriteLine(result);
             //Thread.Sleep(1000);
             SCOPE = scope;
             ENGINE = engine;
-
+            Log("Loading Engine comlete.");
+            return engine;
         }
         public void Enqueue(string job)
         {
@@ -175,6 +181,12 @@ namespace sc2dsstats_rc1
             START = DateTime.UtcNow;
             REPID = ReadFromJsonFile();
 
+            if (CORES == 1)
+            {
+                Scan_sequ(todo);
+                return;
+            }
+
             if (todo.Count > 0)
             {
                 Run();
@@ -183,17 +195,25 @@ namespace sc2dsstats_rc1
             {
                 MW.scan_running = false;
             }
+            Log("Working on " + TOTAL + " replays.");
             foreach (string rep in todo)
             {
-                string id = Path.GetFileNameWithoutExtension(rep);
-                string reppath = Path.GetDirectoryName(rep);
-                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(reppath);
-                MD5 md5 = new MD5CryptoServiceProvider();
-                string reppath_md5 = System.BitConverter.ToString(md5.ComputeHash(plainTextBytes));
-                string repid = reppath_md5 + "/" + id;
                 _jobs_decode.Add(rep);
             }
             //_jobs_decode.CompleteAdding();
+        }
+
+        private void Scan_sequ(List<string> todo)
+        {
+            LoadEngine();
+            Task sequ = Task.Factory.StartNew(() =>
+            {
+                foreach (string rep in todo)
+                {
+                    DecodePython(rep);
+                }
+
+            }, TaskCreationOptions.AttachedToParent);
         }
 
         private void RedoScan()
@@ -207,14 +227,31 @@ namespace sc2dsstats_rc1
 
             if (REDO.Count > 0)
             {
-                foreach (string rep in REDO.Keys)
+                if (CORES > 1)
                 {
-                    if (REDO[rep] <= 3)
+                    foreach (string rep in REDO.Keys)
                     {
-                        Interlocked.Increment(ref TOTAL);
-                        _jobs_decode.Add(rep);
-
+                        if (REDO[rep] <= 3)
+                        {
+                            Interlocked.Increment(ref TOTAL);
+                            _jobs_decode.Add(rep);
+                        }
                     }
+                } else
+                {
+                    Task sequ = Task.Factory.StartNew(() =>
+                    {
+                        foreach (string rep in REDO.Keys)
+                        {
+                            if (REDO[rep] <= 3)
+                            {
+                                Interlocked.Increment(ref TOTAL);
+                                DecodePython(rep);
+                            }
+                        }
+
+                    }, TaskCreationOptions.AttachedToParent);
+
                 }
             }
             //_jobs_decode.CompleteAdding();
@@ -223,23 +260,40 @@ namespace sc2dsstats_rc1
         public void DecodePython(string rep)
         {
             Interlocked.Increment(ref THREADS);
-            //Console.WriteLine("Threads running: " + THREADS);
+            Log("Threads running: " + THREADS);
+            
 
             string id = Path.GetFileNameWithoutExtension(rep);
+            Log("Working on " + id);
             string reppath = Path.GetDirectoryName(rep);
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(reppath);
             MD5 md5 = new MD5CryptoServiceProvider();
             string reppath_md5 = System.BitConverter.ToString(md5.ComputeHash(plainTextBytes));
             string repid = reppath_md5 + "/" + id;
             REParea area = AREA;
+            
+            
             ScriptScope threadsave_scope = null;
             lock (SCOPE)
             {
                 threadsave_scope = SCOPE;
             }
+            
 
+            /**
+            ScriptEngine engine = LoadEngine();
+            ScriptScope threadsave_scope = engine.CreateScope();
+
+            dynamic result = engine.ExecuteFile(EXEDIR + @"\pylib\site-packages\mpyq.py", threadsave_scope);
+            if (result != null) Console.WriteLine(result);
+            result = engine.Execute("from s2protocol import versions", threadsave_scope);
+            if (result != null) Console.WriteLine(result);
+            **/
+
+            Log("Loading s2protocol ..");
             //dynamic MPQArchive = SCOPE.GetVariable("MPQArchive");
             dynamic MPQArchive = threadsave_scope.GetVariable("MPQArchive");
+            
 
             dynamic archive = MPQArchive(rep);
             var files = archive.extract();
@@ -283,6 +337,7 @@ namespace sc2dsstats_rc1
 
             if (header != null)
             {
+                Log("Loading s2protocol header finished");
                 var baseBuild = header["m_version"]["m_baseBuild"];
                 dynamic protocol = null;
                 try
@@ -296,6 +351,7 @@ namespace sc2dsstats_rc1
                     Interlocked.Decrement(ref THREADS);
                 }
                 if (protocol == null) return;
+                Log("Loading s2protocol protocol finished");
                 var details_enc = archive.read_file("replay.details");
                 dynamic details_dec = null;
                 try
@@ -331,10 +387,10 @@ namespace sc2dsstats_rc1
 
                 }
                 if (details_dec == null) return;
-
+                Log("Loading s2protocol details finished");
                 dsreplay replay = new dsreplay();
                 replay.REPLAY = repid;
-
+                Log("Replay id: " + repid);
                 string names = id + ";";
                 foreach (var player in details_dec["m_playerList"])
                 {
@@ -351,11 +407,12 @@ namespace sc2dsstats_rc1
 
                     Match m2 = rx_subname.Match(name);
                     if (m2.Success) name = m2.Groups[1].Value;
-
+                    Log("Replay playername: " + name);
                     dsplayer pl = new dsplayer();
 
                     pl.NAME = name;
                     pl.RACE = player["m_race"].ToString();
+                    Log("Replay race: " + pl.RACE);
                     pl.RESULT = int.Parse(player["m_result"].ToString());
                     pl.TEAM = int.Parse(player["m_teamId"].ToString());
                     pl.POS = int.Parse(player["m_workingSetSlotId"].ToString()) + 1;
@@ -375,21 +432,20 @@ namespace sc2dsstats_rc1
                 long georgian = timeutc + offset;
                 DateTime gametime = DateTime.FromFileTime(georgian);
                 replay.GAMETIME = double.Parse(gametime.ToString("yyyyMMddhhmmss"));
+                Log("Replay gametime: " + replay.GAMETIME);
                 names += replay.GAMETIME + ";";
-
-
-
-
 
                 var trackerevents_enc = archive.read_file("replay.tracker.events");
                 dynamic trackerevents_dec = null;
                 try
                 {
                     trackerevents_dec = protocol.decode_replay_tracker_events(trackerevents_enc);
+                    Log("Loading trackerevents success");
                 }
                 catch
                 {
                     Console.WriteLine("No tracker version for " + id);
+                    Log("Loading trackerevents failed");
                     lock (ENGINE)
                     {
                         lock (SCOPE)
@@ -416,6 +472,7 @@ namespace sc2dsstats_rc1
 
                 }
                 if (trackerevents_dec == null) return;
+                Log("Loading s2protocol trackerevents finished");
                 REPtrackerevents track = new REPtrackerevents();
                 foreach (dsplayer pl in replay.PLAYERS)
                 {
@@ -537,12 +594,26 @@ namespace sc2dsstats_rc1
                     else if (pydic.ContainsKey("m_stats"))
                     {
                         int playerid = int.Parse(pydic["m_playerId"].ToString());
+                        int gameloop = int.Parse(pydic["_gameloop"].ToString());
+                        int spawn = (gameloop - 480) % 1440;
+                        int pos = 0;
+                        
                         if (track.PLAYERS.ContainsKey(playerid))
                         {
+                            if (track.PLAYERS[playerid].REALPOS > 0) pos = track.PLAYERS[playerid].REALPOS;
+                            else pos = track.PLAYERS[playerid].POS;
+
                             IronPython.Runtime.PythonDictionary pystats = pydic["m_stats"] as IronPython.Runtime.PythonDictionary;
                             track.PLAYERS[playerid].KILLSUM = int.Parse(pystats["m_scoreValueMineralsKilledArmy"].ToString());
                             track.PLAYERS[playerid].INCOME += int.Parse(pystats["m_scoreValueMineralsCollectionRate"].ToString()) / 9.15;
-                            track.PLAYERS[playerid].ARMY = int.Parse(pystats["m_scoreValueMineralsUsedActiveForces"].ToString());
+                            if (pos > 0)
+                            {
+                                bool playerspawn = false;
+                                if (spawn == 0 && pos == 1 || pos == 4) playerspawn = true;
+                                if (spawn == 480 && pos == 2 || pos == 5) playerspawn = true;
+                                if (spawn == 960 && pos == 3 || pos == 6) playerspawn = true;
+                                if (playerspawn == true) track.PLAYERS[playerid].ARMY += int.Parse(pystats["m_scoreValueMineralsUsedActiveForces"].ToString());
+                            }
 
                             replay.DURATION = int.Parse(pydic["_gameloop"].ToString());
                             track.PLAYERS[playerid].PDURATION = replay.DURATION;
@@ -572,7 +643,7 @@ namespace sc2dsstats_rc1
                 }
                 Interlocked.Increment(ref REPID);
                 replay.ID = REPID;
-                if (!replaysng.ContainsKey(repid)) replaysng.TryAdd(repid, replay);
+                //if (!replaysng.ContainsKey(repid)) replaysng.TryAdd(repid, replay);
                 Save(MW.myStats_json, replay);
             }
 
@@ -605,79 +676,50 @@ namespace sc2dsstats_rc1
                 }
             }
 
+            Log("Decoding " + id + " complete.");
             Interlocked.Decrement(ref THREADS);
         }
 
         public void FixWinner(dsreplay replay)
         {
-            bool withplayer = false;
+            bool player = false;
             foreach (dsplayer pl in replay.PLAYERS)
             {
                 if (MW.player_list.Contains(pl.NAME))
                 {
-                    withplayer = true;
-                    if (pl.RESULT == 1)
-                    {
-                        replay.WINNER = 0;
-                    } else
-                    {
-                        replay.WINNER = 1;
-                    }
+                    player = true;
+                    int oppteam;
+                    if (pl.TEAM == 0) oppteam = 1;
+                    else oppteam = 0;
+
+                    if (pl.RESULT == 1) replay.WINNER = pl.TEAM;
+                    else replay.WINNER = oppteam;
+                    break;
                 }
             }
-            if (withplayer == true)
+
+            if (player == false)
             {
-                foreach (dsplayer pl in replay.PLAYERS)
-                {
-                    if (pl.TEAM == replay.WINNER)
-                    {
-                        pl.RESULT = 1;
-                    } else
-                    {
-                        pl.RESULT = 2;
-                    }
-                }
-            } else
-            {
-                bool winner = false;
                 foreach (dsplayer pl in replay.PLAYERS)
                 {
                     if (pl.RESULT == 1)
                     {
-                        winner = true;
+                        int oppteam;
+                        if (pl.TEAM == 0) oppteam = 1;
+                        else oppteam = 0;
+
                         replay.WINNER = pl.TEAM;
-                    } 
-                }
-                if (winner == true)
-                {
-                    foreach (dsplayer pl in replay.PLAYERS)
-                    {
-                        if (pl.TEAM == replay.WINNER)
-                        {
-                            pl.RESULT = 1;
-                        }
-                        else
-                        {
-                            pl.RESULT = 2;
-                        }
-                    }
-                } else
-                {
-                    Console.WriteLine("Fail safe replay winner set to 1 for " + replay.REPLAY);
-                    replay.WINNER = 1;
-                    foreach (dsplayer pl in replay.PLAYERS)
-                    {
-                        if (pl.TEAM == replay.WINNER)
-                        {
-                            pl.RESULT = 1;
-                        }
-                        else
-                        {
-                            pl.RESULT = 2;
-                        }
+                        break;
                     }
                 }
             }
+
+            foreach (dsplayer pl in replay.PLAYERS)
+            {
+                if (pl.TEAM == replay.WINNER) pl.RESULT = 1;
+                else pl.RESULT = 2;
+            }
+
         }
 
         public void FixPos(dsreplay replay)
