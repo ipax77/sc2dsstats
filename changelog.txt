@@ -1,10 +1,12 @@
 
+0.8.0.4
+
+- fix no m_workingSetSlotId 
 
 0.8.0.3
 
 - bugfix
 - sequential scan for 1 core
-
 
 0.8.0.2
 

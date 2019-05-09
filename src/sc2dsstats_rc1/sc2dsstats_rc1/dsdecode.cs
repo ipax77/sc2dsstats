@@ -212,6 +212,7 @@ namespace sc2dsstats_rc1
                 {
                     DecodePython(rep);
                 }
+                MW.scan_running = false;
 
             }, TaskCreationOptions.AttachedToParent);
         }
@@ -392,8 +393,10 @@ namespace sc2dsstats_rc1
                 replay.REPLAY = repid;
                 Log("Replay id: " + repid);
                 string names = id + ";";
+                int failsafe_pos = 0;
                 foreach (var player in details_dec["m_playerList"])
                 {
+                    failsafe_pos++;
                     string name = "";
                     IronPython.Runtime.Bytes bab = null;
                     try
@@ -415,7 +418,13 @@ namespace sc2dsstats_rc1
                     Log("Replay race: " + pl.RACE);
                     pl.RESULT = int.Parse(player["m_result"].ToString());
                     pl.TEAM = int.Parse(player["m_teamId"].ToString());
-                    pl.POS = int.Parse(player["m_workingSetSlotId"].ToString()) + 1;
+                    try
+                    {
+                        pl.POS = int.Parse(player["m_workingSetSlotId"].ToString()) + 1;
+                    } catch
+                    {
+                        pl.POS = failsafe_pos;
+                    }
 
                     names += pl.POS + ";";
                     names += pl.NAME + ";";
