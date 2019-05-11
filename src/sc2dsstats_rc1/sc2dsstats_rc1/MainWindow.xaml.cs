@@ -149,7 +149,7 @@ namespace sc2dsstats_rc1
                 DEBUG = Properties.Settings.Default.DEBUG;
             }
             catch { }
-            if (DEBUG > 1) Debug();
+            if (DEBUG > 2) Debug();
 
             if (Properties.Settings.Default.JSON_FILE != "0" && File.Exists(Properties.Settings.Default.JSON_FILE))
                 myStats_json = Properties.Settings.Default.JSON_FILE;
@@ -255,7 +255,7 @@ namespace sc2dsstats_rc1
             }
 
             myStats_csv = myStats_json;
-            Console.WriteLine("MW init finished.");
+            if (DEBUG > 0) Console.WriteLine("MW init finished.");
             INIT = true;
         }
 
@@ -1539,14 +1539,14 @@ namespace sc2dsstats_rc1
         {
             if (gr_doit.Visibility == Visibility.Visible)
             {
-                gr_doit.Visibility = Visibility.Hidden;
+                gr_doit.Visibility = Visibility.Collapsed;
             }
 
-            if (gr_chart.Visibility == Visibility.Hidden)
+            if (gr_chart.Visibility == Visibility.Collapsed)
             {
                 gr_chart.Visibility = Visibility.Visible;
                 gr_images.Visibility = Visibility.Visible;
-                gr_syn.Visibility = Visibility.Hidden;
+                gr_syn.Visibility = Visibility.Collapsed;
             }
             if (rb_horizontal.IsChecked == true) gr_images.Visibility = Visibility.Visible;
             bool doit = true;
@@ -1554,9 +1554,10 @@ namespace sc2dsstats_rc1
             if (cb_mode.SelectedItem.ToString() == "Synergy")
             {
                 doit = false;
-                gr_chart.Visibility = Visibility.Hidden;
-                gr_images.Visibility = Visibility.Hidden;
+                gr_chart.Visibility = Visibility.Collapsed;
+                gr_images.Visibility = Visibility.Collapsed;
                 gr_syn.Visibility = Visibility.Visible;
+                cb_antisyn.Visibility = Visibility.Visible;
                 lb_sb_info1.Content = "Synergy";
                 GetSynergy();
             }
@@ -1564,11 +1565,12 @@ namespace sc2dsstats_rc1
             if (cb_mode.SelectedItem.ToString() == "Builds")
             {
                 doit = false;
-                gr_chart.Visibility = Visibility.Hidden;
-                gr_images.Visibility = Visibility.Hidden;
+                gr_chart.Visibility = Visibility.Collapsed;
+                gr_images.Visibility = Visibility.Collapsed;
                 gr_syn.Visibility = Visibility.Visible;
                 cb_vs.Visibility = Visibility.Visible;
-                wb_chart.Visibility = Visibility.Hidden;
+                wb_chart.Visibility = Visibility.Collapsed;
+                cb_antisyn.Visibility = Visibility.Hidden;
                 lb_sb_info1.Content = "Builds";
                 GetBuilds();
             }
@@ -2501,8 +2503,8 @@ namespace sc2dsstats_rc1
         {
             if (sender != null)
             {
-                gr_chart.Visibility = Visibility.Hidden;
-                gr_syn.Visibility = Visibility.Hidden;
+                gr_chart.Visibility = Visibility.Collapsed;
+                gr_syn.Visibility = Visibility.Collapsed;
                 if (gr_filter1.Visibility == Visibility.Visible)
                 {
                     //gr_doit.Margin = new Thickness(10,160,15,0);
@@ -2986,12 +2988,14 @@ namespace sc2dsstats_rc1
 
         private void bt_filter2_Click(object sender, RoutedEventArgs e)
         {
-            if (gr_filter2.Visibility == Visibility.Hidden)
+            if (gr_filter2.Visibility == Visibility.Collapsed)
             {
                 gr_filter2.Visibility = Visibility.Visible;
+                /**
                 gr_chart.Margin = new Thickness(0, 140, 0, 0);
                 gr_doit.Margin = new Thickness(10, 140, 15, 0);
                 gr_syn.Margin = new Thickness(0, 140, 0, 0);
+    **/
             }
             else if (gr_filter2.Visibility == Visibility.Visible)
             {
@@ -2999,28 +3003,35 @@ namespace sc2dsstats_rc1
                 {
                     bt_filter3_Click(null, null);
                 }
-                gr_filter2.Visibility = Visibility.Hidden;
+                
+                gr_filter2.Visibility = Visibility.Collapsed;
+                /**
                 gr_chart.Margin = new Thickness(0, 80, 0, 0);
                 gr_doit.Margin = new Thickness(10, 80, 15, 0);
                 gr_syn.Margin = new Thickness(0, 80, 0, 0);
+    **/
             }
         }
 
         private void bt_filter3_Click(object sender, RoutedEventArgs e)
         {
-            if (gr_info.Visibility == Visibility.Hidden)
+            if (gr_info.Visibility == Visibility.Collapsed)
             {
                 gr_info.Visibility = Visibility.Visible;
+                /**
                 gr_chart.Margin = new Thickness(0, 240, 0, 0);
                 gr_doit.Margin = new Thickness(10, 240, 15, 0);
                 gr_syn.Margin = new Thickness(0, 240, 0, 0);
+    **/
             }
             else if (gr_info.Visibility == Visibility.Visible)
             {
-                gr_info.Visibility = Visibility.Hidden;
+                gr_info.Visibility = Visibility.Collapsed;
+                /**
                 gr_chart.Margin = new Thickness(0, 140, 0, 0);
                 gr_doit.Margin = new Thickness(10, 140, 15, 0);
                 gr_syn.Margin = new Thickness(0, 140, 0, 0);
+    **/
             }
         }
 

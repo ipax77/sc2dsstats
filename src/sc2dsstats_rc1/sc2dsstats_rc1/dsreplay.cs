@@ -71,6 +71,19 @@ namespace sc2dsstats_rc1
             return teammates;
         }
 
+        public List<dsplayer> GetOpponents(dsplayer pl)
+        {
+            List<dsplayer> opponents = new List<dsplayer>();
+
+            foreach (dsplayer tm in PLAYERS)
+            {
+                if (pl.POS == tm.POS) continue;
+                if (pl.TEAM != tm.TEAM) opponents.Add(tm);
+            }
+
+            return opponents;
+        }
+
         public int _MAXLEAVER()
         {
             int max = 0;

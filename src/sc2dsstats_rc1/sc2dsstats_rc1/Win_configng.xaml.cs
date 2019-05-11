@@ -29,11 +29,13 @@ namespace sc2dsstats_rc1
         public static int CORES = 2;
         public static DateTime START_DATE = new DateTime(2018, 01, 01);
         public static DateTime END_DATE = DateTime.Today;
+        public static int DEBUG = 0;
 
         public Win_configng()
         {
             InitializeComponent();
             Load();
+            DEBUG = Properties.Settings.Default.DEBUG;
         }
 
         public void Load()
@@ -69,6 +71,7 @@ namespace sc2dsstats_rc1
                 TextBox tb = new TextBox();
                 tb.Name = currentProperty.Name.ToString();
                 tb.Style = (Style)Application.Current.Resources["TextBoxStyle1"];
+                tb.MaxWidth = 400;
                 tb.Text = Properties.Settings.Default[currentProperty.Name].ToString();
 
                 Label lbi = new Label();
@@ -210,7 +213,7 @@ namespace sc2dsstats_rc1
                     TextBox tb = ent as TextBox;
                     if (tb.Text == Properties.Settings.Default[tb.Name].ToString())
                     {
-                        Console.WriteLine("Nothing changed for " + tb.Name);
+                        if (DEBUG > 0) Console.WriteLine("Nothing changed for " + tb.Name);
                     } else {
 
                         dynamic value = null;
@@ -231,7 +234,7 @@ namespace sc2dsstats_rc1
                             } catch { Console.WriteLine("Failed saving config for " + tb.Name + " => " + tb.Text); }
                         }
 
-                        else if (tb.Name.StartsWith("GUI") || tb.Name == "CORES")
+                        else if (tb.Name.StartsWith("GUI") || tb.Name == "CORES" || tb.Name == "DEBUG")
                         {
                             try
                             {
@@ -246,8 +249,14 @@ namespace sc2dsstats_rc1
 
                         if (value != null)
                         {
-                            Properties.Settings.Default[tb.Name] = value;
-                            Console.WriteLine("New config value: " + tb.Name + " => " + tb.Text);
+                            try
+                            {
+                                Properties.Settings.Default[tb.Name] = value;
+                                if (DEBUG > 0) Console.WriteLine("New config value: " + tb.Name + " => " + tb.Text);
+                            } catch
+                            {
+                                if (DEBUG > 0) Console.WriteLine("New config value failed: " + tb.Name + " => " + tb.Text);
+                            }
                         }
                     }
                 }

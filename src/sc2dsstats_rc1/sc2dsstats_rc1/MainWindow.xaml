@@ -15,7 +15,7 @@
     <Window.Resources>
     </Window.Resources>
 
-    <Grid Background="#FF12161c">
+    <Grid x:Name="gr_main" Background="#FF12161c" Width="Auto">
         <Grid x:Name="gr_firstrun" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="0,100,0,0">
             <TextBox x:Name="label2" MaxHeight="80" MinWidth="1300" Text="Welcome to sc2dsstats - this is your first run so we need to know some things to make it work .." TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" IsReadOnly="True" Margin="62,10,0,0" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" FontSize="20" FontWeight="Bold" Foreground="#FFB7B9BE">
                 <TextBox.Background>
@@ -63,40 +63,7 @@
 
         </Grid>
 
-        <Grid x:Name="gr_doit" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,80,15,0">
-            <Label Content="Process priority" Style="{StaticResource lb_Style}" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,285,0,0" VerticalAlignment="Top" Width="200"/>
-            <ComboBox x:Name="cb_doit_prio" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,380,0,0" VerticalAlignment="Top" Width="120"/>
-            <Label Content="CPUs" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="160,355,0,0" VerticalAlignment="Top" Width="200"/>
-            <ComboBox x:Name="cb_doit_cpus" HorizontalAlignment="Left" Margin="160,380,0,0" VerticalAlignment="Top" Width="120"/>
-            <Button HorizontalAlignment="Left" Margin ="300, 375, 0, 0" VerticalAlignment="Top" Width="92" Click="doit_Button_Click" Height="31" FontSize="14" Style="{StaticResource ButtonStyle1}">
-                <Button.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                        <GradientStop Color="Black"/>
-                        <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
-                    </LinearGradientBrush>
-                </Button.Background>
-                <Grid>
-                    <TextBlock x:Name="bt_start_textblock" Text="Start"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
-                        <TextBlock.RenderTransform>
-                            <TranslateTransform X="0.5" Y="0.5" />
-                        </TextBlock.RenderTransform>
-                    </TextBlock>
-                    <TextBlock Text="Start" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
 
-                </Grid>
-            </Button>
-            <Border BorderThickness="1" HorizontalAlignment="Left" Height="350" Margin="10,10,0,0" VerticalAlignment="Top" Width="501" BorderBrush="#FF1434C3">
-                <RichTextBox x:Name="doit_TextBox1" IsReadOnly="True" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="White">
-                    <RichTextBox.BorderBrush>
-                        <ImageBrush/>
-                    </RichTextBox.BorderBrush>
-                    <RichTextBox.Background>
-                        <ImageBrush/>
-                    </RichTextBox.Background>
-                </RichTextBox>
-
-            </Border>
-        </Grid>
         <Button x:Name="bt_show" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
             <Button.Background>
                 <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -186,21 +153,102 @@
             </Menu>
         </DockPanel>
 
+        <DockPanel x:Name="dp_main" Margin="0,0,0,25" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Width="Auto" >
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <Grid x:Name="gr_filter1" Margin="80,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="65">
+                <CheckBox x:Name="cb_std" Content="std" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Show games with Protoss, Terran or Zerg" Click="cb_std_Click" />
+                <CheckBox x:Name="cb_all" Content="all" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="60,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Use time filter" Click="cb_all_Click" />
+                <CheckBox x:Name="cb_player" Content="playeronly" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,40,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Stats for player or global" Click="cb_player_Click" />
+                <Grid x:Name="gr_date" Visibility="Visible" IsEnabled="false">
+                    <Label Content="start_date" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,5,0,0"  VerticalAlignment="Top" Width="65"/>
+                    <DatePicker x:Name="otf_startdate" SelectedDate="{x:Static sys:DateTime.Now}" Background="{StaticResource NormalBrush1}" Foreground="{StaticResource StdTextBrush1}" HorizontalAlignment="Left" Margin="165,5,0,0" VerticalAlignment="Top" SelectedDateChanged="tb_fl2_date_EnterClick" />
+                    <Label Content="end_date" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,35,0,0"  VerticalAlignment="Top" Width="65"/>
+                    <DatePicker x:Name="otf_enddate" SelectedDate="{x:Static sys:DateTime.Now}" Background="{StaticResource NormalBrush1}" Foreground="{StaticResource StdTextBrush1}" HorizontalAlignment="Left" Margin="165,35,0,0" VerticalAlignment="Top" SelectedDateChanged="tb_fl2_date_EnterClick" />
+                </Grid>
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Stretch" Margin="10,5,-2,1" VerticalAlignment="Stretch" />
+                    <Button x:Name="bt_filter2" Content="v" HorizontalAlignment="Left" Margin="-15,40,0,0" VerticalAlignment="Top" Width="13" ToolTip="Advanced Filter" Click="bt_filter2_Click" Style="{StaticResource ButtonStyle1}" Foreground="#6eaaff">
+                        <Button.Background>
+                            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                                <GradientStop Color="Black"/>
+                                <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+            <Grid x:Name="gr_mode" Margin="0, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">
+                <Label Content="Mode" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="15,0,0,0"  VerticalAlignment="Top" Width="54" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                <ComboBox x:Name="cb_mode" HorizontalAlignment="Left" Margin="15,25,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="tb_fl2_Click" Style="{DynamicResource ComboBoxStyle1}" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                <CheckBox x:Name="chb_vs" Content="vs cmdr" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="145,5,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_vs_Click" />
+                <CheckBox x:Name="chb_cmdr_vs" Content="cmdr vs" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="220,5,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_cmdr_vs_Click" />
+                <ComboBox x:Name="cb_vs" HorizontalAlignment="Left"  Margin="145,25,0,0" VerticalAlignment="Top" Visibility="Hidden" Width="120" SelectionChanged="tb_fl2_Click" />
+            </Grid>
+            </StackPanel>
 
-        <Grid x:Name="gr_syn" Margin="0,80,0,25" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Hidden">
-            <Grid x:Name="gr_syn_btn" Margin="220,20,80,80" Width="300" HorizontalAlignment="Left">
+            <Grid x:Name="gr_filter2" DockPanel.Dock="Top" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="55" Visibility="Collapsed" >
+                <Label Content="Advanced Filter" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                <Button HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Visible" ToolTip="Reset setting to default" Click="SetGUIFilter" Style="{StaticResource ButtonStyle1}">
+                    <Button.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                    <Grid>
+                        <TextBlock x:Name="bt_reset_textblock" Text="Reset"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform X="0.5" Y="0.5" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                        <TextBlock Text="Reset" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+
+                    </Grid>
+                </Button>
+                <Button x:Name="bt_filter3" Content="v" HorizontalAlignment="Left" Margin="90,30,0,0" VerticalAlignment="Top" Width="13" ToolTip="Info" Click="bt_filter3_Click" Style="{StaticResource ButtonStyle1}" Foreground="#6eaaff">
+                    <Button.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
+                <CheckBox x:Name="cb_otf" Visibility="Visible" Content="otf" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,5,0,0" VerticalAlignment="Top" Click="cb_otf_Click" ToolTip="Live stats (scanning for new replays in background)" />
+                <CheckBox x:Name="cb_yscale" Content="yscale" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
+                <Grid x:Name="gr_dps" Margin="165,2,0,0" VerticalAlignment="top" HorizontalAlignment="Left" IsEnabled="False">
+                    <Border Margin="0, -1, 0, 0" BorderBrush="Gray" BorderThickness="1" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Grid x:Name="gr_dps1" Margin="0,0,0,0">
+                            <RadioButton x:Name="rb_dps" Content="dps" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" ToolTip="Damage shown as MineralValueKilled / game duration" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                            <RadioButton x:Name="rb_dpv" Content="dpv" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" ToolTip="Damage shown as ArmyValue / MineralValueKilled" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                            <RadioButton x:Name="rb_dpm" Content="dpm" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" ToolTip="Damage shown as Income / MineralValueKilled" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                        </Grid>
+                    </Border>
+                </Grid>
+                <Grid x:Name="gr_duration" HorizontalAlignment="Left" Margin="225,0,0,0" VerticalAlignment="Top">
+                    <CheckBox x:Name="cb_duration" Content="Duration" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays below given gameloops (1 sec = 22,4 loops)" />
+                    <TextBox x:Name="tb_duration" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="80,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
+                    <CheckBox x:Name="cb_leaver" Content="Leaver" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player left before given time end (1 sec = 22,4 loops)" />
+                    <TextBox x:Name="tb_leaver" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="80,28,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
+                    <CheckBox x:Name="cb_killsum" Content="Kills" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="150,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given KilledArmyValue" />
+                    <TextBox x:Name="tb_killsum" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="230,28,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
+                    <CheckBox x:Name="cb_army" Content="Army" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="150,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given ArmyValue" />
+                    <TextBox x:Name="tb_army" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="230,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
+                    <CheckBox x:Name="cb_income" Content="Income" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="300,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given Income" />
+                    <TextBox x:Name="tb_income" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="380,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
+                    <CheckBox x:Name="cb_beta" Content="Beta" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,5,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip beta DS replays" />
+                    <CheckBox x:Name="cb_hots" Content="HotS" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,30,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip HotS DS replays" />
+                    <Border Margin="510, 10,0,0" BorderBrush="Gray" BorderThickness="1" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Grid Margin="0,0,0,0">
+                            <RadioButton x:Name="rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_rb_horizontal_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                            <RadioButton x:Name="rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="tb_fl2_rb_vertical_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                        </Grid>
+                    </Border>
+                    <Border Margin="-5, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <Border Margin="145, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <Border Margin="295, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                </Grid>
 
             </Grid>
-            <WebBrowser x:Name="wb_chart" Margin="415,0,0,0" Visibility="Hidden"></WebBrowser>
-            <Grid x:Name="gr_builds" Margin="415,50,-427,-289">
-                <Grid x:Name="gr_rb_build" Margin="0,0,0,0">
-                    <RadioButton x:Name="rb_5min" Content="5min" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                    <RadioButton x:Name="rb_10min" Content="10min" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                    <RadioButton x:Name="rb_15min" Content="15min" HorizontalAlignment="Left" Margin="150,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                    <RadioButton x:Name="rb_fin" Content="all" HorizontalAlignment="Left" Margin="220,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                </Grid>
-                <CheckBox x:Name="cb_build_sum" Content="sum" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="300,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
-                <TextBox x:Name="tb_build" Text="" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Height="100" Foreground="White">
+            <Grid x:Name="gr_info" DockPanel.Dock="Top" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="100" Visibility="Collapsed">
+                <TextBox x:Name="lb_info" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="White">
                     <TextBox.BorderBrush>
                         <ImageBrush/>
                     </TextBox.BorderBrush>
@@ -209,136 +257,92 @@
                     </TextBox.Background>
 
                 </TextBox>
-                <Grid x:Name="gr_dg_builds" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,110,0,0" >
-                    <DataGrid x:Name="dg_build" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="360" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629" MouseUp="dg_build_MouseUp" ColumnDisplayIndexChanged="dg_build_MouseUp" Sorting="dg_build_MouseUp" >
-                        <DataGrid.Style>
-                            <Style TargetType="DataGrid">
-                                <Setter Property="RowBackground" Value="White">
-
-                                </Setter>
-                            </Style>
-                        </DataGrid.Style>
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Unit"  Binding="{Binding UNIT}" Width="200"/>
-                            <DataGridTextColumn Header="Count"  Binding="{Binding COUNT}" Width="60" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
             </Grid>
-        </Grid>
 
-        <Grid x:Name="gr_chart" Margin="0,80,0,25" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <Grid x:Name="gr_mode" Margin="400, 25,0,0" Height="65" VerticalAlignment="TOP" HorizontalAlignment="Left">
-            <Label Content="Mode" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="15,0,0,0"  VerticalAlignment="Top" Width="54" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
-            <ComboBox x:Name="cb_mode" HorizontalAlignment="Left" Margin="15,25,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="tb_fl2_Click" Style="{DynamicResource ComboBoxStyle1}" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
-            <CheckBox x:Name="chb_vs" Content="vs cmdr" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="145,5,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_vs_Click" />
-            <CheckBox x:Name="chb_cmdr_vs" Content="cmdr vs" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="220,5,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Stats for one specific commander vs the others" Click="chb_cmdr_vs_Click" />
-            <ComboBox x:Name="cb_vs" HorizontalAlignment="Left"  Margin="145,25,0,0" VerticalAlignment="Top" Visibility="Hidden" Width="120" SelectionChanged="tb_fl2_Click" />
-        </Grid>
 
-        <Grid x:Name="gr_filter1" Margin="80,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="65">
-            <CheckBox x:Name="cb_std" Content="std" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Show games with Protoss, Terran or Zerg" Click="cb_std_Click" />
-            <CheckBox x:Name="cb_all" Content="all" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="60,10,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Use time filter" Click="cb_all_Click" />
-            <CheckBox x:Name="cb_player" Content="playeronly" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="15,40,0,0" VerticalAlignment="Top" Height="20" IsChecked="True" ToolTip="Stats for player or global" Click="cb_player_Click" />
-            <Grid x:Name="gr_date" Visibility="Visible" IsEnabled="false">
-                <Label Content="start_date" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,5,0,0"  VerticalAlignment="Top" Width="65"/>
-                <DatePicker x:Name="otf_startdate" SelectedDate="{x:Static sys:DateTime.Now}" Background="{StaticResource NormalBrush1}" Foreground="{StaticResource StdTextBrush1}" HorizontalAlignment="Left" Margin="165,5,0,0" VerticalAlignment="Top" SelectedDateChanged="tb_fl2_date_EnterClick" />
-                <Label Content="end_date" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="100,35,0,0"  VerticalAlignment="Top" Width="65"/>
-                <DatePicker x:Name="otf_enddate" SelectedDate="{x:Static sys:DateTime.Now}" Background="{StaticResource NormalBrush1}" Foreground="{StaticResource StdTextBrush1}" HorizontalAlignment="Left" Margin="165,35,0,0" VerticalAlignment="Top" SelectedDateChanged="tb_fl2_date_EnterClick" />
+            <Grid x:Name="gr_chart" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="{Binding ElementName=gr_main, Path=ActualWidth}" Visibility="Collapsed">
             </Grid>
-            <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Stretch" Margin="10,5,-2,1" VerticalAlignment="Stretch" />
-        </Grid>
-        <Grid x:Name="gr_filter2" Margin="10,85,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="55" Visibility="Hidden" >
-            <Label Content="Advanced Filter" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
-            <Button HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="75" Visibility="Visible" ToolTip="Reset setting to default" Click="SetGUIFilter" Style="{StaticResource ButtonStyle1}">
-                <Button.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                        <GradientStop Color="Black"/>
-                        <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
-                    </LinearGradientBrush>
-                </Button.Background>
-                <Grid>
-                    <TextBlock x:Name="bt_reset_textblock" Text="Reset"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
-                        <TextBlock.RenderTransform>
-                            <TranslateTransform X="0.5" Y="0.5" />
-                        </TextBlock.RenderTransform>
-                    </TextBlock>
-                    <TextBlock Text="Reset" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+            <Grid x:Name="gr_doit" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,0,15,0">
+                <Label Content="Process priority" Style="{StaticResource lb_Style}" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,285,0,0" VerticalAlignment="Top" Width="200"/>
+                <ComboBox x:Name="cb_doit_prio" Visibility="Collapsed" HorizontalAlignment="Left" Margin="10,380,0,0" VerticalAlignment="Top" Width="120"/>
+                <Label Content="CPUs" Style="{StaticResource lb_Style}" HorizontalAlignment="Left" Margin="160,355,0,0" VerticalAlignment="Top" Width="200"/>
+                <ComboBox x:Name="cb_doit_cpus" HorizontalAlignment="Left" Margin="160,380,0,0" VerticalAlignment="Top" Width="120"/>
+                <Button HorizontalAlignment="Left" Margin ="300, 375, 0, 0" VerticalAlignment="Top" Width="92" Click="doit_Button_Click" Height="31" FontSize="14" Style="{StaticResource ButtonStyle1}">
+                    <Button.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                    <Grid>
+                        <TextBlock x:Name="bt_start_textblock" Text="Start"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform X="0.5" Y="0.5" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                        <TextBlock Text="Start" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
 
-                </Grid>
-            </Button>
-            <Button x:Name="bt_filter3" Content="v" HorizontalAlignment="Left" Margin="90,30,0,0" VerticalAlignment="Top" Width="13" ToolTip="Info" Click="bt_filter3_Click" Style="{StaticResource ButtonStyle1}" Foreground="#6eaaff">
-                <Button.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                        <GradientStop Color="Black"/>
-                        <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
-                    </LinearGradientBrush>
-                </Button.Background>
-            </Button>
-            <CheckBox x:Name="cb_otf" Visibility="Visible" Content="otf" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,5,0,0" VerticalAlignment="Top" Click="cb_otf_Click" ToolTip="Live stats (scanning for new replays in background)" />
-            <CheckBox x:Name="cb_yscale" Content="yscale" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="110,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
-            <Grid x:Name="gr_dps" Margin="165,2,0,0" VerticalAlignment="top" HorizontalAlignment="Left" IsEnabled="False">
-                <Border Margin="0, -1, 0, 0" BorderBrush="Gray" BorderThickness="1" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <Grid x:Name="gr_dps1" Margin="0,0,0,0">
-                        <RadioButton x:Name="rb_dps" Content="dps" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" ToolTip="Damage shown as MineralValueKilled / game duration" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                        <RadioButton x:Name="rb_dpv" Content="dpv" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" ToolTip="Damage shown as ArmyValue / MineralValueKilled" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                        <RadioButton x:Name="rb_dpm" Content="dpm" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" ToolTip="Damage shown as Income / MineralValueKilled" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
                     </Grid>
+                </Button>
+                <Border BorderThickness="1" HorizontalAlignment="Left" Height="350" Margin="10,10,0,0" VerticalAlignment="Top" Width="501" BorderBrush="#FF1434C3">
+                    <RichTextBox x:Name="doit_TextBox1" IsReadOnly="True" Margin="36,9" FontSize="16" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="White">
+                        <RichTextBox.BorderBrush>
+                            <ImageBrush/>
+                        </RichTextBox.BorderBrush>
+                        <RichTextBox.Background>
+                            <ImageBrush/>
+                        </RichTextBox.Background>
+                    </RichTextBox>
+
                 </Border>
             </Grid>
-            <Grid x:Name="gr_duration" HorizontalAlignment="Left" Margin="225,0,0,0" VerticalAlignment="Top">
-                <CheckBox x:Name="cb_duration" Content="Duration" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays below given gameloops (1 sec = 22,4 loops)" />
-                <TextBox x:Name="tb_duration" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="80,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
-                <CheckBox x:Name="cb_leaver" Content="Leaver" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player left before given time end (1 sec = 22,4 loops)" />
-                <TextBox x:Name="tb_leaver" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="80,28,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
-                <CheckBox x:Name="cb_killsum" Content="Kills" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="150,30,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given KilledArmyValue" />
-                <TextBox x:Name="tb_killsum" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="230,28,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
-                <CheckBox x:Name="cb_army" Content="Army" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="150,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given ArmyValue" />
-                <TextBox x:Name="tb_army" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="230,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
-                <CheckBox x:Name="cb_income" Content="Income" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="300,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given Income" />
-                <TextBox x:Name="tb_income" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="380,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
-                <CheckBox x:Name="cb_beta" Content="Beta" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,5,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip beta DS replays" />
-                <CheckBox x:Name="cb_hots" Content="HotS" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,30,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip HotS DS replays" />
-                <Border Margin="510, 10,0,0" BorderBrush="Gray" BorderThickness="1" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <Grid Margin="0,0,0,0">
-                        <RadioButton x:Name="rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_rb_horizontal_Click" Style="{DynamicResource RadioButtonStyle1}" />
-                        <RadioButton x:Name="rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="tb_fl2_rb_vertical_Click" Style="{DynamicResource RadioButtonStyle1}" />
+
+            <Grid x:Name="gr_syn" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="{Binding ElementName=gr_main, Path=ActualWidth}" Visibility="Collapsed">
+                <CheckBox x:Name="cb_antisyn" Content="antisyn" Visibility="Hidden" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="200,15,0,0" VerticalAlignment="Top" Height="20" IsChecked="False" ToolTip="Shows the winrate vs commanders in the enemy team" Click="tb_fl2_Click" />
+                <Grid x:Name="gr_syn_btn" Margin="220,20,80,80" Width="300" HorizontalAlignment="Left" >
+                </Grid>
+                <WebBrowser x:Name="wb_chart" Margin="415,0,0,0" Visibility="Hidden"></WebBrowser>
+                <Grid x:Name="gr_builds" Margin="415,10,-427,-289">
+                    <Grid x:Name="gr_rb_build" Margin="0,0,0,0">
+                        <RadioButton x:Name="rb_5min" Content="5min" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                        <RadioButton x:Name="rb_10min" Content="10min" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                        <RadioButton x:Name="rb_15min" Content="15min" HorizontalAlignment="Left" Margin="150,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
+                        <RadioButton x:Name="rb_fin" Content="all" HorizontalAlignment="Left" Margin="220,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" Style="{DynamicResource RadioButtonStyle1}" />
                     </Grid>
-                </Border>
-                <Border Margin="-5, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
-                <Border Margin="145, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
-                <Border Margin="295, 0,0,0" Width="148" Height="50" BorderBrush="Gray" BorderThickness="1"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <CheckBox x:Name="cb_build_sum" Content="sum" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="300,0,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Let y-axis start at 0" />
+                    <TextBox x:Name="tb_build" Text="" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" Height="100" Foreground="White">
+                        <TextBox.BorderBrush>
+                            <ImageBrush/>
+                        </TextBox.BorderBrush>
+                        <TextBox.Background>
+                            <ImageBrush/>
+                        </TextBox.Background>
+
+                    </TextBox>
+                    <Grid x:Name="gr_dg_builds" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,110,0,0" >
+                        <DataGrid x:Name="dg_build" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="360" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629" MouseUp="dg_build_MouseUp" ColumnDisplayIndexChanged="dg_build_MouseUp" Sorting="dg_build_MouseUp" >
+                            <DataGrid.Style>
+                                <Style TargetType="DataGrid">
+                                    <Setter Property="RowBackground" Value="White">
+
+                                    </Setter>
+                                </Style>
+                            </DataGrid.Style>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Unit"  Binding="{Binding UNIT}" Width="200"/>
+                                <DataGridTextColumn Header="Count"  Binding="{Binding COUNT}" Width="60" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Grid>
             </Grid>
-
-        </Grid>
-        <Grid x:Name="gr_info" Margin="10,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="100" Visibility="Hidden">
-            <TextBox x:Name="lb_info" Text="Have fun :)" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.242,0.043" MaxHeight="100" Foreground="White">
-                <TextBox.BorderBrush>
-                    <ImageBrush/>
-                </TextBox.BorderBrush>
-                <TextBox.Background>
-                    <ImageBrush/>
-                </TextBox.Background>
-
-            </TextBox>
-        </Grid>
-        <Button x:Name="bt_filter2" Content="v" HorizontalAlignment="Left" Margin="72,55,0,0" VerticalAlignment="Top" Width="13" ToolTip="Advanced Filter" Click="bt_filter2_Click" Style="{StaticResource ButtonStyle1}" Foreground="#6eaaff">
-            <Button.Background>
-                <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                    <GradientStop Color="Black"/>
-                    <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
-                </LinearGradientBrush>
-            </Button.Background>
-        </Button>
-        <Grid x:Name="gr_images" Margin="50,400,10,142" Height="80" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-
-        </Grid>
-        <Button x:Name="button" Visibility="Collapsed" Content="Button" HorizontalAlignment="Left" Margin="913,54,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
+        </DockPanel>
+        <Grid x:Name="gr_images" Margin="50,150,10,134" Height="80" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" />
         <Grid x:Name="gr_status" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
             <StatusBar x:Name="sb_status" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="25">
                 <DockPanel HorizontalAlignment="Stretch">
-                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.4" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.6" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
                     <Border Width="1" Margin="2" Background="#8888"/>
                     <Label x:Name="lb_sb_info1" Height="25" Content="" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"></Label>
                     <Border Width="1" Margin="2" Background="#8888"/>
@@ -349,6 +353,7 @@
                 </DockPanel>
             </StatusBar>
         </Grid>
+
     </Grid>
 
 

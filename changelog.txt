@@ -1,10 +1,18 @@
 
+0.8.0.6
+
+- antisynergy graph
+- bugfix army value
+- bugfix gui
+- xaml rework
+
 0.8.0.5
 
 - bugifx pos
 - database redesign part1
 - otf scan for replays in all folders
 - scan progress bar
+- Chart.js 2.8.0
 
 0.8.0.4
 

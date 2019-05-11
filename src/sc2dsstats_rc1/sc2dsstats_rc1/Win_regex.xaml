@@ -86,27 +86,30 @@
         </Grid>
         </StackPanel>
         <Grid x:Name="gr_player_opt" Margin="650,41,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
-            <CheckBox x:Name="cb_pl_POS" Content="POS"  Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_POS_Click" />
-            <CheckBox x:Name="cb_pl_NAME" Content="NAME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" Click="cb_NAME_Click" />
-            <CheckBox x:Name="cb_pl_RACE" Content="RACE" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="175,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RACE_Click" />
-            <CheckBox x:Name="cb_pl_TEAM" Content="TEAM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="285,60,0,0" VerticalAlignment="Top" Click="cb_TEAM_Click" />
-            <CheckBox x:Name="cb_pl_KILLSUM" Content="KILLSUM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="345,60,0,0" VerticalAlignment="Top" Click="cb_KILLSUM_Click" />
-            <CheckBox x:Name="cb_pl_ARMY" Content="ARMY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="425,60,0,0" VerticalAlignment="Top" Click="cb_ARMY_Click" />
-            <CheckBox x:Name="cb_pl_INCOME" Content="INCOME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="505,60,0,0" VerticalAlignment="Top" Click="cb_INCOME_Click" />
-            <CheckBox x:Name="cb_pl_DURATION" Content="DURATION" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="585,60,0,0" VerticalAlignment="Top" Click="cb_DURATION_Click" />
-            <CheckBox x:Name="cb_pl_RESULT" Content="RESULT" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RESULT_Click" />
+            <StackPanel Orientation="Horizontal">
+            <CheckBox x:Name="cb_pl_POS" Content="REALPOS"  Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_POS_Click" />
+            <CheckBox x:Name="cb_pl_NAME" Content="NAME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_NAME_Click" />
+            <CheckBox x:Name="cb_pl_RACE" Content="RACE" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RACE_Click" />
+            <CheckBox x:Name="cb_pl_TEAM" Content="TEAM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_TEAM_Click" />
+            <CheckBox x:Name="cb_pl_KILLSUM" Content="KILLSUM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_KILLSUM_Click" />
+            <CheckBox x:Name="cb_pl_ARMY" Content="ARMY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_ARMY_Click" />
+            <CheckBox x:Name="cb_pl_INCOME" Content="INCOME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_INCOME_Click" />
+            <CheckBox x:Name="cb_pl_DURATION" Content="DURATION" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_DURATION_Click" />
+            <CheckBox x:Name="cb_pl_RESULT" Content="RESULT" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RESULT_Click" />
+            </StackPanel>
         </Grid>
         <Grid x:Name="gr_games_opt" Margin="10,21,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
-            <CheckBox x:Name="cb_ga_ID" Content="ID" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_ID_Click" />
-            <CheckBox x:Name="cb_ga_REPLAY" Content="REPLAY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_REPLAY_Click" />
-            <CheckBox x:Name="cb_ga_GAMETIME" Content="GAMETIME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="140,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_GAMETIME_Click" />
-            <CheckBox x:Name="cb_ga_WINTEAM" Content="WIN" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="225,60,0,0" VerticalAlignment="Top" Click="cb_ga_WINTEAM_Click" />
-            <CheckBox x:Name="cb_ga_DURATION" Content="DURATION" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="280,60,0,0" VerticalAlignment="Top" Click="cb_ga_DURATION_Click" />
-            <CheckBox x:Name="cb_ga_MAXLEAVER" Content="MAXLEAVER" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" Click="cb_ga_MAXLEAVER_Click" Template="{DynamicResource CheckBoxControlTemplate1}" />
-            <CheckBox x:Name="cb_ga_MINKILLSUM" Content="MINKILLSUM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="465,60,0,0" VerticalAlignment="Top" Click="cb_ga_MINKILLSUM_Click" />
-            <CheckBox x:Name="cb_ga_MININCOME" Content="MININCOME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="565,60,0,0" VerticalAlignment="Top" Click="cb_ga_MININCOME_Click" />
-            <CheckBox x:Name="cb_ga_MINARMY" Content="MINARMY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="False" Click="cb_ga_MINARMY_Click" />
-
+            <StackPanel Orientation="Horizontal">
+                <CheckBox x:Name="cb_ga_ID" Content="ID" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_ID_Click" />
+                <CheckBox x:Name="cb_ga_REPLAY" Content="REPLAY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_REPLAY_Click" />
+                <CheckBox x:Name="cb_ga_GAMETIME" Content="GAMETIME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_GAMETIME_Click" />
+                <CheckBox x:Name="cb_ga_WINTEAM" Content="WIN" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_ga_WINTEAM_Click" />
+                <CheckBox x:Name="cb_ga_DURATION" Content="DURATION" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_ga_DURATION_Click" />
+                <CheckBox x:Name="cb_ga_MAXLEAVER" Content="MAXLEAVER" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_ga_MAXLEAVER_Click" />
+                <CheckBox x:Name="cb_ga_MINKILLSUM" Content="MINKILLSUM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_ga_MINKILLSUM_Click" />
+                <CheckBox x:Name="cb_ga_MININCOME" Content="MININCOME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" Click="cb_ga_MININCOME_Click" />
+                <CheckBox x:Name="cb_ga_MINARMY" Content="MINARMY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="False" Click="cb_ga_MINARMY_Click" />
+            </StackPanel>
         </Grid>
         <Button x:Name="bt_show" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
             <Button.Background>

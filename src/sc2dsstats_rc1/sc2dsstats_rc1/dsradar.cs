@@ -227,7 +227,14 @@ mydataset +
 "}," + Environment.NewLine;
 
             myhtml += myhtml_data;
-            myhtml += HT_POST;
+            if (MW.cb_antisyn.IsChecked == false)
+            {
+                myhtml += HT_POST;
+            } else
+            {
+                string anti_post = HT_POST.Replace("cmdr synergy", "cmdr antisynergy");
+                myhtml += anti_post;
+            }
 
             return myhtml;
         }
@@ -283,12 +290,18 @@ mydataset +
 
             dssynergy syn = new dssynergy();
             dsstats_race synrace = new dsstats_race();
+
+            dssynergy antisyn = new dssynergy();
+            dsstats_race antisynrace = new dsstats_race();
+
             foreach (dsreplay replay in replays)
             {
                 if (replay.PLAYERCOUNT != 6) continue;
                 foreach (dsplayer player in replay.PLAYERS)
                 {
                     syn.RACES[player.RACE].GAMES++;
+                    antisyn.RACES[player.RACE].GAMES++;
+
                     List<dsplayer> teammates = new List<dsplayer>(replay.GetTeammates(player));
                     foreach (dsplayer teammate in teammates)
                     {
@@ -299,27 +312,61 @@ mydataset +
                             synrace.RWINS++;
                         }
                     }
+                    List<dsplayer> opponents = new List<dsplayer>(replay.GetOpponents(player));
+                    foreach (dsplayer opponent in opponents)
+                    {
+                        antisynrace = antisyn.RACES[player.RACE].objRace(opponent.RACE);
+                        antisynrace.RGAMES++;
+                        if (player.TEAM == replay.WINNER)
+                        {
+                            antisynrace.RWINS++;
+                        }
+                    }
+
                 }
             }
 
             foreach (string cmdr in cmdrs)
             {
                 List<KeyValuePair<string, double>> synrow = new List<KeyValuePair<string, double>>();
-                foreach (dsstats_race intsyn in syn.RACES[cmdr].LRACE)
+                List<KeyValuePair<string, double>> antisynrow = new List<KeyValuePair<string, double>>();
+
+                if (MW.cb_antisyn.IsChecked == false)
                 {
-                    double wr = intsyn.GetWR();
-                    string syncmdr = intsyn.RACE;
-                    KeyValuePair<string, double> mystat = new KeyValuePair<string, double>(syncmdr, wr);
-                    if (MW.cb_std.IsChecked == false)
+                    foreach (dsstats_race intsyn in syn.RACES[cmdr].LRACE)
                     {
-                        if (intsyn.RACE == "Protoss" || intsyn.RACE == "Terran" || intsyn.RACE == "Zerg")
+                        double wr = intsyn.GetWR();
+                        string syncmdr = intsyn.RACE;
+                        KeyValuePair<string, double> mystat = new KeyValuePair<string, double>(syncmdr, wr);
+                        if (MW.cb_std.IsChecked == false)
                         {
-                            continue;
+                            if (intsyn.RACE == "Protoss" || intsyn.RACE == "Terran" || intsyn.RACE == "Zerg")
+                            {
+                                continue;
+                            }
                         }
+                        synrow.Add(mystat);
                     }
-                    synrow.Add(mystat);
+                    mylist.Add(key: cmdr, value: synrow);
                 }
-                mylist.Add(key: cmdr, value: synrow);
+                else
+                {
+                    foreach (dsstats_race intsyn in antisyn.RACES[cmdr].LRACE)
+                    {
+                        double wr = intsyn.GetWR();
+                        string syncmdr = intsyn.RACE;
+                        KeyValuePair<string, double> mystat = new KeyValuePair<string, double>(syncmdr, wr);
+                        if (MW.cb_std.IsChecked == false)
+                        {
+                            if (intsyn.RACE == "Protoss" || intsyn.RACE == "Terran" || intsyn.RACE == "Zerg")
+                            {
+                                continue;
+                            }
+                        }
+                        antisynrow.Add(mystat);
+                    }
+                    mylist.Add(key: cmdr, value: antisynrow);
+                }
             }
 
             return mylist;

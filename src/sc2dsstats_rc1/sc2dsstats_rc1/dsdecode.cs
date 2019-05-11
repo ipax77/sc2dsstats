@@ -66,6 +66,8 @@ namespace sc2dsstats_rc1
         public dsdecode(int numThreads, MainWindow mw)
         {
             MW = mw;
+            DEBUG = Properties.Settings.Default.DEBUG;
+
             if (numThreads > 0) CORES = numThreads;
             else
             {
@@ -420,7 +422,7 @@ namespace sc2dsstats_rc1
             }
             catch
             {
-                Console.WriteLine("No header for " + id);
+                if (DEBUG > 0) Console.WriteLine("No header for " + id);
                 lock (ENGINE)
                 {
                     lock (SCOPE)
@@ -458,7 +460,7 @@ namespace sc2dsstats_rc1
                 }
                 catch
                 {
-                    Console.WriteLine("No protocol found for " + id);
+                    if (DEBUG > 0) Console.WriteLine("No protocol found for " + id);
                     Interlocked.Increment(ref TOTAL_DONE);
                     Interlocked.Decrement(ref THREADS);
                 }
@@ -564,7 +566,7 @@ namespace sc2dsstats_rc1
                 }
                 catch
                 {
-                    Console.WriteLine("No tracker version for " + id);
+                    if (DEBUG > 0) Console.WriteLine("No tracker version for " + id);
                     Log("Loading trackerevents failed");
                     lock (ENGINE)
                     {
@@ -639,7 +641,7 @@ namespace sc2dsstats_rc1
                                 }
                                 else
                                 {
-                                    Console.WriteLine("No player for " + playerid);
+                                    if (DEBUG > 0) Console.WriteLine("No player for " + playerid);
                                 }
 
                             }
@@ -691,7 +693,7 @@ namespace sc2dsstats_rc1
                                             {
                                                 if (fpl.REALPOS == pos)
                                                 {
-                                                    if (UNITPOS.ContainsKey(fpl.POS)) Console.WriteLine(id + " Double pos: X: " + x + " Y: " + y + " POS:" + track.PLAYERS[playerid].POS + " REALPOS: " + pos + " (DX: " + UNITPOS[fpl.POS].x + " DY: " + UNITPOS[fpl.POS].y + " DPOS: " + fpl.POS + " DREALPOS: " + fpl.REALPOS + ")");
+                                                    if (UNITPOS.ContainsKey(fpl.POS) && DEBUG > 0) Console.WriteLine(id + " Double pos: X: " + x + " Y: " + y + " POS:" + track.PLAYERS[playerid].POS + " REALPOS: " + pos + " (DX: " + UNITPOS[fpl.POS].x + " DY: " + UNITPOS[fpl.POS].y + " DPOS: " + fpl.POS + " DREALPOS: " + fpl.REALPOS + ")");
                                                 }
                                             }
                                             if (!UNITPOS.ContainsKey(playerid)) UNITPOS.Add(playerid, new REPvec(x, y));
@@ -729,9 +731,9 @@ namespace sc2dsstats_rc1
                             if (pos > 0)
                             {
                                 bool playerspawn = false;
-                                if (spawn == 0 && pos == 1 || pos == 4) playerspawn = true;
-                                if (spawn == 480 && pos == 2 || pos == 5) playerspawn = true;
-                                if (spawn == 960 && pos == 3 || pos == 6) playerspawn = true;
+                                if (spawn == 0 && (pos == 1 || pos == 4)) playerspawn = true;
+                                if (spawn == 480 && (pos == 2 || pos == 5)) playerspawn = true;
+                                if (spawn == 960 && (pos == 3 || pos == 6)) playerspawn = true;
                                 if (playerspawn == true) track.PLAYERS[playerid].ARMY += int.Parse(pystats["m_scoreValueMineralsUsedActiveForces"].ToString());
                             }
 
@@ -741,7 +743,7 @@ namespace sc2dsstats_rc1
                         }
                         else
                         {
-                            Console.WriteLine("No player for " + playerid);
+                            if (DEBUG > 0) Console.WriteLine("No player for " + playerid);
                         }
 
                     }
@@ -778,7 +780,7 @@ namespace sc2dsstats_rc1
             double wr = 0;
             if (TOTAL > 0) wr = TOTAL_DONE * 100 / TOTAL;
             wr = Math.Round(wr, 2);
-            Console.WriteLine(TOTAL_DONE + "/" + TOTAL + " done. (" + wr.ToString() + "%)");
+            if (DEBUG > 0) Console.WriteLine(TOTAL_DONE + "/" + TOTAL + " done. (" + wr.ToString() + "%)");
 
             if (TOTAL_DONE >= TOTAL)
             {
@@ -788,7 +790,7 @@ namespace sc2dsstats_rc1
 
                 if (REDO.Count > 0)
                 {
-                    Console.WriteLine("REDO: " + REDO.Count);
+                    if (DEBUG > 0) Console.WriteLine("REDO: " + REDO.Count);
                     RedoScan();
                 } else
                 {
@@ -857,7 +859,7 @@ namespace sc2dsstats_rc1
                         if (temp.Count == 0)
                         {
                             pl.REALPOS = j;
-                            Console.WriteLine("Fixing missing playerid for " + pl.POS + "|" + pl.REALPOS + " => " + j);
+                            if (DEBUG > 0) Console.WriteLine("Fixing missing playerid for " + pl.POS + "|" + pl.REALPOS + " => " + j);
                         }
                     }
 
@@ -878,7 +880,7 @@ namespace sc2dsstats_rc1
                         if (new List<dsplayer>(replay.PLAYERS.Where(x => x.REALPOS == j).ToList()).Count == 0)
                         {
                             pl.REALPOS = j;
-                            Console.WriteLine("Fixing double playerid for " + pl.POS + "|" + pl.REALPOS + " => " + j);
+                            if (DEBUG > 0) Console.WriteLine("Fixing double playerid for " + pl.POS + "|" + pl.REALPOS + " => " + j);
                             break;
                         }
                     }
@@ -903,7 +905,7 @@ namespace sc2dsstats_rc1
             }
             catch
             {
-                Console.WriteLine("Failed writing to json :(");
+                if (DEBUG > 0) Console.WriteLine("Failed writing to json :(");
             }
             finally
             {
