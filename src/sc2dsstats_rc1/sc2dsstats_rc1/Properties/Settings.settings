@@ -23,14 +23,47 @@
     <Setting Name="MM_Mode" Type="System.String" Scope="User">
       <Value Profile="(Default)">Commander</Value>
     </Setting>
-    <Setting Name="ELO" Type="System.String" Scope="User">
+    <Setting Name="MM_ELO" Type="System.String" Scope="User">
       <Value Profile="(Default)">0</Value>
-    </Setting>
-    <Setting Name="V7" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="V8" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="JSON_FILE" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="CORES" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="GUI_STD" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="GUI_START_DATE" Type="System.DateTime" Scope="User">
+      <Value Profile="(Default)">2018-01-01</Value>
+    </Setting>
+    <Setting Name="GUI_END_DATE" Type="System.DateTime" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DEBUG" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="GUI_LEAVER" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2000</Value>
+    </Setting>
+    <Setting Name="GUI_KILLSUM" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1500</Value>
+    </Setting>
+    <Setting Name="GUI_ARMY" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1500</Value>
+    </Setting>
+    <Setting Name="GUI_INCOME" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1500</Value>
+    </Setting>
+    <Setting Name="GUI_DURATION" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5376</Value>
+    </Setting>
+    <Setting Name="SKIP_FILE" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>

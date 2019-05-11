@@ -32,7 +32,9 @@ namespace sc2dsstats_rc1
                 { "MINKILLSUM", 1 },
                 { "MININCOME", 1 },
                 { "MINARMY", 1 },
-                { "RACE", 1 }
+                { "RACE", 1 },
+                { "MATCHUP", 1 },
+                { "MATCHUP PLAYER", 1}
             };
         public string player_name = "";
         public List<string> player_list = new List<string>();
@@ -49,7 +51,6 @@ namespace sc2dsstats_rc1
         public Win_regex()
         {
             InitializeComponent();
-            var appSettings = ConfigurationManager.AppSettings;
             player_name = Properties.Settings.Default.PLAYER;
             if (player_name.Contains(";"))
             {
@@ -69,6 +70,8 @@ namespace sc2dsstats_rc1
             dg_games_cm.Items.Add(win_saveas);
             dg_games.ContextMenu = dg_games_cm;
             dg_games.SelectionChanged += new System.Windows.Controls.SelectionChangedEventHandler(dg_games_DClick);
+
+            dg_player.SelectionChanged += new System.Windows.Controls.SelectionChangedEventHandler(Dg_player_MouseDoubleClick);
 
             dbfil = new dsdbfilter(this, mw);
 
@@ -315,8 +318,14 @@ namespace sc2dsstats_rc1
 
         }
 
+        public List<dsreplay> LoadCollectionData()
+        {
+            List<dsreplay> rep_filtered = new List<dsreplay>();
 
-        public List<myGame> LoadCollectionData()
+            return rep_filtered;
+        }
+
+        public List<myGame> LoadCollectionData_deprecated()
         {
 
             string csv = mw.myStats_csv;
@@ -607,10 +616,10 @@ namespace sc2dsstats_rc1
             **/
             games.Clear();
             //LoadCollectionData();
-            mw.LoadData(mw.myStats_csv);
+            mw.replays = mw.LoadData(mw.myStats_csv);
             //dg_games.ItemsSource = games;
             dg_games.ItemsSource = mw.replays;
-            lb_filter.Content = "Games: " + games.Count();
+            lb_filter.Content = "Games: " + mw.replays.Count();
 
             ///Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ProcessRows));
 
@@ -619,32 +628,24 @@ namespace sc2dsstats_rc1
 
         private void bt_filter_Click(object sender, RoutedEventArgs e)
         {
-            
-            LoadCollectionData();
-
-            string race = tb_filter.Text;
-            
-            
-            dg_games.ItemsSource = fil_games;
-
-            
+            dg_games.ItemsSource = dbfil.OTF_Filter();
         }
 
         private void tb_filter_KeyDown(object sender, RoutedEventArgs e)
         {
-            if (tb_filter.Text.Length >= 3)
+            if (tb_filter.Text.Length >= 3 && !cb_filter.SelectedItem.ToString().StartsWith("MATCHUP"))
             {
-
                 fil_games.Clear();
                 fil_games = dbfil.OTF_Filter();
                 dg_games.ItemsSource = fil_games;
-
             }
         }
 
         private void dg_games_DClick(object sender, RoutedEventArgs e)
         {
             List<dsplayer> temp = new List<dsplayer>();
+            Dictionary<string, int> units = new Dictionary<string, int>();
+            List<rxunit> rxunits = new List<rxunit>();
             dsplayer pltemp = new dsplayer();
             foreach (var dataItem in dg_games.SelectedItems)
             {
@@ -655,13 +656,26 @@ namespace sc2dsstats_rc1
                 foreach (dsplayer pl in game.PLAYERS)
                 {
                     temp.Add(pl);
+                    if (pl.UNITS.ContainsKey("ALL")) {
+                        foreach (string unit in pl.UNITS["ALL"].Keys)
+                        {
+                            if (units.ContainsKey(unit)) units[unit] += pl.UNITS["ALL"][unit];
+                            else units.Add(unit, pl.UNITS["ALL"][unit]);
+                        }
+                    }
                 }
                 
             }
+            foreach (string unit in units.Keys)
+            {
+                rxunits.Add(new rxunit(unit, units[unit]));
+            }
+
+            dg_units.ItemsSource = rxunits.OrderByDescending(o => o.COUNT);
 
             if (temp.Count > 300)
             {
-                pltemp.RACE = "Visibility ilmit is 300. Sorry.";
+                pltemp.RACE = "Visibility limit is 300. Sorry.";
                 List<dsplayer> bab = new List<dsplayer>();
                 bab.Add(pltemp);
 
@@ -679,10 +693,32 @@ namespace sc2dsstats_rc1
                 Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ProcessRows_player));
             }
             //ProcessRows_player();
+        }
 
+        private void Dg_player_MouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            Dictionary<string, int> units = new Dictionary<string, int>();
+            List<rxunit> rxunits = new List<rxunit>();
 
+            foreach (var dataItem in dg_player.SelectedItems)
+            {
+                dsplayer pl = new dsplayer();
+                pl = dataItem as dsplayer;
+                if (pl.UNITS.ContainsKey("ALL"))
+                {
+                    foreach (string unit in pl.UNITS["ALL"].Keys)
+                    {
+                        if (units.ContainsKey(unit)) units[unit] += pl.UNITS["ALL"][unit];
+                        else units.Add(unit, pl.UNITS["ALL"][unit]);
+                    }
+                }
+            }
+            foreach (string unit in units.Keys)
+            {
+                rxunits.Add(new rxunit(unit, units[unit]));
+            }
 
-            
+            dg_units.ItemsSource = rxunits.OrderByDescending(o => o.COUNT);
 
         }
 
@@ -716,25 +752,6 @@ namespace sc2dsstats_rc1
         }
 
 
-        private void ProcessRows()
-        {
-            foreach (var dataItem in dg_win_regex.ItemsSource)
-            {
-
-                dsplayer rep = dataItem as dsplayer;
-                if (player_list.Contains(rep.NAME))
-                {
-                    DataGridRow gridRow = dg_win_regex.ItemContainerGenerator.ContainerFromItem(dataItem) as DataGridRow;
-                    if (gridRow != null)
-                    {
-                        gridRow.Background = Brushes.YellowGreen;
-                    }
-                }
-
-
-
-            }
-        }
         private void dg_games_cm_Copy_Click(object sender, RoutedEventArgs e)
         {
             string result1 = "";
@@ -1010,6 +1027,24 @@ namespace sc2dsstats_rc1
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ProcessRows_player));
+        }
+
+
+    }
+
+    public class rxunit
+    {
+        public string UNIT { get; set; }
+        public int COUNT { get; set; }
+
+        public rxunit ()
+        {
+
+        }
+        public rxunit(string unit, int count) : this()
+        {
+            UNIT = unit;
+            COUNT = count;
         }
     }
 }

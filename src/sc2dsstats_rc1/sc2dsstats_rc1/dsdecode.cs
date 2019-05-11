@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -39,6 +40,7 @@ namespace sc2dsstats_rc1
         private ScriptScope SCOPE { get; set; }
         private ScriptEngine ENGINE { get; set; }
         private REParea AREA { get; set; } = new REParea();
+        private JsonSerializerSettings JsonSetting { get; set; }
 
         Regex rx_name = new Regex(@"m_name': '([^']+)',$", RegexOptions.Singleline);
         Regex rx_subname = new Regex(@"<sp\/>(.*)$", RegexOptions.Singleline);
@@ -64,13 +66,20 @@ namespace sc2dsstats_rc1
         public dsdecode(int numThreads, MainWindow mw)
         {
             MW = mw;
-             if (numThreads > 0) CORES = numThreads;
+            if (numThreads > 0) CORES = numThreads;
+            else
+            {
+                CORES = Environment.ProcessorCount;
+            }
 
             BREAKPOINTS.Add("MIN5", MIN5);
             BREAKPOINTS.Add("MIN10", MIN10);
             BREAKPOINTS.Add("MIN15", MIN15);
             BREAKPOINTS.Add("ALL", 0);
 
+            JsonSerializerSettings jsSettings = new JsonSerializerSettings();
+            jsSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            JsonSetting = jsSettings;
         }
 
         private void Log(string msg)
@@ -83,7 +92,7 @@ namespace sc2dsstats_rc1
             }
         }
 
-        private void Run()
+        private void Run(System.Windows.Controls.ProgressBar pb)
         {
             Log("Starting thread handler with " + CORES + " cores ..");
             LoadEngine();
@@ -93,17 +102,65 @@ namespace sc2dsstats_rc1
                 { IsBackground = true };//Mark 'false' if you want to prevent program exit until jobs finish
                 thread.Start();
             }
-
+            bool scanfailed = false;
             Task tsscan = Task.Factory.StartNew(() =>
             {
+                int failsafe = 0;
                 while (!_empty.WaitOne(1000))
                 {
                     //Console.WriteLine("Waiting for queue to empty");
+                    double wr = 0;
+                    if (TOTAL > 0)
+                    {
+                        wr = (double)TOTAL_DONE * 100 / (double)TOTAL;
+                    }
+                    int val = Convert.ToInt32(wr);
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        pb.Value = val;
+                        MW.lb_sb_info2.Content = TOTAL_DONE + "/" + TOTAL + " done. (" + Math.Round(wr, 2).ToString() + "%)";
+                    });
+
+                    if (REDO.Count >= (TOTAL - CORES))
+                    {
+                        failsafe++;
+                        if (_jobs_decode.Count == 0 && failsafe > 7 + CORES)
+                        {
+                            scanfailed = true;
+                            Stop_decode();
+                            break;
+                        }
+                    }
                 }
-                Console.WriteLine("Scan complete.");
-                MW.scan_running = false;
-                MW.replays = MW.LoadData(MW.myStats_json);
+                Done(scanfailed, pb);
+
             }, TaskCreationOptions.AttachedToParent);
+        }
+
+        private void Done(bool scanfailed, System.Windows.Controls.ProgressBar pb)
+        {
+            TimeSpan timeDiff = new TimeSpan(0);
+            if (TOTAL_DONE == TOTAL)
+            {
+                DateTime end = DateTime.UtcNow;
+                timeDiff = end - START;
+                //Console.WriteLine(timeDiff.TotalSeconds);
+            }
+            Console.WriteLine("Scan complete.");
+            MW.Dispatcher.Invoke(() =>
+            {
+                if (scanfailed == false)
+                {
+                    pb.Value = 100;
+                    MW.lb_sb_info2.Content = TOTAL_DONE + "/" + TOTAL + " done. (100%) - Elapsed time: " + timeDiff.ToString("c");
+                }
+                else MW.lb_sb_info2.Content = "Scan failed :( Please try to scan again (maybe with one core only).";
+
+                MW.replays.Clear();
+                MW.replays = MW.LoadData(MW.myStats_json);
+                MW.UpdateGraph(null);
+                MW.scan_running = false;
+            });
         }
 
         private ScriptEngine LoadEngine()
@@ -116,9 +173,6 @@ namespace sc2dsstats_rc1
             ScriptEngine engine = IronPython.Hosting.Python.CreateEngine();
 
             var paths = engine.GetSearchPaths();
-            //paths.Add(@"C:\Python27");
-            //paths.Add(@"C:\Python27\Lib");
-            //paths.Add(@"C:\Python27\Lib\site-packages");
             paths.Add(pylib1);
             paths.Add(pylib2);
             engine.SetSearchPaths(paths);
@@ -174,25 +228,30 @@ namespace sc2dsstats_rc1
 
         public void Scan()
         {
-            
+            MW.scan_running = true;
+
             List<string> todo = dsscan.Scan(MW);
             TOTAL_DONE = 0;
             TOTAL = todo.Count();
             START = DateTime.UtcNow;
             REPID = ReadFromJsonFile();
-
+            dsstatus status = new dsstatus(MW);
             if (CORES == 1)
             {
-                Scan_sequ(todo);
+                Scan_sequ(todo, status.Set());
                 return;
             }
 
             if (todo.Count > 0)
             {
-                Run();
+                Run(status.Set());
                 MW.scan_running = true;
             } else
             {
+                MW.Dispatcher.Invoke(() =>
+                {
+                    MW.lb_sb_info2.Content = "No new replays found.";
+                });
                 MW.scan_running = false;
             }
             Log("Working on " + TOTAL + " replays.");
@@ -203,7 +262,7 @@ namespace sc2dsstats_rc1
             //_jobs_decode.CompleteAdding();
         }
 
-        private void Scan_sequ(List<string> todo)
+        private void Scan_sequ(List<string> todo, System.Windows.Controls.ProgressBar pb)
         {
             LoadEngine();
             Task sequ = Task.Factory.StartNew(() =>
@@ -211,9 +270,51 @@ namespace sc2dsstats_rc1
                 foreach (string rep in todo)
                 {
                     DecodePython(rep);
+                    double wr = 0;
+                    if (TOTAL > 0)
+                    {
+                        wr = (double)TOTAL_DONE * 100 / (double)TOTAL;
+                    }
+                    int val = Convert.ToInt32(wr);
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        pb.Value = val;
+                        MW.lb_sb_info2.Content = TOTAL_DONE + "/" + TOTAL + " done. (" + Math.Round(wr, 2).ToString() + "%)";
+                    });
                 }
-                MW.scan_running = false;
-
+                TimeSpan timeDiff = new TimeSpan(0);
+                if (TOTAL_DONE == TOTAL)
+                {
+                    DateTime end = DateTime.UtcNow;
+                    timeDiff = end - START;
+                    Console.WriteLine(timeDiff.TotalSeconds);
+                }
+                Console.WriteLine("Scan complete.");
+                MW.Dispatcher.Invoke(() =>
+                {
+                    pb.Value = 100;
+                    if (REDO.Count == 0)
+                    {
+                        MW.lb_sb_info2.Content = TOTAL_DONE + "/" + TOTAL + " done. (100%) - Elapsed time: " + timeDiff.ToString("c");
+                        MW.scan_running = false;
+                    }
+                });
+                
+                if (MW.scan_running == true)
+                {
+                    while (REDO.Count > 0)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    MW.Dispatcher.Invoke(() =>
+                    {
+                        MW.lb_sb_info2.Content = TOTAL_DONE + "/" + TOTAL + " done. (100%) - Elapsed time: " + timeDiff.ToString("c");
+                        MW.replays.Clear();
+                        MW.replays = MW.LoadData(MW.myStats_json);
+                        MW.UpdateGraph(null);
+                        MW.scan_running = false;
+                    });
+                }
             }, TaskCreationOptions.AttachedToParent);
         }
 
@@ -221,7 +322,7 @@ namespace sc2dsstats_rc1
         {
             //LoadEngine();
 
-            if (REDO.Count == TOTAL_DONE)
+            if (REDO.Count == TOTAL)
             {
                 LoadEngine();
             }
@@ -234,8 +335,13 @@ namespace sc2dsstats_rc1
                     {
                         if (REDO[rep] <= 3)
                         {
+                            REDO[rep]++;
                             Interlocked.Increment(ref TOTAL);
-                            _jobs_decode.Add(rep);
+                            Enqueue(rep);
+                        } else
+                        {
+                            int myval = 0;
+                            REDO.TryRemove(rep, out myval);
                         }
                     }
                 } else
@@ -246,8 +352,13 @@ namespace sc2dsstats_rc1
                         {
                             if (REDO[rep] <= 3)
                             {
+                                REDO[rep]++;
                                 Interlocked.Increment(ref TOTAL);
                                 DecodePython(rep);
+                            } else
+                            {
+                                int myval = 0;
+                                REDO.TryRemove(rep, out myval);
                             }
                         }
 
@@ -321,7 +432,7 @@ namespace sc2dsstats_rc1
                 }
                 if (REDO.ContainsKey(rep))
                 {
-                    REDO[rep] = REDO[rep] + 1;
+                    //REDO[rep] = REDO[rep] + 1;
                 }
                 else
                 {
@@ -373,7 +484,7 @@ namespace sc2dsstats_rc1
                     }
                     if (REDO.ContainsKey(rep))
                     {
-                        REDO[rep] = REDO[rep] + 1;
+                        //REDO[rep] = REDO[rep] + 1;
                     }
                     else
                     {
@@ -466,7 +577,7 @@ namespace sc2dsstats_rc1
                     }
                     if (REDO.ContainsKey(rep))
                     {
-                        REDO[rep] = REDO[rep] + 1;
+                        //REDO[rep] = REDO[rep] + 1;
                     }
                     else
                     {
@@ -669,7 +780,7 @@ namespace sc2dsstats_rc1
             wr = Math.Round(wr, 2);
             Console.WriteLine(TOTAL_DONE + "/" + TOTAL + " done. (" + wr.ToString() + "%)");
 
-            if (TOTAL_DONE == TOTAL)
+            if (TOTAL_DONE >= TOTAL)
             {
                 DateTime end = DateTime.UtcNow;
                 TimeSpan timeDiff = end - START;
@@ -742,11 +853,11 @@ namespace sc2dsstats_rc1
                         if (replay.PLAYERCOUNT == 2 && (j == 2 || j == 3 || j == 5 || j == 6)) continue;
                         if (replay.PLAYERCOUNT == 4 && (j == 3 || j == 6)) continue;
 
-                        List<dsplayer> temp = new List<dsplayer>(replay.PLAYERS.Where(x => x.POS == j).ToList());
+                        List<dsplayer> temp = new List<dsplayer>(replay.PLAYERS.Where(x => x.REALPOS == j).ToList());
                         if (temp.Count == 0)
                         {
                             pl.REALPOS = j;
-                            Console.WriteLine("Fixing missing playerid for " + pl.POS + " => " + j);
+                            Console.WriteLine("Fixing missing playerid for " + pl.POS + "|" + pl.REALPOS + " => " + j);
                         }
                     }
 
@@ -758,7 +869,7 @@ namespace sc2dsstats_rc1
 
                 if (new List<dsplayer>(replay.PLAYERS.Where(x => x.REALPOS == pl.REALPOS).ToList()).Count > 1)
                 {
-                    Console.WriteLine("Found double playerid for " + pl.POS);
+                    Console.WriteLine("Found double playerid for " + pl.POS + "|" + pl.REALPOS);
 
                     for (int j = 1; j <= 6; j++)
                     {
@@ -767,7 +878,7 @@ namespace sc2dsstats_rc1
                         if (new List<dsplayer>(replay.PLAYERS.Where(x => x.REALPOS == j).ToList()).Count == 0)
                         {
                             pl.REALPOS = j;
-                            Console.WriteLine("Fixing double playerid for " + pl.POS + " => " + j);
+                            Console.WriteLine("Fixing double playerid for " + pl.POS + "|" + pl.REALPOS + " => " + j);
                             break;
                         }
                     }
@@ -892,12 +1003,6 @@ namespace sc2dsstats_rc1
             Interlocked.Increment(ref TOTAL_DONE);
             Console.WriteLine(TOTAL_DONE + "/" + TOTAL + " done.");
 
-            if (TOTAL_DONE == TOTAL)
-            {
-                DateTime end = DateTime.UtcNow;
-                TimeSpan timeDiff = end - START;
-                Console.WriteLine(timeDiff.TotalSeconds);
-            }
             Interlocked.Decrement(ref THREADS);
         }
 

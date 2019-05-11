@@ -1,4 +1,11 @@
 
+0.8.0.5
+
+- bugifx pos
+- database redesign part1
+- otf scan for replays in all folders
+- scan progress bar
+
 0.8.0.4
 
 - fix no m_workingSetSlotId 

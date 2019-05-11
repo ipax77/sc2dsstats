@@ -109,24 +109,12 @@ namespace sc2dsstats_rc1.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public string ELO {
+        public string MM_ELO {
             get {
-                return ((string)(this["ELO"]));
+                return ((string)(this["MM_ELO"]));
             }
             set {
-                this["ELO"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool V7 {
-            get {
-                return ((bool)(this["V7"]));
-            }
-            set {
-                this["V7"] = value;
+                this["MM_ELO"] = value;
             }
         }
         
@@ -139,6 +127,149 @@ namespace sc2dsstats_rc1.Properties {
             }
             set {
                 this["V8"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string JSON_FILE {
+            get {
+                return ((string)(this["JSON_FILE"]));
+            }
+            set {
+                this["JSON_FILE"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int CORES {
+            get {
+                return ((int)(this["CORES"]));
+            }
+            set {
+                this["CORES"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GUI_STD {
+            get {
+                return ((bool)(this["GUI_STD"]));
+            }
+            set {
+                this["GUI_STD"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2018-01-01")]
+        public global::System.DateTime GUI_START_DATE {
+            get {
+                return ((global::System.DateTime)(this["GUI_START_DATE"]));
+            }
+            set {
+                this["GUI_START_DATE"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.DateTime GUI_END_DATE {
+            get {
+                return ((global::System.DateTime)(this["GUI_END_DATE"]));
+            }
+            set {
+                this["GUI_END_DATE"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int DEBUG {
+            get {
+                return ((int)(this["DEBUG"]));
+            }
+            set {
+                this["DEBUG"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2000")]
+        public int GUI_LEAVER {
+            get {
+                return ((int)(this["GUI_LEAVER"]));
+            }
+            set {
+                this["GUI_LEAVER"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1500")]
+        public int GUI_KILLSUM {
+            get {
+                return ((int)(this["GUI_KILLSUM"]));
+            }
+            set {
+                this["GUI_KILLSUM"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1500")]
+        public int GUI_ARMY {
+            get {
+                return ((int)(this["GUI_ARMY"]));
+            }
+            set {
+                this["GUI_ARMY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1500")]
+        public int GUI_INCOME {
+            get {
+                return ((int)(this["GUI_INCOME"]));
+            }
+            set {
+                this["GUI_INCOME"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5376")]
+        public int GUI_DURATION {
+            get {
+                return ((int)(this["GUI_DURATION"]));
+            }
+            set {
+                this["GUI_DURATION"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string SKIP_FILE {
+            get {
+                return ((string)(this["SKIP_FILE"]));
+            }
+            set {
+                this["SKIP_FILE"] = value;
             }
         }
     }

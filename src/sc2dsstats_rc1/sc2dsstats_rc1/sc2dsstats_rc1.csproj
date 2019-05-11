@@ -37,7 +37,7 @@
     <SuiteName>sc2dsstats</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>4</ApplicationRevision>
+    <ApplicationRevision>5</ApplicationRevision>
     <ApplicationVersion>0.8.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -166,8 +166,10 @@
     <Compile Include="dsdbfilter.cs" />
     <Compile Include="dsimage.cs" />
     <Compile Include="dsotf.cs" />
+    <Compile Include="dsotfng.cs" />
     <Compile Include="dsradar.cs" />
     <Compile Include="dsscan.cs" />
+    <Compile Include="dsstatus.cs" />
     <Compile Include="dsunits.cs" />
     <Compile Include="dsupload.cs" />
     <Compile Include="sc2hex.cs" />
@@ -176,6 +178,9 @@
     </Compile>
     <Compile Include="Win_config.xaml.cs">
       <DependentUpon>Win_config.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Win_configng.xaml.cs">
+      <DependentUpon>Win_configng.xaml</DependentUpon>
     </Compile>
     <Compile Include="Win_ladder.xaml.cs">
       <DependentUpon>Win_ladder.xaml</DependentUpon>
@@ -218,6 +223,10 @@
     <Page Include="Win_config.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Win_configng.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Win_ladder.xaml">
       <SubType>Designer</SubType>

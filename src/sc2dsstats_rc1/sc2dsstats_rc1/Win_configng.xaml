@@ -1,0 +1,41 @@
+﻿<Window x:Class="sc2dsstats_rc1.Win_configng"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:sc2dsstats_rc1"
+        mc:Ignorable="d"
+        Title="Win_configng" Height="450" Width="800">
+    <Grid Background="#FF12161c">
+        <Grid x:Name="gr_cfg_buttons" VerticalAlignment="Top">
+            <Button x:Name="bt_show" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="Black"/>
+                        <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+                <Grid>
+                    <TextBlock x:Name="bt_show_textblock1" Text="Save"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                        <TextBlock.RenderTransform>
+                            <TranslateTransform X="0.5" Y="0.5" />
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                    <TextBlock x:Name="bt_show_textblock2" Text="Save" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+
+                </Grid>
+            </Button>
+            <CheckBox x:Name="cb_all" Content="all" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="118,14,0,1" Click="Cb_all_Click" />
+
+        </Grid>
+        <Grid Margin="15,45,15,15">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <DockPanel x:Name="dp_config" Visibility="Visible" HorizontalAlignment="Left">
+                <Grid x:Name="gr_cfg_main" VerticalAlignment="Top" HorizontalAlignment="Left">
+
+                </Grid>
+            </DockPanel>
+        </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

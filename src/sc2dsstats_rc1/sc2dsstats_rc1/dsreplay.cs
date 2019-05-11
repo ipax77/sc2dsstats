@@ -52,7 +52,7 @@ namespace sc2dsstats_rc1
                 if (pos == 4) plopp = this.PLAYERS.Find(x => x.REALPOS == 1);
                 if (pos == 5) plopp = this.PLAYERS.Find(x => x.REALPOS == 2);
                 if (pos == 6) plopp = this.PLAYERS.Find(x => x.REALPOS == 3);
-                opp = plopp.RACE;
+                //opp = plopp.RACE;
             }
 
             return plopp;

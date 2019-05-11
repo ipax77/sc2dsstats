@@ -37,27 +37,25 @@ namespace sc2dsstats_rc1
     {
 
         public int DEBUG { get; set; } = 0;
-        private bool dt_handle = true;
-        private bool vs_handle = true;
         public bool scan_running { get; set; } = false;
+        public bool INIT = false;
         //public List<dsreplay> replays = new List<dsreplay>();
         public List<dsreplay> replays { get; set; } = new List<dsreplay>();
-        
+
         public Task tsscan { get; set; }
         public string player_name { get; set; }
         public List<string> player_list { get; set; }
         public string myReplay_Path { get; set; }
         public List<string> myReplay_list { get; set; }
-        public ObservableCollection<KeyValuePair<string, double>> Items { get; set; }
-        public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; }
+        public ObservableCollection<KeyValuePair<string, double>> Items { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
+        public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
         public List<KeyValuePair<string, double>> Cdata { get; set; }
 
         Chart dynChart = new Chart()
         {
             Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF041326"))
         };
-        public string[] s_races = new string[17];
-        dsotf otf = new dsotf();
+        dsotfng OTF { get; set; }
         public System.Diagnostics.Process p = new System.Diagnostics.Process();
 
         public TextBox dynamicText = null;
@@ -81,299 +79,7 @@ namespace sc2dsstats_rc1
         public string myDoc_pdf = null;
         public dsimage dsimg = null;
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            dsimg = new dsimage();
-            this.DataContext = dsimg;
-
-            player_list = new List<string>();
-            myReplay_list = new List<string>();
-
-            Style = (Style)FindResource(typeof(Window));
-
-            Version version = null;
-            if (ApplicationDeployment.IsNetworkDeployed)
-            {
-                version = ApplicationDeployment.CurrentDeployment.CurrentVersion;
-            }
-            if (version != null) Console.WriteLine(version.ToString());
-
-            // config
-            string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-            myS2cli_exe = exedir + "\\s2_cli.exe";
-            myScan_exe = exedir + "\\sc2dsstats.exe";
-
-            myWorker_exe = exedir + "\\scripts\\sc2dsstats_worker.exe";
-            myWorker_log = exedir + "\\log_worker.txt";
-            myStats_csv = exedir + "\\stats.csv";
-            myUnits_csv = exedir + "\\units.csv";
-            //myTemp_dir = System.IO.Path.GetTempPath() + "\\sc2dsstats\\";
-            myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
-            if (DEBUG > 1) myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats2";
-            myData_dir = myAppData_dir + "\\analyzes";
-            mySkip_csv = myAppData_dir + "\\skip.csv";
-            myStats_csv = myAppData_dir + "\\stats.csv";
-            myStats_json = myAppData_dir + "\\stats.json";
-            myUnits_csv = myAppData_dir + "\\units.csv";
-            myTemp_dir = myAppData_dir + "\\";
-            mySample_json = exedir + "\\sample.json";
-            myDoc_pdf = exedir + "\\doc.pdf";
-            myScan_log = myAppData_dir + "\\log.txt";
-
-
-
-            if (!System.IO.Directory.Exists(myTemp_dir))
-            {
-                try
-                {
-                    System.IO.Directory.CreateDirectory(myAppData_dir);
-                }
-                catch
-                {
-                    MessageBox.Show("Failed to create DataDir " + myAppData_dir + ". Please check your options.", "sc2dsstats");
-                }
-            }
-            var appSettings = ConfigurationManager.AppSettings;
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-            try
-            {
-                DEBUG = int.Parse(appSettings["DEBUG"]);
-            } catch { }
-            if (DEBUG > 1) Debug();
-
-            if (appSettings["STORE_PATH"] == null)
-            {
-                config.AppSettings.Settings.Add("STORE_PATH", myData_dir);
-            }
-            else if (appSettings["STORE_PATH"] == "0")
-            {
-                config.AppSettings.Settings.Remove("STORE_PATH");
-                config.AppSettings.Settings.Add("STORE_PATH", myData_dir);
-            }
-            else
-            {
-                myData_dir = appSettings["STORE_PATH"];
-            }
-
-            if (appSettings["STORE_PATH"] == null)
-            {
-                config.AppSettings.Settings.Add("STORE_PATH", myData_dir);
-            }
-            else if (appSettings["STORE_PATH"] == "0")
-            {
-                config.AppSettings.Settings.Remove("STORE_PATH");
-                config.AppSettings.Settings.Add("STORE_PATH", myData_dir);
-            }
-            else
-            {
-                myData_dir = appSettings["STORE_PATH"];
-            }
-            if (!Directory.Exists(myData_dir))
-            {
-                try
-                {
-                    Directory.CreateDirectory(myData_dir);
-                }
-                catch (System.IO.IOException)
-                {
-                    MessageBox.Show("Failed to create DataDir " + myData_dir + ". Please check your options.", "sc2dsstats");
-                }
-            }
-            // JSON_FILE
-            if (appSettings["JSON_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
-            }
-            else if (appSettings["JSON_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("JSON_FILE");
-                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
-            }
-            else
-            {
-                myStats_json = appSettings["JSON_FILE"];
-            }
-
-            if (appSettings["JSON_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
-            }
-            else if (appSettings["JSON_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("JSON_FILE");
-                config.AppSettings.Settings.Add("JSON_FILE", myStats_json);
-            }
-            else
-            {
-                myStats_json = appSettings["JSON_FILE"];
-            }
-
-            // STATS_FILE
-            if (appSettings["STATS_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("STATS_FILE", myStats_csv);
-            }
-            else if (appSettings["STATS_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("STATS_FILE");
-                config.AppSettings.Settings.Add("STATS_FILE", myStats_csv);
-            }
-            else
-            {
-                myStats_csv = appSettings["STATS_FILE"];
-            }
-
-            if (appSettings["STATS_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("STATS_FILE", myStats_csv);
-            }
-            else if (appSettings["STATS_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("STATS_FILE");
-                config.AppSettings.Settings.Add("STATS_FILE", myStats_csv);
-            }
-            else
-            {
-                myStats_csv = appSettings["STATS_FILE"];
-            }
-
-            // UNITS_FILE
-            if (appSettings["UNITS_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
-            }
-            else if (appSettings["UNITS_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("UNITS_FILE");
-                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
-            }
-            else
-            {
-                myUnits_csv = appSettings["UNITS_FILE"];
-            }
-
-            if (appSettings["UNITS_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
-            }
-            else if (appSettings["UNITS_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("UNITS_FILE");
-                config.AppSettings.Settings.Add("UNITS_FILE", myUnits_csv);
-            }
-            else
-            {
-                myUnits_csv = appSettings["UNITS_FILE"];
-            }
-
-            if (appSettings["SKIP_FILE"] == null)
-            {
-                config.AppSettings.Settings.Add("SKIP_FILE", mySkip_csv);
-            }
-            else if (appSettings["SKIP_FILE"] == "0")
-            {
-                config.AppSettings.Settings.Remove("SKIP_FILE");
-                config.AppSettings.Settings.Add("SKIP_FILE", mySkip_csv);
-            }
-            else
-            {
-                mySkip_csv = appSettings["SKIP_FILE"];
-            }
-            if (!File.Exists(mySkip_csv))
-            {
-                try
-                {
-                    File.Create(mySkip_csv);
-                }
-                catch (System.IO.IOException)
-                {
-                    MessageBox.Show("Failed to create DataDir " + mySkip_csv + ". Please check your options.", "sc2dsstats");
-                }
-            }
-            int cpus = Environment.ProcessorCount;
-            if (appSettings["CORES"] == null)
-            {
-                cpus /= 2;
-                config.AppSettings.Settings.Add("CORES", cpus.ToString());
-            }
-            else if (appSettings["CORES"] == "0" || appSettings["CORES"] == "")
-            {
-                cpus /= 2;
-                config.AppSettings.Settings.Remove("CORES");
-                config.AppSettings.Settings.Add("CORES", cpus.ToString());
-            }
-            else
-            {
-                if (int.Parse(appSettings["CORES"]) > cpus)
-                {
-                    config.AppSettings.Settings.Remove("CORES");
-                    config.AppSettings.Settings.Add("CORES", cpus.ToString());
-                }
-            }
-            ConfigurationManager.RefreshSection("appSettings");
-            config.Save();
-
-            cpus /= 2;
-
-            int usedCpus = 1;
-            cb_doit_cpus.Items.Add(usedCpus.ToString());
-
-            while (usedCpus <= cpus)
-            {
-                cb_doit_cpus.Items.Add(usedCpus.ToString());
-                usedCpus += 1;
-            }
-            cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[cb_doit_cpus.Items.Count  -1];
-
-            if (Properties.Settings.Default.REPLAY_PATH == "0")
-            {
-                Properties.Settings.Default.V7 = true;
-                Properties.Settings.Default.Save();
-                config.AppSettings.Settings.Remove("UNITS");
-                config.AppSettings.Settings.Add("UNITS", "0");
-                ConfigurationManager.RefreshSection("appSettings");
-                config.Save();
-                FirstRun();
-            }
-            else
-            {
-                myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
-                SetReplayList(myReplay_Path);
-            }
-
-            
-
-            //player_name = appSettings["PLAYER"];
-            player_name = Properties.Settings.Default.PLAYER;
-            SetPlayerList(player_name);
-
-            // xaml
-
-
-
-
-            if (appSettings["STATS_FILE"] != null && appSettings["STATS_FILE"] != "0")
-            {
-                myStats_csv = appSettings["STATS_FILE"];
-            }
-
-            // otf.REPLAY_PATH = appSettings["REPLAY_PATH"];
-            //otf.REPLAY_PATH = myReplay_list[0];
-            //otf.MW = this;
-
-            SetGUIFilter(null, null);
-
-            cb_mode.Items.Add("Winrate");
-            cb_mode.Items.Add("Damage");
-            cb_mode.Items.Add("MVP");
-            cb_mode.Items.Add("Synergy");
-            cb_mode.Items.Add("Timeline");
-            cb_mode.Items.Add("Builds");
-            cb_mode.SelectedItem = cb_mode.Items[0];
-
-            s_races = new string[]
+        public string[] s_races { get; } = new string[]
             {
                 "Abathur",
                  "Alarak",
@@ -395,7 +101,102 @@ namespace sc2dsstats_rc1
                  "Zerg"
             };
 
-            GenerateSynBtn();
+        public MainWindow()
+        {
+            InitializeComponent();
+            dsimg = new dsimage();
+            this.DataContext = dsimg;
+
+            player_list = new List<string>();
+            myReplay_list = new List<string>();
+
+            Style = (Style)FindResource(typeof(Window));
+
+            Version version = null;
+            if (ApplicationDeployment.IsNetworkDeployed)
+            {
+                version = ApplicationDeployment.CurrentDeployment.CurrentVersion;
+            }
+            if (version != null) Console.WriteLine(version.ToString());
+
+            // config
+            string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+            myStats_csv = exedir + "\\stats.csv";
+            myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
+            if (DEBUG > 1) myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats2";
+            mySkip_csv = myAppData_dir + "\\skip.csv";
+            myStats_csv = myAppData_dir + "\\stats.csv";
+            myStats_json = myAppData_dir + "\\stats.json";
+            myTemp_dir = myAppData_dir + "\\";
+            mySample_json = exedir + "\\sample.json";
+            myDoc_pdf = exedir + "\\doc.pdf";
+            myScan_log = myAppData_dir + "\\log.txt";
+
+            if (!System.IO.Directory.Exists(myTemp_dir))
+            {
+                try
+                {
+                    System.IO.Directory.CreateDirectory(myAppData_dir);
+                }
+                catch
+                {
+                    MessageBox.Show("Failed to create DataDir " + myAppData_dir + ". Please check your options.", "sc2dsstats");
+                }
+            }
+
+            try
+            {
+                DEBUG = Properties.Settings.Default.DEBUG;
+            }
+            catch { }
+            if (DEBUG > 1) Debug();
+
+            if (Properties.Settings.Default.JSON_FILE != "0" && File.Exists(Properties.Settings.Default.JSON_FILE))
+                myStats_json = Properties.Settings.Default.JSON_FILE;
+            else
+                Properties.Settings.Default.JSON_FILE = myStats_json;
+
+            if (Properties.Settings.Default.SKIP_FILE != "0" && File.Exists(Properties.Settings.Default.SKIP_FILE))
+                mySkip_csv = Properties.Settings.Default.SKIP_FILE;
+            else
+                Properties.Settings.Default.SKIP_FILE = mySkip_csv;
+
+            if (!File.Exists(mySkip_csv))
+            {
+                try
+                {
+                    File.Create(mySkip_csv).Dispose();
+                }
+                catch (System.IO.IOException)
+                {
+                    MessageBox.Show("Failed to create DataDir " + mySkip_csv + ". Please check your options.", "sc2dsstats");
+                }
+            }
+
+            int cpus = Environment.ProcessorCount;
+            cpus /= 2;
+            int usedCpus = 1;
+            cb_doit_cpus.Items.Add(usedCpus.ToString());
+
+            while (usedCpus <= cpus)
+            {
+                cb_doit_cpus.Items.Add(usedCpus.ToString());
+                usedCpus += 1;
+            }
+            cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[cb_doit_cpus.Items.Count - 1];
+
+            player_name = Properties.Settings.Default.PLAYER;
+            SetPlayerList(player_name);
+
+            // xaml
+
+            cb_mode.Items.Add("Winrate");
+            cb_mode.Items.Add("Damage");
+            cb_mode.Items.Add("MVP");
+            cb_mode.Items.Add("Synergy");
+            cb_mode.Items.Add("Timeline");
+            cb_mode.Items.Add("Builds");
+            cb_mode.SelectedItem = cb_mode.Items[0];
 
             foreach (string r in s_races)
             {
@@ -403,10 +204,11 @@ namespace sc2dsstats_rc1
             }
             cb_vs.SelectedItem = cb_vs.Items[0];
 
-            Items = new ObservableCollection<KeyValuePair<string, double>>();
-            Items_sorted = new ObservableCollection<KeyValuePair<string, double>>();
-
+            GenerateSynBtn();
             SetChartStyle("%", 100);
+            SetGUIFilter(null, null);
+
+
             //dynChart.MouseMove += new MouseEventHandler(dyn_image_Move);
             dynChart.MouseDown += new MouseButtonEventHandler(dyn_Chart_Click);
             ContextMenu win_cm = new ContextMenu();
@@ -421,71 +223,54 @@ namespace sc2dsstats_rc1
                 try
                 {
                     File.Create(myStats_json).Dispose();
-                } catch
+                }
+                catch
                 {
                     MessageBox.Show("Failed creating JSON_FILE: " + myStats_json + ". Please Check in File->Options.", "sc2dsstats");
                 }
-            } else
+            }
+            else
             {
+                Win_configng.SetConfig(this);
                 replays = LoadData(myStats_json);
             }
 
-            //if (Properties.Settings.Default.V7 == false)
-            //{
-            //    FirstRun_Version();
-            //}
+            if (Properties.Settings.Default.REPLAY_PATH == "0")
+            {
+                FirstRun();
+            }
+            else
+            {
+                myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
+                SetReplayList(myReplay_Path);
+            }
+
             if (Properties.Settings.Default.V8 == false)
             {
+                var appSettings = ConfigurationManager.AppSettings;
+                if (appSettings["STATS_FILE"] != null && File.Exists(appSettings["STATS_FILE"]))
+                    myStats_csv = appSettings["STATS_FILE"];
+
                 FirstRun_Json();
             }
 
-
-
             myStats_csv = myStats_json;
             Console.WriteLine("MW init finished.");
+            INIT = true;
         }
 
         public void Debug()
         {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            var appSettings = ConfigurationManager.AppSettings;
 
-            config.AppSettings.Settings.Remove("CORES");
-            config.AppSettings.Settings.Add("CORES", "4");
-
-            config.AppSettings.Settings.Remove("JSON_FILE");
-            config.AppSettings.Settings.Add("JSON_FILE", "0");
-
-            config.AppSettings.Settings.Remove("SKIP_FILE");
-            config.AppSettings.Settings.Add("SKIP_FILE", "0");
-
-            config.AppSettings.Settings.Remove("STATS_FILE");
-            config.AppSettings.Settings.Add("STATS_FILE", "0");
-
-            config.AppSettings.Settings.Remove("STORE_PATH");
-            config.AppSettings.Settings.Add("STORE_PATH", "0");
-
-            config.AppSettings.Settings.Remove("UNITS_FILE");
-            config.AppSettings.Settings.Add("UNITS_FILE", "0");
-
-            config.AppSettings.Settings.Remove("JSON_FILE");
-            config.AppSettings.Settings.Add("JSON_FILE", "0");
-            ConfigurationManager.RefreshSection("appSettings");
-            config.Save();
-
-
-
-            Properties.Settings.Default.PLAYER = "PAX;Xpax;";
-            Properties.Settings.Default.REPLAY_PATH = @"C:\temp\bab\replays\1";
-
+            Properties.Settings.Default.PLAYER = "0";
+            Properties.Settings.Default.REPLAY_PATH = "0";
+            Properties.Settings.Default.CORES = 1;
             Properties.Settings.Default.V8 = false;
-
+            Properties.Settings.Default.JSON_FILE = "0";
             Properties.Settings.Default.Save();
 
             //SetPlayerList(Properties.Settings.Default.PLAYER);
             //SetReplayList(Properties.Settings.Default.REPLAY_PATH);
-
-
         }
 
         public void FirstRun_Json()
@@ -505,7 +290,7 @@ namespace sc2dsstats_rc1
 
             Regex rx_path = new Regex(@"(.*)_(\d+)$", RegexOptions.Singleline);
 
-            
+
             if (File.Exists(myStats_csv) && new FileInfo(myStats_csv).Length > 0)
             {
                 if (!File.Exists(myStats_json) || new FileInfo(myStats_json).Length == 0)
@@ -654,7 +439,7 @@ namespace sc2dsstats_rc1
                         });
                     }, TaskCreationOptions.AttachedToParent);
                 } else EnableLight();
-            } else EnableLight(); 
+            } else EnableLight();
             MessageBox.Show("Version 0.8.0.0: We improved the scan process. Please wait till your data is converted to the new format. This should take a maximum of a few minutes.", "sc2dsstats");
             Properties.Settings.Default.V8 = true;
             Properties.Settings.Default.Save();
@@ -726,7 +511,7 @@ namespace sc2dsstats_rc1
                 }
             }
 
-            Properties.Settings.Default.V7 = true;
+            //Properties.Settings.Default.V7 = true;
             Properties.Settings.Default.Save();
             ConfigurationManager.RefreshSection("appSettings");
             config.Save();
@@ -787,7 +572,6 @@ namespace sc2dsstats_rc1
             bt_filter2.IsEnabled = false;
             dp_menu.IsEnabled = false;
 
-            var appSettings = ConfigurationManager.AppSettings;
             if (Properties.Settings.Default.PLAYER != "0")
             {
                 fr_InputTextBox.Text = Properties.Settings.Default.PLAYER;
@@ -800,8 +584,10 @@ namespace sc2dsstats_rc1
             gr_firstrun.Visibility = Visibility.Visible;
 
         }
-
-        private void SetGUIFilter(object sender, EventArgs e)
+        private void SetGUIFilter(object sender, EventArgs e) {
+            Win_configng.SetConfigDefault(this);
+        }
+        private void SetGUIFilter_deprecated(object sender, EventArgs e)
         {
             var appSettings = ConfigurationManager.AppSettings;
 
@@ -924,14 +710,14 @@ namespace sc2dsstats_rc1
 
             if (cb_mode.SelectedItem.ToString() == "Winrate")
             {
-                Title = "Winrate";
+                lb_sb_info1.Content = "Winrate";
                 if (cb_player.IsChecked == true)
                 {
-                    Title += " player";
+                    lb_sb_info1.Content += " player";
 
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " - " + interest + " vs ...";
+                        lb_sb_info1.Content += " - " + interest + " vs ...";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -947,7 +733,7 @@ namespace sc2dsstats_rc1
                     }
                     else if (chb_cmdr_vs.IsChecked == true)
                     {
-                        Title += " - ... vs " + interest;
+                        lb_sb_info1.Content += " - ... vs " + interest;
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -986,10 +772,10 @@ namespace sc2dsstats_rc1
                 }
                 else
                 {
-                    Title += " world";
+                    lb_sb_info1.Content += " world";
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " - " + interest + " vs ... ";
+                        lb_sb_info1.Content += " - " + interest + " vs ... ";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1005,7 +791,7 @@ namespace sc2dsstats_rc1
                     }
                     else if (chb_cmdr_vs.IsChecked == true)
                     {
-                        Title += " - ... vs " + interest;
+                        lb_sb_info1.Content += " - ... vs " + interest;
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1048,14 +834,14 @@ namespace sc2dsstats_rc1
             else if (cb_mode.SelectedItem.ToString() == "MVP")
             {
 
-                Title = "MVP";
+                lb_sb_info1.Content = "MVP";
                 if (cb_player.IsChecked == true)
                 {
-                    Title += " player";
+                    lb_sb_info1.Content += " player";
 
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " - " + interest + " vs ...";
+                        lb_sb_info1.Content += " - " + interest + " vs ...";
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
                         cmdr = sum_mvp_pl.objRace(interest);
@@ -1069,7 +855,7 @@ namespace sc2dsstats_rc1
                     }
                     else if (chb_cmdr_vs.IsChecked == true)
                     {
-                        Title += " - ... vs " + interest;
+                        lb_sb_info1.Content += " - ... vs " + interest;
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1108,10 +894,10 @@ namespace sc2dsstats_rc1
                 }
                 else
                 {
-                    Title += " world";
+                    lb_sb_info1.Content += " world";
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " - " + interest + " vs ...";
+                        lb_sb_info1.Content += " - " + interest + " vs ...";
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
                         cmdr = sum_mvp.objRace(interest);
@@ -1126,7 +912,7 @@ namespace sc2dsstats_rc1
                     }
                     else if (chb_cmdr_vs.IsChecked == true)
                     {
-                        Title += " - ... vs " + interest;
+                        lb_sb_info1.Content += " - ... vs " + interest;
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1169,14 +955,14 @@ namespace sc2dsstats_rc1
             }
             else if (cb_mode.SelectedItem.ToString() == "Damage")
             {
-                Title = "Damage";
+                lb_sb_info1.Content = "Damage";
                 if (cb_player.IsChecked == true)
                 {
-                    Title += " player";
+                    lb_sb_info1.Content += " player";
 
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " - " + interest + " vs ...";
+                        lb_sb_info1.Content += " - " + interest + " vs ...";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1187,7 +973,7 @@ namespace sc2dsstats_rc1
                     }
                     else if (chb_cmdr_vs.IsChecked == true)
                     {
-                        Title += " - ... vs " + interest;
+                        lb_sb_info1.Content += " - ... vs " + interest;
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1221,10 +1007,10 @@ namespace sc2dsstats_rc1
                 }
                 else
                 {
-                    Title += " world";
+                    lb_sb_info1.Content += " world";
                     if (chb_vs.IsChecked == true)
                     {
-                        Title += " - " + interest + " vs ...";
+                        lb_sb_info1.Content += " - " + interest + " vs ...";
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1234,7 +1020,7 @@ namespace sc2dsstats_rc1
                     }
                     else if (chb_cmdr_vs.IsChecked == true)
                     {
-                        Title += " - ... vs " + interest;
+                        lb_sb_info1.Content += " - ... vs " + interest;
 
                         dsstats_vs vs = new dsstats_vs();
                         dsstats_race cmdr = new dsstats_race();
@@ -1272,7 +1058,7 @@ namespace sc2dsstats_rc1
             }
             else if (cb_mode.SelectedItem.ToString() == "Timeline")
             {
-                Title = "Timeline " + interest;
+                lb_sb_info1.Content = "Timeline " + interest;
                 //interest = "Nova";
                 cb_vs.Visibility = Visibility.Visible;
 
@@ -1431,12 +1217,12 @@ namespace sc2dsstats_rc1
                     }
                 }
             }
-            Title += add;
+            lb_sb_info1.Content += add;
             char average = '\u2300';
             if (gdr > 0)
             {
                 TimeSpan t = TimeSpan.FromSeconds(gdr);
-                Title += " (" + average.ToString() + " duration: " + t.Minutes + ":" + t.Seconds.ToString("D2") + " min)";
+                lb_sb_info1.Content += " (" + average.ToString() + " duration: " + t.Minutes + ":" + t.Seconds.ToString("D2") + " min)";
             }
             cdata.Sort(delegate (KeyValuePair<string, double> x, KeyValuePair<string, double> y)
             {
@@ -1458,7 +1244,7 @@ namespace sc2dsstats_rc1
             selection.CLIST = cdata;
             selection.GAMES = ggames;
             selection.WINS = gwr;
-            selection.TITLE = Title;
+            selection.TITLE = lb_sb_info1.Content.ToString();
             selection.YAXIS = y_axis;
             selection.YMAX = (int)max;
 
@@ -1595,7 +1381,7 @@ namespace sc2dsstats_rc1
             cdata = sel.CLIST;
             ggames = sel.GAMES;
             gwr = sel.WINS;
-            Title = sel.TITLE;
+            //Title = sel.TITLE;
             string yaxis = sel.YAXIS;
             int max_y = sel.YMAX;
 
@@ -1639,7 +1425,7 @@ namespace sc2dsstats_rc1
             //dynChart.Title = Title;
             dynChart.Title = new TextBlock
             {
-                Text = Title,
+                Text = lb_sb_info1.Content.ToString(),
                 FontFamily = new System.Windows.Media.FontFamily("/sc2dsstats_rc1;component/#Titillium Web"),
                 FontWeight = FontWeights.Bold,
                 //Foreground = System.Windows.Media.Brushes.DarkBlue;
@@ -1771,6 +1557,7 @@ namespace sc2dsstats_rc1
                 gr_chart.Visibility = Visibility.Hidden;
                 gr_images.Visibility = Visibility.Hidden;
                 gr_syn.Visibility = Visibility.Visible;
+                lb_sb_info1.Content = "Synergy";
                 GetSynergy();
             }
 
@@ -1782,6 +1569,7 @@ namespace sc2dsstats_rc1
                 gr_syn.Visibility = Visibility.Visible;
                 cb_vs.Visibility = Visibility.Visible;
                 wb_chart.Visibility = Visibility.Hidden;
+                lb_sb_info1.Content = "Builds";
                 GetBuilds();
             }
 
@@ -2208,7 +1996,7 @@ namespace sc2dsstats_rc1
                 gr_syn_btn.RowDefinitions.Add(gridRow1);
 
                 CheckBox cb = new CheckBox();
-                cb.Style = (Style)this.Resources["cb_Style"];
+                cb.Style = (Style)Application.Current.Resources["cb_Style"];
                 //cb.Foreground = System.Windows.Media.Brushes.White;
                 //cb.Background = System.Windows.Media.Brushes.LightYellow;
                 cb.VerticalAlignment = VerticalAlignment.Center;
@@ -2677,14 +2465,35 @@ namespace sc2dsstats_rc1
                 gr_chart.Children.Add(dynChart);
             }
 
+            if (scan_running == false)
+            {
+                if (gr_sb_grid.Children.Count > 0)
+                {
+                    try
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            foreach (UIElement ent in gr_sb_grid.Children)
+                            {
+                                gr_sb_grid.Children.Remove(ent);
+                            }
+                        });
+                    } catch { }
+                }
+                lb_sb_info2.Content = "";
+            }
+
         }
 
         private void mnu_Options(object sender, RoutedEventArgs e)
         {
 
             ///ClearImage();
-            Win_config win3 = new Win_config(this);
-            win3.Show();
+            //Win_config win3 = new Win_config(this);
+            //win3.Show();
+
+            Win_configng winng = new Win_configng();
+            winng.Show();
 
         }
 
@@ -2706,11 +2515,12 @@ namespace sc2dsstats_rc1
             }
             gr_images.Visibility = Visibility.Hidden;
             gr_doit.Visibility = Visibility.Visible;
-            var appSettings = ConfigurationManager.AppSettings;
 
             int total = 0;
             List<string> todo_replays = dsscan.Scan(this, out total);
             int todo = todo_replays.Count;
+            lb_sb_info1.Content = "Scan (" + todo.ToString() + " new replays available. Total replays: " + total.ToString() + ")";
+
             doit_TextBox1.Document.Blocks.Clear();
 
             TextRange rangeOfText1 = new TextRange(doit_TextBox1.Document.ContentEnd, doit_TextBox1.Document.ContentEnd);
@@ -2749,6 +2559,8 @@ namespace sc2dsstats_rc1
             doit_TextBox1.AppendText("Expected time needed: " + st_time + " h" + Environment.NewLine);
             doit_TextBox1.AppendText("(can be decresed by setting more CPUs at the cost of the computers workload)" + Environment.NewLine);
             //doit_TextBox1.AppendText(Environment.NewLine);
+
+            /**
             if (String.Equals(appSettings["KEEP"], "1"))
             {
                 doit_TextBox1.AppendText("Expected disk space needed: " + "0" + " GB" + Environment.NewLine);
@@ -2760,6 +2572,7 @@ namespace sc2dsstats_rc1
                     doit_TextBox1.AppendText("WARNING: There might be not enough Diskspace available!!!" + Environment.NewLine);
                 }
             }
+    **/
             //doit_TextBox1.AppendText(Environment.NewLine);
 
             doit_TextBox1.AppendText("You can always quit the process, next time it will continue at the last position." + Environment.NewLine);
@@ -2794,12 +2607,8 @@ namespace sc2dsstats_rc1
             if (scan_running == false)
             {
                 scan_running = true;
-                var appSettings = ConfigurationManager.AppSettings;
-                int cores = Environment.ProcessorCount;
-                if (appSettings["CORES"] != null && appSettings["CORES"] != "0")
-                {
-                    cores = int.Parse(appSettings["CORES"]);
-                }
+                int cores = Environment.ProcessorCount / 2;
+                if (Properties.Settings.Default.CORES > 0) cores = Properties.Settings.Default.CORES;
 
                 if (gr_doit.Visibility == Visibility.Visible)
                 {
@@ -2808,6 +2617,7 @@ namespace sc2dsstats_rc1
                 dsdecode dsdec = new dsdecode(cores, this);
                 dsdec.Scan();
                 mnu_Scanpre(null, null);
+                lb_sb_info1.Content = "Scanning with " + cores.ToString() + " threads.";
             } else
             {
                 MessageBox.Show("Scan already running. Please wait. (You can do 'File->Reload data' to see the processed data)", "sc2dsstats");
@@ -3154,6 +2964,8 @@ namespace sc2dsstats_rc1
             if (cb_all.IsChecked == true)
             {
                 gr_date.IsEnabled = false;
+                Properties.Settings.Default.GUI_START_DATE = new DateTime(2018, 01, 01);
+                UpdateGraph(sender);
             }
             else if (cb_all.IsChecked == false)
             {
@@ -3214,19 +3026,18 @@ namespace sc2dsstats_rc1
 
         private void cb_otf_Click(object sender, RoutedEventArgs e)
         {
-            otf.REPLAY_PATH = myReplay_list[0];
-            otf.MW = this;
-
-
+            if (OTF == null)
+            {
+                OTF = new dsotfng(this);
+            }
 
             if (cb_otf.IsChecked == true)
             {
-                otf.Start();
-
+                OTF.Start();
             }
             else
             {
-                otf.Stop();
+                OTF.Stop();
             }
         }
 
@@ -3297,79 +3108,9 @@ namespace sc2dsstats_rc1
             }
         }
 
-        private void dt_ComboBox_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            ComboBox cmb = sender as ComboBox;
-            dt_handle = !cmb.IsDropDownOpen;
-            Handle(sender, e);
-        }
-
-        private void dt_ComboBox_Closed(object sender, EventArgs e)
-        {
-            if (cb_mode.SelectedItem == null)
-            {
-                cb_mode.SelectedItem = cb_mode.Items[0];
-            }
-            else
-            {
-                try
-                {
-                    if (dt_handle) Handle(sender, e);
-                    dt_handle = true;
-                }
-                catch (InvalidCastException ex)
-                {
-
-                }
-            }
-        }
-
-        private void vs_ComboBox_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            ComboBox cmb = sender as ComboBox;
-            vs_handle = !cmb.IsDropDownOpen;
-            Handle(sender, e);
-        }
-
-        private void vs_ComboBox_Closed(object sender, EventArgs e)
-        {
-            if (cb_vs.SelectedItem == null)
-            {
-                cb_vs.SelectedItem = cb_vs.Items[0];
-            }
-            else
-            {
-                try
-                {
-                    if (vs_handle) Handle(sender, e);
-                    vs_handle = true;
-                }
-                catch (InvalidCastException ex)
-                {
-
-                }
-            }
-        }
-
-        private void Handle(object sender, EventArgs e)
-        {
-            RoutedEventArgs re = (RoutedEventArgs)e;
-
-            if (cb_mode.SelectedItem == cb_mode.Items[1])
-            {
-                gr_dps.IsEnabled = true;
-            }
-            else
-            {
-                gr_dps.IsEnabled = false;
-            }
-
-            UpdateGraph(sender);
-        }
-
-
         private void tb_fl2_Click(object sender, RoutedEventArgs e)
         {
+            if (INIT == false) return;
 
             if (sender is CheckBox)
             {
@@ -3381,10 +3122,13 @@ namespace sc2dsstats_rc1
                         if (cb.IsChecked == true)
                         {
                             tb_duration.IsEnabled = true;
+                            try { Properties.Settings.Default.GUI_DURATION = int.Parse(tb_duration.Text); }
+                            catch { }
                         }
                         else if (cb.IsChecked == false)
                         {
                             tb_duration.IsEnabled = false;
+                            Properties.Settings.Default.GUI_DURATION = 0;
                         }
                     }
                     else if (cb.Name == "cb_leaver")
@@ -3392,10 +3136,14 @@ namespace sc2dsstats_rc1
                         if (cb.IsChecked == true)
                         {
                             tb_leaver.IsEnabled = true;
+                            try { Properties.Settings.Default.GUI_LEAVER = int.Parse(tb_leaver.Text); }
+                            catch { }
+
                         }
                         else if (cb.IsChecked == false)
                         {
                             tb_leaver.IsEnabled = false;
+                            Properties.Settings.Default.GUI_LEAVER = 0;
                         }
                     }
                     else if (cb.Name == "cb_killsum")
@@ -3403,10 +3151,14 @@ namespace sc2dsstats_rc1
                         if (cb.IsChecked == true)
                         {
                             tb_killsum.IsEnabled = true;
+                            try { Properties.Settings.Default.GUI_KILLSUM = int.Parse(tb_killsum.Text); }
+                            catch { }
+
                         }
                         else if (cb.IsChecked == false)
                         {
                             tb_killsum.IsEnabled = false;
+                            Properties.Settings.Default.GUI_KILLSUM = 0;
                         }
                     }
                     else if (cb.Name == "cb_income")
@@ -3414,10 +3166,14 @@ namespace sc2dsstats_rc1
                         if (cb.IsChecked == true)
                         {
                             tb_income.IsEnabled = true;
+                            try { Properties.Settings.Default.GUI_INCOME = int.Parse(tb_income.Text); }
+                            catch { }
+
                         }
                         else if (cb.IsChecked == false)
                         {
                             tb_income.IsEnabled = false;
+                            Properties.Settings.Default.GUI_INCOME = 0;
                         }
                     }
                     else if (cb.Name == "cb_army")
@@ -3425,10 +3181,14 @@ namespace sc2dsstats_rc1
                         if (cb.IsChecked == true)
                         {
                             tb_army.IsEnabled = true;
+                            try { Properties.Settings.Default.GUI_ARMY = int.Parse(tb_army.Text); }
+                            catch { }
+
                         }
                         else if (cb.IsChecked == false)
                         {
                             tb_army.IsEnabled = false;
+                            Properties.Settings.Default.GUI_ARMY = 0;
                         }
                     }
                 }
@@ -3436,6 +3196,15 @@ namespace sc2dsstats_rc1
 
 
             UpdateGraph(sender);
+        }
+
+        private void tb_fl2_date_EnterClick(object sender, SelectionChangedEventArgs e)
+        {
+            if (INIT == true)
+            {
+                tb_fl2_Click(sender, null);
+                Properties.Settings.Default.GUI_START_DATE = otf_startdate.SelectedDate.Value;
+            }
         }
 
         private void ib_OkButton_Click(object sender, RoutedEventArgs e)
@@ -3768,6 +3537,7 @@ namespace sc2dsstats_rc1
 
         public void main_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Properties.Settings.Default.Save();
             foreach (string img in myTempfiles_col)
             {
                 if (File.Exists(img))
@@ -3794,6 +3564,14 @@ namespace sc2dsstats_rc1
         {
             //UNITS.GenJson();
         }
+
+        private void Button1_Click(object sender, RoutedEventArgs e)
+        {
+            Win_configng cfg = new Win_configng();
+            cfg.Show();
+        }
+
+
     }
 
 

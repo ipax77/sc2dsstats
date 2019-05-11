@@ -6,36 +6,14 @@
         xmlns:local="clr-namespace:sc2dsstats_rc1"
         mc:Ignorable="d"
         Title="Database" Height="800" Width="1600">
-    <Grid>
 
-        <Grid x:Name="gr_database" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="1600,10,0,0">
-            <DataGrid x:Name="dg_win_regex" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="700" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
-                <DataGrid.Style>
-                    <Style TargetType="DataGrid">
-                        <Setter Property="RowBackground" Value="White">
+    <Window.Resources>
 
-                        </Setter>
-                    </Style>
-                </DataGrid.Style>
-
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID"  Binding="{Binding ID}" Width="120" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="PLAYERID"  Binding="{Binding PLAYERID}" Width="120" />
-                    <DataGridTextColumn Header="REPLAY"  Binding="{Binding REPLAY}" Width="120" />
-                    <DataGridTextColumn Header="NAME"  Binding="{Binding NAME}" Width="120" />
-                    <DataGridTextColumn Header="RACE"  Binding="{Binding RACE}" Width="120" />
-                    <DataGridTextColumn Header="TEAM"  Binding="{Binding TEAM}" Width="120" />
-                    <DataGridTextColumn Header="RESULT"  Binding="{Binding RESULT}" Width="120" />
-                    <DataGridTextColumn Header="INCOME"  Binding="{Binding INCOME}" Width="120" />
-                    <DataGridTextColumn Header="ARMY"  Binding="{Binding ARMY}" Width="120" />
-                    <DataGridTextColumn Header="KILLSUM"  Binding="{Binding KILLSUM}" Width="120" />
-                    <DataGridTextColumn Header="DURATION"  Binding="{Binding DURATION}" Width="120" />
-                    <DataGridTextColumn Header="GAMETIME"  Binding="{Binding GAMETIME}" Width="120" />
-                </DataGrid.Columns>
-            </DataGrid>
-        </Grid>
-        <Grid x:Name="gr_database_games" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,120,0,0" >
-            <DataGrid x:Name="dg_games" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" MouseDoubleClick="dg_games_DClick">
+    </Window.Resources>
+    <Grid Background="#FF12161c">
+        <StackPanel Orientation="Horizontal" Margin="10,120,0,0">
+            <Grid x:Name="gr_database_games" Visibility="Visible" HorizontalAlignment="Left">
+            <DataGrid x:Name="dg_games" CanUserAddRows="false" RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" MouseDoubleClick="dg_games_DClick" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
                 <DataGrid.Style>
                     <Style TargetType="DataGrid">
                         <Setter Property="RowBackground" Value="White">
@@ -58,8 +36,8 @@
             </DataGrid>
         </Grid>
 
-        <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="850,120,0,0">
-            <DataGrid x:Name="dg_player" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53">
+            <Grid x:Name="gr_database_player" Visibility="Visible" HorizontalAlignment="Left" Margin="15,0,0,0">
+            <DataGrid x:Name="dg_player" MouseDoubleClick="Dg_player_MouseDoubleClick" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
                 <DataGrid.Style>
                     <Style TargetType="DataGrid">
                         <Setter Property="RowBackground" Value="White">
@@ -85,38 +63,91 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
-        
+
+            <Grid x:Name="gr_database_units" Visibility="Visible" HorizontalAlignment="Left" Margin="15,0,0,0">
+            <DataGrid x:Name="dg_units" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid">
+                        <Setter Property="RowBackground" Value="White">
+
+                        </Setter>
+                    </Style>
+                </DataGrid.Style>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="White" />
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="UNIT"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                    <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        </StackPanel>
         <Grid x:Name="gr_player_opt" Margin="650,41,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
-            <CheckBox x:Name="cb_pl_POS" Content="POS" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_POS_Click" />
-            <CheckBox x:Name="cb_pl_NAME" Content="NAME" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" Click="cb_NAME_Click" />
-            <CheckBox x:Name="cb_pl_RACE" Content="RACE" HorizontalAlignment="Left" Margin="175,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RACE_Click" />
-            <CheckBox x:Name="cb_pl_TEAM" Content="TEAM" HorizontalAlignment="Left" Margin="285,60,0,0" VerticalAlignment="Top" Click="cb_TEAM_Click" />
-            <CheckBox x:Name="cb_pl_KILLSUM" Content="KILLSUM" HorizontalAlignment="Left" Margin="345,60,0,0" VerticalAlignment="Top" Click="cb_KILLSUM_Click" />
-            <CheckBox x:Name="cb_pl_ARMY" Content="ARMY" HorizontalAlignment="Left" Margin="425,60,0,0" VerticalAlignment="Top" Click="cb_ARMY_Click" />
-            <CheckBox x:Name="cb_pl_INCOME" Content="INCOME" HorizontalAlignment="Left" Margin="505,60,0,0" VerticalAlignment="Top" Click="cb_INCOME_Click" />
-            <CheckBox x:Name="cb_pl_DURATION" Content="DURATION" HorizontalAlignment="Left" Margin="585,60,0,0" VerticalAlignment="Top" Click="cb_DURATION_Click" />
-            <CheckBox x:Name="cb_pl_RESULT" Content="RESULT" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RESULT_Click" />
+            <CheckBox x:Name="cb_pl_POS" Content="POS"  Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_POS_Click" />
+            <CheckBox x:Name="cb_pl_NAME" Content="NAME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" Click="cb_NAME_Click" />
+            <CheckBox x:Name="cb_pl_RACE" Content="RACE" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="175,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RACE_Click" />
+            <CheckBox x:Name="cb_pl_TEAM" Content="TEAM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="285,60,0,0" VerticalAlignment="Top" Click="cb_TEAM_Click" />
+            <CheckBox x:Name="cb_pl_KILLSUM" Content="KILLSUM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="345,60,0,0" VerticalAlignment="Top" Click="cb_KILLSUM_Click" />
+            <CheckBox x:Name="cb_pl_ARMY" Content="ARMY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="425,60,0,0" VerticalAlignment="Top" Click="cb_ARMY_Click" />
+            <CheckBox x:Name="cb_pl_INCOME" Content="INCOME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="505,60,0,0" VerticalAlignment="Top" Click="cb_INCOME_Click" />
+            <CheckBox x:Name="cb_pl_DURATION" Content="DURATION" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="585,60,0,0" VerticalAlignment="Top" Click="cb_DURATION_Click" />
+            <CheckBox x:Name="cb_pl_RESULT" Content="RESULT" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_RESULT_Click" />
         </Grid>
         <Grid x:Name="gr_games_opt" Margin="10,21,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
-            <CheckBox x:Name="cb_ga_ID" Content="ID" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_ID_Click" />
-            <CheckBox x:Name="cb_ga_REPLAY" Content="REPLAY" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_REPLAY_Click" />
-            <CheckBox x:Name="cb_ga_GAMETIME" Content="GAMETIME" HorizontalAlignment="Left" Margin="140,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_GAMETIME_Click" />
-            <CheckBox x:Name="cb_ga_WINTEAM" Content="WIN" HorizontalAlignment="Left" Margin="225,60,0,0" VerticalAlignment="Top" Click="cb_ga_WINTEAM_Click" />
-            <CheckBox x:Name="cb_ga_DURATION" Content="DURATION" HorizontalAlignment="Left" Margin="280,60,0,0" VerticalAlignment="Top" Click="cb_ga_DURATION_Click" />
-            <CheckBox x:Name="cb_ga_MAXLEAVER" Content="MAXLEAVER" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" Click="cb_ga_MAXLEAVER_Click" />
-            <CheckBox x:Name="cb_ga_MINKILLSUM" Content="MINKILLSUM" HorizontalAlignment="Left" Margin="465,60,0,0" VerticalAlignment="Top" Click="cb_ga_MINKILLSUM_Click" />
-            <CheckBox x:Name="cb_ga_MININCOME" Content="MININCOME" HorizontalAlignment="Left" Margin="565,60,0,0" VerticalAlignment="Top" Click="cb_ga_MININCOME_Click" />
-            <CheckBox x:Name="cb_ga_MINARMY" Content="MINARMY" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="False" Click="cb_ga_MINARMY_Click" />
-            
+            <CheckBox x:Name="cb_ga_ID" Content="ID" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="5,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_ID_Click" />
+            <CheckBox x:Name="cb_ga_REPLAY" Content="REPLAY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="55,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_REPLAY_Click" />
+            <CheckBox x:Name="cb_ga_GAMETIME" Content="GAMETIME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="140,60,0,0" VerticalAlignment="Top" IsChecked="True" Click="cb_ga_GAMETIME_Click" />
+            <CheckBox x:Name="cb_ga_WINTEAM" Content="WIN" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="225,60,0,0" VerticalAlignment="Top" Click="cb_ga_WINTEAM_Click" />
+            <CheckBox x:Name="cb_ga_DURATION" Content="DURATION" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="280,60,0,0" VerticalAlignment="Top" Click="cb_ga_DURATION_Click" />
+            <CheckBox x:Name="cb_ga_MAXLEAVER" Content="MAXLEAVER" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" Click="cb_ga_MAXLEAVER_Click" Template="{DynamicResource CheckBoxControlTemplate1}" />
+            <CheckBox x:Name="cb_ga_MINKILLSUM" Content="MINKILLSUM" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="465,60,0,0" VerticalAlignment="Top" Click="cb_ga_MINKILLSUM_Click" />
+            <CheckBox x:Name="cb_ga_MININCOME" Content="MININCOME" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="565,60,0,0" VerticalAlignment="Top" Click="cb_ga_MININCOME_Click" />
+            <CheckBox x:Name="cb_ga_MINARMY" Content="MINARMY" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="665,60,0,0" VerticalAlignment="Top" IsChecked="False" Click="cb_ga_MINARMY_Click" />
+
         </Grid>
-        <Button Content="(Re)Load" HorizontalAlignment="Left" Margin="35,11,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <Button x:Name="bt_show" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
+            <Button.Background>
+                <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                    <GradientStop Color="Black"/>
+                    <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                </LinearGradientBrush>
+            </Button.Background>
+            <Grid>
+                <TextBlock x:Name="bt_show_textblock1" Text="(Re)Load"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform X="0.5" Y="0.5" />
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+                <TextBlock x:Name="bt_show_textblock2" Text="(Re)Load" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+
+            </Grid>
+        </Button>
         <Grid x:Name="gr_filter" Margin="10,21,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
             <TextBox x:Name="tb_filter" HorizontalAlignment="Left" Height="23" Margin="215,29,0,0" TextWrapping="Wrap"
-                     VerticalAlignment="Top" Width="120">
+                     VerticalAlignment="Top" Width="120" Style="{StaticResource TextBoxStyle1}">
             </TextBox>
-            <Button x:Name="bt_filter" Content="filter" HorizontalAlignment="Left" Margin="10,28,0,0" VerticalAlignment="Top" Width="75" Click="bt_filter_Click"/>
-            <ComboBox x:Name="cb_filter" HorizontalAlignment="Left" Margin="90,28,0,0" VerticalAlignment="Top" Width="120"/>
+            <Button x:Name="bt_filter" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Width="75" Click="bt_filter_Click" BorderBrush="#FF010101" BorderThickness="1.5" Style="{DynamicResource ButtonStyle1}">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="Black"/>
+                        <GradientStop Color="#FF0D4AC1" Offset="0.862"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+                <Grid>
+                    <TextBlock x:Name="bt_show_textblock3" Text="Filter"  Foreground="Black" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" >
+                        <TextBlock.RenderTransform>
+                            <TranslateTransform X="0.5" Y="0.5" />
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                    <TextBlock x:Name="bt_show_textblock4" Text="Filter" Foreground="#6eaaff" Grid.Column="0" Grid.Row="0" FontFamily="/sc2dsstats_rc1;component/#Maven Pro Medium" />
+
+                </Grid>
+            </Button>
+            <ComboBox x:Name="cb_filter" HorizontalAlignment="Left" Margin="90,28,0,0" VerticalAlignment="Top" Width="120" Style="{DynamicResource ComboBoxStyle1}" FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold" />
         </Grid>
-        <Label x:Name="lb_filter" Content="" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.316,0.372" Width="640"/>
+        <Label x:Name="lb_filter" Style="{StaticResource lb_Style}" Content="" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.316,0.372" Width="640"/>
     </Grid>
 </Window>

@@ -95,7 +95,7 @@ namespace sc2dsstats_rc1
                 mmcb_mode.SelectedItem = mmcb_mode.Items[1];
             }
 
-            tb_elo.Text = Properties.Settings.Default.ELO;
+            tb_elo.Text = Properties.Settings.Default.MM_ELO;
 
         }
 
@@ -975,9 +975,9 @@ namespace sc2dsstats_rc1
                         }
                         if (d > 0)
                         {
-                            Properties.Settings.Default.ELO = d.ToString();
+                            Properties.Settings.Default.MM_ELO = d.ToString();
                             Properties.Settings.Default.Save();
-                            tb_elo.Text = Properties.Settings.Default.ELO;
+                            tb_elo.Text = Properties.Settings.Default.MM_ELO;
                         }
 
                     }
@@ -1172,7 +1172,7 @@ namespace sc2dsstats_rc1
                         {
                             lb_elodiff.Foreground = System.Windows.Media.Brushes.Green;
                         }
-                        Properties.Settings.Default.ELO = pl.ELO.ToString();
+                        Properties.Settings.Default.MM_ELO = pl.ELO.ToString();
                         Properties.Settings.Default.Save();
                     }
                 }

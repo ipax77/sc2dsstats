@@ -339,10 +339,37 @@ namespace sc2dsstats_rc1
                 fil_games = MW.replays.Where(x => Regex.IsMatch(x.REPLAY, repregex)).ToList();
                 WR.lb_filter.Content += "REPLAY => " + WR.tb_filter.Text + " (" + fil_games.Count() + ") ";
             }
+            else if (WR.cb_filter.SelectedItem.ToString() == "MATCHUP" || WR.cb_filter.SelectedItem.ToString() == "MATCHUP PLAYER") 
+            {
+                string filter = WR.tb_filter.Text;
+                List<string> matchup = new List<string>(filter.Split('|').ToList());
+
+                if (matchup.Count == 2)
+                {
+                    List<dsreplay> temp = new List<dsreplay>();
+                    foreach (dsreplay rep in MW.replays)
+                    {
+                        foreach (dsplayer pl in rep.PLAYERS)
+                        {
+                            if (MW.player_list.Contains(pl.NAME) || WR.cb_filter.SelectedItem.ToString() == "MATCHUP")
+                            {
+                                if (pl.RACE == matchup[0])
+                                {
+                                    if (rep.GetOpp(pl.REALPOS).RACE == matchup[1])
+                                    {
+                                        temp.Add(rep);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    fil_games = new List<dsreplay>(temp);
+                }
+            }
 
 
 
-            return fil_games;
+                return fil_games;
         }
 
 
