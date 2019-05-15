@@ -449,13 +449,19 @@ namespace sc2dsstats_rc1
             cmdr.RGAMES++;
             cmdr.AddGame(race.PDURATION);
 
-            dsstats_vs cmdr_vs = new dsstats_vs();
-            cmdr_vs = cmdr.OPP;
-            cmdr_vs.GAMES++;
-            dsstats_race cmdr_opp = new dsstats_race();
-            cmdr_opp = cmdr_vs.objRaceVS(opp_race.RACE);
-            cmdr_opp.RGAMES++;
-            cmdr_opp.AddGame(race.PDURATION);
+            if (opp_race != null)
+            {
+                dsstats_vs cmdr_vs = new dsstats_vs();
+                cmdr_vs = cmdr.OPP;
+                cmdr_vs.GAMES++;
+                dsstats_race cmdr_opp = new dsstats_race();
+                cmdr_opp = cmdr_vs.objRaceVS(opp_race.RACE);
+                cmdr_opp.RGAMES++;
+                cmdr_opp.AddGame(race.PDURATION);
+            } else
+            {
+                Console.WriteLine("no opp :(");
+            }
         }
 
         public virtual void AddGame(double dur)
@@ -750,17 +756,22 @@ namespace sc2dsstats_rc1
             cmdr.DPV += pl.GetDPV();
             this.DPV += pl.GetDPV();
 
+            if (opp != null)
+            {
+                dsstats_vs cmdr_vs = new dsstats_vs();
+                cmdr_vs = cmdr.OPP;
+                cmdr_vs.GAMES++;
+                dsstats_race cmdr_opp = new dsstats_race();
+                cmdr_opp = cmdr_vs.objRaceVS(opp.RACE);
+                cmdr_opp.RGAMES++;
 
-            dsstats_vs cmdr_vs = new dsstats_vs();
-            cmdr_vs = cmdr.OPP;
-            cmdr_vs.GAMES++;
-            dsstats_race cmdr_opp = new dsstats_race();
-            cmdr_opp = cmdr_vs.objRaceVS(opp.RACE);
-            cmdr_opp.RGAMES++;
-
-            cmdr_opp.DPS += pl.GetDPS();
-            cmdr_opp.DPM += pl.GetDPM();
-            cmdr_opp.DPV += pl.GetDPV();
+                cmdr_opp.DPS += pl.GetDPS();
+                cmdr_opp.DPM += pl.GetDPM();
+                cmdr_opp.DPV += pl.GetDPV();
+            } else
+            {
+                Console.WriteLine("no opp2 :(");
+            }
         }
 
         public override void AddGame(double dur)

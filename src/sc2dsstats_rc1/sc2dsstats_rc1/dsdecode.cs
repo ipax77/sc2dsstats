@@ -33,6 +33,7 @@ namespace sc2dsstats_rc1
         static int TOTAL = 0;
         static int TOTAL_DONE = 0;
         static int REPID = 0;
+        static readonly object _locker = new object();
         private ManualResetEvent _empty = new ManualResetEvent(false);
         static string[] GETPOOL = new string[] { "details", "trackerevents" };
         private DateTime START { get; set; }
@@ -172,7 +173,16 @@ namespace sc2dsstats_rc1
             EXEDIR = exedir;
             string pylib1 = exedir + @"\pylib";
             string pylib2 = exedir + @"\pylib\site-packages";
-            ScriptEngine engine = IronPython.Hosting.Python.CreateEngine();
+
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            if (DEBUG > 1)
+            {
+                options["Debug"] = ScriptingRuntimeHelpers.True;
+                options["ExceptionDetail"] = ScriptingRuntimeHelpers.True;
+                options["ShowClrExceptions"] = ScriptingRuntimeHelpers.True;
+            }
+            //options["MTA"] = ScriptingRuntimeHelpers.True;
+            ScriptEngine engine = IronPython.Hosting.Python.CreateEngine(options);
 
             var paths = engine.GetSearchPaths();
             paths.Add(pylib1);
@@ -420,10 +430,15 @@ namespace sc2dsstats_rc1
             dynamic header = null;
             try
             {
-                header = versions.latest().decode_replay_header(contents);
+                lock (_locker)
+                {
+                    header = versions.latest().decode_replay_header(contents);
+                }
             }
-            catch
+            catch (Exception e)
             {
+                if (DEBUG > 0) Console.WriteLine(e.Message);
+                
                 if (DEBUG > 0) Console.WriteLine("No header for " + id);
                 lock (ENGINE)
                 {

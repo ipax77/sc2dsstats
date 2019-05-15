@@ -1,4 +1,8 @@
 
+0.8.0.7
+
+- IronPython Bugfix (Issue #4) all credits to Mnuzz, ty!
+
 0.8.0.6
 
 - antisynergy graph
