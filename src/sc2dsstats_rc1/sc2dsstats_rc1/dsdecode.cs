@@ -184,6 +184,8 @@ namespace sc2dsstats_rc1
             dynamic result = null;
             result = engine.ExecuteFile(exedir + @"\pylib\site-packages\mpyq.py", scope);
             if (result != null) Console.WriteLine(result);
+            result = engine.Execute("import s2protocol", scope);
+            if (result != null) Console.WriteLine(result);
             result = engine.Execute("from s2protocol import versions", scope);
             if (result != null) Console.WriteLine(result);
             //Thread.Sleep(1000);
