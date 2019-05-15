@@ -476,12 +476,15 @@ namespace sc2dsstats_rc1
             this.WINS++;
             cmdr.RWINS++;
 
-            dsstats_vs cmdr_vs = new dsstats_vs();
-            cmdr_vs = cmdr.OPP;
-            cmdr_vs.WINS++;
-            dsstats_race cmdr_opp = new dsstats_race();
-            cmdr_opp = cmdr_vs.objRaceVS(opp_race.RACE);
-            cmdr_opp.RWINS++;
+            if (opp_race != null)
+            {
+                dsstats_vs cmdr_vs = new dsstats_vs();
+                cmdr_vs = cmdr.OPP;
+                cmdr_vs.WINS++;
+                dsstats_race cmdr_opp = new dsstats_race();
+                cmdr_opp = cmdr_vs.objRaceVS(opp_race.RACE);
+                cmdr_opp.RWINS++;
+            }
 
         }
         public virtual void Sort()
@@ -786,13 +789,15 @@ namespace sc2dsstats_rc1
             this.WINS++;
             cmdr.RWINS++;
 
-            dsstats_vs cmdr_vs = new dsstats_vs();
-            cmdr_vs = cmdr.OPP;
-            cmdr_vs.WINS++;
-            dsstats_race cmdr_opp = new dsstats_race();
-            cmdr_opp = cmdr_vs.objRaceVS(opp.RACE);
-            cmdr_opp.RWINS++;
-
+            if (opp != null)
+            {
+                dsstats_vs cmdr_vs = new dsstats_vs();
+                cmdr_vs = cmdr.OPP;
+                cmdr_vs.WINS++;
+                dsstats_race cmdr_opp = new dsstats_race();
+                cmdr_opp = cmdr_vs.objRaceVS(opp.RACE);
+                cmdr_opp.RWINS++;
+            }
         }
     }
 }
