@@ -1,4 +1,8 @@
 
+0.8.0.9
+
+- skipfile usage
+
 0.8.0.8
 
 - Bugfix AddGame with no Opp

@@ -59,21 +59,7 @@ namespace sc2dsstats_rc1
             int count = 0;
             if (File.Exists(mw.mySkip_csv))
             {
-                string line;
-
-                try
-                {
-                    System.IO.StreamReader file = new System.IO.StreamReader(mw.mySkip_csv);
-                    while ((line = file.ReadLine()) != null)
-                    {
-                        if (line == "") continue;
-                        skiplist.Add(line);
-                    }
-                    file.Close();
-                }
-                catch (System.IO.IOException)
-                {
-                }
+                dsskip.Get(mw.mySkip_csv);
             }
 
             Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay|(Desert Strike.*)\.SC2Replay", RegexOptions.Singleline);
@@ -94,7 +80,11 @@ namespace sc2dsstats_rc1
                         {
                             string id = Path.GetFileNameWithoutExtension(fileName);
                             string repid = reppath_md5 + "/" + id;
-                            if (!replist.ContainsKey(repid)) replist.Add(repid, fileName);
+                            if (!replist.ContainsKey(repid))
+                            {
+                                if (dsskip.SKIP.ContainsKey(fileName) && dsskip.SKIP[fileName] > 3) { }
+                                else replist.Add(repid, fileName);
+                            }
                         }
                     }
                 }

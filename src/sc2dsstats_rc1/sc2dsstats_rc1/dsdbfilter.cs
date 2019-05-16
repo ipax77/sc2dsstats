@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -630,6 +633,73 @@ namespace sc2dsstats_rc1
 
             //fil_replays = fil_replays.Distinct().ToList();
             return fil_replays;
+        }
+    }
+
+    public class dsskip
+    {
+        public string REPLAY { get; set; }
+        public int FAILED { get; set; }
+        public static ConcurrentDictionary<string, int> SKIP { get; set; }
+
+        public static ConcurrentDictionary<string, int> Get (string skipfile)
+        {
+            ConcurrentDictionary<string, int> skip = new ConcurrentDictionary<string, int>();
+            TextReader reader = null;
+            dsskip rep = null;
+            try
+            {
+                reader = new StreamReader(skipfile, Encoding.UTF8);
+                string fileContents;
+                while ((fileContents = reader.ReadLine()) != null)
+                {
+                    rep = JsonConvert.DeserializeObject<dsskip>(fileContents);
+                    if (rep != null)
+                    {
+                        skip.TryAdd(rep.REPLAY, rep.FAILED);
+                    }
+                }
+            }
+            finally
+            {
+                if (reader != null)
+                    reader.Close();
+            }
+            SKIP = new ConcurrentDictionary<string, int>(skip);
+            return skip;
+        }
+
+        public static void Set (dsskip rep)
+        {
+            if (SKIP.ContainsKey(rep.REPLAY)) SKIP[rep.REPLAY]++;
+            else SKIP.TryAdd(rep.REPLAY, 1);
+        }
+
+        public static void Finaly (string out_file, ConcurrentDictionary<string, int> tskip)
+        {
+            TextWriter writer = null;
+            try
+            {
+                writer = new StreamWriter(out_file, false, Encoding.UTF8);
+                foreach (var ent in tskip.Keys)
+                {
+                    dsskip skip = new dsskip();
+                    skip.REPLAY = ent;
+                    skip.FAILED = tskip[ent];
+                    var repjson = JsonConvert.SerializeObject(skip);
+
+                    writer.Write(repjson + Environment.NewLine);
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (writer != null)
+                    writer.Close();
+            }
+
         }
     }
 }

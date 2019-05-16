@@ -25,6 +25,7 @@ namespace sc2dsstats_rc1
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
         ConcurrentDictionary<string, dsreplay> replaysng { get; set; } = new ConcurrentDictionary<string, dsreplay>();
         ConcurrentDictionary<string, int> REDO { get; set; } = new ConcurrentDictionary<string, int>();
+        ConcurrentDictionary<string, int> SKIP { get; set; } = new ConcurrentDictionary<string, int>();
         public string OUTDIR { get; set; } = @"C:\temp\bab\analyzes";
         public string OUTFILE { get; set; } = @"C:\temp\bab\csharp_stats.csv";
         public string JSONFILE { get; set; } = @"C:\temp\bab\csharp_stats.json";
@@ -61,8 +62,8 @@ namespace sc2dsstats_rc1
         public static int CORES = 1;
         private static int DEBUG = 0;
         private static string EXEDIR;
-        
-        public Dictionary<string, int> BREAKPOINTS { get; set; } = new Dictionary<string, int>();
+
+        public List<KeyValuePair<string, int>> BREAKPOINTS { get; set; } = new List<KeyValuePair<string, int>>();
 
         public dsdecode(int numThreads, MainWindow mw)
         {
@@ -75,10 +76,10 @@ namespace sc2dsstats_rc1
                 CORES = Environment.ProcessorCount;
             }
 
-            BREAKPOINTS.Add("MIN5", MIN5);
-            BREAKPOINTS.Add("MIN10", MIN10);
-            BREAKPOINTS.Add("MIN15", MIN15);
-            BREAKPOINTS.Add("ALL", 0);
+            BREAKPOINTS.Add(new KeyValuePair<string, int>("MIN5", MIN5));
+            BREAKPOINTS.Add(new KeyValuePair<string, int>("MIN10", MIN10));
+            BREAKPOINTS.Add(new KeyValuePair<string, int>("MIN15", MIN15));
+            BREAKPOINTS.Add(new KeyValuePair<string, int>("ALL", 0));
 
             JsonSerializerSettings jsSettings = new JsonSerializerSettings();
             jsSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -89,6 +90,7 @@ namespace sc2dsstats_rc1
         {
             if (DEBUG > 1)
             {
+                Console.WriteLine(msg);
                 _readWriteLock.EnterWriteLock();
                 File.AppendAllText(MW.myScan_log, msg + Environment.NewLine);
                 _readWriteLock.ExitWriteLock();
@@ -150,6 +152,7 @@ namespace sc2dsstats_rc1
                 //Console.WriteLine(timeDiff.TotalSeconds);
             }
             Console.WriteLine("Scan complete.");
+            dsskip.Finaly(MW.mySkip_csv, SKIP);
             MW.Dispatcher.Invoke(() =>
             {
                 if (scanfailed == false)
@@ -244,7 +247,17 @@ namespace sc2dsstats_rc1
         {
             MW.scan_running = true;
 
-            List<string> todo = dsscan.Scan(MW);
+            List<string> todo_pre = dsscan.Scan(MW);
+            SKIP = new ConcurrentDictionary<string, int>(dsskip.Get(MW.mySkip_csv));
+            List<string> todo = new List<string>();
+            foreach (string rep in todo_pre) {
+                if (SKIP.ContainsKey(rep) && SKIP[rep] > 3)
+                {
+                    if (DEBUG > 0) Console.WriteLine("Skipping " + rep + " due to skiplist");
+                }
+                else todo.Add(rep);
+            }
+
             TOTAL_DONE = 0;
             TOTAL = todo.Count();
             START = DateTime.UtcNow;
@@ -304,6 +317,8 @@ namespace sc2dsstats_rc1
                     Console.WriteLine(timeDiff.TotalSeconds);
                 }
                 Console.WriteLine("Scan complete.");
+                dsskip.Finaly(MW.mySkip_csv, SKIP);
+
                 MW.Dispatcher.Invoke(() =>
                 {
                     pb.Value = 100;
@@ -373,6 +388,10 @@ namespace sc2dsstats_rc1
                             {
                                 int myval = 0;
                                 REDO.TryRemove(rep, out myval);
+
+                                if (SKIP.ContainsKey(rep)) SKIP[rep]++;
+                                else SKIP.TryAdd(rep, 1);
+
                             }
                         }
 
@@ -419,14 +438,28 @@ namespace sc2dsstats_rc1
             Log("Loading s2protocol ..");
             //dynamic MPQArchive = SCOPE.GetVariable("MPQArchive");
             dynamic MPQArchive = threadsave_scope.GetVariable("MPQArchive");
-            
+            dynamic archive = null;
+            dynamic files = null;
+            dynamic contents = null;
+            dynamic versions = null;
+            try
+            {
+                archive = MPQArchive(rep);
+                files = archive.extract();
+                contents = archive.header["user_data_header"]["content"];
 
-            dynamic archive = MPQArchive(rep);
-            var files = archive.extract();
-            var contents = archive.header["user_data_header"]["content"];
-
-            //dynamic versions = SCOPE.GetVariable("versions");
-            dynamic versions = threadsave_scope.GetVariable("versions");
+                //versions = SCOPE.GetVariable("versions");
+                versions = threadsave_scope.GetVariable("versions");
+            }
+            catch
+            {
+                if (SKIP.ContainsKey(rep)) SKIP[rep]++;
+                else SKIP.TryAdd(rep, 1);
+                Interlocked.Increment(ref TOTAL_DONE);
+                Interlocked.Decrement(ref THREADS);
+                if (DEBUG > 0) Console.WriteLine("No MPQArchive for " + id);
+                return;
+            }
             dynamic header = null;
             try
             {
@@ -671,28 +704,36 @@ namespace sc2dsstats_rc1
                                     string unit = m.Groups[1].Value;
                                     if (m.Groups[2].Value.Length > 0) unit += m.Groups[2].Value;
 
-                                    foreach (string bp in BREAKPOINTS.Keys)
+                                    // failsafe double tychus
+                                    if (unit == "TychusTychus")
+                                        if (pydic.ContainsKey("m_unitTypeName"))
+                                            if (pydic["m_unitTypeName"].ToString() == "UnitBirthBar")
+                                                continue;
+                                        
+                                    foreach (var bp in BREAKPOINTS)
                                     {
-                                        if (BREAKPOINTS[bp] > 0 && gameloop > BREAKPOINTS[bp]) continue;
+                                        
+                                        if (bp.Value > 0 && gameloop > bp.Value) continue;
+
 
                                         if (track.UNITS.ContainsKey(playerid))
                                         {
-                                            if (track.UNITS[playerid].ContainsKey(bp))
+                                            if (track.UNITS[playerid].ContainsKey(bp.Key))
                                             {
-                                                if (track.UNITS[playerid][bp].ContainsKey(unit)) track.UNITS[playerid][bp][unit] = track.UNITS[playerid][bp][unit] + 1;
-                                                else track.UNITS[playerid][bp].Add(unit, 1);
+                                                if (track.UNITS[playerid][bp.Key].ContainsKey(unit)) track.UNITS[playerid][bp.Key][unit] = track.UNITS[playerid][bp.Key][unit] + 1;
+                                                else track.UNITS[playerid][bp.Key].Add(unit, 1);
                                             }
                                             else
                                             {
-                                                track.UNITS[playerid].Add(bp, new Dictionary<string, int>());
-                                                track.UNITS[playerid][bp].Add(unit, 1);
+                                                track.UNITS[playerid].Add(bp.Key, new Dictionary<string, int>());
+                                                track.UNITS[playerid][bp.Key].Add(unit, 1);
                                             }
                                         }
                                         else
                                         {
                                             track.UNITS.Add(playerid, new Dictionary<string, Dictionary<string, int>>());
-                                            track.UNITS[playerid].Add(bp, new Dictionary<string, int>());
-                                            track.UNITS[playerid][bp].Add(unit, 1);
+                                            track.UNITS[playerid].Add(bp.Key, new Dictionary<string, int>());
+                                            track.UNITS[playerid][bp.Key].Add(unit, 1);
                                         }
                                     }
 
