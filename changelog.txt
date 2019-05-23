@@ -1,4 +1,8 @@
 
+0.8.0.10
+
+- s2protocol v4.9.0.74071.0
+
 0.8.0.9
 
 - skipfile usage

@@ -51,7 +51,7 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="POS"  Binding="{Binding POS}" Width="50" />
+                    <DataGridTextColumn Header="REALPOS"  Binding="{Binding REALPOS}" Width="50" />
                     <DataGridTextColumn Header="NAME"  Binding="{Binding NAME}" Visibility="Hidden" Width="120" />
                     <DataGridTextColumn Header="RACE"  Binding="{Binding RACE}" Width="120" />
                     <DataGridTextColumn Header="TEAM"  Binding="{Binding TEAM}" Visibility="Hidden" Width="50" />
