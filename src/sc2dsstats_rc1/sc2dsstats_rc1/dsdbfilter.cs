@@ -653,7 +653,10 @@ namespace sc2dsstats_rc1
                 string fileContents;
                 while ((fileContents = reader.ReadLine()) != null)
                 {
-                    rep = JsonConvert.DeserializeObject<dsskip>(fileContents);
+                    try
+                    {
+                        rep = JsonConvert.DeserializeObject<dsskip>(fileContents);
+                    } catch { }
                     if (rep != null)
                     {
                         skip.TryAdd(rep.REPLAY, rep.FAILED);

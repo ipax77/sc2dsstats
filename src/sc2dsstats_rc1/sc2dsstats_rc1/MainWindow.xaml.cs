@@ -124,7 +124,7 @@ namespace sc2dsstats_rc1
             myStats_csv = exedir + "\\stats.csv";
             myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats";
             if (DEBUG > 1) myAppData_dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats2";
-            mySkip_csv = myAppData_dir + "\\skip.csv";
+            mySkip_csv = myAppData_dir + "\\skip.json";
             myStats_csv = myAppData_dir + "\\stats.csv";
             myStats_json = myAppData_dir + "\\stats.json";
             myTemp_dir = myAppData_dir + "\\";
@@ -233,6 +233,36 @@ namespace sc2dsstats_rc1
             {
                 Win_configng.SetConfig(this);
                 replays = LoadData(myStats_json);
+
+                if (replays.Count > 10)
+                {
+                    if (Properties.Settings.Default.UPLOAD == null)
+                    {
+                        try
+                        {
+                            mnu_upload(null, null);
+                        } catch
+                        {
+                            Properties.Settings.Default.UPLOAD = DateTime.Now;
+                            Properties.Settings.Default.Save();
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            TimeSpan t = DateTime.Now - Properties.Settings.Default.UPLOAD;
+                            if (t.Days > 30)
+                            {
+                                mnu_upload(null, null);
+                            }
+                        }
+                        catch {
+                            Properties.Settings.Default.UPLOAD = DateTime.Now;
+                            Properties.Settings.Default.Save();
+                        }
+                    }
+                }
             }
 
             if (Properties.Settings.Default.REPLAY_PATH == "0")
@@ -250,8 +280,12 @@ namespace sc2dsstats_rc1
                 var appSettings = ConfigurationManager.AppSettings;
                 if (appSettings["STATS_FILE"] != null && File.Exists(appSettings["STATS_FILE"]))
                     myStats_csv = appSettings["STATS_FILE"];
-
-                FirstRun_Json();
+                try
+                {
+                    FirstRun_Json();
+                } catch { }
+                Properties.Settings.Default.V8 = true;
+                Properties.Settings.Default.Save();
             }
 
             myStats_csv = myStats_json;
@@ -2833,7 +2867,6 @@ namespace sc2dsstats_rc1
                 foreach (string line in ano_stats)
                     outputFile.WriteLine(line);
             }
-
         }
 
         public void mnu_upload(object sender, RoutedEventArgs e)
@@ -2841,20 +2874,14 @@ namespace sc2dsstats_rc1
             string exp_csv = myAppData_dir + "\\export.csv";
 
             string hash = "";
-            using (SHA256 sha256Hash = SHA256.Create())
+
+
+            string credential = "";
+            if (sender == null)
             {
-                hash = GetHash(sha256Hash, player_name);
-
+                credential = "To improve this application it would be very nice if the statistics were uploaded from time to time." + Environment.NewLine + Environment.NewLine;
             }
-
-            List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_json, this));
-            using (StreamWriter outputFile = new StreamWriter(exp_csv))
-            {
-                foreach (string line in ano_stats)
-                    outputFile.WriteLine(line);
-            }
-
-            string credential = "All player names (including yours) will be anonymized before sending. By clicking \"Yes\" you agree that your DS-replay data will be used at https://www.pax77.org to generate global charts." + Environment.NewLine + Environment.NewLine;
+            credential += "All player names (including yours) will be anonymized before sending. By clicking \"Yes\" you agree that your DS-replay data will be used at https://www.pax77.org to generate global charts." + Environment.NewLine + Environment.NewLine;
 
 
             if (MessageBox.Show(credential + "Upload anonymized data to https://www.pax77.org?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
@@ -2864,13 +2891,28 @@ namespace sc2dsstats_rc1
             else
             {
                 //do yes stuff
+
+                using (SHA256 sha256Hash = SHA256.Create())
+                {
+                    hash = GetHash(sha256Hash, player_name);
+
+                }
+
+                List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_json, this));
+                using (StreamWriter outputFile = new StreamWriter(exp_csv))
+                {
+                    foreach (string line in ano_stats)
+                        outputFile.WriteLine(line);
+                }
+
                 dsclient.StartClient(hash, exp_csv);
                 //if (File.Exists(myUnits_csv))
                 //{
                 //    dsclient.StartClient(hash + "_units", myUnits_csv);
                 //}
             }
-
+            Properties.Settings.Default.UPLOAD = DateTime.Now;
+            Properties.Settings.Default.Save();
         }
 
         public void mnu_mm(object sender, RoutedEventArgs e)

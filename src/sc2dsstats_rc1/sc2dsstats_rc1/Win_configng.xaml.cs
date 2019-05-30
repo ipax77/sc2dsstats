@@ -55,6 +55,7 @@ namespace sc2dsstats_rc1
             {
                 if (cb_all.IsChecked == false)
                 {
+                    if (currentProperty.Name.ToString() == "UPLOAD") continue;
                     if (currentProperty.Name.ToString().StartsWith("GUI_")) continue;
                     if (currentProperty.Name.ToString().StartsWith("MM_")) continue;
                     if (currentProperty.Name.ToString() == "V8") continue;
@@ -226,7 +227,7 @@ namespace sc2dsstats_rc1
                             catch { Console.WriteLine("Failed saving config for " + tb.Name + " => " + tb.Text); }
                         }
 
-                        else if (tb.Name == "MM_Deleted" || tb.Name == "GUT_START_DATE" || tb.Name == "GUI_END_DATE")
+                        else if (tb.Name == "MM_Deleted" || tb.Name == "GUI_START_DATE" || tb.Name == "GUI_END_DATE" || tb.Name == "UPLOAD")
                         {
                             try
                             {

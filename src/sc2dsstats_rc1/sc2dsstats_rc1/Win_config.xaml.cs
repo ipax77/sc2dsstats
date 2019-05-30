@@ -180,12 +180,22 @@ namespace sc2dsstats_rc1
                 if (string.Equals("{NewItemPlaceholder}", row))
                 {
 
-                } else if (myCfg.key.ToString() == "PLAYER")
+                }
+                else if (myCfg.key.ToString() == "PLAYER")
                 {
                     Properties.Settings.Default.PLAYER = myCfg.value.ToString();
-                } else if (myCfg.key.ToString() == "REPLAY_PATH")
+                }
+                else if (myCfg.key.ToString() == "REPLAY_PATH")
                 {
                     Properties.Settings.Default.REPLAY_PATH = myCfg.value.ToString();
+                }
+                else if (myCfg.key.ToString() == "UPLOAD")
+                {
+                    try
+                    {
+                        Properties.Settings.Default.UPLOAD = DateTime.Parse(myCfg.value.ToString());
+                    }
+                    catch { }
                 }
                 else
                 {
