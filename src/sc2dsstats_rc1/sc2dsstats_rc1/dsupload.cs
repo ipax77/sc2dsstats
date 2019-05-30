@@ -39,6 +39,7 @@ namespace sc2dsstats_rc1
                 }
                 anonymous.Add(JsonConvert.SerializeObject(replay));
             }
+            mw.LoadData(mw.myStats_json);
             return anonymous;
         }
 
