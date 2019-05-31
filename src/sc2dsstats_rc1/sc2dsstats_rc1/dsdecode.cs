@@ -705,10 +705,16 @@ namespace sc2dsstats_rc1
                                     if (m.Groups[2].Value.Length > 0) unit += m.Groups[2].Value;
 
                                     // failsafe double tychus
-                                    if (unit == "TychusTychus")
-                                        if (pydic.ContainsKey("m_unitTypeName"))
-                                            if (pydic["m_unitTypeName"].ToString() == "UnitBirthBar")
-                                                continue;
+                                    //if (unit == "TychusTychus")
+                                    if (pydic.ContainsKey("m_unitTypeName"))
+                                    {
+                                        if (pydic["m_unitTypeName"].ToString() == "UnitBirthBar")
+                                        {
+                                            Console.WriteLine(unit);
+                                            continue;
+                                        }
+                                    }
+                                            
                                         
                                     foreach (var bp in BREAKPOINTS)
                                     {
