@@ -268,6 +268,8 @@ namespace sc2dsstats_rc1
             if (Properties.Settings.Default.REPLAY_PATH == "0")
             {
                 FirstRun();
+                Properties.Settings.Default.FIRSTRUN = false;
+                Properties.Settings.Default.Save();
             }
             else
             {
@@ -285,7 +287,19 @@ namespace sc2dsstats_rc1
                     FirstRun_Json();
                 } catch { }
                 Properties.Settings.Default.V8 = true;
+                Properties.Settings.Default.FIRSTRUN = false;
                 Properties.Settings.Default.Save();
+            }
+
+            if (Properties.Settings.Default.FIRSTRUN == true)
+            {
+                try
+                {
+                    FirstRunNewVersion();
+                } catch { }
+                Properties.Settings.Default.FIRSTRUN = false;
+                Properties.Settings.Default.Save();
+
             }
 
             myStats_csv = myStats_json;
@@ -305,6 +319,14 @@ namespace sc2dsstats_rc1
 
             //SetPlayerList(Properties.Settings.Default.PLAYER);
             //SetReplayList(Properties.Settings.Default.REPLAY_PATH);
+        }
+
+        public void FirstRunNewVersion()
+        {
+            if (File.Exists(mySkip_csv) && new FileInfo(mySkip_csv).Length > 0)
+            {
+
+            }
         }
 
         public void FirstRun_Json()
@@ -2829,6 +2851,13 @@ namespace sc2dsstats_rc1
 
             wlog.Show();
         }
+        private void mnu_update(object sender, RoutedEventArgs e)
+        {
+            if (!isVersionOK())
+            {
+                MessageBox.Show("No new version available.", "sc2dsstats");
+            }
+        }
 
         private void mnu_Database(object sender, RoutedEventArgs e)
         {
@@ -3587,6 +3616,58 @@ namespace sc2dsstats_rc1
             }
         }
 
+        private Boolean isVersionOK()
+        {
+            UpdateCheckInfo info = null;
+
+            if (ApplicationDeployment.IsNetworkDeployed)
+            {
+                ApplicationDeployment ad = ApplicationDeployment.CurrentDeployment;
+
+                try
+                {
+                    info = ad.CheckForDetailedUpdate();
+                }
+                catch (DeploymentDownloadException)
+                {
+                    // No network connection
+                    return false;
+                }
+                catch (InvalidDeploymentException)
+                {
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+
+                if (info.UpdateAvailable)
+                {
+                    lb_sb_info1.Content = "New Version available. Downloading ...";
+                    lb_sb_info2.Content = "The applications will restart after the download.";
+                    try
+                    {
+                        ad.Update();
+
+                        //Application.Restart();
+                        System.Windows.Forms.Application.Restart();
+                        Environment.Exit(0);
+                    }
+                    catch (DeploymentDownloadException)
+                    {
+                        // No network connection
+                    }
+
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         public void main_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {

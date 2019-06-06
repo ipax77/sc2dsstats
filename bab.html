@@ -1,0 +1,305 @@
+@page "/chart2"
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@using System.Collections.Specialized
+@using System.ComponentModel
+@using dsweb3.Data
+@inject IComponentContext ComponentContext
+@inject IJSRuntime JSRuntime
+@inject DSdataService DSService
+@inject DSchartService DSChartService
+@inject Interfaces.IDSdata_cache _DSdata
+
+    <div id="dv_head" class="container-fluid">
+        <div class="row">
+            <div class="form-group mr-2">
+                <button class="btn btn-primary" onclick="@ShowFilter">Filter</button>
+            </div>
+            <div class="form-group mr-2">
+                <label class="label label-default">Mode</label>
+                <select class="browser-default custom-select" bind-value-oninput="@options.Mode">
+                    <option selected="selected">Winrate</option>
+                    <option>MVP</option>
+                    <option>DPS</option>
+                    <option>Synergy</option>
+                    <option>AntiSynergy</option>
+                    <option>Timeline</option>
+                </select>
+            </div>
+            <div class="form-group mr-2">
+                <label class="label label-default">startdate</label>
+                <input class="browser-default custom-select" type="date" name="startdate" id="startdate" value="@options.Startdate" bind-value-oninput="@options.Startdate" />
+            </div>
+            <div class="form-group mr-2">
+                <label class="label label-default">enddate</label>
+                <input class="browser-default custom-select" type="date" name="enddate" id="enddate" value="@options.Enddate" bind-value-oninput="@options.Enddate" />
+            </div>
+            <div class="custom-control custom-checkbox mr-2">
+                <input type="checkbox" class="custom-control-input" name="cb_player" id="cb_player" bind-value-oninput="@options.Player" />
+                <label class="custom-control-label" for="cb_player">Player</label>
+            </div>
+            <div class="custom-control custom-checkbox mr-2">
+                <input type="checkbox" class="custom-control-input" name="cb_zero" id="cb_zero" bind-value-oninput="@options.BeginAtZero" />
+                <label class="custom-control-label" for="cb_zero">BeginatZero</label>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="mr-2">
+                <button class="btn btn-secondary btn-block" onclick="@Gametime1">This month</button>
+            </div>
+            <div class="mr-2">
+                <button class="btn btn-secondary btn-block" onclick="@Gametime2">Last month</button>
+            </div>
+            <div class="mr-2">
+                <button class="btn btn-secondary btn-block" onclick="@Gametime3">This year</button>
+            </div>
+            <div class="mr-2">
+                <button class="btn btn-secondary btn-block" onclick="@Gametime4">All</button>
+            </div>
+            <div class="mr-2">
+            </div>
+        </div>
+        @if (options.Filter == true)
+        {
+            <div class="mt-1">
+                <div style="max-width: 600px;">
+                    <dsweb3.Pages.Filter filoptions="@options" />
+                </div>
+            </div>
+        }
+    </div>
+    <div id="dv_btn" class="container-fluid mt-1">
+        <div class="row">
+            <div>
+                <div class="mt-5">
+                    @foreach (var ent in DSdata.s_races_cmdr)
+                    {
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="CmdrIcons"
+                                   value=@ent
+                                   id="cb_@ent"
+                                   onchange="@(() => IconClick(@ent))" />
+                            <label class="custom-control-label" for="cb_@ent">
+                                <img alt="img_@ent" longdesc="img_@ent" src="@DSService.GetIcon(@ent)" width="30" height="30" />
+                                @ent
+                            </label>
+                        </div>
+                    }
+                    </div>
+                </div>
+            <div class="chart">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+        <div>
+            <div class="row">
+                <div>
+                    <div style="width: 400px;">
+                        <p>@DSdata.INFO[@options.Mode]</p>
+                    </div>
+                </div>
+                <div>
+                    <div style="width: 400px; font-size: 12px; overflow: hidden; margin-left: 10px;">
+                        <p>@info</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@functions {
+
+    [Parameter]
+    private DSdyn_filteroptions options { get; set; }
+
+    [Parameter]
+    private List<Models.dsreplay> total { get; set; }
+
+    [Parameter]
+    private string info { get; set; }
+
+    List<Models.dsreplay> replays { get; set; } = new List<Models.dsreplay>();
+    private bool chartrendered = false;
+    private DSdyn_Chart mychart { get; set; }
+    static string chartdata = String.Empty;
+    string info2 = "";
+    string info3 = "";
+    bool filter = false;
+    private int IconsChecked = 0;
+
+    private Dictionary<string, bool> IsChecked = new Dictionary<string, bool>();
+
+    void ShowFilter()
+    {
+        if (options.Filter == true) { options.Filter = false; }
+        else { options.Filter = true; }
+    }
+
+    protected override void OnInit()
+    {
+        mychart = new DSdyn_Chart();
+        if (options == null) { options = new DSdyn_filteroptions(); }
+        if (total == null)
+        {
+            total = new List<Models.dsreplay>(_DSdata.FILTERED_REPLAYS);
+            info = _DSdata.FIL_INFO;
+            options.Build = "ALL";
+        }
+        replays = total;
+
+        foreach (var ent in DSdata.s_races_cmdr)
+        {
+            IsChecked.Add(ent, false);
+        }
+        string myinfo;
+        mychart.chartdata = DSChartService.GetDynChartData(mychart.chartdata, replays, options, out myinfo).Result;
+        if (info != null) { info2 = myinfo; }
+        else { info = myinfo; }
+        options.PropertyChanged += OptionChanged;
+    }
+
+
+    protected override async Task OnAfterRenderAsync()
+    {
+        // TEMPORARY: Currently we need this guard to avoid making the interop
+        // call during prerendering. Soon this will be unnecessary because we
+        // will change OnAfterRenderAsync so that it won't run during the
+        // prerendering phase.
+        if (!ComponentContext.IsConnected)
+        {
+            return;
+        }
+
+        if (chartrendered == false)
+        {
+            //infoFromJs = await JSRuntime.InvokeAsync<string>(
+            //    "setElementValue", myElem, "Hello from interop call");
+            GenDynChart();
+            chartrendered = true;
+            StateHasChanged();
+        }
+    }
+
+    private void Gametime1()
+    {
+        // This month
+        Gametime(1);
+    }
+    private void Gametime2()
+    {
+        // Last month
+        Gametime(2);
+    }
+    private void Gametime3()
+    {
+        // This year
+        Gametime(3);
+    }
+    private void Gametime4()
+    {
+        // all
+        Gametime(4);
+    }
+
+    private void Gametime(int i)
+    {
+        string startdate = "0";
+        string enddate = "0";
+
+        DateTime dFirstDayOfThisMonth = DateTime.Today.AddDays(-(DateTime.Today.Day - 1));
+
+        if (i == 1)
+        {
+
+            startdate = dFirstDayOfThisMonth.ToString("yyyy-MM-dd");
+            enddate = DateTime.Today.ToString("yyyy-MM-dd");
+        }
+        else if (i == 2)
+        {
+            DateTime dLastDayOfLastMonth = dFirstDayOfThisMonth.AddDays(-1);
+            DateTime dFirstDayOfLastMonth = dFirstDayOfThisMonth.AddMonths(-1);
+            startdate = dFirstDayOfLastMonth.ToString("yyyy-MM-dd");
+            enddate = dLastDayOfLastMonth.ToString("yyyy-MM-dd");
+        }
+        else if (i == 3)
+        {
+            startdate = new DateTime(DateTime.Now.Year, 1, 1).ToString("yyyy-MM-dd");
+            enddate = DateTime.Today.ToString("yyyy-MM-dd");
+        }
+        else if (i == 4)
+        {
+            startdate = new DateTime(2018, 1, 1).ToString("yyyy-MM-dd");
+            enddate = DateTime.Today.ToString("yyyy-MM-dd");
+        }
+
+        options.Startdate = startdate;
+        options.Enddate = enddate;
+    }
+
+    private void IconClick(string cmdr)
+    {
+
+        if (IsChecked[cmdr] == true) { IsChecked[cmdr] = false; }
+        else { IsChecked[cmdr] = true; }
+
+        options.Interest = cmdr;
+        options.Icons = IsChecked.Where(x => x.Value == true).ToArray().Count();
+
+        if (IsChecked[cmdr] == true)
+        {
+            string myinfo;
+            mychart.chartdata = DSChartService.GetDynChartData(mychart.chartdata, replays, options, out myinfo).Result;
+            info2 = myinfo;
+        }
+        else
+        {
+            mychart.chartdata = DSChartService.RemoveDynChartData(mychart.chartdata, replays, options).Result;
+        }
+        GenChart();
+    }
+
+    private void OptionChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (options.DOIT == true)
+        {
+            if (e != null && e.PropertyName != "Interest")
+            {
+                Models.dsfilter fil = new Models.dsfilter();
+                List<Models.dsreplay> temp = new List<Models.dsreplay>();
+                temp = Models.DBfilter.Filter(_DSdata.BUILD_REPLAYS[options.Build].OrderByDescending(o => o.GAMETIME).ToList(), options, out fil);
+                options.OPT = true;
+                info3 = "Total: " + temp.Count + " WR: " + fil.WR + "%";
+                replays = temp;
+                string myinfo;
+                mychart.chartdata = DSChartService.GetDynChartData(mychart.chartdata, replays, options, out myinfo).Result;
+                info2 = myinfo;
+                GenChart();
+                options.OPT = false;
+            }
+        }
+    }
+
+    private void OptionChange()
+    {
+        OptionChanged(null, null);
+    }
+
+    private void GenChart()
+    {
+        //Console.WriteLine("Icons: " + options.ICONS);
+        //Console.WriteLine("Interest: " + options.INTEREST);
+        //Console.WriteLine("IconsChecked: " + IconsChecked);
+        //Console.WriteLine(mychart.chartdata);
+        GenDynChart();
+    }
+
+    private async void GenDynChart()
+    {
+        chartdata = mychart.chartdata;
+        await JSRuntime.InvokeAsync<string>("DynChart", mychart.chartdata);
+        StateHasChanged();
+    }
+}

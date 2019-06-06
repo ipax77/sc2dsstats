@@ -1,4 +1,8 @@
 
+0.8.0.13
+
+- 'preview' s2protocol v4.9.0.74456.0
+
 0.8.0.12
 
 - fix Tychus unit count

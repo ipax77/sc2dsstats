@@ -710,7 +710,7 @@ namespace sc2dsstats_rc1
                                     {
                                         if (pydic["m_unitTypeName"].ToString() == "UnitBirthBar")
                                         {
-                                            Console.WriteLine(unit);
+                                            //Console.WriteLine(unit);
                                             continue;
                                         }
                                     }

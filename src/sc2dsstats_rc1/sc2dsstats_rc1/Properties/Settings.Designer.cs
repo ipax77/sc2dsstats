@@ -283,5 +283,17 @@ namespace sc2dsstats_rc1.Properties {
                 this["UPLOAD"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool FIRSTRUN {
+            get {
+                return ((bool)(this["FIRSTRUN"]));
+            }
+            set {
+                this["FIRSTRUN"] = value;
+            }
+        }
     }
 }

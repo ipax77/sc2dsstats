@@ -59,6 +59,7 @@ namespace sc2dsstats_rc1
                     if (currentProperty.Name.ToString().StartsWith("GUI_")) continue;
                     if (currentProperty.Name.ToString().StartsWith("MM_")) continue;
                     if (currentProperty.Name.ToString() == "V8") continue;
+                    if (currentProperty.Name.ToString() == "FIRSTRUN") continue;
                 }
 
                 RowDefinition gridRow1 = new RowDefinition();
@@ -218,7 +219,7 @@ namespace sc2dsstats_rc1
                     } else {
 
                         dynamic value = null;
-                        if (tb.Name == "MM_CREDENTIALS" || tb.Name == "V8" || tb.Name == "GUI_STD")
+                        if (tb.Name == "MM_CREDENTIALS" || tb.Name == "V8" || tb.Name == "GUI_STD" || tb.Name == "FIRSTRUN")
                         {
                             try
                             {
