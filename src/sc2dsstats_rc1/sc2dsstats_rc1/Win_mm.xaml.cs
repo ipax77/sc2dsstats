@@ -1005,9 +1005,45 @@ namespace sc2dsstats_rc1
             {
                 if (int.Parse(mmid) > 0) DisplayReport(mmid);
             }
+        }
 
+        public void PresentResult (int mmid)
+        {
+            gr_mm_btns.Visibility = Visibility.Hidden;
+            dsmmid id = new dsmmid();
+            if (MMIDS.ContainsKey(mmid))
+            {
+                id = MMIDS[mmid];
+            } else
+            {
+                MMIDS.Add(mmid, id);
+                id = MMIDS[id.REPLAY.ID];
                 
-           
+            }
+            mmcb_report.Items.Clear();
+            if (id != null && id.REPORTS.Count > 0 && MMIDS.Keys.Count > 0)
+            {
+                int i = 0;
+                int j = 0;
+                foreach (int mmid2 in MMIDS.Keys)
+                {
+                    mmcb_report.Items.Add(mmid2.ToString());
+                    if (mmid2.ToString() == tb_mmid.Text)
+                    {
+                        j = i;
+                    }
+                    i++;
+                }
+                mmcb_report.SelectedItem = mmcb_report.Items[j];
+                mmcb_report.IsEnabled = true;
+                DisplayReport(id.REPLAY.ID.ToString());
+            }
+            else
+            {
+                if (id.REPLAY.ID > 0) DisplayReport(id.REPLAY.ID.ToString());
+            }
+
+
         }
 
         public void ClearReport()

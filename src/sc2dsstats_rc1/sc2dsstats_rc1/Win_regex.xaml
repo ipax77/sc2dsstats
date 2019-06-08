@@ -84,6 +84,126 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
+            <Grid x:Name="gr_database_units1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="15,0,0,0">
+                <DataGrid x:Name="dg_units1" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                    <DataGrid.Style>
+                        <Style TargetType="DataGrid">
+                            <Setter Property="RowBackground" Value="White">
+
+                            </Setter>
+                        </Style>
+                    </DataGrid.Style>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UNIT Player1"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                        <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="gr_database_units2" Visibility="Collapsed" HorizontalAlignment="Left" Margin="15,0,0,0">
+                <DataGrid x:Name="dg_units2" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                    <DataGrid.Style>
+                        <Style TargetType="DataGrid">
+                            <Setter Property="RowBackground" Value="White">
+
+                            </Setter>
+                        </Style>
+                    </DataGrid.Style>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UNIT Player2"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                        <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="gr_database_units3" Visibility="Collapsed" HorizontalAlignment="Left" Margin="15,0,0,0">
+                <DataGrid x:Name="dg_units3" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                    <DataGrid.Style>
+                        <Style TargetType="DataGrid">
+                            <Setter Property="RowBackground" Value="White">
+
+                            </Setter>
+                        </Style>
+                    </DataGrid.Style>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UNIT Player3"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                        <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="gr_database_units4" Visibility="Collapsed" HorizontalAlignment="Left" Margin="15,0,0,0">
+                <DataGrid x:Name="dg_units4" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                    <DataGrid.Style>
+                        <Style TargetType="DataGrid">
+                            <Setter Property="RowBackground" Value="White">
+
+                            </Setter>
+                        </Style>
+                    </DataGrid.Style>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UNIT Player4"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                        <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="gr_database_units5" Visibility="Collapsed" HorizontalAlignment="Left" Margin="15,0,0,0">
+                <DataGrid x:Name="dg_units5" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                    <DataGrid.Style>
+                        <Style TargetType="DataGrid">
+                            <Setter Property="RowBackground" Value="White">
+
+                            </Setter>
+                        </Style>
+                    </DataGrid.Style>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UNIT Player5"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                        <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="gr_database_units6" Visibility="Collapsed" HorizontalAlignment="Left" Margin="15,0,0,0">
+                <DataGrid x:Name="dg_units6" CanUserAddRows="false"  RowHeight="23" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemsSource="{Binding}" Height="600" AutoGenerateColumns="False" RenderTransformOrigin="0.501,1.53" Background="{DynamicResource ComboBox.Disabled.Glyph}" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" BorderBrush="#FF232629">
+                    <DataGrid.Style>
+                        <Style TargetType="DataGrid">
+                            <Setter Property="RowBackground" Value="White">
+
+                            </Setter>
+                        </Style>
+                    </DataGrid.Style>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UNIT Player6"  Binding="{Binding UNIT}" Visibility="Visible" Width="120" />
+                        <DataGridTextColumn Header="COUNT"  Binding="{Binding COUNT}" Width="50" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </StackPanel>
         <Grid x:Name="gr_player_opt" Margin="650,41,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="80" Width="1000">
             <StackPanel Orientation="Horizontal">

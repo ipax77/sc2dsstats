@@ -46,11 +46,33 @@ namespace sc2dsstats_rc1
         List<dsreplay> fil_games = new List<dsreplay>();
         public ObservableCollection<string> DSDBITEMS { get; set; }
         public string DSDBTEXT { get; set; }
-
+        public Win_mm WMM { get; set; }
+        public Grid[] mygrids { get; set; }
+        public DataGrid[] mydatagrids { get; set; }
 
         public Win_regex()
         {
             InitializeComponent();
+            WMM = new Win_mm(mw);
+
+            mygrids =  new Grid[] {
+                gr_database_units1,
+                gr_database_units2,
+                gr_database_units3,
+                gr_database_units4,
+                gr_database_units5,
+                gr_database_units6
+            };
+            mydatagrids = new DataGrid[]
+            {
+                dg_units1,
+                dg_units2,
+                dg_units3,
+                dg_units4,
+                dg_units5,
+                dg_units6
+            };
+
             player_name = Properties.Settings.Default.PLAYER;
             if (player_name.Contains(";"))
             {
@@ -647,10 +669,12 @@ namespace sc2dsstats_rc1
             Dictionary<string, int> units = new Dictionary<string, int>();
             List<rxunit> rxunits = new List<rxunit>();
             dsplayer pltemp = new dsplayer();
+            dsreplay replay = new dsreplay();
             foreach (var dataItem in dg_games.SelectedItems)
             {
                 //myGame game = dataItem as myGame;
                 dsreplay game = dataItem as dsreplay;
+                if (replay.ID == 0) replay = game;
                 pltemp.RACE = game.REPLAY;
                 temp.Add(pltemp);
                 foreach (dsplayer pl in game.PLAYERS)
@@ -693,6 +717,26 @@ namespace sc2dsstats_rc1
                 Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(ProcessRows_player));
             }
             //ProcessRows_player();
+            if (replay.ID != 0)
+            {
+                dsmmid mmid = new dsmmid();
+                if (!WMM.MMIDS.ContainsKey(replay.ID))
+                {
+
+                    mmid.REPLAY = replay;
+                    mmid.DURATION = replay.DURATION;
+                    mmid.REPORTS = replay.PLAYERS;
+                    WMM.MMIDS.Add(replay.ID, mmid);
+                }
+                WMM.PresentResult(replay.ID);
+                WMM.Show();
+            }
+
+            foreach (var ent in mygrids)
+            {
+                ent.Visibility = Visibility.Collapsed;
+            }
+
         }
 
         private void Dg_player_MouseDoubleClick(object sender, RoutedEventArgs e)
@@ -706,11 +750,15 @@ namespace sc2dsstats_rc1
                 pl = dataItem as dsplayer;
                 if (pl.UNITS.ContainsKey("ALL"))
                 {
+                    List<rxunit> rxunits_pl = new List<rxunit>();
                     foreach (string unit in pl.UNITS["ALL"].Keys)
                     {
                         if (units.ContainsKey(unit)) units[unit] += pl.UNITS["ALL"][unit];
                         else units.Add(unit, pl.UNITS["ALL"][unit]);
+
+                        rxunits_pl.Add(new rxunit(unit, pl.UNITS["ALL"][unit]));
                     }
+                    ShowUnits(pl, rxunits_pl);
                 }
             }
             foreach (string unit in units.Keys)
@@ -720,6 +768,16 @@ namespace sc2dsstats_rc1
 
             dg_units.ItemsSource = rxunits.OrderByDescending(o => o.COUNT);
 
+        }
+
+        public void ShowUnits(dsplayer pl, List<rxunit> units)
+        {
+            Grid mygrid = new Grid();
+            DataGrid mydatagrid = new DataGrid();
+            mygrid = mygrids[pl.REALPOS - 1];
+            mydatagrid = mydatagrids[pl.REALPOS - 1];
+            mydatagrid.ItemsSource = units.OrderByDescending(o => o.COUNT);
+            mygrid.Visibility = Visibility.Visible;
         }
 
         private void ProcessRows_player()
