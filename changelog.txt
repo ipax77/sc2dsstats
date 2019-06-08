@@ -1,7 +1,12 @@
 
+0.8.0.15
+
+- File->Help->Check for Updates...
+
 0.8.0.14
-	s2protocol v4.9.1.74456.0
-	database improved
+
+- s2protocol v4.9.1.74456.0
+- database improved
 
 0.8.0.13
 

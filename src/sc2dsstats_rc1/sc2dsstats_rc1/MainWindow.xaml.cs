@@ -2853,10 +2853,11 @@ namespace sc2dsstats_rc1
         }
         private void mnu_update(object sender, RoutedEventArgs e)
         {
-            if (!isVersionOK())
+            bool available = false;
+            Task.Factory.StartNew(() =>
             {
-                MessageBox.Show("No new version available.", "sc2dsstats");
-            }
+                available = isVersionOK();
+            });
         }
 
         private void mnu_Database(object sender, RoutedEventArgs e)
@@ -3631,6 +3632,10 @@ namespace sc2dsstats_rc1
                 catch (DeploymentDownloadException)
                 {
                     // No network connection
+                    Dispatcher.Invoke(() =>
+                    {
+                        lb_sb_info1.Content = "No network connection.";
+                    });
                     return false;
                 }
                 catch (InvalidDeploymentException)
@@ -3644,8 +3649,11 @@ namespace sc2dsstats_rc1
 
                 if (info.UpdateAvailable)
                 {
-                    lb_sb_info1.Content = "New Version available. Downloading ...";
-                    lb_sb_info2.Content = "The applications will restart after the download.";
+                    Dispatcher.Invoke(() =>
+                    {
+                        lb_sb_info1.Content = "New version available. Downloading ...";
+                        lb_sb_info2.Content = "The applications will restart after the download.";
+                    });
                     try
                     {
                         ad.Update();
@@ -3660,11 +3668,22 @@ namespace sc2dsstats_rc1
                     }
 
                     return false;
+                } else
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        lb_sb_info1.Content = "No new version available.";
+                    });
+
                 }
                 return true;
             }
             else
             {
+                Dispatcher.Invoke(() =>
+                {
+                    lb_sb_info1.Content = "No network version.";
+                });
                 return false;
             }
         }
