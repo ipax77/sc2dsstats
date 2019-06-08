@@ -1,7 +1,11 @@
 
+0.8.0.16
+
+- Update improved
+
 0.8.0.15
 
-- File->Help->Check for Updates...
+- Help->Check for Updates...
 
 0.8.0.14
 

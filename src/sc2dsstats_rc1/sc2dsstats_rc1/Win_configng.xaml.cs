@@ -101,9 +101,12 @@ namespace sc2dsstats_rc1
         {
             string cdesc = "";
             if (label == "JSON_FILE") cdesc = "# Databasefile";
-            else if (label == "PLAYER") cdesc = "# Starcraft 2 Player name (without Clan tags)";
-            else if (label == "RAPLY_PATH") cdesc = "# Path where all the replays are located";
+            else if (label == "PLAYER") cdesc = "# In game Starcraft 2 Player name (without Clan tags) (you can define multiple names with semikolon separated)";
+            else if (label == "REPLAY_PATH") cdesc = "# Path where all the replays are located (you can define multiple directories with semikolon separated)";
             else if (label == "CORES") cdesc = "# Number of CPU cores used to decode replays";
+            else if (label == "UPDATE") cdesc = "# Check for updates at Application start. (True, False)";
+            else if (label == "DEBUG") cdesc = "# Debug level (0 = off, 1=basic, 2=all, 3=reset user settings";
+            else if (label == "SKIP_FILE") cdesc = "# Skip file (replays that could not be decoded for some reason)";
 
 
             //cdesc += "_";
@@ -219,7 +222,7 @@ namespace sc2dsstats_rc1
                     } else {
 
                         dynamic value = null;
-                        if (tb.Name == "MM_CREDENTIALS" || tb.Name == "V8" || tb.Name == "GUI_STD" || tb.Name == "FIRSTRUN")
+                        if (tb.Name == "MM_CREDENTIALS" || tb.Name == "V8" || tb.Name == "GUI_STD" || tb.Name == "FIRSTRUN" || tb.Name == "UPDATE")
                         {
                             try
                             {

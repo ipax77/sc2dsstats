@@ -149,6 +149,7 @@
                 <MenuItem Header="_Help" FontSize="14">
                     <MenuItem Header="_Documentation" Click="mnu_doc" Foreground="{DynamicResource StdTextBrush1}"/>
                     <MenuItem Header="_Info" Click="mnu_info" Foreground="{DynamicResource StdTextBrush1}"/>
+                    <MenuItem Header="_Update" Click="mnu_doupdate" Foreground="{DynamicResource StdTextBrush1}"/>
                     <MenuItem Header="_Check for Updates..." Click="mnu_update" Foreground="{DynamicResource StdTextBrush1}"/>
                 </MenuItem>
             </Menu>
@@ -343,7 +344,7 @@
         <Grid x:Name="gr_status" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
             <StatusBar x:Name="sb_status" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="25">
                 <DockPanel HorizontalAlignment="Stretch">
-                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.15" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.16" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
                     <Border Width="1" Margin="2" Background="#8888"/>
                     <Label x:Name="lb_sb_info1" Height="25" Content="" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"></Label>
                     <Border Width="1" Margin="2" Background="#8888"/>

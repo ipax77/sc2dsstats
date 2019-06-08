@@ -303,6 +303,8 @@ namespace sc2dsstats_rc1
             }
 
             myStats_csv = myStats_json;
+
+            if (Properties.Settings.Default.UPDATE == true) DoUpdate();
             if (DEBUG > 0) Console.WriteLine("MW init finished.");
             INIT = true;
         }
@@ -2851,12 +2853,47 @@ namespace sc2dsstats_rc1
 
             wlog.Show();
         }
+        private void mnu_doupdate(object sender, RoutedEventArgs e)
+        {
+            DoUpdate();
+        }
+
         private void mnu_update(object sender, RoutedEventArgs e)
         {
             bool available = false;
-            Task.Factory.StartNew(() =>
+            lb_sb_info1.Content = "Checking for new update ...";
+            Task tCheck = Task.Factory.StartNew(() =>
             {
-                available = isVersionOK();
+                available = isVersionAvailable();
+                if (available == false)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show("No update available.", "sc2dsstats");
+                    });
+                }
+                else
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (MessageBox.Show("New update available. Do you want to update?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.No)
+                        {
+                        }
+                        else
+                        {
+                            //do yes stuff
+                            DoUpdate();
+                        }
+                    });
+                }
+            });
+        }
+
+        private void DoUpdate()
+        {
+            Task tUpdate = Task.Factory.StartNew(() =>
+            {
+                isVersionOK();
             });
         }
 
@@ -3615,6 +3652,52 @@ namespace sc2dsstats_rc1
                     encoder.Save(stream);
                 }
             }
+        }
+
+        private Boolean isVersionAvailable()
+        {
+            UpdateCheckInfo info = null;
+
+            if (ApplicationDeployment.IsNetworkDeployed)
+            {
+                ApplicationDeployment ad = ApplicationDeployment.CurrentDeployment;
+
+                try
+                {
+                    info = ad.CheckForDetailedUpdate();
+                }
+                catch (DeploymentDownloadException)
+                {
+                    // No network connection
+                    Dispatcher.Invoke(() =>
+                    {
+                        lb_sb_info1.Content = "No network connection.";
+                    });
+                    return false;
+                }
+                catch (InvalidDeploymentException)
+                {
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+
+                if (info.UpdateAvailable)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    lb_sb_info1.Content = "No network version.";
+                });
+                return false;
+            }
+            return false;
         }
 
         private Boolean isVersionOK()
