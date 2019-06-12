@@ -56,7 +56,7 @@ namespace sc2dsstats_rc1
 
             var restRequest = new RestRequest("/secure/data/info", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "DSupload77");
+            restRequest.AddHeader("Authorization", "gehiem");
             restRequest.AddJsonBody(info);
             var response = client.Execute(restRequest);
 
@@ -118,7 +118,7 @@ namespace sc2dsstats_rc1
             restRequest = new RestRequest("/secure/data/upload/" + hash);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.Method = Method.POST;
-            restRequest.AddHeader("Authorization", "DSupload77");
+            restRequest.AddHeader("Authorization", "gehiem");
             restRequest.AddFile("content", exp_csv_gz);
             response = client.Execute(restRequest);
             if (response.StatusCode == System.Net.HttpStatusCode.OK) return true;
@@ -169,7 +169,7 @@ namespace sc2dsstats_rc1
 
             RestRequest test = new RestRequest("secure/data/last/winter");
             test.Method = Method.GET;
-            test.AddHeader("Authorization", "DSupload77");
+            test.AddHeader("Authorization", "gehiem");
             response = client.Execute(test);
             
             Console.WriteLine("indhouse");

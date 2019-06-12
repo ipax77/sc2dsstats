@@ -15,7 +15,7 @@ namespace DSex2.Attributes
             string authKey = context.HttpContext.Request
                     .Headers["Authorization"].SingleOrDefault();
 
-            if (authKey != "DSupload77")
+            if (authKey != "geheim")
                 throw new HttpException(HttpStatusCode.Unauthorized);
         }
     }
