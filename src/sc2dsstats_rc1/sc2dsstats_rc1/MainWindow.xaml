@@ -261,7 +261,6 @@
                 </TextBox>
             </Grid>
 
-
             <Grid x:Name="gr_chart" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="{Binding ElementName=gr_main, Path=ActualWidth}" Visibility="Collapsed">
             </Grid>
             <Grid x:Name="gr_doit" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" Margin="10,0,15,0">
@@ -344,7 +343,7 @@
         <Grid x:Name="gr_status" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
             <StatusBar x:Name="sb_status" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="25">
                 <DockPanel HorizontalAlignment="Stretch">
-                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.16" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.17" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
                     <Border Width="1" Margin="2" Background="#8888"/>
                     <Label x:Name="lb_sb_info1" Height="25" Content="" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"></Label>
                     <Border Width="1" Margin="2" Background="#8888"/>

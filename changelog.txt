@@ -1,4 +1,8 @@
 
+0.8.0.17
+
+- anonymized upload ported to ASP dotnet REST
+
 0.8.0.16
 
 - Update improved

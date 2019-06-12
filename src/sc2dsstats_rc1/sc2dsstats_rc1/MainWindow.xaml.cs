@@ -2959,24 +2959,35 @@ namespace sc2dsstats_rc1
             {
                 //do yes stuff
 
+                /**
                 using (SHA256 sha256Hash = SHA256.Create())
                 {
                     hash = GetHash(sha256Hash, player_name);
 
                 }
-
                 List<string> ano_stats = new List<string>(dsupload.GenExport(myStats_json, this));
                 using (StreamWriter outputFile = new StreamWriter(exp_csv))
                 {
                     foreach (string line in ano_stats)
                         outputFile.WriteLine(line);
                 }
-
                 dsclient.StartClient(hash, exp_csv);
-                //if (File.Exists(myUnits_csv))
-                //{
-                //    dsclient.StartClient(hash + "_units", myUnits_csv);
-                //}
+                **/
+                DSrest rest = new DSrest();
+                rest.MW = this;
+                lb_sb_info1.Content = "Uploading ...";
+                Task.Factory.StartNew(() =>
+                {
+                    if (rest.Upload()) Dispatcher.Invoke(() =>
+                    {
+                        lb_sb_info1.Content = "Upload successful. TY!";
+                    });
+                    else Dispatcher.Invoke(() =>
+                    {
+                        lb_sb_info1.Content = "Upload failed. Please try again later.";
+                    });
+                });
+
             }
             Properties.Settings.Default.UPLOAD = DateTime.Now;
             Properties.Settings.Default.Save();
@@ -3806,7 +3817,6 @@ namespace sc2dsstats_rc1
             Win_configng cfg = new Win_configng();
             cfg.Show();
         }
-
 
     }
 
