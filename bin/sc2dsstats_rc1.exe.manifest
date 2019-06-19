@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
-  <asmv1:assemblyIdentity name="sc2dsstats_rc1.exe" version="0.8.0.17" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" type="win32" />
+  <asmv1:assemblyIdentity name="sc2dsstats_rc1.exe" version="0.8.0.18" publicKeyToken="0000000000000000" language="en" processorArchitecture="msil" type="win32" />
   <description asmv2:iconFile="sc2dsstats.ico" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <application />
   <entryPoint>
@@ -158,7 +158,7 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>JIOaQ101NBV9BmlAxndXTVbk6jWgqp/5PB/O4FSkNUk=</dsig:DigestValue>
+        <dsig:DigestValue>ilUieR6lQooWKbgxZY0cSREeqBmk8H0wBGC6HTaGz1k=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -2145,7 +2145,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>lVd3QFFYdehEO0tuRUNP3jSnSp6omRIG6cyLMFbksZs=</dsig:DigestValue>
+      <dsig:DigestValue>kD90fVzAQZzwjVZpTGlqGWXP7V42jGii1zrOJlbjbp0=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\__init__.spec" size="886">
@@ -2172,7 +2172,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>tGlIiPSaHXNblIdFAipA79vQblkcFOGBKlWXjEMhKWE=</dsig:DigestValue>
+      <dsig:DigestValue>aMrM/v1FJ9C+xU3+cDYrCN9k0zMKlH6CnAxzwT1jpz4=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\build.py" size="951">
@@ -2181,7 +2181,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>SG4HuHaQ17KeDWIrVWxTu4N05UMVybce+7xWF2EeVIQ=</dsig:DigestValue>
+      <dsig:DigestValue>UCEPU3lXLRJ1IrMB/TwoYQKl6bckx7UWo4LNt1wCQk8=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\build.pyc" size="1466">
@@ -2190,7 +2190,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>mUUG9HQusp4vRSHVlSpby4DMiz8jzFIyBbh35av41q4=</dsig:DigestValue>
+      <dsig:DigestValue>2nSoOj/DyebGfGqjAcLcmMPF9hyt+b7Q44V7AULRiXg=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\compat.py" size="326">
@@ -2208,7 +2208,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>eIlFowkRZPXabAP/mIIB8BxXKBsY1YS61pjTe2XshcY=</dsig:DigestValue>
+      <dsig:DigestValue>cTguyQja+KWX5nEhkc3ON0CTYtMacKEWcO1miUyp1Kk=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\decoders.py" size="10010">
@@ -2226,7 +2226,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>9xiG22XONTlUK3lCLhi/9eUduu0+3ht5x6+nr+YVX+w=</dsig:DigestValue>
+      <dsig:DigestValue>1zsh5AFTU8RmjnkxQbG+8C297F1SMAwE4nl4tyrpbBo=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\diff.py" size="2237">
@@ -2244,7 +2244,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>LAj+FUgI0m1OO/NxEgMIG624/R56rESzSUPOVBEC6nU=</dsig:DigestValue>
+      <dsig:DigestValue>kK5DrVeDJnrQTk47i6DbdhOzVq6tEV8Uvy5VUAsBRYU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\encoders.py" size="9610">
@@ -2262,7 +2262,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>/7sU7qdj39BqcXvTNMd9KX19a/fmW7rYA74DHUyQHss=</dsig:DigestValue>
+      <dsig:DigestValue>FvSNgtB1KleAHBk5bY/OltHTy6S9vLROWOhOHE3/vZ4=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\namespaces.py" size="48">
@@ -2280,7 +2280,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>fyLWEhVE5keokvpNwomBHKL5rd14wf41f8/PMyCx4g0=</dsig:DigestValue>
+      <dsig:DigestValue>g1HqXa6HglfwvxGdIeL2Zuj8Q4HmkdogkbicfMjJBDc=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\s2_cli.py" size="13493">
@@ -2298,7 +2298,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>FKbuheLZSn7J8FiJB7ywJkTmR2ilAITpFgwtRAsdOyw=</dsig:DigestValue>
+      <dsig:DigestValue>ZBWUr2qu80YS1wqCMWlBo0lrrQPePQ7cFdso0yZnW4s=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\s2_cli.spec" size="2599">
@@ -2325,7 +2325,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>A/3uZ7y8uZDONdo9hXv50NtKcWozJ1IfuRbtCwb9kzQ=</dsig:DigestValue>
+      <dsig:DigestValue>6s8dphKW1EbHw2WgUPEiHq4Nno949snXs1ujtAXxZRg=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol15405.py" size="20520">
@@ -2343,7 +2343,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>SQx5JMHZdwH0pk9dWEvuKHScSmOFhwUkdjftEKLZr2k=</dsig:DigestValue>
+      <dsig:DigestValue>2d20kCIAIER1OeYSR7qyWxPVj0fJp6X5wPSUy1kExp8=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol16561.py" size="21293">
@@ -2361,7 +2361,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>5HiNPDWA6QaySDIQF9e2i+j4Cc/EVFYTtdEWxRwX1sU=</dsig:DigestValue>
+      <dsig:DigestValue>oFbSx0+ayIT9lGXavfzd+vHAdrc9Gh3wY8mIkJjnhhQ=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol16605.py" size="21293">
@@ -2379,7 +2379,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>6YpGGJNMqq/sOGo4PBLA2aWBpf4xkf0Nyjo3xOnnUQE=</dsig:DigestValue>
+      <dsig:DigestValue>0ShhzNxrtHJEA4/ZV3+1fZW3G/yCkujgKobeWC1Np0Q=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol16755.py" size="21293">
@@ -2397,7 +2397,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>wqq1/WW98/DgVXs52iBAQGdJIMPJAxejzR41U3ZiMy0=</dsig:DigestValue>
+      <dsig:DigestValue>0RsR7Iq7x5N8ObB9YNoykh+ZCfa5qfTMrpcFTGr2DkA=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol16939.py" size="21293">
@@ -2415,7 +2415,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>Ih57+O/pDgHQ8aHQSnMYFO1FmE5JvnE6F9YYZcYbHG4=</dsig:DigestValue>
+      <dsig:DigestValue>M3JcrzTjJGGnwAPsE7NJI3QofoVVfSTGE99+Kgcw/gQ=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol17266.py" size="21560">
@@ -2433,7 +2433,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>d2BMQhV0ootkGeTuelwiQKW3C4msDN0sanXG6aY7KOQ=</dsig:DigestValue>
+      <dsig:DigestValue>LEJ76mtdqzQX5njs/5ERJpqC/0WbfPOsW0ujOI2DVb0=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol17326.py" size="21560">
@@ -2451,7 +2451,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>7GSAS8utOUbSc2McoZ6Vwy9Hh6P44pI9PqA6cQ/roII=</dsig:DigestValue>
+      <dsig:DigestValue>fvX1qqx9Puay5EF5VPZdishqB+r0GEZ351yIt1vLH8Y=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol18092.py" size="21560">
@@ -2469,7 +2469,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>VCu2cQvOw5ihmqYACDUmm5ZlKYiIe/XbbAqjxhWuy6U=</dsig:DigestValue>
+      <dsig:DigestValue>Sfdc2IId5/48ApXaoSnFeFR6I17qsXYOShRNaoZJ32U=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol18468.py" size="21560">
@@ -2487,7 +2487,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>6EQGh3U2gpvNrQ65Vce9kyHLR4FdWPCOFmZ9dL9dvoQ=</dsig:DigestValue>
+      <dsig:DigestValue>f55vmhiNtJXzhavqNsB3LfQ7Hl5B6XhrXmgWq8hOspk=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol18574.py" size="21560">
@@ -2505,7 +2505,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>aiKpbc8FgKxgD2w3HG4dXNpy/1i6wWNEP4wqvxUDa6w=</dsig:DigestValue>
+      <dsig:DigestValue>tcViwBxkIAR/g7/qwKsGNiaza2UCYCsDOFuzhycHac8=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol19132.py" size="21616">
@@ -2523,7 +2523,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>bPkxpO7N1JHFBjQRL39FhkcsaQjzG4YIJENoDnaaCE4=</dsig:DigestValue>
+      <dsig:DigestValue>5U9QJprTL2mrod9F9P/B41laJ54kUyhLOxf18NyPr7I=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol19458.py" size="21711">
@@ -2541,7 +2541,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>qmwrXQ2hCtGz5ilVD6pZeD0u7C3c2M96LbTYG2fNY/4=</dsig:DigestValue>
+      <dsig:DigestValue>8jh0a7eLFei0PVZT/4eb5Tphv+Q0KOP2Xs4+kV1Bw5Q=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol19595.py" size="21711">
@@ -2559,7 +2559,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>jC/3m+L/F0TDV9PPKb7eCaw93KXMeYKsEp1rMfQ43y8=</dsig:DigestValue>
+      <dsig:DigestValue>j0YYKHriOqwfZfdZGd0SrRVfxdE23Ei6CnirH0rtmmw=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol19679.py" size="21711">
@@ -2577,7 +2577,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>AeWYE4whZUAx8lbOSbUl0VM5z6GFYm/Kevec3VBePLw=</dsig:DigestValue>
+      <dsig:DigestValue>lRRscGHKwiKbqflSfonThafUBMyTwzQvv3ZaeGvjK2A=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol21029.py" size="21711">
@@ -2595,7 +2595,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>OlfzBRixBp1ZZgTfNAzwXa5B1w2BbkB576+P4K+F2m0=</dsig:DigestValue>
+      <dsig:DigestValue>Dh6M6WhEAIfGjywdzGYAvxoxOR/uQWF6o8uim3YxGFo=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol22612.py" size="22871">
@@ -2613,7 +2613,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>MOXO8d6CzfhrJeHuTf2dwc1iaiPseAVS6KDlQohJc1U=</dsig:DigestValue>
+      <dsig:DigestValue>Y2jzkiJe34WRTbM4RGVmR3nUUcQ3AJiUeruiE3f2oco=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol23260.py" size="22871">
@@ -2631,7 +2631,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>haPxz4TxITBeYiqoRlM/tz55dhc11okjaCcpSgFXN78=</dsig:DigestValue>
+      <dsig:DigestValue>0OjR4HaADfrljzik8N1d3qUerZ+xzInOZkNkXWdBz+A=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol24944.py" size="24026">
@@ -2649,7 +2649,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>OCAdCO8YdX0Q0YpdPZG8Yk90p0h7MVMiS4+At05fi7I=</dsig:DigestValue>
+      <dsig:DigestValue>8M3up8dwV9o9AUqUFThGFIvFXw1zaRBtIpchxqhNt5c=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol26490.py" size="27458">
@@ -2667,7 +2667,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>LgxlNoy9xeUgvZnw4GinKlhLyX3ep4Mk6PgqTB1O4mw=</dsig:DigestValue>
+      <dsig:DigestValue>EKHXT2sEcaBQVCriLMGgSFBYKgZ1A+2rcEbR7d98dJo=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol27950.py" size="27753">
@@ -2685,7 +2685,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>feXTjJ2zR7z4iSgPlnbe1GK841hLm9Nbe0Yeoskg3Jc=</dsig:DigestValue>
+      <dsig:DigestValue>mgk/qZzwDcmZ2wew2hqBr9d3auX/1KfFLZpRDPTl1hc=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol28272.py" size="27753">
@@ -2703,7 +2703,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>uDgh3DA9K2ravM+GqUEtiTL+x4E9c1RT5fD98Z8LVKs=</dsig:DigestValue>
+      <dsig:DigestValue>EBQJZi927cufFeANIJqOakJ9J9jVesWGDyEZ8uVWupM=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol28667.py" size="27753">
@@ -2721,7 +2721,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>d6A2SAsvATCpkRUqqLFVAIbUKiXgkg9Rp5eRe+r2W3Q=</dsig:DigestValue>
+      <dsig:DigestValue>MNmRaiconvxy5cE/cmOi9P9XcSm5qcAI8WjcJaxsSUw=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol32283.py" size="27775">
@@ -2739,7 +2739,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>UBtyK7Z5lelpeDwEnwekJVlo2U7qYp17ud2m37bRQkw=</dsig:DigestValue>
+      <dsig:DigestValue>LuYYZHCXvqTiD5G20tfBxbeFo5gCEMlXywPjVZvAwb0=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol51702.py" size="31174">
@@ -2757,7 +2757,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>lWW85KwyuaJ81O3v9eRNALh3vqQ8NGLHX7k7G9aAlGs=</dsig:DigestValue>
+      <dsig:DigestValue>CpMqH0KmbAW3CyH3JDJuwc3KAJZeQ0quedoKlyugM4U=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol52910.py" size="31174">
@@ -2775,7 +2775,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>V5x+AD+L0AVXZauxEzuU6hjdpZEJNwxSk2chsdszi0s=</dsig:DigestValue>
+      <dsig:DigestValue>WjastPzqP/5dhoTUGhGBGzC+OIfPJXWhYpmEVo7A/EI=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol53644.py" size="31174">
@@ -2793,7 +2793,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>511Ai6UqfP73hLZ3c8rbqWAZ40FBsu26cGqj5JLdwNM=</dsig:DigestValue>
+      <dsig:DigestValue>EX9V7/FXMmvrIXDkg6etpo/wWwRxOiuhCISy16hWhK4=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol54518.py" size="31260">
@@ -2811,7 +2811,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>VB5nQWj6vV7mA+5mUer3RvwUmuaqzhgGHqzS8m47Hdc=</dsig:DigestValue>
+      <dsig:DigestValue>8I+bfLpmg22ZmsdBiwRiP39CpjozsjkqLDVGPvSr1QE=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol55505.py" size="31563">
@@ -2829,7 +2829,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>lxF92ysI2Bfsh2ne1K+pEdjlhrHp4YUvYFdsOGoHiik=</dsig:DigestValue>
+      <dsig:DigestValue>BYcr+iemOzWbiAIHGfwwj+CVEACHAybb4w2K3NkHyrA=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol55958.py" size="31563">
@@ -2847,7 +2847,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>OpLIW87G/4FpiL75vnZ4l88vOXZmO6LRrpqsCBmYveI=</dsig:DigestValue>
+      <dsig:DigestValue>u9ivMQNAEA/7DN1IzeM96IYROitlfSGjU3zvJL5CtkM=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol56787.py" size="31563">
@@ -2865,7 +2865,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>PWcR1l5gPfazpKRhCFkfGQKNeEJVLKZGooBa2z5GYEE=</dsig:DigestValue>
+      <dsig:DigestValue>qFv36A1k5bki6b8yvYeQ2DpRl05SS0inrz50jPaE7iQ=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol57507.py" size="31563">
@@ -2883,7 +2883,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>2gq1KqQkhVs4d74+BDrdq6JPQ1beQdBARqsIHsuAv88=</dsig:DigestValue>
+      <dsig:DigestValue>mOPYnngWApiozxulqPK6dI0BKEOxwLKkfTdZ1JLQyk4=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol58400.py" size="31563">
@@ -2901,7 +2901,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>+BIIJb4NbzktVHtOxcbWACf9M5TQVWag90YW4jRHGRo=</dsig:DigestValue>
+      <dsig:DigestValue>orLGzcSnsTQlPBbivugYBNm9q9Fi2+ae+ifXMCt6Luk=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol59587.py" size="31078">
@@ -2919,7 +2919,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>sa1ejFCtlZeERwMvmCFxKop4Kla3Ed90WER81IMej48=</dsig:DigestValue>
+      <dsig:DigestValue>7nrsgd+bF/Hij9XXxeBZ/yPuNlq+Kabc6Egg1uxEZqU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol60196.py" size="31078">
@@ -2937,7 +2937,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>mp9f3jGO7niOhivUjVYi7IxvbWAqmU2VFhxoJ2Z3SGI=</dsig:DigestValue>
+      <dsig:DigestValue>es/rU9Dk6ZF240saCNrqKsE+Zou0rIgHs6/qgf08YvY=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol60321.py" size="31078">
@@ -2955,7 +2955,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>6JpsRSYCJvx+pHdIaH83aQBQFH1wkuQoTpqwx0SF8SY=</dsig:DigestValue>
+      <dsig:DigestValue>3gyirjvzW2mo0jJJ1g1wJbABpxnFGV5HCDuQ97WmYzY=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol62347.py" size="31078">
@@ -2973,7 +2973,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>suVjIOHOEjrJLr9X9RNQqU12Qvd9FqLO5cr85jIMtSE=</dsig:DigestValue>
+      <dsig:DigestValue>yZNFy1wKnJ+svz3hhz8dtszrpH2MntaDgDXcSzBiFJw=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol62848.py" size="31078">
@@ -2991,7 +2991,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>c0EPK18fsucmL9uxgQSfC1T6yi57+DpckQcRanu7D6g=</dsig:DigestValue>
+      <dsig:DigestValue>hXM1siPrumnqsG8UMfWtT2jOb8GOu/1OlFdgHzxXydU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol63454.py" size="31078">
@@ -3009,7 +3009,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>UtDavyeawFW7Nfpt5mLfwqC405V5fdt+1NexHReMn3I=</dsig:DigestValue>
+      <dsig:DigestValue>cdOb6TEPhQvCvX2vG4wMr8y4i0jMbx77HdjF7q+EPkU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol64469.py" size="31078">
@@ -3027,7 +3027,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>Qrtye2rTf6k4lKyvqt/pAjuxjVp44AyaD3wpw1IVhm0=</dsig:DigestValue>
+      <dsig:DigestValue>utzF5pksBjJfQGTFiTNjODqaedbc1nLDeW5nWZD+aoE=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol65094.py" size="31078">
@@ -3045,7 +3045,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>n86q5As4ky//KA0oJeq/JohMHRYf4a/mWvcSk/aCsoY=</dsig:DigestValue>
+      <dsig:DigestValue>/FWv3dPmBkE6PzCQ/m4nns+n7Bgdhl0usMbfiIzHn4Q=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol65384.py" size="31078">
@@ -3063,7 +3063,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>v/I9tXI6FnZHytxgyPLtoWaOf5VJ05GF+dPv7YyQ3e8=</dsig:DigestValue>
+      <dsig:DigestValue>ENbs+aFYbEFhg98Wuf7bThD2FsfrHTXxuxcXHdQDmTU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol65895.py" size="31349">
@@ -3081,7 +3081,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>PuiBUq8tVaUfwWbZ52/L6BYqnrR6HXl+9Qsq0glaaxE=</dsig:DigestValue>
+      <dsig:DigestValue>xn4uC3epC/2dd91KCWWsljnf/d110KDrsxyxh2cijrc=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol66668.py" size="31349">
@@ -3099,7 +3099,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>qXKc6ax4Z6QHJx77wsgkG6U2jl3znXVPkmXMZwLf2nc=</dsig:DigestValue>
+      <dsig:DigestValue>HjYdxFgiv+NTES1tN5CfXjaUMbQ/7FNQtct6wz0/MlM=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol67188.py" size="31349">
@@ -3117,7 +3117,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>j0jwCJXzraVrI5qx0H3alibsmpHaFtXtT6DpBdhFkNE=</dsig:DigestValue>
+      <dsig:DigestValue>3wLGgUj88H8QTDSgmBVhx0ymndQ12ixqocRK/bE3oRY=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol67926.py" size="31349">
@@ -3135,7 +3135,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>Ms32AEWG59+0j7x3PsPhT8P5JH5v0eGaeQdk8oXQw3c=</dsig:DigestValue>
+      <dsig:DigestValue>OAiFmr/m0RyW8hUsdaKgX4bKYXDzT2c2Kw4TFKusVFI=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol69232.py" size="31349">
@@ -3153,7 +3153,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>5jqAOa/UWfBUwCcvldWaF2Fhlm9DFCrN7Ky6VO8z+WM=</dsig:DigestValue>
+      <dsig:DigestValue>Axf/b7ahyDa/7XwJ6Bag3AAeaSHNW/fDY2m7d9YZ43A=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol70154.py" size="31383">
@@ -3171,7 +3171,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>n2J9eeJW1MZahYEkEnt2beGZCeg7Igg/bKrEzPRCrdE=</dsig:DigestValue>
+      <dsig:DigestValue>IHdHEzLry9d1xz1cM4K5eO+L97hLQM0WotHwC84gl2s=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol71061.py" size="31383">
@@ -3189,7 +3189,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>7cuf/yn1oFdI1tF0OjqzfbaZ3CvKDDKUt6AUjF9PINE=</dsig:DigestValue>
+      <dsig:DigestValue>O/ZTYDmtd7xsUlniO98UuSPHSNA4vtLmOLEBZvMmXwY=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol71523.py" size="31383">
@@ -3207,7 +3207,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>NcFieL+/GH3Hv10qfkTtP/MjxEdM8C8645po85HoDEo=</dsig:DigestValue>
+      <dsig:DigestValue>+K6UrtpqFGG00CeGODrPjmBwqYCMAEYrWjSiniIjRMI=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol71663.py" size="31383">
@@ -3225,7 +3225,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>gfL5cZ0p7cIJdkOrU3VteBt4qYNp9EEnWcBE21wLUD4=</dsig:DigestValue>
+      <dsig:DigestValue>nQTWplr1AVPOortvnITbmdtGkiCmDem0/+hqnMOt1dk=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol72282.py" size="31383">
@@ -3243,7 +3243,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>2YfKjqFBmK9OATTsZJeIQjybalg9OdbudQskB5s0TUc=</dsig:DigestValue>
+      <dsig:DigestValue>w+GJLmbLx7yCNYQbLMdXiEOLNVaFLDcSuN9NBxJO/Ec=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol73286.py" size="31383">
@@ -3261,7 +3261,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>MKoq7d7uIOBMlUng6A32m3nXZytZcTOh1r4KIFoB9yk=</dsig:DigestValue>
+      <dsig:DigestValue>HzI1yQlC3RfMaj/JR7Vb19km5WftDsTKFa710etVfiM=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol73559.py" size="31383">
@@ -3279,7 +3279,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>GDB+RmfLU+Laoph0/758MUCgjq/lVP23Hd0XdemS3Xw=</dsig:DigestValue>
+      <dsig:DigestValue>kkveBMBu79LzL3ZoHFm0E3b6jjQLalnF9CSM7x+P4mY=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol73620.py" size="31383">
@@ -3297,7 +3297,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>qys7hvF97LBmi+YT5Y1PlwIHUocigaSC2LTsov2h7go=</dsig:DigestValue>
+      <dsig:DigestValue>YSPJRAYHfch17lFdZ2jgim7NFeSTjYhJt7wpkzQ4nb4=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol74071.py" size="31383">
@@ -3315,7 +3315,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>V2d3v8toFOr8cJZIVCgdMChdrPUjXDDuKvN0z5hNyI4=</dsig:DigestValue>
+      <dsig:DigestValue>ieLYQt9ik/pF38aU11v2OdmGRa3Ftw/VrmM5c8SStZU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\site-packages\s2protocol\versions\protocol74456.py" size="31383">
@@ -3333,7 +3333,25 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>yKM+0ZfTHA213pxFlGSEpHITInEHuVwc15vJ8EKjPuw=</dsig:DigestValue>
+      <dsig:DigestValue>r/fculKSGivp3sN0QPlXd4baOZwNYiOQiXnI3yRwiK0=</dsig:DigestValue>
+    </hash>
+  </file>
+  <file name="pylib\site-packages\s2protocol\versions\protocol74741.py" size="31383">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>iYVyjCy/eHihAj4k0anFM4yZ13gNd4wPwS9OlxJlrU8=</dsig:DigestValue>
+    </hash>
+  </file>
+  <file name="pylib\site-packages\s2protocol\versions\protocol74741.pyc" size="30168">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>NVcIvL16KdBOk+wyxeqcA9v2gPGt+ydRSNFGhlmDSco=</dsig:DigestValue>
     </hash>
   </file>
   <file name="pylib\sre.py" size="397">

@@ -1,4 +1,8 @@
 
+0.8.0.14
+
+- s2protocol v4.9.2.74741.0
+
 0.8.0.17
 
 - anonymized upload ported to ASP dotnet REST
