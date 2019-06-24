@@ -50,6 +50,7 @@ namespace sc2dsstats_rc1
         public ObservableCollection<KeyValuePair<string, double>> Items { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
         public ObservableCollection<KeyValuePair<string, double>> Items_sorted { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
         public List<KeyValuePair<string, double>> Cdata { get; set; }
+        public ProgressBar progbar { get; set; } = new ProgressBar();
 
         Chart dynChart = new Chart()
         {
@@ -185,8 +186,7 @@ namespace sc2dsstats_rc1
             }
             cb_doit_cpus.SelectedItem = cb_doit_cpus.Items[cb_doit_cpus.Items.Count - 1];
 
-            player_name = Properties.Settings.Default.PLAYER;
-            SetPlayerList(player_name);
+
 
             // xaml
 
@@ -273,40 +273,133 @@ namespace sc2dsstats_rc1
             }
             else
             {
-                myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
-                SetReplayList(myReplay_Path);
-            }
 
-            if (Properties.Settings.Default.V8 == false)
-            {
-                var appSettings = ConfigurationManager.AppSettings;
-                if (appSettings["STATS_FILE"] != null && File.Exists(appSettings["STATS_FILE"]))
-                    myStats_csv = appSettings["STATS_FILE"];
-                try
+                if (Properties.Settings.Default.V8 == false)
                 {
-                    FirstRun_Json();
-                } catch { }
-                Properties.Settings.Default.V8 = true;
-                Properties.Settings.Default.FIRSTRUN = false;
-                Properties.Settings.Default.Save();
-            }
+                    var appSettings = ConfigurationManager.AppSettings;
+                    if (appSettings["STATS_FILE"] != null && File.Exists(appSettings["STATS_FILE"]))
+                    {
+                        myStats_csv = appSettings["STATS_FILE"];
+                        try
+                        {
+                            FirstRun_Json();
+                        }
+                        catch { }
+                    }
+                    Properties.Settings.Default.V8 = true;
+                    Properties.Settings.Default.FIRSTRUN = false;
+                    Properties.Settings.Default.Save();
+                }
 
-            if (Properties.Settings.Default.FIRSTRUN == true)
-            {
-                try
+
+                if (Properties.Settings.Default.FIRSTRUN == true)
                 {
-                    FirstRunNewVersion();
-                } catch { }
-                Properties.Settings.Default.FIRSTRUN = false;
-                Properties.Settings.Default.Save();
+                    try
+                    {
+                        FirstRunNewVersion();
+                    }
+                    catch { }
+                    Properties.Settings.Default.FIRSTRUN = false;
+                    Properties.Settings.Default.Save();
 
+                }
+
+                if (Properties.Settings.Default.AUTOSCAN == true)
+                {
+                    mnu_Scan(null, null);
+                }
             }
 
+            player_name = Properties.Settings.Default.PLAYER;
+            myReplay_Path = Properties.Settings.Default.REPLAY_PATH;
+            SetReplayList(myReplay_Path);
+            SetPlayerList(player_name);
             myStats_csv = myStats_json;
+
+            progbar.IsIndeterminate = false;
+            progbar.Orientation = Orientation.Horizontal;
+            progbar.Width = 150;
+            progbar.Height = 20;
+            progbar.HorizontalAlignment = HorizontalAlignment.Left;
+            progbar.Name = "pb_scan";
+            progbar.Visibility = Visibility.Collapsed;
+            gr_sb_grid.Children.Add(progbar);
 
             if (Properties.Settings.Default.UPDATE == true) DoUpdate();
             if (DEBUG > 0) Console.WriteLine("MW init finished.");
             INIT = true;
+        }
+
+        public int FirstRun_Helper(out HashSet<string> Players, out List<string> Folders)
+        {
+            var doc = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string sc2_dir = doc + "/StarCraft II";
+            int Count = 0;
+            Players = new HashSet<string>();
+            Folders = new List<string>();
+
+            if (Directory.Exists(sc2_dir))
+            {
+
+                List<string> files = new List<string>();
+                foreach (var file in Directory.GetFiles(sc2_dir))
+                {
+                    dynamic shortcut;
+                    dynamic windowsShell;
+                    string target = "";
+                    try
+                    {
+                        if (Path.GetExtension(file)?.Equals(".lnk", StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            Type shellObjectType = Type.GetTypeFromProgID("WScript.Shell");
+                            windowsShell = Activator.CreateInstance(shellObjectType);
+                            shortcut = windowsShell.CreateShortcut(file);
+                            target = shortcut.TargetPath;
+                            // Release the COM objects
+                            shortcut = null;
+                            windowsShell = null;
+                        }
+                    }
+                    finally
+                    {
+                        // Release the COM objects
+                        shortcut = null;
+                        windowsShell = null;
+                    }
+
+                    if (target.Length > 0)
+                    {
+                        string rep_dir = target + @"\Replays\Multiplayer";
+                        string link = Path.GetFileName(file);
+                        Match m = Regex.Match(link, @"(.*)_\d+\@\d+\.lnk$", RegexOptions.IgnoreCase);
+                        if (m.Success)
+                        {
+                            Players.Add(m.Groups[1].Value.ToString());
+                        }
+
+                        if (Directory.Exists(rep_dir))
+                        {
+                            Folders.Add(rep_dir);
+                            files.AddRange(Directory.GetFiles(rep_dir, "*.SC2Replay", SearchOption.AllDirectories).ToList());
+                        }
+                    }
+                }
+                Console.WriteLine("SC2 Players added:");
+                foreach (var ent in Players.OrderBy(x => x))
+                {
+                    Console.WriteLine(ent);
+                }
+                Console.WriteLine();
+                Console.WriteLine("Replay folders added:");
+                foreach (var ent in Folders.OrderBy(x => x))
+                {
+                    Console.WriteLine(ent);
+                }
+                Count = files.Where(x => Path.GetFileName(x).StartsWith("Direct Strike")).Count();
+                Console.WriteLine();
+                Console.WriteLine("Direct Strike replays found: " + Count);
+            }
+            return Count;
         }
 
         public void Debug()
@@ -590,6 +683,7 @@ namespace sc2dsstats_rc1
 
                 player_list.Add(pl);
             }
+            player_list = player_list.Distinct().OrderBy(x => x).ToList();
         }
 
         public void SetReplayList(string rep)
@@ -614,6 +708,7 @@ namespace sc2dsstats_rc1
                     break;
                 }
             }
+            myReplay_list = myReplay_list.Distinct().OrderBy(x => x).ToList();
         }
 
         private static bool RemoveEmpty(String s)
@@ -639,7 +734,20 @@ namespace sc2dsstats_rc1
                 fr_InputTextBox2.Text = Properties.Settings.Default.REPLAY_PATH + ";";
             }
 
+            HashSet<string> Players = new HashSet<string>();
+            List<string> Folders = new List<string>();
+            int Count = FirstRun_Helper(out Players, out Folders);
+
+            if (Players.Count() > 0)
+                foreach (var pl in Players.OrderBy(x => x))
+                    fr_InputTextBox.Text += pl + ";";
+
+            if (Folders.Count() > 0)
+                foreach (var fl in Folders.OrderBy(x => x))
+                    fr_InputTextBox2.Text += fl + ";";
+
             gr_firstrun.Visibility = Visibility.Visible;
+            if (Players.Count() > 0 && Folders.Count() > 0 && Count > 0) ib_OkButton_Click(null, null);
 
         }
         private void SetGUIFilter(object sender, EventArgs e) {
@@ -2527,19 +2635,7 @@ namespace sc2dsstats_rc1
 
             if (scan_running == false)
             {
-                if (gr_sb_grid.Children.Count > 0)
-                {
-                    try
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            foreach (UIElement ent in gr_sb_grid.Children)
-                            {
-                                gr_sb_grid.Children.Remove(ent);
-                            }
-                        });
-                    } catch { }
-                }
+                progbar.Visibility = Visibility.Collapsed;
                 lb_sb_info2.Content = "";
             }
 
@@ -2675,8 +2771,15 @@ namespace sc2dsstats_rc1
                     cores = int.Parse(cb_doit_cpus.SelectedItem.ToString());
                 }
                 dsdecode dsdec = new dsdecode(cores, this);
-                dsdec.Scan();
-                mnu_Scanpre(null, null);
+                Task.Factory.StartNew(delegate
+                {
+                    dsdec.Scan();
+                }, TaskScheduler.Default).ContinueWith(delegate
+                {
+                    Dispatcher.Invoke(() => { 
+                        mnu_Scanpre(null, null);
+                    });
+                }, TaskScheduler.FromCurrentSynchronizationContext());
                 lb_sb_info1.Content = "Scanning with " + cores.ToString() + " threads.";
             } else
             {
@@ -3041,14 +3144,14 @@ namespace sc2dsstats_rc1
 
             string credential = "This will open a Website with combined charts of over 3k games (You can upload your data too with the menu Export->Upload to make it even more meaningful)" + Environment.NewLine + Environment.NewLine;
 
-            if (MessageBox.Show(credential + "Do you want to open the external link https://www.pax77.org/sc2dsstats?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
+            if (MessageBox.Show(credential + "Do you want to open the external link https://www.pax77.org/dsweb?", "sc2dsstats", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
             {
                 //do no stuff
             }
             else
             {
                 //do yes stuff
-                string targetURL = @"https://www.pax77.org/sc2dsstats";
+                string targetURL = @"https://www.pax77.org/dsweb";
                 System.Diagnostics.Process.Start(targetURL);
             }
         }

@@ -29,22 +29,14 @@ namespace sc2dsstats_rc1
                 {
                     foreach (UIElement ent in MW.gr_sb_grid.Children)
                     {
-                        MW.gr_sb_grid.Children.Remove(ent);
+                        //MW.gr_sb_grid.Children.Remove(ent);
+                        MW.progbar.Value = 0;
+                        MW.progbar.Visibility = Visibility.Visible;
                     }
                 }
                 catch { }
             });
-
-            ProgressBar progbar = new ProgressBar();
-            progbar.IsIndeterminate = false;
-            progbar.Orientation = Orientation.Horizontal;
-            progbar.Width = 150;
-            progbar.Height = 20;
-            progbar.HorizontalAlignment = HorizontalAlignment.Left;
-            progbar.Name = "pb_scan";
-            MW.gr_sb_grid.Children.Add(progbar);
-            return progbar;
+            return MW.progbar;
         }
-
     }
 }

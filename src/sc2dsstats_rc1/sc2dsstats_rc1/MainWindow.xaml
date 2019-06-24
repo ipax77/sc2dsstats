@@ -24,7 +24,7 @@
             </TextBox>
             <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" MaxHeight="20" TextWrapping="Wrap" Margin="62,50,0,0" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" FontSize="14" ><Run Text="Please enter your ingame Starcraft 2 Player name (without clan tags). If you have multiple accounts you can add additional names "/><Run Text="Semikolon"/><Run Text=" (;) separated"/><Run Text="."/></TextBlock>
             <TextBox MinWidth="300" x:Name="fr_InputTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,75,0,0" RenderTransformOrigin="0.5,0.5" Height="25"/>
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" TextWrapping="Wrap" MaxHeight="80" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" Margin="62,115,0,0" FontSize="14" ><Run Text="Please select one DS replay in your replay folder. Usually it is something like "/><LineBreak/><Run Text="C:/Users/'username'/Documents/StarCraft II/Accounts/107090000/2-S2-1-220000/Replays/Multiplayer"/><Run Text=" ."/><LineBreak/><Run Text="You can add multiple folders Semikolon (;) separated."/><Run Text=" If you do so, please keep the order!"/><LineBreak/><Run/></TextBlock>
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="1300" TextWrapping="Wrap" MaxHeight="80" FontWeight="Bold" FontFamily="/sc2dsstats_rc1;component/#Titillium Web" Margin="62,115,0,0" FontSize="14" ><Run Text="Please select one DS replay in your replay folder. Usually it is something like "/><LineBreak/><Run Text="C:/Users/'username'/Documents/StarCraft II/Accounts/107090000/2-S2-1-220000/Replays/Multiplayer"/><Run Text=" ."/><LineBreak/><Run Text="You can add multiple folders Semikolon (;) separated."/><LineBreak/><Run/></TextBlock>
             <TextBox MinWidth="150" x:Name="fr_InputTextBox2" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,200,0,0" RenderTransformOrigin="0.5,0.5" Width="1100" Height="69"/>
             <Button x:Name="Browse" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="62,170,0,0" Width="100" Height="24" Click="ib_BrowseButton_Click" Style="{StaticResource ButtonStyle1}">
                 <Button.Background>
@@ -343,7 +343,7 @@
         <Grid x:Name="gr_status" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
             <StatusBar x:Name="sb_status" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="25">
                 <DockPanel HorizontalAlignment="Stretch">
-                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.0.18" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.1.0" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
                     <Border Width="1" Margin="2" Background="#8888"/>
                     <Label x:Name="lb_sb_info1" Height="25" Content="" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"></Label>
                     <Border Width="1" Margin="2" Background="#8888"/>

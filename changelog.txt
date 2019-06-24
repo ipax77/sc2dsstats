@@ -1,4 +1,9 @@
 
+0.8.1.0
+
+- FirstRun auto
+- Autoscan
+
 0.8.0.14
 
 - s2protocol v4.9.2.74741.0

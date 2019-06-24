@@ -107,7 +107,7 @@ namespace sc2dsstats_rc1
             else if (label == "UPDATE") cdesc = "# Check for updates at Application start. (True, False)";
             else if (label == "DEBUG") cdesc = "# Debug level (0 = off, 1=basic, 2=all, 3=reset user settings";
             else if (label == "SKIP_FILE") cdesc = "# Skip file (replays that could not be decoded for some reason)";
-
+            else if (label == "AUTOSCAN") cdesc = "# Scan replays at Application start. (True, False)";
 
             //cdesc += "_";
             return cdesc;
@@ -231,7 +231,7 @@ namespace sc2dsstats_rc1
                             catch { Console.WriteLine("Failed saving config for " + tb.Name + " => " + tb.Text); }
                         }
 
-                        else if (tb.Name == "MM_Deleted" || tb.Name == "GUI_START_DATE" || tb.Name == "GUI_END_DATE" || tb.Name == "UPLOAD")
+                        else if (tb.Name == "MM_Deleted" || tb.Name == "GUI_START_DATE" || tb.Name == "GUI_END_DATE" || tb.Name == "UPLOAD" || tb.Name == "AUTOSCAN")
                         {
                             try
                             {

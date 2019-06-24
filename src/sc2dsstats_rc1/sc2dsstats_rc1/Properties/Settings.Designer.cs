@@ -307,5 +307,17 @@ namespace sc2dsstats_rc1.Properties {
                 this["UPDATE"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AUTOSCAN {
+            get {
+                return ((bool)(this["AUTOSCAN"]));
+            }
+            set {
+                this["AUTOSCAN"] = value;
+            }
+        }
     }
 }
