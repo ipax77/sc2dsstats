@@ -654,6 +654,8 @@ namespace sc2dsstats_rc1
 
                 int i = 0;
                 bool fix = false;
+                bool isBrawl_set = false;
+
                 Dictionary<int, REPvec> UNITPOS = new Dictionary<int, REPvec>();
                 foreach (IronPython.Runtime.PythonDictionary pydic in trackerevents_dec)
                 {
@@ -810,6 +812,14 @@ namespace sc2dsstats_rc1
                             if (DEBUG > 0) Console.WriteLine("No player for " + playerid);
                         }
 
+                    }
+                    else if (isBrawl_set == false && pydic.ContainsKey("m_upgradeTypeName"))
+                    {
+                        if (pydic["m_upgradeTypeName"].ToString() == "GameModeBrawl")
+                        {
+                            replay.ISBRAWL = true;
+                            isBrawl_set = true;
+                        }
                     }
 
                     i++;

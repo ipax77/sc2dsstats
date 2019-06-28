@@ -12,7 +12,7 @@ namespace sc2dsstats_rc1
         public int WINNER { get; set; }
         public int DURATION { get; set; }
         public List<dsplayer> PLAYERS { get; set; } = new List<dsplayer>();
-        [JsonIgnore]
+        //[JsonIgnore]
         public List<string> RACES { get; set; }
         public int MINKILLSUM { get; set; }
         public int MAXKILLSUM { get; set; }
@@ -22,6 +22,7 @@ namespace sc2dsstats_rc1
         public int PLAYERCOUNT { get; set; }
         public string MMID { get; set; } = "0";
         public int REPORTED { get; set; } = 0;
+        public bool ISBRAWL { get; set; } = false;
 
         public dsreplay()
         {
@@ -250,6 +251,7 @@ namespace sc2dsstats_rc1
         public int Army { get; set; }
         public int Income { get; set; }
         public int Std { get; set; }
+        public int Brawl { get; set; }
 
         public dsfilter()
         {
@@ -307,6 +309,8 @@ namespace sc2dsstats_rc1
                 bab += "Beta: " + this.Beta + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Hots);
                 bab += "Hots: " + this.Hots + " (" + f + "%)" + "; ";
+                f = FilterRate(this.Brawl);
+                bab += "Brawl: " + this.Brawl + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Gametime);
                 bab += "Gametime: " + this.Gametime + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Duration);

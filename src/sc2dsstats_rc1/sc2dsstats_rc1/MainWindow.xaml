@@ -235,9 +235,10 @@
                     <TextBox x:Name="tb_army" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="230,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
                     <CheckBox x:Name="cb_income" Content="Income" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="300,5,0,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip replays with at least one player below given Income" />
                     <TextBox x:Name="tb_income" Style="{StaticResource TextBoxStyle1}" HorizontalAlignment="Left" Height="20" Margin="380,3,0,0" TextWrapping="Wrap" Width="60" PreviewKeyDown="tb_fl2_EnterClick" Text="TextBox" VerticalAlignment="Top" FontSize="12" />
-                    <CheckBox x:Name="cb_beta" Content="Beta" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,5,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip beta DS replays" />
-                    <CheckBox x:Name="cb_hots" Content="HotS" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,30,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip HotS DS replays" />
-                    <Border Margin="510, 10,0,0" BorderBrush="Gray" BorderThickness="1" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <CheckBox x:Name="cb_brawl" Content="Brawl" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="450,5,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Brawl DS replays" />
+                    <CheckBox x:Name="cb_beta" Content="Beta" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="510,5,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip beta DS replays" />
+                    <CheckBox x:Name="cb_hots" Content="HotS" Style="{StaticResource cb_Style}" HorizontalAlignment="Left" Margin="510,30,-15,0" VerticalAlignment="Top" Click="tb_fl2_Click" ToolTip="Skip HotS DS replays" />
+                    <Border Margin="570, 10,0,0" BorderBrush="Gray" BorderThickness="1" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <Grid Margin="0,0,0,0">
                             <RadioButton x:Name="rb_horizontal" Content="horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Click="tb_fl2_rb_horizontal_Click" Style="{DynamicResource RadioButtonStyle1}" />
                             <RadioButton x:Name="rb_vertical" Content="vertical" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Click="tb_fl2_rb_vertical_Click" Style="{DynamicResource RadioButtonStyle1}" />
@@ -343,7 +344,7 @@
         <Grid x:Name="gr_status" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
             <StatusBar x:Name="sb_status" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="25">
                 <DockPanel HorizontalAlignment="Stretch">
-                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.1.0" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
+                    <Label x:Name="lb_sb_info0" Height="25" Content="sc2dsstats v0.8.1.1" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"/>
                     <Border Width="1" Margin="2" Background="#8888"/>
                     <Label x:Name="lb_sb_info1" Height="25" Content="" MaxWidth="1000"  FontFamily="/sc2dsstats_rc1;component/#Titillium Web SemiBold"></Label>
                     <Border Width="1" Margin="2" Background="#8888"/>

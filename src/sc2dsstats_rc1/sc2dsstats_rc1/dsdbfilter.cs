@@ -417,6 +417,20 @@ namespace sc2dsstats_rc1
                 FIL.Hots -= fil_replays.Count;
             }
 
+            if (MW.cb_brawl.IsChecked == false)
+            {
+                FIL.Brawl = fil_replays.Count;
+                tmprep = new List<dsreplay>(fil_replays.Where(x => x.ISBRAWL == false).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                FIL.Brawl -= fil_replays.Count;
+            } else
+            {
+                FIL.Brawl = fil_replays.Count;
+                tmprep = new List<dsreplay>(fil_replays.Where(x => x.ISBRAWL == true).ToList());
+                fil_replays = new List<dsreplay>(tmprep);
+                FIL.Brawl -= fil_replays.Count;
+            }
+
             if (MW.cb_std.IsChecked == false)
             {
                 FIL.Std = fil_replays.Count;
