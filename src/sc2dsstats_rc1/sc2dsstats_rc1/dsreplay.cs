@@ -22,7 +22,8 @@ namespace sc2dsstats_rc1
         public int PLAYERCOUNT { get; set; }
         public string MMID { get; set; } = "0";
         public int REPORTED { get; set; } = 0;
-        public bool ISBRAWL { get; set; } = false;
+        public bool ISBRAWL { get; set; } = false; // or switch, or gear, or ... not cmdr or not std
+        public string GAMEMODE { get; set; } = "unknown";
 
         public dsreplay()
         {

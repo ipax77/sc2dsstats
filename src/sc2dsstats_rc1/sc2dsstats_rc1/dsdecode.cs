@@ -655,6 +655,7 @@ namespace sc2dsstats_rc1
                 int i = 0;
                 bool fix = false;
                 bool isBrawl_set = false;
+                HashSet<string> Mutation = new HashSet<string>();
 
                 Dictionary<int, REPvec> UNITPOS = new Dictionary<int, REPvec>();
                 foreach (IronPython.Runtime.PythonDictionary pydic in trackerevents_dec)
@@ -785,7 +786,30 @@ namespace sc2dsstats_rc1
                         int gameloop = int.Parse(pydic["_gameloop"].ToString());
                         int spawn = (gameloop - 480) % 1440;
                         int pos = 0;
-                        
+                        if (isBrawl_set == false)
+                        {
+                            if (Mutation.Contains("MutationExpansion") && replay.GAMEMODE == "GameModeCommanders")
+                                replay.GAMEMODE = "GameModeCommandersHeroic";
+                            else if (Mutation.Contains("MutationCovenant"))
+                                replay.GAMEMODE = "GameModeSwitch";
+                            else if (Mutation.Contains("MutationEquipment"))
+                                replay.GAMEMODE = "GameModeGear";
+                            else if (Mutation.Contains("MutationExile")
+                                    && Mutation.Contains("MutationRescue")
+                                    && Mutation.Contains("MutationShroud")
+                                    && Mutation.Contains("MutationSuperscan"))
+                                replay.GAMEMODE = "GameModeSabotage";
+                            else
+                                if (replay.GAMEMODE == "unknown")
+                                replay.GAMEMODE = "GameModeStandard";
+
+                            replay.ISBRAWL = true;
+                            if (replay.GAMEMODE == "GameModeCommanders" || replay.GAMEMODE == "GameModeCommandersHeroic" || replay.GAMEMODE == "GameModeStandard")
+                                replay.ISBRAWL = false;
+
+                            isBrawl_set = true;
+                        }
+
                         if (track.PLAYERS.ContainsKey(playerid))
                         {
                             if (track.PLAYERS[playerid].REALPOS > 0) pos = track.PLAYERS[playerid].REALPOS;
@@ -813,13 +837,14 @@ namespace sc2dsstats_rc1
                         }
 
                     }
-                    else if (isBrawl_set == false && pydic.ContainsKey("m_upgradeTypeName"))
+                    else if (isBrawl_set == false && pydic.ContainsKey("_gameloop") && (int)pydic["_gameloop"] == 0 && pydic.ContainsKey("m_upgradeTypeName"))
                     {
                         if (pydic["m_upgradeTypeName"].ToString() == "GameModeBrawl")
-                        {
-                            replay.ISBRAWL = true;
-                            isBrawl_set = true;
-                        }
+                            replay.GAMEMODE = "GameModeBrawl";
+                        else if (pydic["m_upgradeTypeName"].ToString() == "GameModeCommanders")
+                            replay.GAMEMODE = "GameModeCommanders";
+                        else if (pydic["m_upgradeTypeName"].ToString().StartsWith("Mutation"))
+                            Mutation.Add(pydic["m_upgradeTypeName"].ToString());
                     }
 
                     i++;

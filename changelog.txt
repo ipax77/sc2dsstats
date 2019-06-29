@@ -1,4 +1,8 @@
 
+0.8.1.2
+
+- Gamemodes identify
+
 0.8.1.1
 
 - Brawl identify and filter

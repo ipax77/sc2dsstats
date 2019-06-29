@@ -222,7 +222,7 @@ namespace sc2dsstats_rc1
                     } else {
 
                         dynamic value = null;
-                        if (tb.Name == "MM_CREDENTIALS" || tb.Name == "V8" || tb.Name == "GUI_STD" || tb.Name == "FIRSTRUN" || tb.Name == "UPDATE")
+                        if (tb.Name == "MM_CREDENTIALS" || tb.Name == "V8" || tb.Name == "GUI_STD" || tb.Name == "FIRSTRUN" || tb.Name == "UPDATE" || tb.Name == "AUTOSCAN")
                         {
                             try
                             {
@@ -231,7 +231,7 @@ namespace sc2dsstats_rc1
                             catch { Console.WriteLine("Failed saving config for " + tb.Name + " => " + tb.Text); }
                         }
 
-                        else if (tb.Name == "MM_Deleted" || tb.Name == "GUI_START_DATE" || tb.Name == "GUI_END_DATE" || tb.Name == "UPLOAD" || tb.Name == "AUTOSCAN")
+                        else if (tb.Name == "MM_Deleted" || tb.Name == "GUI_START_DATE" || tb.Name == "GUI_END_DATE" || tb.Name == "UPLOAD")
                         {
                             try
                             {
