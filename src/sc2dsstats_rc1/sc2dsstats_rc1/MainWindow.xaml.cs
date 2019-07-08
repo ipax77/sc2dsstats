@@ -92,6 +92,7 @@ namespace sc2dsstats_rc1
                  "Kerrigan",
                  "Nova",
                  "Raynor",
+                 "Stetmann",
                  "Stukov",
                  "Swann",
                  "Tychus",
@@ -2771,7 +2772,7 @@ namespace sc2dsstats_rc1
                     cores = int.Parse(cb_doit_cpus.SelectedItem.ToString());
                 }
                 dsdecode dsdec = new dsdecode(cores, this);
-                Task.Factory.StartNew(delegate
+                tsscan = Task.Factory.StartNew(delegate
                 {
                     dsdec.Scan();
                 }, TaskScheduler.Default).ContinueWith(delegate
@@ -3098,7 +3099,8 @@ namespace sc2dsstats_rc1
 
         public void mnu_mm(object sender, RoutedEventArgs e)
         {
-            Win_mm Wmm = new Win_mm(this);
+            //Win_mm Wmm = new Win_mm(this);
+            Win_mmrest Wmm = new Win_mmrest(this);
             Wmm.Show();
         }
 
@@ -3133,8 +3135,8 @@ namespace sc2dsstats_rc1
             else
             {
                 //do yes stuff
-                Win_mm Wmm = new Win_mm(this);
-                Wmm.Delete();
+                Win_mmrest Wmm = new Win_mmrest(this);
+                Wmm.Deleteme();
             }
         }
 

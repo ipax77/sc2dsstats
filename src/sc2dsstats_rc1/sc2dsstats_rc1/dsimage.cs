@@ -135,6 +135,10 @@ namespace sc2dsstats_rc1
             {
                 png = "btn-unit-hero-raynor.png";
             }
+            else if (cmdr.Contains("Stetmann"))
+            {
+                png = "btn-unit-hero-stetmann.png";
+            }
             else if (cmdr.Contains("Stukov"))
             {
                 png = "btn-unit-hero-stukov.png";

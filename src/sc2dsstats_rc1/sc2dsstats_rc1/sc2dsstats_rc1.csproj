@@ -37,7 +37,7 @@
     <SuiteName>sc2dsstats</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationRevision>4</ApplicationRevision>
     <ApplicationVersion>0.8.1.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -173,6 +173,7 @@
     <Compile Include="dsotf.cs" />
     <Compile Include="dsotfng.cs" />
     <Compile Include="dsradar.cs" />
+    <Compile Include="DSmmrest.cs" />
     <Compile Include="DSrest.cs" />
     <Compile Include="dsscan.cs" />
     <Compile Include="dsstatus.cs" />
@@ -193,6 +194,9 @@
     </Compile>
     <Compile Include="Win_log.xaml.cs">
       <DependentUpon>Win_log.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Win_mmrest.xaml.cs">
+      <DependentUpon>Win_mmrest.xaml</DependentUpon>
     </Compile>
     <Compile Include="Win_mm.xaml.cs">
       <DependentUpon>Win_mm.xaml</DependentUpon>
@@ -239,6 +243,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Win_log.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Win_mmrest.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -308,6 +316,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="images\btn-unit-hero-raynor.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\btn-unit-hero-stetmann.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="images\btn-unit-hero-stukov.png">
