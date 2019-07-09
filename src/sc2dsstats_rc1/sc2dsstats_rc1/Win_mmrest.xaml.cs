@@ -26,7 +26,7 @@ namespace sc2dsstats_rc1
 
         MainWindow MW { get; set; }
         public Socket CLIENT { get; set; }
-        SoundPlayer SP { get; set; } = new SoundPlayer(@"audio\ready.wav");
+        MediaPlayer SP { get; set; } = new MediaPlayer();
         public bool ACCEPTED { get; set; } = false;
         public bool ALL_ACCEPTED { get; set; } = false;
         public bool DECLINED { get; set; } = false;
@@ -99,12 +99,16 @@ namespace sc2dsstats_rc1
 
             tb_elo.Text = Properties.Settings.Default.MM_ELO;
 
+            SP.Open(new Uri(@"audio\ready.wav", UriKind.Relative));
+
             progbar.IsIndeterminate = false;
             progbar.Orientation = Orientation.Vertical;
             progbar.Width = 50;
             progbar.Height = 250;
             progbar.HorizontalAlignment = HorizontalAlignment.Left;
             progbar.Name = "pb_accept";
+            progbar.Minimum = 0;
+            progbar.Maximum = 100;
             gr_accept.Children.Add(progbar);
 
         }
@@ -257,7 +261,7 @@ namespace sc2dsstats_rc1
                             Dispatcher.Invoke(() =>
                             {
                                 mmcb_randoms.IsEnabled = true;
-                                tb_gamefound.Text += " You can fill your lobby with randoms now if you want (check 'allow Randoms' right to the clock)";
+                                tb_gamefound.Text += " If you want, you can fill your lobby with randoms, now (check 'allow Randoms' right to the clock)";
                             });
                         }
                         _time = _time.Add(TimeSpan.FromSeconds(+1));
@@ -292,33 +296,30 @@ namespace sc2dsstats_rc1
         public void Searching()
         {
             SEARCHING = true;
-
-            while (SEARCHING == true)
-            {
-                Thread.Sleep(1000);
-                var res = DSmmrest.FindGame(seplayer.Name);
-                if (res == null) ConnectionLost();
-                else
+            Task.Factory.StartNew(() => { 
+                while (SEARCHING == true)
                 {
-                    if (res.Game != null)
+                    Thread.Sleep(1000);
+                    var res = DSmmrest.FindGame(seplayer.Name);
+                    if (res == null) ConnectionLost();
+                    else
                     {
-                        MW.Dispatcher.Invoke(() =>
+                        if (res.Game != null)
                         {
-                            gr_lobby.Visibility = Visibility.Collapsed;
-                        });
-                        SEARCHING = false;
-                        GameFound(res.Game);
-                    }
-                    else if (res.Players != null && res.Players.Count > 0)
-                    {
-                        MW.Dispatcher.Invoke(() =>
+                            SEARCHING = false;
+                            GameFound(res.Game);
+                        }
+                        else if (res.Players != null && res.Players.Count > 0)
                         {
-                            gr_lobby.Visibility = Visibility.Visible;
-                            dg_players.ItemsSource = res.Players;
-                        });
+                            MW.Dispatcher.Invoke(() =>
+                            {
+                                gr_lobby.Visibility = Visibility.Visible;
+                                dg_players.ItemsSource = res.Players;
+                            });
+                        }
                     }
                 }
-            }
+            });
         }
 
         public void ConnectionLost()
@@ -328,8 +329,10 @@ namespace sc2dsstats_rc1
             
             MW.Dispatcher.Invoke(() =>
             {
+                gr_accept.Visibility = Visibility.Collapsed;
                 tb_gamefound.Text = "Connection lost :(";
                 tb_info.Text = "Connection lost :(";
+                gr_lobby.Visibility = Visibility.Collapsed;
                 mmcb_ample.IsChecked = false;
                 mmcb_ample.Content = "Offline";
                 try
@@ -347,335 +350,183 @@ namespace sc2dsstats_rc1
           private void bt_decline_Click(object sender, RoutedEventArgs e)
         {
             DECLINED = true;
-            DSmmrest.Decline(seplayer.Name);
             ConnectionLost();
+            int mmid = 0;
             Dispatcher.Invoke(() =>
             {
-                if (SP != null) SP.Stop();
+                SP.Stop();
                 tb_gamefound.Text = "Game declined.";
                 gr_accept.Visibility = Visibility.Hidden;
+                mmid = int.Parse(tb_mmid.Text);
             });
+            DSmmrest.Decline(seplayer.Name, mmid);
         }
 
         private void bt_accept_Click(object sender, RoutedEventArgs e)
         {
-            if (SP != null) SP.Stop();
+            
             ACCEPTED = true;
-            DSmmrest.Accept(seplayer.Name);
-            tb_accepted.Text = "TY! Waiting for other players ..";
-            bt_accept.IsEnabled = false;
-            bt_decline.IsEnabled = false;
+            int mmid = 0;
+            Dispatcher.Invoke(() =>
+            {
+                SP.Stop();
+                tb_accepted.Text = "TY! Waiting for other players ..";
+                bt_accept.IsEnabled = false;
+                bt_decline.IsEnabled = false;
+                mmid = int.Parse(tb_mmid.Text);
+            });
+            DSmmrest.Accept(seplayer.Name, mmid);
         }
 
-        public void Accept()
+        public void Accept(int id)
         {
-            MMgame game = new MMgame();
+            Task.Factory.StartNew(() => { 
+                MMgame game = new MMgame();
 
-            while (ALL_ACCEPTED == false && ALL_DECLINED == false)
-            { 
-                Thread.Sleep(250);
-                Dispatcher.Invoke(() =>
-                {
-                    tb_gamefound.Text = "Waiting for all players to accept ...";
-                });
-                game = DSmmrest.Status(seplayer.Name);
-                if (game == null)
-                {
-                    if (DECLINED == false && ACCEPTED == true)
-                    {
-                        ALL_DECLINED = true;
-                        Dispatcher.Invoke(() =>
-                        {
-                            tb_gamefound.Text = "# Game not found :( - Searching again ..";
-                            gr_accept.Visibility = Visibility.Hidden;
-                        });
-                        Searching();
-                    }
-                }
-                else if (game.Declined == true)
-                {
-                    List<BasePlayer> ilist = new List<BasePlayer>();
-                    ilist.AddRange(game.Team1);
-                    ilist.AddRange(game.Team2);
+                while (ALL_ACCEPTED == false && ALL_DECLINED == false)
+                { 
+                    Thread.Sleep(250);
                     Dispatcher.Invoke(() =>
                     {
-                        dg_players.ItemsSource = ilist;
+                        tb_gamefound.Text = "Waiting for all players to accept ...";
                     });
-                    Thread.Sleep(1500);
-                    if (DECLINED == false && ACCEPTED == true)
+                    game = DSmmrest.Status(id);
+                    if (game == null)
                     {
-                        ALL_DECLINED = true;
-                        Dispatcher.Invoke(() =>
+                        //Console.WriteLine("game = null {0} => ({1})", seplayer.Name, id);
+                        if (DECLINED == false && ACCEPTED == true)
                         {
-                            tb_gamefound.Text = "# Someone declined :( - Searching again ..";
-                            gr_accept.Visibility = Visibility.Hidden;
-                        });
-                        Searching();
-                    }
-                }
-                else
-                {
-                    List<BasePlayer> ilist = new List<BasePlayer>();
-                    ilist.AddRange(game.Team1);
-                    ilist.AddRange(game.Team2);
-                    Dispatcher.Invoke(() =>
-                    {
-                        dg_players.ItemsSource = ilist;
-                        var chbacc = gr_mmacc.Children.OfType<CheckBox>().Where(x => x.Name.StartsWith("mmcb_acc"));
-                        int i = 0;
-                        foreach (CheckBox cv in chbacc)
-                        {
-                            if (ilist[i].Accepted == true)
+                            ALL_DECLINED = true;
+                            Dispatcher.Invoke(() =>
                             {
-                                cv.IsChecked = true;
-                            }
-                            i++;
+                                tb_gamefound.Text = "# Game not found :( - Searching again ..";
+                                gr_accept.Visibility = Visibility.Hidden;
+                            });
+                            Thread.Sleep(2500);
+                            Searching();
+                            return;
                         }
-                    });
-
-                    if (game.Accepted == true)
+                        
+                    }
+                    else if (game.Declined == true)
                     {
+                        //Console.WriteLine("game = declined {0} => {1} ({2})", seplayer.Name, game.ID, id);
+                        List<BasePlayer> ilist = new List<BasePlayer>();
+                        ilist.AddRange(game.Team1);
+                        ilist.AddRange(game.Team2);
                         Dispatcher.Invoke(() =>
                         {
-                            tb_gamefound.Text = "Game ready!";
+                            dg_players.ItemsSource = ilist;
                         });
-                        ALL_ACCEPTED = true;
-                        GameReady(game);
+                        Thread.Sleep(1500);
+                        if (DECLINED == false && ACCEPTED == true)
+                        {
+                            ALL_DECLINED = true;
+                            Dispatcher.Invoke(() =>
+                            {
+                                tb_gamefound.Text = "# Someone declined :( - Searching again ..";
+                                gr_accept.Visibility = Visibility.Hidden;
+                            });
+                            Thread.Sleep(2500);
+                            Searching();
+                            return;
+                        }
                     }
-                }
+                    else
+                    {
+                        //Console.WriteLine("Some accepted = true {0} => {1} ({2})", seplayer.Name, game.ID, id);
+                        List<BasePlayer> ilist = new List<BasePlayer>();
+                        ilist.AddRange(game.Team1);
+                        ilist.AddRange(game.Team2);
+                        Dispatcher.Invoke(() =>
+                        {
+                            dg_players.ItemsSource = ilist;
+                            var chbacc = gr_mmacc.Children.OfType<CheckBox>().Where(x => x.Name.StartsWith("mmcb_acc"));
+                            int i = 0;
+                            foreach (CheckBox cv in chbacc)
+                            {
+                                if (ilist[i].Accepted == true)
+                                {
+                                    cv.IsChecked = true;
+                                }
+                                i++;
+                            }
+                        });
 
-                if (DECLINED == true)
-                {
-                    DSmmrest.Decline(seplayer.Name);
+                        
+
+                        if (game.Accepted == true)
+                        {
+                            //Console.WriteLine("All accepted = true {0} => {1} ({2})", seplayer.Name, game.ID, id);
+                            Dispatcher.Invoke(() =>
+                            {
+                                gr_lobby.Visibility = Visibility.Collapsed;
+                                gr_accept.Visibility = Visibility.Hidden;
+                                tb_gamefound.Text = "Game ready!";
+                            });
+                            ALL_ACCEPTED = true;
+                            GameReady(game);
+                            return;
+                        }
+                    }
+
+                    double progbarValue = 0;
+                    double progbarMax = 0;
                     Dispatcher.Invoke(() =>
                     {
-                        tb_gamefound.Text = "We declined/timed out :(";
-                        _timer.Stop();
-                        gr_accept.Visibility = Visibility.Hidden;
+                        progbarValue = progbar.Value;
+                        progbarMax = progbar.Maximum;
                     });
-                    ALL_DECLINED = true;
-                }
 
-                Thread.Sleep(250);
-            }
+                    if (progbarValue == 100)
+                    {
+                        ConnectionLost();
+                    }
+                    else if (progbarValue > 85)
+                    {
+                        if (ACCEPTED == false) bt_decline_Click(null, null);
+                    }
+                        
+
+                    if (DECLINED == true)
+                    {
+
+                        int mmid = 0;
+                        Dispatcher.Invoke(() =>
+                        {
+                            tb_gamefound.Text = "We declined/timed out :(";
+                            _timer.Stop();
+                            gr_accept.Visibility = Visibility.Hidden;
+                            mmid = int.Parse(tb_mmid.Text);
+                        });
+                        DSmmrest.Decline(seplayer.Name, mmid);
+                        ALL_DECLINED = true;
+                    }
+
+                    Thread.Sleep(250);
+                }
+            });
         }
 
         public void GameFound(MMgame game)
         {
-            Task.Factory.StartNew(() => { Accept(); });
             Dispatcher.Invoke(() => {
                 progbar.Value = 0;
                 Duration duration = new Duration(TimeSpan.FromSeconds(35));
-                DoubleAnimation doubleanimation = new DoubleAnimation(100.0, duration);
+                DoubleAnimation doubleanimation = new DoubleAnimation(0, 100.0, duration);
                 progbar.BeginAnimation(ProgressBar.ValueProperty, doubleanimation);
                 bt_accept.IsEnabled = true;
                 bt_decline.IsEnabled = true;
                 gr_accept.Visibility = Visibility.Visible;
-                tb_gamefound.Visibility = Visibility.Hidden;
                 tb_mmid.Text = game.ID.ToString();
-
-                string player = mmcb_player.SelectedItem.ToString();
+                SP.Play();
             });
-            //Console.WriteLine(player + "waiting for accept (or decline)");
             ALL_DECLINED = false;
             ALL_ACCEPTED = false;
             ACCEPTED = false;
             DECLINED = false;
+            Accept(game.ID);
 
-            WAITING = true;
-            Task ts_accept = Task.Factory.StartNew(() =>
-            {
-
-                bool timeout = false;
-
-                while (true)
-                {
-                    Thread.Sleep(600);
-
-                    if (progbar == null)
-                    {
-                        break;
-                    }
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        // timed out
-                        if (progbar.Value == 100)
-                        {
-                            timeout = true;
-                        }
-                    });
-
-                    if (gr_accept.Visibility == Visibility.Hidden)
-                    {
-                        //Console.WriteLine(player + ": Break 0");
-                        break;
-                    }
-
-                    if (timeout == true)
-                    {
-                        if (ACCEPTED == false)
-                        {
-                            Dispatcher.Invoke(() =>
-                            {
-                                DECLINED = true;
-                            });
-                            if (MM != null)
-                            {
-                                int i = 0;
-                                while (MM.STATUS == false)
-                                {
-                                    Thread.Sleep(100);
-                                    i++;
-                                    if (i > 20)
-                                    {
-                                        //Console.WriteLine(player + ": Timeout 1");
-                                        break;
-                                    }
-                                    if (MM == null)
-                                    {
-                                        //Console.WriteLine(player + ": Timeout 2");
-                                        break;
-                                    }
-                                }
-                            }
-                            //Console.WriteLine(player + ": Timeout 3");
-                            break;
-                        }
-                        else if (DECLINED == true)
-                        {
-
-                        }
-                        else
-                        {
-                            int i = 0;
-                            while (!ALL_ACCEPTED && !ALL_DECLINED)
-                            {
-                                Thread.Sleep(100);
-                                i++;
-                                if (i > 20)
-                                {
-                                    Dispatcher.Invoke(() =>
-                                    {
-                                        ALL_DECLINED = true;
-                                        ACCEPTED = false;
-                                    });
-                                    Console.WriteLine(seplayer.Name + ": Timeout 4");
-                                    break;
-                                }
-                            }
-                            //Console.WriteLine(player + ": Timeout 5");
-                            //break;
-                        }
-                    }
-
-                    if (ACCEPTED == true)
-                    {
-                        if (ALL_ACCEPTED == true)
-                        {
-                            break;
-                        }
-
-                        if (ALL_DECLINED == true)
-                        {
-                            // reset
-                            Dispatcher.Invoke(() =>
-                            {
-                                tb_gamefound.Text = "Someone declined :( - Searching again ..";
-                            });
-                            break;
-                        }
-                    }
-
-                    if (ALL_DECLINED == true)
-                    {
-                        if (ACCEPTED == true)
-                        {
-                            // reset
-                            Dispatcher.Invoke(() =>
-                            {
-                                tb_gamefound.Text = "Someone declined :( - Searching again ..";
-                            });
-                            //Console.WriteLine(player + ": Break 1");
-                            break;
-                        }
-
-                        if (DECLINED == true)
-                        {
-                            if (MM != null)
-                            {
-                                int i = 0;
-                                while (MM.STATUS == false)
-                                {
-                                    Thread.Sleep(100);
-                                    i++;
-                                    if (i > 20)
-                                    {
-                                        //Console.WriteLine(player + ": Break 2");
-                                        break;
-                                    }
-                                    if (MM == null)
-                                    {
-                                        //Console.WriteLine(player + ": Break 3");
-                                        break;
-                                    }
-                                }
-                            }
-                            //Console.WriteLine(player + ": Break 4");
-                            break;
-                        }
-                    }
-
-                    if (DECLINED == true)
-                    {
-                        if (MM != null)
-                        {
-                            int i = 0;
-                            while (MM.STATUS == false)
-                            {
-                                Thread.Sleep(100);
-                                i++;
-                                if (i > 20)
-                                {
-                                    //Console.WriteLine(player + ": Break 4");
-                                    break;
-                                }
-                                if (MM == null)
-                                {
-                                    //Console.WriteLine(player + ": Break 5");
-                                    break;
-                                }
-                            }
-                        }
-                        //Console.WriteLine(player + ": Break 6");
-                        break;
-                    }
-
-
-
-
-                }
-                Dispatcher.Invoke(() =>
-                {
-                    gr_accept.Visibility = Visibility.Hidden;
-                    tb_gamefound.Visibility = Visibility.Visible;
-                    progbar.BeginAnimation(ProgressBar.ValueProperty, null);
-                    progbar.Value = 0;
-
-                    // fail safe
-                    if (tb_gamefound.Text == "Waiting for all players to accept ...")
-                    {
-                        ConnectionLost();
-                    }
-                    WAITING = false;
-                });
-
-            }, TaskCreationOptions.AttachedToParent);
-
-
-            Dispatcher.Invoke(() => { 
-                SP.Play();
-            });
         }
 
         public void GameReady(MMgame game)
@@ -686,7 +537,7 @@ namespace sc2dsstats_rc1
             ilist.AddRange(game.Team1);
             ilist.AddRange(game.Team2);
 
-            int mypos = 0;
+            string mypos = "";
             string creator = "Player1";
 
             int j = 0;
@@ -695,7 +546,7 @@ namespace sc2dsstats_rc1
             foreach (var pl in ilist)
             {
                 j++;
-                if (pl.Name == seplayer.Name) mypos = j;
+                if (pl.Name == seplayer.Name) mypos = "Player" + j;
                 if (pl.Games > games)
                 {
                     creator = "Player" + j;

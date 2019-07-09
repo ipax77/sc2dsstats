@@ -392,6 +392,7 @@ mydataset +
                      "Kerrigan",
                      "Nova",
                      "Raynor",
+                     "Stetmann",
                      "Stukov",
                      "Swann",
                      "Tychus",

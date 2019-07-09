@@ -1,4 +1,9 @@
 
+0.8.1.5
+
+- bugfix synergy
+- mm bugfix
+
 0.8.1.4
 
 - mm-rewrite to asp dotnet rest

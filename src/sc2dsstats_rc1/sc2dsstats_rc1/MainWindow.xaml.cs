@@ -3108,14 +3108,14 @@ namespace sc2dsstats_rc1
         {
             string credential = "This will open a Website with a DS-ladder" + Environment.NewLine + Environment.NewLine;
 
-            if (MessageBox.Show(credential + "Do you want to open the external link https://www.pax77.org/sc2dsmm ?", "sc2dsmm", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
+            if (MessageBox.Show(credential + "Do you want to open the external link https://www.pax77.org/dsweb/ladder ?", "sc2dsmm", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
             {
                 //do no stuff
             }
             else
             {
                 //do yes stuff
-                string targetURL = @"https://www.pax77.org/sc2dsmm";
+                string targetURL = @"https://www.pax77.org/dsweb/ladder";
                 System.Diagnostics.Process.Start(targetURL);
             }
         }
