@@ -1,4 +1,8 @@
 
+0.8.1.7
+
+- s2protocol v4.9.3.75025.0
+
 0.8.1.6
 
 - protocl version 75025 'preview'
