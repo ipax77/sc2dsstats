@@ -729,7 +729,10 @@ namespace sc2dsstats_rc1
                     WMM.MMIDS.Add(replay.ID, mmid);
                 }
                 WMM.PresentResult(replay.ID);
-                WMM.Show();
+                try
+                {
+                    WMM.Show();
+                } catch { }
             }
 
             foreach (var ent in mygrids)

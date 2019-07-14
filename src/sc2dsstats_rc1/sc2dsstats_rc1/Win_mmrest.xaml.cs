@@ -636,7 +636,7 @@ namespace sc2dsstats_rc1
 
             string info = "";
             info = "By using this matchmaking system you agree, that your SC2-username and skill information will be stored to generate the games" +
-                " and show rankings on https://www.pax77.org/sc2dsladder." +
+                " and show rankings on https://www.pax77.org/dsweb/ladder." +
                 " The data will not be used for any other purpose and will not be disclosed to third parties." +
                 " You can decline to the agreement at any time by unchecking the Credential and delete all data (File->MM->Delete me)."
                 + Environment.NewLine + Environment.NewLine;

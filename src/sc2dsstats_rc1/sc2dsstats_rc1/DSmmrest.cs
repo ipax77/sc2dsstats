@@ -29,7 +29,7 @@ namespace sc2dsstats_rc1
         {
             var restRequest = new RestRequest("/mm/letmeplay", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddJsonBody(player);
             //var response = client.Execute(restRequest);
             try
@@ -45,7 +45,7 @@ namespace sc2dsstats_rc1
         {
             var restRequest = new RestRequest("/mm/findgame/" + name, Method.GET);
             restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute<RetFindGame>(restRequest);
@@ -60,7 +60,7 @@ namespace sc2dsstats_rc1
         {
             var restRequest = new RestRequest("/mm/exitq/" + name, Method.GET);
             restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute<RetFindGame>(restRequest);
@@ -74,7 +74,7 @@ namespace sc2dsstats_rc1
         {
             var restRequest = new RestRequest("/mm/status/" + id, Method.GET);
             restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute<MMgame>(restRequest);
@@ -89,7 +89,7 @@ namespace sc2dsstats_rc1
         public static void Accept(string name, int id)
         {
             var restRequest = new RestRequest("/mm/accept/" + name + "/" + id, Method.GET);
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute(restRequest);
@@ -102,7 +102,7 @@ namespace sc2dsstats_rc1
         public static void Decline(string name, int id)
         {
             var restRequest = new RestRequest("/mm/decline/" + name + "/" + id, Method.GET);
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute(restRequest);
@@ -115,7 +115,7 @@ namespace sc2dsstats_rc1
         public static void Deleteme(string name)
         {
             var restRequest = new RestRequest("/mm/deleteme/" + name, Method.GET);
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute(restRequest);
@@ -130,7 +130,7 @@ namespace sc2dsstats_rc1
             var json = JsonConvert.SerializeObject(rep);
 
             var restRequest = new RestRequest("/mm/report/" + id, Method.POST);
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddParameter("application/json; charset=utf-8", json, ParameterType.RequestBody);
             restRequest.AddJsonBody(rep);
             //var response = client.Execute(restRequest);
@@ -148,7 +148,7 @@ namespace sc2dsstats_rc1
         public static void Random(string name)
         {
             var restRequest = new RestRequest("/mm/random/" + name, Method.GET);
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             try
             {
                 var response = Client.Execute(restRequest);
@@ -192,7 +192,7 @@ namespace sc2dsstats_rc1
 
             var restRequest = new RestRequest("/secure/data/info", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddJsonBody(info);
             var response = client.Execute(restRequest);
 
@@ -254,7 +254,7 @@ namespace sc2dsstats_rc1
             restRequest = new RestRequest("/secure/data/upload/" + hash);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.Method = Method.POST;
-            restRequest.AddHeader("Authorization", "geheim");
+            restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddFile("content", exp_csv_gz);
             response = client.Execute(restRequest);
             if (response.StatusCode == System.Net.HttpStatusCode.OK) return true;
@@ -305,7 +305,7 @@ namespace sc2dsstats_rc1
 
             RestRequest test = new RestRequest("secure/data/last/winter");
             test.Method = Method.GET;
-            test.AddHeader("Authorization", "geheim");
+            test.AddHeader("Authorization", "DSupload77");
             response = client.Execute(test);
             
             Console.WriteLine("indhouse");

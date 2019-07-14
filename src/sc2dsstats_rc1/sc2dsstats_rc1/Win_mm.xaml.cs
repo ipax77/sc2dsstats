@@ -1316,7 +1316,7 @@ namespace sc2dsstats_rc1
 
             try
             {
-                _timer.Stop();
+                if (_timer != null) _timer.Stop();
             }
             catch
             {
