@@ -1,0 +1,74 @@
+﻿@using System.ComponentModel
+@using sc2dsstats.lib.Data
+@using Microsoft.JSInterop
+@using sc2dsstats.shared.Service
+@using sc2dsstats.lib.Models
+@inject DSoptions _options
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<h3>Commanders played</h3>
+<div class="chart">
+    <canvas id="outlabeledChart"></canvas>
+</div>
+
+@code {
+        bool chartrendered = false;
+
+    protected override void OnInitialized()
+    {
+        ShowCmdrs();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (chartrendered == false)
+        {
+            ShowCmdrs();
+            chartrendered = true;
+        }
+
+        _options.PropertyChanged += Update;
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        if (_options.DOIT == true)
+        {
+            await Task.Delay(125);
+            ShowCmdrs();
+        }
+    }
+
+    void ShowCmdrs()
+    {
+        if (_options.Cmdrinfo.Count == 0) return;
+        List<double> piedata = new List<double>();
+        List<string> pielabels = new List<string>();
+        List<string> piecolors = new List<string>();
+        int i = 0;
+        foreach (var ent in _options.Cmdrinfo["ALL"].CmdrCount.OrderByDescending(o => o.Value))
+        {
+            i++;
+            piedata.Add(ent.Value);
+            pielabels.Add(ent.Key);
+            piecolors.Add(ChartService.GetChartColorFromLabel(ent.Key).borderColor);
+        }
+        PieChart piechart = new PieChart();
+        piechart.piedata = piedata;
+        piechart.pielabels = pielabels;
+        piechart.piecolors = piecolors;
+        GenPieChart(piechart);
+    }
+
+    private async void GenPieChart(PieChart piechart)
+    {
+        await JSRuntime.InvokeAsync<string>("PieChart", piechart);
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _options.PropertyChanged -= Update;
+    }
+}

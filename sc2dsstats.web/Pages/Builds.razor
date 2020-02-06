@@ -1,0 +1,35 @@
+﻿@page "/builds"
+@using sc2dsstats.lib.Data
+@inject LoadData _data
+@inject DSbuilds _build
+@implements IDisposable
+
+@if (Program.DataStatus.isBuildLoaded)
+{
+    <sc2dsstats.shared.WebBuild Build="PAX" />
+}
+else
+{
+    <button class="btn btn-primary" type="button" disabled>
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Loading...
+    </button>
+}
+
+@code { 
+    protected override void OnInitialized()
+    {
+        _data.DataLoaded += Update;
+    }
+
+        void Update(object sender, EventArgs ex)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _data.DataLoaded -= Update;
+    }
+
+}

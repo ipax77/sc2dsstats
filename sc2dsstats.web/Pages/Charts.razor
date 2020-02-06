@@ -1,0 +1,38 @@
+﻿@page "/charts"
+@using sc2dsstats.lib.Data
+@inject LoadData _data
+@implements IDisposable
+
+<sc2dsstats.shared.WebOptions />
+
+@if (Program.DataStatus.isReplaysLoaded)
+{
+    <div class="mt-1">
+        <sc2dsstats.shared.WebChart />
+    </div>
+}
+else
+{
+    <button class="btn btn-primary" type="button" disabled>
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Loading...
+    </button>
+}
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        _data.DataLoaded += Update;
+    }
+
+    void Update(object sender, EventArgs ex)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _data.DataLoaded -= Update;
+    }
+}

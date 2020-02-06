@@ -1,0 +1,38 @@
+﻿@page "/database"
+@page "/database/{RepID:int}"
+@using sc2dsstats.lib.Data
+@inject LoadData _data
+@implements IDisposable
+
+@if (Program.DataStatus.isReplaysLoaded)
+{
+    <sc2dsstats.shared.WebDatabase RepId="RepID" />
+}
+else
+{
+    <button class="btn btn-primary" type="button" disabled>
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Loading...
+    </button>
+}
+
+@code {
+    [Parameter]
+    public int RepID { get; set; } = 0;
+
+    
+    protected override void OnInitialized()
+    {
+        _data.DataLoaded += Update;
+    }
+
+    void Update(object sender, EventArgs ex)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _data.DataLoaded -= Update;
+    }
+}

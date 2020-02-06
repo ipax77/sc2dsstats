@@ -1,0 +1,128 @@
+﻿@using System.ComponentModel
+@using sc2dsstats.lib.Data
+@inject LoadData _data
+
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">sc2dsstats.web</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        @if (Program.DataStatus.isReplaysLoaded)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="charts">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Charts
+                </NavLink>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link disabled">
+                    <span class="oi oi-plus spinner-border spinner-border-sm" aria-hidden="true"></span> Charts
+                </NavLink>
+            </li>
+        }
+        @if (Program.DataStatus.isBuildLoaded)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="builds">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
+                </NavLink>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link disabled">
+                    <span class="oi oi-list-rich spinner-border spinner-border-sm" aria-hidden="true"></span> Builds
+                </NavLink>
+            </li>
+
+        }
+        @if (Program.DataStatus.isReplaysLoaded)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="database">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Database
+                </NavLink>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link disabled">
+                    <span class="oi oi-plus spinner-border spinner-border-sm" aria-hidden="true"></span> Database
+                </NavLink>
+            </li>
+        }
+        <li class="nav-item px-3">
+            <NavLink class="nav-link disabled">
+                <h5><span class="badge badge-info">@Program.DataStatus.Count Replays loaded</span></h5>
+            </NavLink>
+        </li>
+
+        <li class="nav-item px-3">
+            <br />
+            <br />
+            <div class="row">
+                <a class="mr-2" href="https://github.com/ipax77/dsweb_desktop" title="GitHub fan project: Create charts from your own DS replays">
+                    <img alt="sc2dsstats" height="32" longdesc="https://github.com/ipax77/dsweb_desktop" src="_content/sc2dsstats.shared/images/GitHub-Mark-Light-64px47.png" width="32" />
+                </a>
+                <a class="mr-2" href="https://www.twitch.tv/ipax77">
+                    <img alt="Twitch" class="auto-style6" height="32" longdesc="https://www.twitch.tv/ipax77" src="_content/sc2dsstats.shared/images/GlitchBadge_White_64px.png" width="32" />
+                </a>
+                <a href="https://www.youtube.com/channel/UCMwOnIzcuoSHGFYqVA6wJbQ">
+                    <img alt="YouTube" class="auto-style6" height="30" longdesc="https://www.youtube.com/channel/UCMwOnIzcuoSHGFYqVA6wJbQ" src="_content/sc2dsstats.shared/images/yt_icon_mono_dark.png" width="51" />
+                </a>
+            </div>
+        </li>
+        <li>
+            <br />
+            <a href="https://github.com/ipax77/dsweb" target="_blank">
+                <span class="nav-link">this()</span>
+            </a>
+        </li>
+        <li>
+            <a href="optout" target="_blank">
+                <span class="nav-link">Opt out</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override void OnInitialized()
+    {
+        _data.DataLoaded += Update;
+    }
+
+    void Update(object sender, EventArgs ex)
+    {
+        lock (Program.DataStatus)
+        {
+            Program.DataStatus = ex as ReplaysLoadedEventArgs;
+        }
+        InvokeAsync(() => StateHasChanged());
+    }
+
+}
