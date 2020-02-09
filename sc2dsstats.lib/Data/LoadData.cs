@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using sc2dsstats.lib.Models;
 using sc2dsstats.decode.Models;
+using sc2dsstats.lib.Db;
 
 namespace sc2dsstats.lib.Data
 {
@@ -35,12 +36,28 @@ namespace sc2dsstats.lib.Data
             lock (args)
                 args.isBuildLoaded = false;
 
-            await LoadReplays();
-            await _build.Init(DSdata.Replays);
-            await _build.InitBuilds();
+            //await LoadReplays();
+            //await _build.Init(DSdata.Replays);
+            //await _build.InitBuilds();
+
+            int i = 0;
+            using (var context = new DSReplayContext())
+            {
+                i = context.DSReplays.Count();
+            }
+
+            DSDbBuilds b = new DSDbBuilds();
+            b.GetBuild();
+
+            await Task.Delay(750);
 
             lock (args)
+            {
+                args.Count = i;
                 args.isBuildLoaded = true;
+                args.isReplaysLoaded = true;
+                args.isDuplicatesLoaded = true;
+            }
 
             OnDataLoaded(args);
             //GC.Collect();

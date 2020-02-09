@@ -38,7 +38,8 @@ namespace sc2dsstats.web
             services.AddServerSideBlazor();
             services.AddSingleton<ReloadFilterAttribute>();
             services.AddControllers();
-            services.AddSingleton<DSstats>();
+            //services.AddSingleton<DSstats>();
+            services.AddSingleton<DSDbStats, DSDbStats>();
             services.AddSingleton<DSbuilds>();
             services.AddSingleton<LoadData>();
             services.AddScoped<DSoptions>();

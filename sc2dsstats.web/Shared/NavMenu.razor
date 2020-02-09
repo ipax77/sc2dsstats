@@ -113,6 +113,10 @@
 
     protected override void OnInitialized()
     {
+        Program.DataStatus = new ReplaysLoadedEventArgs();
+        Program.DataStatus.isDuplicatesLoaded = true;
+        Program.DataStatus.isReplaysLoaded = true;
+        Program.DataStatus.isBuildLoaded = true;
         _data.DataLoaded += Update;
     }
 

@@ -26,7 +26,7 @@
                                id="cb_@ent"
                                checked="@_options.CmdrsChecked[ent]"
                                @bind-value="_options.CmdrsChecked[ent]"
-                               @onclick="@(() => IconClick(ent))" />
+                               @onclick="@(async => IconClick(ent))" />
                         <label class="custom-control-label" for="cb_@ent">
                             <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(@ent)" width="30" height="30" />
                             @ent
@@ -153,32 +153,40 @@
             InfoClass = "";
     }
 
-    private void IconClick(string cmdr)
+    private async Task IconClick(string cmdr)
     {
-        Loading = true;
         lock (_options)
         {
-            _options.DOIT = false;
-            InvokeAsync(() => StateHasChanged());
-
-            _options.Icons = _options.CmdrsChecked.Where(x => x.Value == true).ToArray().Count();
-
-            if (String.IsNullOrEmpty(cmdr))
+            if (Loading)
+            {
+                //_options.CmdrsChecked[cmdr] = !_options.CmdrsChecked[cmdr];
                 return;
-
-            _options.Interest = cmdr;
-            // false is the new true ..
-            if (_options.CmdrsChecked[cmdr] == false)
-            {
-                cmdricons.Add(cmdr);
-                _chart.AddDataset().GetAwaiter();
-            }
-            else
-            {
-                cmdricons.Remove(cmdr);
-                _chart.RemoveDataset().GetAwaiter();
             }
 
+            Loading = true;
+            _options.DOIT = false;
+            _options.Icons = _options.CmdrsChecked.Where(x => x.Value == true).ToArray().Count();
+        }
+        await InvokeAsync(() => StateHasChanged());
+
+        if (String.IsNullOrEmpty(cmdr))
+            return;
+
+        _options.Interest = cmdr;
+        // false is the new true ..
+        if (_options.CmdrsChecked[cmdr] == false)
+        {
+            cmdricons.Add(cmdr);
+            await _chart.AddDataset();
+        }
+        else
+        {
+            cmdricons.Remove(cmdr);
+            await _chart.RemoveDataset();
+        }
+
+        lock (_options)
+        {
             _options.Icons = cmdricons.Count();
 
             string activecmdr = "";
@@ -201,7 +209,7 @@
             Loading = false;
             _options.DOIT = true;
         }
-        InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(() => StateHasChanged());
     }
 
     private async Task IconSingleClick()

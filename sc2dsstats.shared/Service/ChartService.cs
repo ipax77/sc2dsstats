@@ -15,13 +15,15 @@ namespace sc2dsstats.shared.Service
 {
     public class ChartService
     {
-        private readonly DSstats _dsdata;
+        //private readonly DSstats _dsdata;
+        private readonly DSDbStats _dsdata;
         private DSoptions _options;
         private readonly IJSRuntime _jsRuntime;
         private JsInteropClasses _jsIterop;
         private List<string> s_races_ordered = new List<string>(DSdata.s_races);
 
-        public ChartService(DSstats dsdata, IJSRuntime jsRuntime, DSoptions options)
+        //public ChartService(DSstats dsdata, IJSRuntime jsRuntime, DSoptions options)
+        public ChartService(DSDbStats dsdata, IJSRuntime jsRuntime, DSoptions options)
         {
             _dsdata = dsdata;
             _jsRuntime = jsRuntime;

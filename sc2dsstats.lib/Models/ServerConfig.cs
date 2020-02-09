@@ -13,5 +13,6 @@ namespace sc2dsstats.lib.Models
         public string RESTToken { get; set; }
         public DateTime LastRun { get; set; }
         public string Url { get; set; }
+        public string DBConnectionString { get; set; }
     }
 }

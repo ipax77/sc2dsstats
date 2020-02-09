@@ -24,8 +24,13 @@ namespace sc2dsstats.data
               .Build();
             config.GetSection("ServerConfig").Bind(Config);
 
-            Scan2.Scan();
-            //SendUpdateRequest();
+            DateTime t = DateTime.Now;
+            DBScan.Scan();
+
+            Program.SendUpdateRequest();
+
+            Program.Config.LastRun = t;
+            Program.SaveConfig();
         }
 
         public static void SaveConfig()
@@ -47,7 +52,13 @@ namespace sc2dsstats.data
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Config.RESTToken);
             Console.WriteLine("Sending Request");
-            HttpResponseMessage response = client.GetAsync(Config.Url + "/secure/reload").GetAwaiter().GetResult();
+            try
+            {
+                HttpResponseMessage response = client.GetAsync(Config.Url + "/secure/reload").GetAwaiter().GetResult();
+            } catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }
