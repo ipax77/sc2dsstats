@@ -2,11 +2,12 @@
 @page "/chart"
 @using sc2dsstats.lib.Data
 @inject LoadData _data
+@inject IJSRuntime _jsRuntime
 @implements IDisposable
 
 <sc2dsstats.shared.WebOptions />
 
-@if (Program.DataStatus.isReplaysLoaded)
+@if (DSdata.Status.Count > 0)
 {
     <div class="mt-1">
         <sc2dsstats.shared.WebChart />

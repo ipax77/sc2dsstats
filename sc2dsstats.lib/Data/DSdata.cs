@@ -12,6 +12,7 @@ namespace sc2dsstats.lib.Data
         public static UserConfig Config = new UserConfig();
         public static ServerConfig ServerConfig = new ServerConfig();
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
+        public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
         public static string[] s_races { get; } = new string[]
         {
@@ -121,7 +122,7 @@ namespace sc2dsstats.lib.Data
             { "DPS", "DPS: Shows the damage delt for each commander based on mineral value killed / game duration (or army value, or minerals collected). When selecting a commander on the left it shows the damage of the selected commander when matched vs the other commanders." },
             { "Synergy", "Synergy: Shows the winrate for the selected commander when played together with the other commanders"},
             { "AntiSynergy", "Antisynergy: Shows the winrate for the selected commander when played vs the other commanders (at any position)"},
-            { "Builds", "Builds: Shows the average unit count for the selected commander at the selected game duration. When selecting a vs commander it shows the average unit count of the selected commander when matched vs the other commanders."},
+            { "Build", "Builds: Shows the average unit count for the selected commander at the selected game duration. When selecting a vs commander it shows the average unit count of the selected commander when matched vs the other commanders."},
             { "Timeline", "Timeline: Shows the winrate development for the selected commander over the given time period."},
         };
 
@@ -181,6 +182,22 @@ namespace sc2dsstats.lib.Data
 
             return r;
         }
+
+        public static double MIN5 = 6720;
+        public static double MIN10 = 13440;
+        public static double MIN15 = 20160;
+
+        //static double MIN5 = 6240;
+        //static double MIN10 = 13440;
+        //static double MIN15 = 20640;
+
+        public static Dictionary<string, double> BreakpointMid = new Dictionary<string, double>()
+{
+        { "MIN5", MIN5 },
+        { "MIN10", MIN10 },
+        { "MIN15", MIN15 },
+        { "ALL", 0 }
+    };
 
         public static string[] s_units { get; set; }
 

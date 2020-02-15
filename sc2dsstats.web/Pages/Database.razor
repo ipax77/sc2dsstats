@@ -1,10 +1,10 @@
-﻿@page "/database"
-@page "/database/{RepID:int}"
+﻿@page "/db"
+@page "/db/{RepID:int}"
 @using sc2dsstats.lib.Data
 @inject LoadData _data
 @implements IDisposable
 
-@if (Program.DataStatus.isReplaysLoaded)
+@if (DSdata.Status.Count > 0)
 {
     <sc2dsstats.shared.WebDatabase RepId="RepID" />
 }
@@ -15,12 +15,10 @@ else
         Loading...
     </button>
 }
-
 @code {
     [Parameter]
     public int RepID { get; set; } = 0;
 
-    
     protected override void OnInitialized()
     {
         _data.DataLoaded += Update;
@@ -35,4 +33,5 @@ else
     {
         _data.DataLoaded -= Update;
     }
+
 }

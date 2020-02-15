@@ -31,9 +31,9 @@ namespace sc2dsstats.desktop
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<LoadData>();
-            services.AddSingleton<DSstats>();
+            //services.AddSingleton<DSstats>();
             services.AddScoped<DSoptions>();
-            services.AddScoped<ChartService>();
+            //services.AddScoped<ChartService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

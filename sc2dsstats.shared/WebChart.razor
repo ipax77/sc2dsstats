@@ -2,13 +2,17 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using sc2dsstats.lib.Data
 @using sc2dsstats.shared.Service
-@inject DSoptions _options
 @inject ChartService _chart
+@inject DSoptions _options
 @implements IDisposable
 
 <style>
     .chartmobile {
         min-width: 650px !important;
+    }
+
+    .mybadge {
+        min-width: 75px;
     }
 </style>
 
@@ -17,21 +21,21 @@
         <div class="d-none d-xl-block mt-3">
             <div>
                 <div>
-                    @foreach (var ent in DSdata.s_races)
+                    @foreach (var ent in _options.CmdrsChecked)
                     {
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox"
                                class="custom-control-input"
                                name="CmdrIcons"
                                id="cb_@ent"
-                               checked="@_options.CmdrsChecked[ent]"
-                               @bind-value="_options.CmdrsChecked[ent]"
-                               @onclick="@(async => IconClick(ent))" />
+                               checked="@_options.CmdrsChecked[ent.Key]"
+                               @onchange="eventArgs => { IconClick(ent.Key, eventArgs.Value); }" />
                         <label class="custom-control-label" for="cb_@ent">
-                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(@ent)" width="30" height="30" />
-                            @ent
+                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent.Key)" width="30" height="30" />
+                            @ent.Key
                         </label>
                     </div>
+                    <div class="collapse">@ent.Value</div>
                     }
                 </div>
             </div>
@@ -53,41 +57,40 @@
                         </button>
                     }
                 </div>
-                @if (_options.Cmdrinfo.ContainsKey(interest))
+                <div class="form-group mr-2">
+                    <span class="badge badge-danger mybadge mr-2">
+                        &sum; Games<br />@_options.Cmdrinfo.Games
+                    </span>
+                </div>
+
+                <div class="form-group mr-2">
+                    <span class="badge badge-danger mybadge mr-2">
+                        &empty; @_options.Mode<br />@_options.Cmdrinfo.AWinrate
+                    </span>
+                </div>
+                <div class="form-group mr-2">
+                    <span class="badge badge-danger mybadge mr-2">
+                        &empty; Duration<br />@_options.Cmdrinfo.ADuration.ToString(@"hh\:mm\:ss")
+                    </span>
+                </div>
+                @if (_options.Dataset != "")
                 {
-                    <div class="form-group mr-2">
-                        <span class="badge badge-danger mr-2">
-                            Total games<br />@_options.Cmdrinfo[interest].Games
-                        </span>
-                    </div>
-                    <div class="form-group mr-2">
-                        <span class="badge badge-danger mr-2">
-                            Total WR<br />@_options.Cmdrinfo[interest].Winrate
-                        </span>
-                    </div>
-                    <div class="form-group mr-2">
-                        <span class="badge badge-danger mr-2">
-                            Duration<br />@_options.Cmdrinfo[interest].AverageGameDuration
-                        </span>
-                    </div>
-                    @if (_options.Dataset != "")
+                    var dataset = DSdata.Datasets.SingleOrDefault(s => s.Dataset == _options.Dataset);
+                    if (dataset != null)
                     {
-                        var dataset = DSdata.Datasets.SingleOrDefault(s => s.Dataset == _options.Dataset);
-                        if (dataset != null)
-                        {
-                            <div class="form-group mr-2">
-                                <span class="badge badge-info mr-2">
-                                    Dataset<br />@dataset.Dataset.Substring(0, 5)
-                                </span>
-                            </div>
-                            <div class="form-group mr-2">
-                                <span class="badge badge-info mr-2">
-                                    Teamgames<br />@(Math.Round((double)dataset.Teamgames * 100 / (double)dataset.Count, 2))%
-                                </span>
-                            </div>
-                        }
+                        <div class="form-group mr-2">
+                            <span class="badge badge-info mr-2">
+                                Dataset<br />@dataset.Dataset.Substring(0, 5)
+                            </span>
+                        </div>
+                        <div class="form-group mr-2">
+                            <span class="badge badge-info mr-2">
+                                Teamgames<br />@(Math.Round((double)dataset.Teamgames * 100 / (double)dataset.Count, 2))%
+                            </span>
+                        </div>
                     }
                 }
+
             </div>
                 @if (ShowHideCmdr)
                 {
@@ -104,16 +107,13 @@
         <div class="row">
             <div>
                 <div style="width: 400px;">
-                    <p>@DSdata.INFO[@_options.Mode]</p>
+                    <p>@DSdata.INFO[_options.Mode]</p>
                 </div>
             </div>
             <div>
-                @if (_options.Cmdrinfo.ContainsKey("ALL"))
-                {
-                    <div style="width: 400px; font-size: 12px; overflow: hidden; margin-left: 10px;">
-                        <p>@_options.Cmdrinfo["ALL"].FilterInfo</p>
-                    </div>
-                }
+                <div style="width: 400px; font-size: 12px; overflow: hidden; margin-left: 10px;">
+                    <p>Info</p>
+                </div>
             </div>
             <button type="button" class="btn btn-sm btn-secondary" @onclick="@(() => ShowHideCmdr = !ShowHideCmdr)">Cmdrs played</button>
         </div>
@@ -128,19 +128,20 @@
     //private string ChartClass = "w-75";
     private string ChartClass = "w-75 chartmobile";
     private string interest = "ALL";
-    private List<string> cmdricons;
     private bool ShowHideCmdr = false;
     string CmdrClass => ShowHideCmdr ? null : "collapse";
     string ChartHideClass => ShowHideCmdr ? "collapse" : null;
     string InfoClass = "d-none d-xl-block";
+    private object lockobject = new object();
 
     protected override async Task OnInitializedAsync()
     {
         _options.DefaultFilter();
-        _options.Build = "ALL";
-        cmdricons = new List<string>();
+        _options.Mode = "Winrate";
+
+        await ChartService.Init(_options);
+
         _options.PropertyChanged += OptionChanged;
-        await _chart.GetChartBase();
         Loading = false;
         _options.Update = !_options.Update;
     }
@@ -153,122 +154,62 @@
             InfoClass = "";
     }
 
-    private async Task IconClick(string cmdr)
+    async Task IconClick(string cmdr, object cbValue)
     {
-        lock (_options)
+        _options.CmdrsChecked[cmdr] = !_options.CmdrsChecked[cmdr];
+        if ((bool)cbValue)
         {
-            if (Loading)
+            _options.Interest = cmdr;
+            await ChartService.RemoveDataset(_options, "global", lockobject);
+            await ChartService.GetChartBase(_options);
+
+            foreach (var ent in _options.CmdrsChecked.Where(x => x.Value == true && x.Key != cmdr))
             {
-                //_options.CmdrsChecked[cmdr] = !_options.CmdrsChecked[cmdr];
-                return;
+                _options.CmdrsChecked[ent.Key] = false;
+                await InvokeAsync(() => StateHasChanged());
             }
 
-            Loading = true;
-            _options.DOIT = false;
-            _options.Icons = _options.CmdrsChecked.Where(x => x.Value == true).ToArray().Count();
-        }
-        await InvokeAsync(() => StateHasChanged());
-
-        if (String.IsNullOrEmpty(cmdr))
-            return;
-
-        _options.Interest = cmdr;
-        // false is the new true ..
-        if (_options.CmdrsChecked[cmdr] == false)
-        {
-            cmdricons.Add(cmdr);
-            await _chart.AddDataset();
-        }
-        else
-        {
-            cmdricons.Remove(cmdr);
-            await _chart.RemoveDataset();
-        }
-
-        lock (_options)
-        {
-            _options.Icons = cmdricons.Count();
-
-            string activecmdr = "";
-            if (cmdricons.Count > 0)
+            /*
+            if (_options.GetCmdrsChecked().Count == 1)
             {
-                activecmdr = cmdricons[cmdricons.Count - 1];
-                if (_options.Cmdrinfo.ContainsKey(activecmdr))
-                {
-                    interest = activecmdr;
-                }
-                else
-                {
-                    interest = "ALL";
-                }
+                await ChartService.RemoveDataset(_options, "global", lockobject);
+                await ChartService.GetChartBase(_options);
             }
             else
             {
-                interest = "ALL";
+                await ChartService.AddDataset(_options, lockobject);
             }
-            Loading = false;
-            _options.DOIT = true;
+            */
         }
-        await InvokeAsync(() => StateHasChanged());
-    }
-
-    private async Task IconSingleClick()
-    {
-        Loading = true;
-        await InvokeAsync(() => StateHasChanged());
-        _options.DOIT = false;
-        string cmdr = _options.Interest;
-        foreach (string mycmdr in _options.CmdrsChecked.Where(x => x.Value == true).Select(s => s.Key).ToArray())
-        {
-            cmdricons.Remove(mycmdr);
-            _options.Interest = mycmdr;
-            await _chart.RemoveDataset();
-            _options.CmdrsChecked[mycmdr] = false;
-        }
-
-        if (cmdr == "ALL")
+        else
         {
             _options.Interest = "";
-            interest = "ALL";
-        } else
-        {
-            _options.CmdrsChecked[cmdr] = true;
-            cmdricons.Add(cmdr);
-            interest = cmdr;
-            _options.Interest = cmdr;
-            await _chart.AddDataset();
+            await ChartService.GetChartBase(_options);
+
+            /*
+            if (_options.GetCmdrsChecked().Count == 0)
+            {
+                ChartService.GetChartBase(_options);
+            } else
+                ChartService.RemoveDataset(_options, cmdr, lockobject);
+            */
         }
-        Loading = false;
-        await InvokeAsync(() => StateHasChanged());
-        _options.DOIT = true;
     }
+
 
     private async void OptionChanged(object sender, PropertyChangedEventArgs e)
     {
+        if (String.IsNullOrEmpty(_options.Mode) || _options.Mode == "Build" || _options.Mode == "Database")
+            return;
+
         if (Loading == false)
         {
-            if (_options.DOIT == true)
-            {
-                if (e != null && e.PropertyName != "Interest")
-                {
-                    Loading = true;
-                    await InvokeAsync(() => StateHasChanged());
-                    await _chart.RebuildChart();
+            Loading = true;
+            await InvokeAsync(() => StateHasChanged());
+            await _chart.ChartHandler(_options);
 
-                    if (!_options.Chart.data.datasets[0].data.Any() && (_options.Mode == "Synergy" || _options.Mode == "AntiSynergy" || _options.Mode == "Timeline"))
-                    {
-                        _options.Interest = "Abathur";
-                        await IconSingleClick();
-                    }
-                    else
-                    {
-                        Loading = false;
-                        await InvokeAsync(() => StateHasChanged());
-                    }
-                }
-                else if (e != null && e.PropertyName == "Interest")
-                    await IconSingleClick();
-            }
+            Loading = false;
+            await InvokeAsync(() => StateHasChanged());
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿@using System.Globalization
 @using sc2dsstats.lib.Data
+@using sc2dsstats.shared.Service
 @inject DSoptions _options
 
     <div>
@@ -29,27 +30,29 @@
                     </label>
                 </div>
             </div>
-            <div class="d-none d-xl-block btn-group ml-1">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox"
-                           class="custom-control-input"
-                           name="Player"
-                           id="PlayerCb"
-                           @bind="_options.Player" />
-                    <label class="custom-control-label" for="PlayerCb">
-                        Player
-                    </label>
-                </div>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox"
-                           class="custom-control-input"
-                           name="BeginAtZero"
-                           id="BeginAtZeroCb"
-                           @bind="_options.BeginAtZero" />
-                    <label class="custom-control-label" for="BeginAtZeroCb">
-                        BeginAtZero
-                    </label>
-                </div>
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox"
+                       class="custom-control-input"
+                       name="Player"
+                       id="PlayerCb"
+                       checked="@_options.Player"
+                       @onchange="eventArgs => { CBPlayerClick(eventArgs.Value); }" />
+                <label class="custom-control-label" for="PlayerCb">
+                    Player
+                </label>
+                <div class="collapse">@_options.Player</div>
+            </div>
+            <div class="custom-control custom-checkbox ml-1">
+                <input type="checkbox"
+                       class="custom-control-input"
+                       name="BeginAtZero"
+                       id="BeginAtZeroCb"
+                       checked="@_options.BeginAtZero"
+                       @onchange="eventArgs => { BeginAtZeroClick(eventArgs.Value); }" />
+                <label class="custom-control-label" for="BeginAtZeroCb">
+                    BeginAtZero
+                </label>
+                <div class="collapse">@_options.BeginAtZero</div>
             </div>
         </div>
         <div class="d-none d-xl-block">
@@ -105,30 +108,28 @@
                     </ChildContent>
                 </Dropdown>
 
-                <div class="btn-group ml-1">
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox"
-                               class="custom-control-input"
-                               name="Player1"
-                               id="PlayerCb1"
-                               checked="@_options.Player"
-                               @bind-value="_options.Player" />
-                        <label class="custom-control-label" for="PlayerCb1">
-                            Player
-                        </label>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox"
+                            class="custom-control-input"
+                            name="Player1"
+                            id="PlayerCb1"
+                            checked="@_options.Player"
+                            @onchange="eventArgs => { CBPlayerClick(eventArgs.Value); }" />
+                    <label class="custom-control-label" for="PlayerCb1">
+                        Player
+                    </label>
 
-                    </div>
-                    <div class="custom-control custom-checkbox ml-1">
-                        <input type="checkbox"
-                               class="custom-control-input"
-                               name="BeginAtZero1"
-                               id="BeginAtZeroCb1"
-                               checked="@_options.BeginAtZero"
-                               @bind-value="_options.BeginAtZero" />
-                        <label class="custom-control-label" for="BeginAtZeroCb1">
-                            BeginAtZero
-                        </label>
-                    </div>
+                </div>
+                <div class="custom-control custom-checkbox ml-1">
+                    <input type="checkbox"
+                            class="custom-control-input"
+                            name="BeginAtZero1"
+                            id="BeginAtZeroCb1"
+                            checked="@_options.BeginAtZero"
+                            @onchange="eventArgs => { BeginAtZeroClick(eventArgs.Value); }" />
+                    <label class="custom-control-label" for="BeginAtZeroCb1">
+                        BeginAtZero
+                    </label>
                 </div>
             </div>
         </div>
@@ -138,69 +139,88 @@
 
 @code {
 
-    OptionsDialog myDialog;
+        OptionsDialog myDialog;
 
     private string isActive = "";
     private string myTimespan = "";
+    private object lockobject = new object();
+
 
     void OpenDialog()
     {
         myDialog.Show();
     }
 
+    private void CBPlayerClick(object e)
+    {
+        _options.Player = (bool)e;
+        _options.Update = !_options.Update;
+    }
+
+    private void BeginAtZeroClick(object e)
+    {
+        _options.BeginAtZero = (bool)e;
+        ChartService.ChangeOption(_options);
+        InvokeAsync(() => StateHasChanged());
+    }
+
     private void Gametime(int i)
     {
-        string startdate = "0";
-        string enddate = "0";
-
-        DateTime dFirstDayOfThisMonth = DateTime.Today.AddDays(-(DateTime.Today.Day - 1));
-
         // this month
         if (i == 1)
         {
-            startdate = dFirstDayOfThisMonth.ToString("yyyy-MM-dd");
-            enddate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+            _options.Startdate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1));
+            _options.Enddate = DateTime.MinValue;
         }
 
         // last month
         else if (i == 2)
         {
-            DateTime dLastDayOfLastMonth = dFirstDayOfThisMonth.AddDays(-1);
-            DateTime dFirstDayOfLastMonth = dFirstDayOfThisMonth.AddMonths(-1);
-            startdate = dFirstDayOfLastMonth.ToString("yyyy-MM-dd");
-            enddate = dLastDayOfLastMonth.ToString("yyyy-MM-dd");
+            _options.Startdate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddMonths(-1);
+            _options.Enddate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddDays(-1);
         }
 
         // this year
         else if (i == 3)
         {
-            startdate = new DateTime(DateTime.Now.Year, 1, 1).ToString("yyyy-MM-dd");
-            enddate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+            _options.Startdate = new DateTime(DateTime.Now.Year, 1, 1);
+            _options.Enddate = DateTime.MinValue;
         }
         // last year
         else if (i == 4)
         {
-            startdate = new DateTime(DateTime.Now.Year - 1, 1, 1).ToString("yyyy-MM-dd");
-            enddate = new DateTime(DateTime.Now.Year, 1, 1).ToString("yyyy-MM-dd");
+            _options.Startdate = new DateTime(DateTime.Now.Year - 1, 1, 1);
+            _options.Enddate = new DateTime(DateTime.Now.Year, 1, 1);
         }
         // all
         else if (i == 5)
         {
-            startdate = new DateTime(2018, 1, 1).ToString("yyyy-MM-dd");
-            enddate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+            _options.Startdate = DateTime.MinValue;
+            _options.Enddate = DateTime.MinValue;
         }
 
-        _options.DOIT = false;
-        _options.Startdate = DateTime.Parse(startdate);
-        _options.Enddate = DateTime.Parse(enddate);
-        _options.DOIT = true;
         _options.Update = !_options.Update;
-        
+
     }
 
     private void OnCmdrSelected(string selection)
     {
-        _options.Interest = selection;
+        if (selection == "ALL")
+        {
+            _options.Interest = String.Empty;
+            ChartService.GetChartBase(_options);
+        }
+        else
+        {
+            string removeme = _options.Interest;
+            if (String.IsNullOrEmpty(removeme))
+                removeme = "global";
+
+            ChartService.RemoveDataset(_options, removeme, lockobject);
+            _options.Interest = selection;
+            ChartService.AddDataset(_options, lockobject);
+        }
+
     }
 
     private void OnModeSelected(string selection)

@@ -18,53 +18,75 @@ namespace sc2dsstats.lib.Db
                 replays = context.DSReplays
                     .Include(p => p.DSPlayer);
 
+
+
+
             HashSet<string> Gamemodes = options.Gamemodes.Where(x => x.Value == true).Select(y => y.Key).ToHashSet();
 
+            IQueryable<DSReplay> filReplays;
             if (isFiltered == false)
             {
                 if (String.IsNullOrEmpty(options.Interest))
-                    return replays
-                            .Where(x => x.GAMETIME > options.Startdate)
-                            .Where(x => x.GAMETIME < options.Enddate)
-                            .Where(x => x.DURATION > TimeSpan.FromMinutes(5))
-                            .Where(x => x.MAXLEAVER < options.Leaver)
-                            .Where(x => x.MINARMY > options.Army)
-                            .Where(x => x.MININCOME > options.Income)
-                            .Where(x => x.MINKILLSUM > options.Kills)
-                            .Where(x => x.PLAYERCOUNT == 6)
-                            .Where(x => Gamemodes.Contains(x.GAMEMODE))
-                            //.ToArray()
-                            ;
+                    if (options.Leaver > 0)
+                        filReplays = replays
+                                .Where(x => x.DURATION > options.Duration)
+                                .Where(x => x.MAXLEAVER < options.Leaver)
+                                .Where(x => x.MINARMY > options.Army)
+                                .Where(x => x.MININCOME > options.Income)
+                                .Where(x => x.MINKILLSUM > options.Kills)
+                                .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
+                                .Where(x => Gamemodes.Contains(x.GAMEMODE))
+                                //.ToArray()
+                                ;
+                    else
+                        filReplays = replays
+                                .Where(x => x.DURATION > options.Duration)
+                                .Where(x => x.MINARMY > options.Army)
+                                .Where(x => x.MININCOME > options.Income)
+                                .Where(x => x.MINKILLSUM > options.Kills)
+                                .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
+                                .Where(x => Gamemodes.Contains(x.GAMEMODE))
+                                //.ToArray()
+                                ;
                 else
-                    return replays
-                            .Where(x => x.GAMETIME > options.Startdate)
-                            .Where(x => x.GAMETIME < options.Enddate)
-                            .Where(x => x.DURATION > TimeSpan.FromMinutes(5))
-                            .Where(x => x.MAXLEAVER < options.Leaver)
-                            .Where(x => x.MINARMY > options.Army)
-                            .Where(x => x.MININCOME > options.Income)
-                            .Where(x => x.MINKILLSUM > options.Kills)
-                            .Where(x => x.PLAYERCOUNT == 6)
-                            .Where(x => Gamemodes.Contains(x.GAMEMODE))
-                            .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
-                            //.ToArray()
-                            ;
+                    if (options.Leaver > 0)
+                        filReplays = replays
+                                .Where(x => x.DURATION > options.Duration)
+                                .Where(x => x.MAXLEAVER < options.Leaver)
+                                .Where(x => x.MINARMY > options.Army)
+                                .Where(x => x.MININCOME > options.Income)
+                                .Where(x => x.MINKILLSUM > options.Kills)
+                                .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
+                                .Where(x => Gamemodes.Contains(x.GAMEMODE))
+                                .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
+                                //.ToArray()
+                                ;
+                    else
+                        filReplays = replays
+                                .Where(x => x.DURATION > options.Duration)
+                                .Where(x => x.MINARMY > options.Army)
+                                .Where(x => x.MININCOME > options.Income)
+                                .Where(x => x.MINKILLSUM > options.Kills)
+                                .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
+                                .Where(x => Gamemodes.Contains(x.GAMEMODE))
+                                .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
+                                //.ToArray()
+                                ;
             }
             else
+                filReplays = replays;
+
+            if (options.Startdate != default(DateTime))
+                filReplays = filReplays.Where(x => x.GAMETIME >= options.Startdate);
+            if (options.Enddate != default(DateTime))
+                filReplays = filReplays.Where(x => x.GAMETIME <= options.Enddate);
+            
+            if (!String.IsNullOrEmpty(options.Dataset))
             {
-                if (String.IsNullOrEmpty(options.Interest))
-                    return replays
-                        .Where(x => x.GAMETIME > options.Startdate)
-                        .Where(x => x.GAMETIME < options.Enddate)
-                        //.ToArray()
-                        ;
-                else
-                    return replays
-                        .Where(x => x.GAMETIME > options.Startdate)
-                        .Where(x => x.GAMETIME < options.Enddate)
-                        //.ToArray
-                        ;
+                filReplays = filReplays
+                    .Where(x => x.DSPlayer.Select(s => s.NAME).Contains(options.Dataset));
             }
+            return filReplays;
         }
     }
 }

@@ -56,7 +56,6 @@ namespace sc2dsstats.decode.Models
 
         public void Init()
         {
-            RACES = _RACES();
             MINKILLSUM = _MINKILLSUM();
             MAXKILLSUM = _MAXKILLSUM();
             MINARMY = _MINARMY();
@@ -66,6 +65,7 @@ namespace sc2dsstats.decode.Models
 
             FixPos();
             PLAYERS = PLAYERS.OrderBy(x => x.REALPOS).ToList();
+            RACES = _RACES();
         }
 
         public string GenHash()
@@ -284,7 +284,7 @@ namespace sc2dsstats.decode.Models
         public List<string> _RACES()
         {
             List<string> races = new List<string>();
-            foreach (dsplayer pl in PLAYERS)
+            foreach (dsplayer pl in PLAYERS.OrderBy(o => o.REALPOS))
             {
                 races.Add(pl.RACE);
             }

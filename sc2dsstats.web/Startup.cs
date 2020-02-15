@@ -38,9 +38,6 @@ namespace sc2dsstats.web
             services.AddServerSideBlazor();
             services.AddSingleton<ReloadFilterAttribute>();
             services.AddControllers();
-            //services.AddSingleton<DSstats>();
-            services.AddSingleton<DSDbStats, DSDbStats>();
-            services.AddSingleton<DSbuilds>();
             services.AddSingleton<LoadData>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
@@ -105,10 +102,8 @@ namespace sc2dsstats.web
 
         void Update(object sender, EventArgs ex)
         {
-            lock (Program.DataStatus)
-            {
-                Program.DataStatus = ex as ReplaysLoadedEventArgs;
-            }
+            DataService.Reset();
+            BuildService.Reset();
         }
     }
 }

@@ -8,13 +8,16 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using sc2dsstats.lib.Db;
+using sc2dsstats.lib.Data;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace sc2dsstats.data
 {
     class Program
     {
         static HttpClient client = new HttpClient();
-        public static ServerConfig Config = new ServerConfig();
         public static string configfile = "/home/pax77/git/config/serverconfig.json";
 
         static void Main(string[] args)
@@ -22,21 +25,31 @@ namespace sc2dsstats.data
             IConfiguration config = new ConfigurationBuilder()
               .AddJsonFile(configfile, true, true)
               .Build();
-            config.GetSection("ServerConfig").Bind(Config);
+            config.GetSection("ServerConfig").Bind(DSdata.ServerConfig);
+
+            using (var context = new DSReplayContext())
+            {
+                context.Database.EnsureCreated();
+            }
+
 
             DateTime t = DateTime.Now;
-            DBScan.Scan();
 
-            Program.SendUpdateRequest();
+            int done = DbDupFind.Scan();
+            if (done > 0)
+                Program.SendUpdateRequest();
 
-            Program.Config.LastRun = t;
+            DSdata.ServerConfig.LastRun = t;
             Program.SaveConfig();
         }
+
+
+
 
         public static void SaveConfig()
         {
             Dictionary<string, ServerConfig> temp = new Dictionary<string, ServerConfig>();
-            temp.Add("ServerConfig", Config);
+            temp.Add("ServerConfig", DSdata.ServerConfig);
 
             var option = new JsonSerializerOptions()
             {
@@ -48,13 +61,13 @@ namespace sc2dsstats.data
 
         public static void SendUpdateRequest()
         {
-            client.BaseAddress = new Uri(Config.Url);
+            client.BaseAddress = new Uri(DSdata.ServerConfig.Url);
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Config.RESTToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(DSdata.ServerConfig.RESTToken);
             Console.WriteLine("Sending Request");
             try
             {
-                HttpResponseMessage response = client.GetAsync(Config.Url + "/secure/reload").GetAwaiter().GetResult();
+                HttpResponseMessage response = client.GetAsync(DSdata.ServerConfig.Url + "/secure/reload").GetAwaiter().GetResult();
             } catch (Exception e)
             {
                 Console.WriteLine(e.Message);

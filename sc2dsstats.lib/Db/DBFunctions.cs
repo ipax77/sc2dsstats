@@ -29,5 +29,10 @@ RETURN (opos);
 END
              */
         }
+
+        public static int GetPl(int repid, string plhash)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

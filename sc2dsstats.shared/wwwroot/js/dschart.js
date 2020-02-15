@@ -37,6 +37,43 @@ window.RemoveDynChart = (chartdatasetpos) => {
     }
 }
 
+window.AddData = (label, winrate, dcolor, dimage) => {
+    if (window.myChart != null) {
+        if (window.myChart.data.datasets.length == 1) {
+            window.myChart.data.labels.push(label);
+            window.myChart.data.datasets[window.myChart.data.datasets.length - 1].data.push(winrate);
+            window.myChart.data.datasets[window.myChart.data.datasets.length - 1].backgroundColor.push(dcolor);
+            if (dimage > '') {
+                window.myChart.options.plugins.labels.images.push(JSON.parse(dimage));
+            }
+        } else {
+            window.myChart.data.datasets[window.myChart.data.datasets.length - 1].data.push(winrate);
+            window.myChart.data.datasets[window.myChart.data.datasets.length - 1].backgroundColor.push(dcolor);
+        }
+        window.myChart.update();
+    }
+}
+
+window.ChangeOptionsDynChart = (chchartoptions) => {
+    if (window.myChart != null) {
+        window.myChart.options = JSON.parse(chchartoptions);
+        window.myChart.update();
+    }
+}
+
+window.SortChart = (mlabels, mdatasetdata, mimages, mcolors) => {
+
+    if (window.myChart != null && window.myChart.data.datasets.length > 0) {
+        window.myChart.data.labels = JSON.parse(mlabels);
+        window.myChart.data.datasets[0].data = JSON.parse(mdatasetdata);
+        window.myChart.data.datasets[0].backgroundColor = JSON.parse(mcolors);
+        if (mimages > '') {
+            window.myChart.options.plugins.labels.images = JSON.parse(mimages);
+        }
+        window.myChart.update();
+    }
+}
+
 window.CopyToClipboard = (element) => {
     var can = document.getElementById(element);
     if (can != null) {

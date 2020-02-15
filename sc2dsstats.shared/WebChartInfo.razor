@@ -1,21 +1,21 @@
 ﻿@using sc2dsstats.lib.Data
 @inject DSoptions _options
 
-@if (_options.Cmdrinfo.ContainsKey(interest))
+@if (_options.Cmdrinfo != null)
 {
     <div class="form-group mr-2">
         <span class="badge badge-danger mr-2">
-            Total games<br />@_options.Cmdrinfo[interest].Games
+            Total games<br />@_options.Cmdrinfo.Games
         </span>
     </div>
     <div class="form-group mr-2">
         <span class="badge badge-danger mr-2">
-            Total WR<br />@_options.Cmdrinfo[interest].Winrate
+            Total WR<br />@_options.Cmdrinfo.AWinrate
         </span>
     </div>
     <div class="form-group mr-2">
         <span class="badge badge-danger mr-2">
-            Duration<br />@_options.Cmdrinfo[interest].AverageGameDuration
+            Duration<br />@_options.Cmdrinfo.ADuration.ToString("c");
         </span>
     </div>
 }

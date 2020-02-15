@@ -33,21 +33,20 @@
 
     private async void Update(object sender, PropertyChangedEventArgs e)
     {
-        if (_options.DOIT == true)
-        {
-            await Task.Delay(125);
-            ShowCmdrs();
-        }
+        if (_options.Mode == "Build")
+            return;
+        await Task.Delay(125);
+        ShowCmdrs();
     }
 
     void ShowCmdrs()
     {
-        if (_options.Cmdrinfo.Count == 0) return;
+        if (_options.Cmdrinfo.CmdrCount.Count() == 0) return;
         List<double> piedata = new List<double>();
         List<string> pielabels = new List<string>();
         List<string> piecolors = new List<string>();
         int i = 0;
-        foreach (var ent in _options.Cmdrinfo["ALL"].CmdrCount.OrderByDescending(o => o.Value))
+        foreach (var ent in _options.Cmdrinfo.CmdrCount.OrderByDescending(o => o.Value))
         {
             i++;
             piedata.Add(ent.Value);

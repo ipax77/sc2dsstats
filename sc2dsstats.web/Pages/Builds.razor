@@ -1,10 +1,9 @@
 ﻿@page "/builds"
 @using sc2dsstats.lib.Data
 @inject LoadData _data
-@inject DSbuilds _build
 @implements IDisposable
 
-@if (Program.DataStatus.isBuildLoaded)
+@if (DSdata.Status.Count > 0)
 {
     <sc2dsstats.shared.WebBuild Build="PAX" />
 }
@@ -22,7 +21,7 @@ else
         _data.DataLoaded += Update;
     }
 
-        void Update(object sender, EventArgs ex)
+    void Update(object sender, EventArgs ex)
     {
         InvokeAsync(() => StateHasChanged());
     }

@@ -1,4 +1,5 @@
 ﻿using sc2dsstats.decode.Models;
+using sc2dsstats.lib.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ namespace sc2dsstats.data
 {
     public static class Scan2
     {
-        private static string NewJson = Path.GetDirectoryName(Program.Config.MonsterJson) + "/newdata.json";
+        private static string NewJson = Path.GetDirectoryName(DSdata.ServerConfig.MonsterJson) + "/newdata.json";
 
         private static HashSet<string> Hashs = new HashSet<string>();
         private static int RepIDMax = 0;
@@ -23,10 +24,10 @@ namespace sc2dsstats.data
             Hashs = new HashSet<string>();
             mReplays = new List<dsreplay>();
             sReplays = new List<dsreplay>();
-            Program.Config.LastRun = DateTime.Now;
+            DSdata.ServerConfig.LastRun = DateTime.Now;
 
-            ReadSumJsons(Program.Config.SumDir1);
-            ReadSumJsons(Program.Config.SumDir2);
+            ReadSumJsons(DSdata.ServerConfig.SumDir1);
+            ReadSumJsons(DSdata.ServerConfig.SumDir2);
             DupFind();
             WriteMonsterJson();
         }
@@ -39,8 +40,8 @@ namespace sc2dsstats.data
 
             
             List<FileInfo> NewJsons = new List<FileInfo>();
-            foreach (var dir in Directory.GetDirectories(Program.Config.SumDir).Where(x => Path.GetFileName(x).Length == 64))
-                foreach (var file in Directory.GetFiles(dir).Where(d => new FileInfo(d).LastWriteTime > Program.Config.LastRun).Select(s => new FileInfo(s)))
+            foreach (var dir in Directory.GetDirectories(DSdata.ServerConfig.SumDir).Where(x => Path.GetFileName(x).Length == 64))
+                foreach (var file in Directory.GetFiles(dir).Where(d => new FileInfo(d).LastWriteTime > DSdata.ServerConfig.LastRun).Select(s => new FileInfo(s)))
                     NewJsons.Add(file);
 
             if (!NewJsons.Any())
@@ -58,18 +59,18 @@ namespace sc2dsstats.data
             WriteMonsterJson();
 
             
-            if (File.Exists(Program.Config.MonsterJson + "_bak"))
-                File.Delete(Program.Config.MonsterJson + "_bak");
+            if (File.Exists(DSdata.ServerConfig.MonsterJson + "_bak"))
+                File.Delete(DSdata.ServerConfig.MonsterJson + "_bak");
 
-            if (File.Exists(Program.Config.MonsterJson))
-                File.Move(Program.Config.MonsterJson, Program.Config.MonsterJson + "_bak");
+            if (File.Exists(DSdata.ServerConfig.MonsterJson))
+                File.Move(DSdata.ServerConfig.MonsterJson, DSdata.ServerConfig.MonsterJson + "_bak");
 
             if (File.Exists(NewJson))
-                File.Move(NewJson, Program.Config.MonsterJson);
+                File.Move(NewJson, DSdata.ServerConfig.MonsterJson);
 
             Program.SendUpdateRequest();
 
-            Program.Config.LastRun = DateTime.Now;
+            DSdata.ServerConfig.LastRun = DateTime.Now;
             Program.SaveConfig();
         }
 
@@ -244,10 +245,10 @@ namespace sc2dsstats.data
         public static void ReadMonsterJson()
         {
             Console.WriteLine("Reading in MonsterJson ..");
-            if (File.Exists(Program.Config.MonsterJson))
+            if (File.Exists(DSdata.ServerConfig.MonsterJson))
             {
 
-                foreach (var line in File.ReadAllLines(Program.Config.MonsterJson, Encoding.UTF8))
+                foreach (var line in File.ReadAllLines(DSdata.ServerConfig.MonsterJson, Encoding.UTF8))
                 {
                     dsreplay replay = JsonSerializer.Deserialize<dsreplay>(line);
                     if (replay != null)

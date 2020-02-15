@@ -1,532 +1,358 @@
 ﻿@using System.ComponentModel
 @using sc2dsstats.lib.Data
 @using sc2dsstats.lib.Models
-@using sc2dsstats.decode.Models
-@using System.Globalization
+@using sc2dsstats.shared.Service
+@using sc2dsstats.lib.Db
 @inject DSoptions _options
-@inject DSbuilds _build
 @implements IDisposable
 
-@if (Loading == true)
-{
-    <button class="btn btn-primary ml-1" disabled>
-        <span class="spinner-border spinner-border-sm"></span>
-        Builds loading ...
-    </button>
+<style>
+    .slidecontainer {
+  width: 100%; /* Width of the outside container */
 }
-else
-{
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="form-group mr-2">
-                <label class="label label-default">
-                    Build
-                </label>
-                <select class="browser-default custom-select" id="chb_mode" name="chb_mode" @bind="@_options.Build">
-                    @foreach (var ent in _build.BUILD_REPLAYS.Keys)
-                    {
-                        @if (ent == options.BUILD)
-                        {
-                            <option value="@ent" selected="selected">@ent</option>
-                        }
-                        else
-                        {
-                            <option value="@ent">@ent</option>
-                        }
-                    }
-                </select>
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #3641bd;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
 
-            </div>
-            <div class="form-group mr-2">
-                <label class="label label-default">
-                    Compare
-                </label>
-                <select class="browser-default custom-select" id="chb_mode" name="chb_mode" @bind="@options.BUILD_COMPARE">
-                    <option value="" selected="selected"></option>
-                    @foreach (var ent in _build.BUILD_REPLAYS.Keys)
-                    {
-                        <option value="@ent">@ent</option>
-                    }
-                </select>
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #4CAF50;
+  cursor: pointer;
+}
 
-            </div>
-        </div>
-        <div class="row d-xl-none">
-            <div class="form-group mr-2">
-                <label class="label label-default">
-                    Cmdr
-                </label>
-                <select class="browser-default custom-select" id="chb_mode" name="chb_mode" @bind="@options.CMDR">
-                    @foreach (string cmdr in DSdata.s_races)
-                    {
-                        @if (@cmdr == "Abathur")
-                        {
-                            <option selected="selected">@cmdr</option>
-                        }
-                        else
-                        {
-                            <option>@cmdr</option>
-                        }
-                    }
-                </select>
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
 
-            </div>
-            <div class="form-group mr-2">
-                <label class="label label-default">
-                    vs Cmdr
-                </label>
-                <select class="browser-default custom-select" id="chb_mode" name="chb_mode" @bind="@options.CMDR_VS">
-                    <option selected="selected">ALL</option>
-                    @foreach (string cmdr in DSdata.s_races)
-                    {
-                        <option>@cmdr</option>
-                    }
-                </select>
+</style>
 
-            </div>
-        </div>
-    </div>
-    <div class="container-fluid">
+    <WebBuildOptions />
+
+
+    <div class="mt-3">
         <div class="row">
             <div class="d-none d-xl-block">
-                <p class="align-content-center"><b>Cmdr</b></p>
-                <div>
-                    @foreach (var ent in DSdata.s_races)
-                    {
-                        <div class="custom-control custom-radio">
-                            <input type="radio"
-                                   class="custom-control-input"
-                                   name="CmdrIcons"
-                                   value=@ent
-                                   id="cb_cmdr_@ent"
-                                   @onchange="@(() => @options.CMDR = @ent)" />
-                            <label class="custom-control-label" for="cb_cmdr_@ent">
-                                <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(@ent)" width="30" height="30" />
-                                @ent
-                            </label>
-                        </div>
-                    }
-                </div>
-            </div>
-            <div class="d-none d-xl-block">
-                <p class="align-content-center"><b>Vs</b></p>
-                <div>
-                    @foreach (var ent in DSdata.s_races)
-                    {
-                        <div class="custom-control custom-radio">
-                            <input type="radio"
-                                   class="custom-control-input"
-                                   name="VsIcons"
-                                   value=@ent
-                                   id="cb_vs_@ent"
-                                   @onchange="@(() => @options.CMDR_VS = @ent)" />
-                            <label class="custom-control-label" for="cb_vs_@ent">
-                                <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(@ent)" width="30" height="30" />
-                                @ent
-                            </label>
-                        </div>
-                    }
+                @foreach (var ent in DSdata.s_races)
+                {
                     <div class="custom-control custom-radio">
-
                         <input type="radio"
                                class="custom-control-input"
-                               name="VsIcons"
-                               value=All
-                               id="rbvs_dummy"
-                               @onchange="@(() => @options.CMDR_VS = "ALL")" />
-                        <label class="custom-control-label" for="rbvs_dummy">
-                            <img alt="img_dummy" longdesc="img_dummy" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                            All
+                               name="CmdrIcons"
+                               id="cb_@ent"
+                               @onchange="eventArgs => { IconClick(ent, eventArgs.Value); }" />
+                        <label class="custom-control-label" for="cb_@ent">
+                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent)" width="30" height="30" />
+                            @ent
                         </label>
                     </div>
+                }
+            </div>
+            <div class="d-none d-xl-block">
+                @foreach (var ent in DSdata.s_races)
+                {
+                    <div class="custom-control custom-radio">
+                        <input type="radio"
+                               class="custom-control-input"
+                               name="CmdrIconsVs"
+                               id="cb_vs_@ent"
+                               @onchange="eventArgs => { IconVsClick(ent, eventArgs.Value); }" />
+                        <label class="custom-control-label" for="cb_vs_@ent">
+                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent)" width="30" height="30" />
+                            @ent
+                        </label>
+                    </div>
+                }
+                <div class="custom-control custom-radio">
+                    <input type="radio"
+                           class="custom-control-input"
+                           name="CmdrIconsVs"
+                           id="cb_vs_all"
+                           @onchange="eventArgs => { IconVsClick(String.Empty, eventArgs.Value); }" />
+                    <label class="custom-control-label" for="cb_vs_all">
+                        All
+                    </label>
                 </div>
             </div>
-            <div>
+            <div class="ml-5">
                 <div class="row">
-                    <div class="d-xl-none">
-                        <button class="btn btn-sm btn-primary" @onclick="ShowRepTable">Show replays</button>
-                    </div>
-                    <div class="custom-control custom-radio mr-2">
-                        <label class="label label-default">
-                            <input type="radio"
-                                   name="bpIcons"
-                                   value=All
-                                   id="rb_5min"
-                                   @onchange="@(() => @options.BREAKPOINT = "MIN5")" />
-                            5min
-                        </label>
-                    </div>
-                    <div class="custom-control custom-radio mr-2">
-                        <label class="label label-default">
-                            <input type="radio"
-                                   name="bpIcons"
-                                   value=All
-                                   id="rb_10min"
-                                   checked="checked"
-                                   @onchange="@(() => @options.BREAKPOINT = "MIN10")" />
-                            10min
-                        </label>
-                    </div>
-                    <div class="custom-control custom-radio mr-2">
-                        <label class="label label-default">
-                            <input type="radio"
-                                   name="bpIcons"
-                                   value=All
-                                   id="rb_15min"
-                                   @onchange="@(() => @options.BREAKPOINT = "MIN15")" />
-                            15min
-                        </label>
-                    </div>
-                    <div class="custom-control custom-radio mr-2">
-                        <label class="label label-default">
-                            <input type="radio"
-                                   name="bpIcons"
-                                   value=All
-                                   id="rb_all"
-                                   @onchange="@(() => @options.BREAKPOINT = "ALL")" />
-                            all
-                        </label>
-                    </div>
-                </div>
-                <div class="flex-nowrap">
-                    <div class="mt-5, ml-5">
-                        @if (options.BREAKPOINT == "ALL")
+                    <div class="col-auto">
+                        @if (Loading)
                         {
-                            <h4>
-                                <font color="@DSdata.color_info">
-                                    @BUILD's average unit count for <font color="@DSdata.color_max1">@CMDR</font>  at the end of the game @COMP
-                                </font>
-                            </h4>
+                            <button class="btn btn-primary" disabled>
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Build
+                            </button>
                         }
                         else
                         {
-                            <h4>
-                                <font color="@DSdata.color_info">
-                                    @BUILD's average unit count for <font color="@DSdata.color_max1">@CMDR</font>  after @options.BREAKPOINT @COMP
-                                </font>
-                            </h4>
+                            <button class="btn btn-primary ml-4" disabled>
+                                Build
+                            </button>
                         }
-                        <div class="d-xl-none">
-                            <h5><span class="badge badge-info">@options.CMDR vs @options.CMDR_VS</span></h5>
+                    </div>
+                    <div class="col-auto">
+                        <div class="slidecontainer">
+                            <label for="myRange">
+                                Gametime
+                            </label>
+                            <input type="range" min="1" max="4" value="2" class="slider" id="myRange" @onchange="BPSlider">
                         </div>
-                        <div class="row">
-                            <div class="mr-3 @RepTableClass">
-                                <table class="table table-sm table-hover table-dark">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">Replays (@skip-@(take + skip)))</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @if (!_build.BUILDREPLAYSCACHE.ContainsKey(_options.Build))
-                                        {
-                                            <tr><th>Loading ...</th></tr>
-                                        }
-                                        else
-                                        {
-                                            @foreach (var ent in _build.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].Distinct().OrderByDescending(o => o.GAMETIME).Skip(skip).Take(take))
-                                            {
-                                                @if (replay_id == ent.ID)
-                                                {
-                                                    <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
+                    </div>
+                </div>
+                <div class="row mt-3">
 
-                                                        <th scope="row">@ent.ID</th>
-                                                        <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                                    </tr>
-
-                                                }
-                                                else
-                                                {
-                                                    <tr class="table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
-
-                                                        <th scope="row">@ent.ID</th>
-                                                        <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                                    </tr>
-                                                }
-                                            }
-                                        }
-                                    </tbody>
-                                </table>
-                                <div class="row">
-                                    <button class="btn btn-sm mr-1" @onclick="@Skip">&lt&lt</button>
-                                    <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
-                                </div>
-                            </div>
-                            <div>
-                                <table class="table table-sm table-dark box-layout">
-                                    <thead>
-                                        <tr><th>Unit</th><th>Count</th></tr>
-                                    </thead>
-                                    <tr>
-                                        <td>
-                                            <span class="badge badge-danger">
-                                                WR @INFO_CMDR["Winrate"]% Games: @INFO_CMDR["Games"]
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-danger">
-                                                @DUR_CMDR
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    @foreach (var ent in UNITS)
+                    <div class="ml-1">
+                        <h3><p class="text-info">@_options.Build's average unit count for <font color="@DSdata.color_max1">@_options.Interest @matchup</font>@comptext</p></h3>
+                    </div>
+                </div>
+                <div class="d-xl-none">
+                    <button class="btn btn-sm btn-primary" @onclick="ShowRepTable">Show/Hide replays</button>
+                </div>
+                <div class="row">
+                    <div class="@RepTableClass ml-5, mr-3">
+                        <table class="table table-sm table-hover table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Replays (@skip-@(take + skip)))</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ent in bresult.RepIDs.OrderByDescending(o => o.Value).Skip(skip).Take(take))
+                                {
+                                    string rowclass = "sort-link";
+                                    if (ent.Key == replayid)
                                     {
-                                        @if (@ent.Value >= cmax1)
-                                        {
-                                            <tr><td><font color="@DSdata.color_max1">@ent.Key</font></td><td><font color="@DSdata.color_max1">@ent.Value.ToString("0.00")</font></td></tr>
-                                        }
-                                        else if (@ent.Value >= cmax2)
-                                        {
-                                            <tr><td><font color="@DSdata.color_max2">@ent.Key</font></td><td><font color="@DSdata.color_max2">@ent.Value.ToString("0.00")</font></td></tr>
-                                        }
-                                        else if (@ent.Value >= cmax3)
-                                        {
-                                            <tr><td><font color="@DSdata.color_max3">@ent.Key</font></td><td><font color="@DSdata.color_max3">@ent.Value.ToString("0.00")</font></td></tr>
-                                        }
-                                        else
-                                        {
-                                            <tr><td>@ent.Key</td><td>@ent.Value.ToString("0.00")</td></tr>
-                                        }
+                                        rowclass = "table-info";
                                     }
-                                </table>
-                            </div>
+                                    <tr class="table-row @rowclass" @onclick="@(() => ShowGame(ent.Key))">
 
-                            @if (@options.BUILD_COMPARE != "")
-                            {
-                                <div class="ml-2 mr-2">
-                                    <table class="table table-sm table-dark box-layout">
-                                        <thead>
-                                            <tr><th>Diff</th></tr>
-                                        </thead>
-                                        @if (@INFO_DIFF < 0)
-                                        {
-                                            <tr><td><font color="@DSdata.color_diff1">@INFO_DIFF.ToString("0.00")</font></td></tr>
-                                        }
-                                        else if (@INFO_DIFF > 0)
-                                        {
-                                            <tr><td><font color="@DSdata.color_diff2">@INFO_DIFF.ToString("0.00")</font></td></tr>
-                                        }
-                                        else
-                                        {
-                                            <tr><td><font color="@DSdata.color_null">@INFO_DIFF.ToString("0.00")</font></td></tr>
-                                        }
-                                        @foreach (var ent in DIFF)
-                                        {
-                                            @if (ent < 0)
-                                            {
-                                                <tr><td><font color="@DSdata.color_diff1">@ent.ToString("0.00")</font></td></tr>
-                                            }
-                                            else if (ent > 0)
-                                            {
-                                                <tr><td><font color="@DSdata.color_diff2">@ent.ToString("0.00")</font></td></tr>
-                                            }
-                                            else
-                                            {
-                                                <tr><td><font color="@DSdata.color_null">@ent.ToString("0.00")</font></td></tr>
-                                            }
-
-                                        }
-                                    </table>
-                                </div>
-                                <div>
-                                    <table class="table table-sm table-dark box-layout">
-                                        <thead>
-                                            <tr><th>Unit</th><th>Count</th></tr>
-                                        </thead>
-                                        <!--
-                    <tr class="table-primary"><td><font color="@DSdata.color_info">WR: @INFO_CMDR_VS["Winrate"] % Games: @INFO_CMDR_VS["Games"]</font></td><td><font color="@DSdata.color_info">@DUR_CMDR_VS</font></td></tr>
-                    -->
-                                        <tr>
-                                            <td>
-                                                <span class="badge badge-danger">
-                                                    WR @INFO_CMDR_VS["Winrate"]% Games: @INFO_CMDR_VS["Games"]
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-danger">
-                                                    @DUR_CMDR_VS
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        @foreach (var ent in UNITS_VS)
-                                        {
-                                            @if (@ent.Value >= vmax1)
-                                            {
-                                                <tr><td><font color="@DSdata.color_max1">@ent.Key</font></td><td><font color="@DSdata.color_max1">@ent.Value.ToString("0.00")</font></td></tr>
-                                            }
-                                            else if (@ent.Value >= vmax2)
-                                            {
-                                                <tr><td><font color="@DSdata.color_max2">@ent.Key</font></td><td><font color="@DSdata.color_max2">@ent.Value.ToString("0.00")</font></td></tr>
-                                            }
-                                            else if (@ent.Value >= vmax3)
-                                            {
-                                                <tr><td><font color="@DSdata.color_max3">@ent.Key</font></td><td><font color="@DSdata.color_max3">@ent.Value.ToString("0.00")</font></td></tr>
-                                            }
-                                            else
-                                            {
-                                                <tr><td>@ent.Key</td><td>@ent.Value.ToString("0.00")</td></tr>
-                                            }
-                                        }
-                                    </table>
-                                </div>
-                                <div class="ml-3 @RepTableClass">
-                                    <table class="table table-sm table-hover table-dark">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">#</th>
-                                                <th scope="col">Replays (@skip_vs-(@(take + skip_vs)))</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (!_build.BUILDREPLAYSCACHE.ContainsKey(options.BUILD_COMPARE))
-                                            {
-                                                <tr><th>Loading ...</th></tr>
-                                            }
-                                            else
-                                            {
-                                                @foreach (var ent in _build.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].Distinct().OrderByDescending(o => o.GAMETIME).Skip(skip_vs).Take(take))
-                                                {
-                                                    @if (replay_id == ent.ID)
-                                                    {
-                                                        <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
-
-                                                            <th scope="row">@ent.ID</th>
-                                                            <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                                        </tr>
-
-                                                    }
-                                                    else
-                                                    {
-                                                        <tr class="table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
-
-                                                            <th scope="row">@ent.ID</th>
-                                                            <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                                        </tr>
-                                                    }
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                    <div class="row">
-                                        <button class="btn btn-sm mr-1" @onclick="@Skip_vs">&lt&lt</button>
-                                        <button class="btn btn-sm" @onclick="@Take_vs">&gt&gt</button>
-                                    </div>
-                                </div>
-                            }
+                                        <th scope="row">@ent.Key</th>
+                                        <td>@ent.Value</td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <button class="btn btn-sm mr-1" @onclick="@Skip">&lt&lt</button>
+                            <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
                         </div>
+                    </div>
+                    <div>
+                        <table class="table table-sm table-dark">
+                            <thead>
+                                <tr><th><h5>Units at <span class="badge badge-info">@_options.Breakpoint</span></h5></th><th><h5>Count</h5></th></tr>
+                            </thead>
+                            <tr>
+                                <td>
+                                    <h5>
+                                        <span class="badge badge-danger">
+                                            WR: @bresult.Winrate% Games: @bresult.Games
+                                        </span>
+                                    </h5>
+                                </td>
+                                <td>
+                                    <h5>
+                                        <span class="badge badge-danger">
+                                            &empty; @bresult.Duration.ToString(@"mm\:ss") min
+                                        </span>
+                                    </h5>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <h5>
+                                        <span class="badge badge-info">
+                                            Upgrades: @bresult.Upgradespending
+                                        </span>
+                                    </h5>
+                                </td>
+                                <td>
+                                    <h5>
+                                        <span class="badge badge-info">
+                                            Gas: @bresult.Gascount
+                                        </span>
+                                    </h5>
+                                </td>
+                            </tr>
+                            @if (Units != null)
+                            {
+                                @foreach (var ent in Units)
+                                {
+                                    var mycolor = DSdata.color_info;
+                                    @if ((int)ent.Value >= max1)
+                                        mycolor = DSdata.color_max1;
+                                    else if ((int)ent.Value >= max2)
+                                        mycolor = DSdata.color_max2;
+                                    else if ((int)ent.Value >= max3)
+                                        mycolor = DSdata.color_max3;
+
+                                    <tr style="font-size: 16px; color: @mycolor;"><td>@BuildService.FixUnitName(ent.Key)</td><td>@ent.Value</td></tr>
+                                }
+                            }
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="container-fluid @GameClass">
+    <div class="@GameClass">
         <WebGame replay="replay" />
+
     </div>
+
     <br />
     <br />
     <div id="dv_info" align="left" style="position: inherit; left: 10px; width: 1011px; margin-left: 10px; overflow: hidden">
         <div id="dv_info1" style="width: 400px; float: left">
-            <p>@DSdata.INFO["Builds"]</p>
+            <p>@DSdata.INFO["Build"]</p>
         </div>
         <div id="dv_info2" style="width: 600px; font-size: 12px; overflow: hidden; left: 10px; float: left">
             <p></p>
         </div>
     </div>
-}
+
 
 @code {
 
     [Parameter]
     public string Build { get; set; } = "ALL";
 
-    private DSdyn_buildoptions options { get; set; }
-    private IEnumerable<KeyValuePair<string, double>> UNITS { get; set; }
-    private IEnumerable<double> DIFF { get; set; }
-    private IEnumerable<KeyValuePair<string, double>> UNITS_VS { get; set; }
-    private Dictionary<string, double> INFO_CMDR { get; set; }
-    private Dictionary<string, double> INFO_CMDR_VS { get; set; }
-    private double INFO_DIFF = 0;
-    private string DUR_CMDR = "";
-    private string DUR_CMDR_VS = "";
-    private string BUILD = "";
-    private string CMDR = "";
-    private string COMP = "";
-    private double cmax1 = 0;
-    private double cmax2 = 0;
-    private double cmax3 = 0;
-    private double vmax1 = 0;
-    private double vmax2 = 0;
-    private double vmax3 = 0;
-    private DSdyn dyncmdr = new DSdyn();
-    private DSdyn dynvs = new DSdyn();
-    private bool database = false;
-    private string GameClass = "colapsed";
-    private dsreplay replay;
-    private int replay_id = 0;
+    DSReplay replay;
+    int replayid = 0;
     int skip = 0;
     int skip_vs = 0;
     int take = 12;
 
     private bool Loading = true;
+    private bool database = true;
     private string RepTableClass = "d-none d-xl-block";
+    private string CompareBuild = "";
+    private string matchup = "";
+    private string gametimetext = "";
+    private string comptext = "";
+    private BuildResult bresult = new BuildResult();
+    private IOrderedEnumerable<KeyValuePair<string, float>> Units;
+    private int max1 = 100;
+    private int max2 = 100;
+    private int max3 = 100;
+    private string GameClass = "colapsed";
 
-    void ShowDatabase()
+    async Task GetBuild()
     {
-        database = !database;
-    }
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
 
+        foreach (var ent in _options.Gamemodes.Keys.ToArray())
+            _options.Gamemodes[ent] = false;
+
+        if (_options.Interest == "Terran" || _options.Interest == "Zerg" || _options.Interest == "Protoss")
+        {
+            _options.Gamemodes["GameModeStandard"] = true;
+        } else
+        {
+            _options.Gamemodes["GameModeCommanders"] = true;
+            _options.Gamemodes["GameModeCommandersHeroic"] = true;
+        }
+
+        bresult = await BuildService.GetBuild(_options);
+        Units = bresult.Units.OrderByDescending(o => o.Value);
+        max1 = 100;
+        max2 = 100;
+        max3 = 100;
+        if (bresult.Units.Count > 2)
+        {
+            max1 = (int)Units.ElementAt(0).Value;
+            max2 = (int)Units.ElementAt(1).Value;
+            max3 = (int)Units.ElementAt(2).Value;
+        }
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        Loading = true;
-
-        _options.DOIT = false;
-        List<KeyValuePair<string, double>> _UNITS = new List<KeyValuePair<string, double>>();
-        List<KeyValuePair<string, double>> _UNITS_VS = new List<KeyValuePair<string, double>>();
-        List<double> _DIFF = new List<double>();
-        UNITS = _UNITS;
-        DIFF = _DIFF;
-        UNITS_VS = _UNITS_VS;
-
-        INFO_CMDR = new Dictionary<string, double>();
-        INFO_CMDR.Add("Winrate", 0);
-        INFO_CMDR.Add("Games", 0);
-        INFO_CMDR.Add("Duration", 0);
-        INFO_CMDR_VS = new Dictionary<string, double>();
-        INFO_CMDR_VS.Add("Winrate", 0);
-        INFO_CMDR_VS.Add("Games", 0);
-        INFO_CMDR_VS.Add("Duration", 0);
-        INFO_DIFF = 0;
-        BUILD = "player";
-        DUR_CMDR = "";
-        DUR_CMDR_VS = "";
-        CMDR = "Abathur";
-        COMP = "";
-
-        options = new DSdyn_buildoptions();
-        options.BUILD = Build;
-        options.CMDR = "Abathur";
-        options.CMDR_VS = "ALL";
-        options.BUILD_COMPARE = "";
-        options.BREAKPOINT = "MIN10";
-
-
         _options.DefaultFilter();
-        _options.DOIT = false;
-        _options.Player = true;
-        _options.Build = options.BUILD;
-        _options.Vs = options.CMDR_VS;
-        _options.Interest = options.CMDR;
-        _options.DOIT = true;
+        _options.Startdate = new DateTime(2019, 1, 1);
+        _options.Enddate = DateTime.MinValue;
+        _options.Build = "PAX";
+        _options.Dataset = DSdata.s_builds_hash.Single(x => x.Value == _options.Build).Key;
+        _options.Mode = "Build";
+        _options.Interest = "Abathur";
+        _options.Breakpoint = "MIN10";
+        gametimetext = "at 10min";
+        _options.PropertyChanged += Update;
+        GetBuild();
+    }
 
-        _options.PropertyChanged += FilOptionChanged;
-        options.PropertyChanged += OptionChanged;
+    async Task IconClick(string cmdr, object cbValue)
+    {
+        _options.Interest = cmdr;
+        _options.Update = !_options.Update;
+    }
 
-        Loading = false;
+    async Task IconVsClick(string cmdr, object cbValue)
+    {
+        _options.Vs = cmdr;
 
-        OptionChanged(null, null);
+        _options.Update = !_options.Update;
+    }
+
+    void BPSlider(ChangeEventArgs e)
+    {
+        string bp = (string)e.Value;
+
+        if (bp == "1")
+            _options.Breakpoint = "MIN5";
+        else if (bp == "2")
+            _options.Breakpoint = "MIN10";
+        else if (bp == "3")
+            _options.Breakpoint = "MIN15";
+        else if (bp == "4")
+            _options.Breakpoint = "ALL";
+
+        if (_options.Breakpoint == "ALL")
+            gametimetext = "at the end of the game";
+        else
+            gametimetext = "at " + _options.Breakpoint;
+
+        _options.Update = !_options.Update;
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        if (_options.Mode != "Build")
+            return;
+        if (!string.IsNullOrEmpty(_options.Vs))
+            matchup = "vs " + _options.Vs;
+        else
+            matchup = String.Empty;
+        GetBuild();
+    }
+
+    void ShowGame(int id)
+    {
+        replayid = id;
+        replay = DBService.GetReplay(id);
+        GameClass = String.Empty;
     }
 
     void ShowRepTable()
@@ -537,18 +363,9 @@ else
             RepTableClass = "";
     }
 
-    public void ShowGame(int repid)
+    void ShowDatabase()
     {
-        GameClass = "null";
-        replay = _build.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
-        replay_id = repid;
-    }
-
-    public void ShowGame_vs(int repid)
-    {
-        GameClass = "null";
-        replay = _build.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
-        replay_id = repid;
+        database = !database;
     }
 
     void Skip()
@@ -581,131 +398,11 @@ else
         skip_vs += 12;
     }
 
-    public void OptionChange()
-    {
-        OptionChanged(null, null);
-    }
-
-    private void FilOptionChanged(object sender, PropertyChangedEventArgs e)
-    {
-        if (_options.DOIT == true && e.PropertyName == "Build")
-        {
-            options.BUILD = _options.Build;
-        }
-        StateHasChanged();
-    }
-
-    private void OptionChanged(object sender, PropertyChangedEventArgs e)
-    {
-        if (e != null && (e.PropertyName == "CMDR" || e.PropertyName == "CMDR_VS"))
-        {
-            skip = 0;
-            skip_vs = 0;
-        }
-
-        CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
-        string bp = options.BREAKPOINT;
-        string build = _options.Build;
-        List<KeyValuePair<string, double>> temp = new List<KeyValuePair<string, double>>(
-            _build.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value).ToList()
-        );
-
-        KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
-        KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
-        KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
-
-        Gas = temp.Where(o => o.Key == "Gas").FirstOrDefault();
-        Mid = temp.Where(o => o.Key == "Mid").FirstOrDefault();
-        Upgrades = temp.Where(o => o.Key == "Upgrades").FirstOrDefault();
-
-        temp.Remove(Gas);
-        temp.Remove(Mid);
-        temp.Remove(Upgrades);
-
-        cmax1 = 100;
-        cmax2 = 100;
-        cmax3 = 100;
-        if (temp.Count > 3)
-        {
-            cmax1 = temp.ElementAt(0).Value;
-            cmax2 = temp.ElementAt(1).Value;
-            cmax3 = temp.ElementAt(2).Value;
-        }
-        UNITS = temp;
-
-        INFO_CMDR["Winrate"] = _build.BUILDWRCACHE[build][options.CMDR][options.CMDR_VS][bp].Key;
-        INFO_CMDR["Games"] = _build.BUILDWRCACHE[build][options.CMDR][options.CMDR_VS][bp].Value;
-        double dur = _build.BUILDDURCACHE[build][options.CMDR][options.CMDR_VS][bp];
-        TimeSpan t = TimeSpan.FromSeconds(dur);
-        DUR_CMDR = '\u2300'.ToString() + " " + t.Minutes + ":" + t.Seconds.ToString("D2") + "min";
-        CMDR = options.CMDR;
-        if (options.CMDR_VS != "ALL") { CMDR += " vs " + options.CMDR_VS; }
-        BUILD = build;
-
-
-        if (options.BUILD_COMPARE != "")
-        {
-            List<double> diff = new List<double>();
-            Dictionary<string, double> units_vs = new Dictionary<string, double>();
-            string build_vs = options.BUILD_COMPARE;
-
-            COMP = "compared to " + build_vs;
-            foreach (var ent in UNITS)
-            {
-                if (_build.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp] != null)
-                {
-                    var uv = _build.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Where(w => w.Key == ent.Key).ToList();
-                    double c = 0;
-                    if (uv.Count > 0) { c = uv.ElementAt(0).Value; }
-                    units_vs.Add(ent.Key, c);
-                    diff.Add(ent.Value - c);
-                }
-            }
-
-            DIFF = diff;
-
-            int i = 0;
-            vmax1 = 100;
-            vmax2 = 100;
-            vmax3 = 100;
-            foreach (var ent in _build.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value))
-            {
-                if (ent.Key == "Gas" || ent.Key == "Mid" || ent.Key == "Upgrades") continue;
-                i++;
-                if (i == 1) { vmax1 = ent.Value; }
-                if (i == 2) { vmax2 = ent.Value; }
-                if (i == 3) { vmax3 = ent.Value; }
-                var uv = _build.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].Where(w => w.Key == ent.Key).ToList();
-                double c = 0;
-                if (uv.Count > 0) { c = uv.ElementAt(0).Value; }
-                else
-                {
-                    units_vs.Add(ent.Key, ent.Value);
-                }
-            }
-
-            UNITS_VS = units_vs;
-
-            INFO_CMDR_VS["Winrate"] = _build.BUILDWRCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Key;
-            INFO_CMDR_VS["Games"] = _build.BUILDWRCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Value;
-            double vdur = _build.BUILDDURCACHE[build_vs][options.CMDR][options.CMDR_VS][bp];
-            TimeSpan vt = TimeSpan.FromSeconds(vdur);
-            DUR_CMDR_VS = '\u2300'.ToString() + " " + vt.Minutes + ":" + vt.Seconds.ToString("D2") + "min";
-            INFO_DIFF = INFO_CMDR["Winrate"] - INFO_CMDR_VS["Winrate"];
-        }
-        _options.Build = build;
-        _options.Interest = options.CMDR;
-        _options.Vs = options.CMDR_VS;
-
-        //chartChanged.Fil = _options.fil;
-        //chartChanged.Update = !chartChanged.Update;
-
-    }
-
     public void Dispose()
     {
-        _options.PropertyChanged -= FilOptionChanged;
-        options.PropertyChanged -= OptionChanged;
+        _options.PropertyChanged -= Update;
     }
+
 }
+
 

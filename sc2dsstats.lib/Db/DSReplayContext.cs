@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.Logging;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
+using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
@@ -18,15 +19,19 @@ namespace sc2dsstats.lib.Db
         public DbSet<DSPlayer> DSPlayers { get; set; }
         public DbSet<PLDuplicate> PLDuplicates { get; set; }
         public DbSet<DSReplay> DSReplays { get; set; }
+        public DbSet<DefaultFilterCmdr> DefaultFilterCmdrs { get; set; }
+        public DbSet<DSPlayerResult> DSPlayerResults { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (String.IsNullOrEmpty(sc2dsstatslib.Config.DBConnectionString))
-                sc2dsstatslib.LoadConfig();
+            if (String.IsNullOrEmpty(DSdata.ServerConfig.DBConnectionString))
+                throw new NotSupportedException();
 
             optionsBuilder
-                .UseMySql(sc2dsstatslib.Config.DBConnectionString, mySqlOptions => mySqlOptions
-                .ServerVersion(new ServerVersion(new Version(5, 7, 27), ServerType.MySql)))
+                //.UseSqlServer(sc2dsstatslib.Config.DBConnectionString)
+                .UseMySql(DSdata.ServerConfig.DBConnectionString, mySqlOptions => mySqlOptions
+                .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql)))
+                //.ServerVersion(new ServerVersion(new Version(8, 0, 17), ServerType.MySql)))
                 //.UseLoggerFactory(_loggerFactory)
                 ; 
         }
@@ -38,6 +43,9 @@ namespace sc2dsstats.lib.Db
             modelBuilder
                 .HasDbFunction(typeof(DBFunctions).GetMethod(nameof(DBFunctions.GetOpp)))
                 .HasTranslation(args => SqlFunctionExpression.Create("GetOpp", args, typeof(int), null));
+            modelBuilder
+                .HasDbFunction(typeof(DBFunctions).GetMethod(nameof(DBFunctions.GetPl)))
+                .HasTranslation(args => SqlFunctionExpression.Create("GetPl", args, typeof(int), null));
 
             modelBuilder.Entity<DSReplay>(entity =>
             {
@@ -49,12 +57,23 @@ namespace sc2dsstats.lib.Db
                     .IsUnique();
             });
 
+            modelBuilder.Entity<DefaultFilterCmdr>(e => e.ToView("DefaultFilterCmdr").HasNoKey());
+            modelBuilder.Entity<DSPlayerResult>(e => e.ToView("DSPlayerResult").HasNoKey());
+
             modelBuilder.Entity<DSPlayer>(entity =>
             {
                 entity.HasKey(e => e.ID);
+                entity.Property(p => p.NAME)
+                    .HasMaxLength(64);
+                entity.Property(p => p.RACE)
+                    .HasMaxLength(64);
+                entity.Property(p => p.OPPRACE)
+                    .HasMaxLength(64);
                 entity.HasOne(d => d.DSReplay)
                   .WithMany(p => p.DSPlayer);
-                entity.Property(b => b.NAME).IsUnicode();
+                entity.HasIndex(b => b.RACE);
+                entity.HasIndex(p => new { p.RACE, p.OPPRACE });
+
             });
 
             modelBuilder.Entity<DSUnit>(entitiy =>

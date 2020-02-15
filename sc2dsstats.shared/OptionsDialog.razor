@@ -127,18 +127,18 @@
                     <div class="row">
                         <div class="col-sm form-group">
                             <label for="startdate">startdate</label>
-                            <input type="date" name="startdate" id="startdate" @bind="@startdate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
+                            <input type="date" name="startdate" id="startdate" @bind="@_options.Startdate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
                         </div>
                         <div class="col-sm form-group">
                             <label for="enddate">enddate</label>
-                            <input type="date" name="enddate" id="enddate" @bind="@enddate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
+                            <input type="date" name="enddate" id="enddate" @bind="@_options.Enddate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm form-group">
                             <label>
                                 Duration
-                                <input type="number" name="Duration" id="Duration" @bind="@_options.Duration" class="form-control" />
+                                <!--<input type="number" name="Duration" id="Duration" @bind="@_options.Duration" class="form-control" />-->
                             </label>
                         </div>
                         <div class="col-sm form-group">
@@ -214,7 +214,7 @@
                     <div class="btn-group" role="group" aria-label="DialogEndButtons">
                         <button type="button" class="btn btn-secondary" @onclick="@DefaultFilter">Default</button>
                         <button type="button" class="btn btn-secondary" @onclick="@OffFilter">Off</button>
-                        <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(async => Show())">Close</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(async => Show())">Filter/Close</button>
                     </div>
                 </div>
             </div>
@@ -234,15 +234,11 @@
     private Boolean _Show { get; set; } = false;
     private string FadeClass = "fadein";
 
-    private DateTime startdate;
-    private DateTime enddate;
 
     private string myhash = "";
 
     protected override void OnInitialized()
     {
-        startdate = _options.Startdate;
-        enddate = _options.Enddate;
         myhash = _options.Hash;
     }
 
@@ -250,8 +246,6 @@
     {
         if (_Show == false)
         {
-            startdate = _options.Startdate;
-            enddate = _options.Enddate;
             myhash = _options.Hash;
             FadeClass = "fadein";
         }
@@ -268,38 +262,26 @@
         FadeClass = "";
         await InvokeAsync(() => StateHasChanged());
 
-
-        if (startdate != _options.Startdate || enddate != _options.Enddate)
-        {
-            _options.DOIT = false;
-            _options.Startdate = startdate;
-            _options.Enddate = enddate;
-            _options.DOIT = true;
-            _options.Update = !_options.Update;
-        }
     }
 
     void DefaultFilter()
     {
-        _options.DefaultFilter();
-        startdate = _options.Startdate;
-        enddate = _options.Enddate;
+        _options.DefaultFilter("Winrate");
         _options.Update = !_options.Update;
         myhash = _options.GenHash();
     }
 
     void OffFilter()
     {
-        _options.DOIT = false;
-        _options.Build = "ALL";
-        _options.Duration = 0;
+        _options.Build = String.Empty;
+        _options.Duration = TimeSpan.Zero;
         _options.Leaver = 0;
         _options.Army = 0;
         _options.Kills = 0;
         _options.Income = 0;
-        _options.Startdate = new DateTime(2018, 01, 01);
-        _options.Enddate = DateTime.Now.AddDays(1);
-        _options.PlayerCount = 0;
+        _options.Startdate = DateTime.MinValue;
+        _options.Enddate = DateTime.MinValue;
+        _options.PlayerCount = 1;
         foreach (var ent in _options.Gamemodes.Keys.ToArray())
         {
             _options.Gamemodes[ent] = true;
@@ -307,9 +289,7 @@
         _options.Interest = String.Empty;
         _options.Vs = String.Empty;
         _options.Dataset = String.Empty;
-        _options.DOIT = true;
-        startdate = _options.Startdate;
-        enddate = _options.Enddate;
+        
         _options.Update = !_options.Update;
         myhash = _options.GenHash();
     }
@@ -325,7 +305,7 @@
     {
         if (selection == "ALL")
         {
-            _options.Dataset = "";
+            _options.Dataset = String.Empty;
             _options.Player = false;
         }
         else

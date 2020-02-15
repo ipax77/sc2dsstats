@@ -15,8 +15,6 @@ namespace sc2dsstats.web
 {
     public class Program
     {
-        public static ReplaysLoadedEventArgs DataStatus = new ReplaysLoadedEventArgs();
-
         public static string workdir = "/data";
 
         public static void Main(string[] args)
@@ -29,8 +27,8 @@ namespace sc2dsstats.web
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.SetBasePath(workdir);
-                    config.AddJsonFile("config.json", optional: true, reloadOnChange: false);
-                    config.AddJsonFile("serverconfig.json", optional: true, reloadOnChange: false);
+                    config.AddJsonFile("config.json", optional: false, reloadOnChange: false);
+                    config.AddJsonFile("serverconfig.json", optional: false, reloadOnChange: false);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

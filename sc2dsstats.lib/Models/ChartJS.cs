@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace sc2dsstats.lib.Models
 {
@@ -10,6 +11,8 @@ namespace sc2dsstats.lib.Models
         public string type { get; set; }
         public ChartJSData data { get; set; } = new ChartJSData();
         public ChartJsoptions options { get; set; }
+        [JsonIgnore]
+        public List<string> s_races_ordered { get; set; } = new List<string>();
     }
 
     [Serializable]
@@ -167,7 +170,7 @@ namespace sc2dsstats.lib.Models
     [Serializable]
     public class ChartJSData
     {
-        public string[] labels { get; set; }
+        public List<string> labels { get; set; }
         public List<ChartJSdataset> datasets { get; set; } = new List<ChartJSdataset>();
     }
 
@@ -179,7 +182,32 @@ namespace sc2dsstats.lib.Models
         public string borderColor { get; set; }
         public string pointBackgroundColor { get; set; }
         public int borderWidth { get; set; } = 1;
-        public double[] data { get; set; }
+        public List<double> data { get; set; } = new List<double>();
+
+        public ChartJSdataset()
+        {
+
+        }
+
+        public ChartJSdataset(string dstring) : this()
+        {
+            if (dstring == "Default")
+            {
+                this.label = "global";
+            }
+
+        }
+
+        public ChartJSdataset(ChartJSdataset cp) : this()
+        {
+            this.label = label;
+            this.backgroundColor = new List<string>(cp.backgroundColor);
+            this.borderColor = cp.borderColor;
+            this.pointBackgroundColor = cp.pointBackgroundColor;
+            this.borderWidth = cp.borderWidth;
+            this.data = new List<double>(cp.data);
+        }
+
     }
 
     [Serializable]
@@ -195,6 +223,15 @@ namespace sc2dsstats.lib.Models
         public string src { get; set; } = "images/dummy.png";
         public int width { get; set; } = 45;
         public int height { get; set; } = 45;
+
+        public ChartJSPluginlabelsImage()
+        {
+
+        }
+        public ChartJSPluginlabelsImage(string cmdr) : this()
+        {
+            this.src = "_content/sc2dsstats.shared/images/btn-unit-hero-" + cmdr.ToLower() + ".png";
+        }
     }
 
     [Serializable]

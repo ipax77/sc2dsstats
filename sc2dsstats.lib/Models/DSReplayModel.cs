@@ -4,21 +4,22 @@ using System.Text;
 
 namespace sc2dsstats.lib.Models
 {
-    public class DSReplay
+
+    public class DSReplayBase
     {
         public int ID { get; set; }
         public string REPLAY { get; set; }
         public DateTime GAMETIME { get; set; }
-        public int WINNER { get; set; } = -1;
+        public sbyte WINNER { get; set; } = -1;
         public TimeSpan DURATION { get; set; } = TimeSpan.Zero;
         public int MINKILLSUM { get; set; }
         public int MAXKILLSUM { get; set; }
         public int MINARMY { get; set; }
-        public double MININCOME { get; set; }
+        public int MININCOME { get; set; }
         public int MAXLEAVER { get; set; }
-        public int PLAYERCOUNT { get; set; }
-        public int REPORTED { get; set; } = 0;
-        public string ISBRAWL { get; set; }
+        public byte PLAYERCOUNT { get; set; }
+        public byte REPORTED { get; set; } = 0;
+        public bool ISBRAWL { get; set; }
         public string GAMEMODE { get; set; } = "unknown";
         public string VERSION { get; set; } = "3.0";
         public string HASH { get; set; }
@@ -26,27 +27,31 @@ namespace sc2dsstats.lib.Models
         public virtual ICollection<PLDuplicate> PLDuplicate { get; set; }
     }
 
+
+    public class DSReplay : DSReplayBase
+    {
+    }
+
     public class DSPlayer
     {
         public int ID { get; set; }
-        public int POS { get; set; }
-        public int REALPOS { get; set; } = 0;
+        public byte POS { get; set; }
+        public byte REALPOS { get; set; } = 0;
         public string NAME { get; set; }
         public string RACE { get; set; }
-        public int RESULT { get; set; }
-        public int TEAM { get; set; }
+        public string OPPRACE { get; set; }
+        public bool WIN { get; set; } = false;
+        public byte TEAM { get; set; }
         public int KILLSUM { get; set; } = 0;
-        public double INCOME { get; set; } = 0;
+        public int INCOME { get; set; } = 0;
         public TimeSpan PDURATION { get; set; } = TimeSpan.Zero;
         public int ARMY { get; set; } = 0;
-        public int GAS { get; set; } = 0;
+        public byte GAS { get; set; } = 0;
         public virtual ICollection<DSUnit> DSUnit { get; set; }
         public virtual DSReplay DSReplay { get; set; }
-
+        public virtual PLDuplicate PLDuplicate { get; set; }
 
     }
-
-    
 
     public class DSUnit
     {
@@ -61,8 +66,26 @@ namespace sc2dsstats.lib.Models
     {
         public int ID { get; set; }
         public string Hash { get; set; }
-        public int Pos { get; set; }
+        public byte Pos { get; set; }
         public virtual DSReplay DSReplay { get; set; }
+    }
+
+    public class DefaultFilterCmdr : DSReplayBase
+    {
+    }
+
+    public class DSPlayerResult
+    {
+        public int ID { get; set; }
+        public DateTime GAMETIME { get; set; }
+        public int WINNER { get; set; }
+        public int MAXKILLSUM { get; set; }
+        public int REALPOS { get; set; }
+        public string NAME { get; set; }
+        public string RACE { get; set; }
+        public int TEAM { get; set; }
+        public int KILLSUM { get; set; }
+        public string OPPRACE { get; set; }
     }
 
 }

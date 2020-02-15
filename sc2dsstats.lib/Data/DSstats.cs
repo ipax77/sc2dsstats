@@ -8,6 +8,7 @@ using System.Text.Json;
 
 namespace sc2dsstats.lib.Data
 {
+    /*
     public class DSstats
     {
         public Dictionary<string, Dictionary<string, KeyValuePair<double, int>>> winrate_CACHE { get; private set; } = new Dictionary<string, Dictionary<string, KeyValuePair<double, int>>>();
@@ -647,4 +648,5 @@ namespace sc2dsstats.lib.Data
             return (info, infoInt);
         }
     }
+    */
 }

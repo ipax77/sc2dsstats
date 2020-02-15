@@ -1,7 +1,9 @@
 ﻿@using System.Linq
-@using sc2dsstats.decode.Models
 @using sc2dsstats.lib.Data
-@inject DSbuilds _build
+@using sc2dsstats.lib.Models
+@using sc2dsstats.lib.Db
+@using sc2dsstats.shared.Service
+@inject NavigationManager _nav
 
 @if (replay != null)
 {
@@ -18,88 +20,16 @@
     </div>
     <div id="copyme" class="container-fluid">
         <div class="row">
-            <div>
-                <div>
-                    <p><b>Summary</b></p>
-                    <table class="table table-sm box-layout">
-                        <tr class="table-primary"><th>Team 1</th><th></th><th>Team 2</th></tr>
-                        <tr class="table-primary" style="line-height: 10px; "><th></th><th><font size="1">Army</font></th><th></th></tr>
-                        @if (@replay.GetArmyDiff().StartsWith("-"))
-                        {
-                            pldiffcolor = "badge-danger";
-                        }
-                        else
-                        {
-                            pldiffcolor = "badge-secondary";
-                        }
-                        <tr class="table-primary">
-                            <td><span class="badge badge-light">@(Math.Round((double)replay.GetArmy(0), 2))k</span></td>
-                            <td><span class="badge @pldiffcolor">@replay.GetArmyDiff()</span></td>
-                            <td><span class="badge badge-light">@(Math.Round((double)replay.GetArmy(1), 2))k</span></td>
-                        </tr>
-                        <tr class="table-primary" style="line-height: 10px; "><th></th><th><font size="1">Kills</font></th><th></th></tr>
-                        @if (@replay.GetKilledDiff().StartsWith("-"))
-                        {
-                            pldiffcolor = "badge-danger";
-                        }
-                        else
-                        {
-                            pldiffcolor = "badge-secondary";
-                        }
-                        <tr class="table-primary">
-                            <td><span class="badge badge-light">@(Math.Round((double)replay.GetKilled(0), 2))k</span></td>
-                            <td><span class="badge @pldiffcolor">@replay.GetKilledDiff()</span></td>
-                            <td><span class="badge badge-light">@(Math.Round((double)replay.GetKilled(1), 2))k</span></td>
-                        </tr>
-                        <tr class="table-primary" style="line-height: 10px; "><th></th><th><font size="1">Income</font></th><th></th></tr>
-                        @if (@replay.GetIncomeDiff().StartsWith("-"))
-                        {
-                            pldiffcolor = "badge-danger";
-                        }
-                        else
-                        {
-                            pldiffcolor = "badge-secondary";
-                        }
-                        <tr class="table-primary">
-                            <td><span class="badge badge-light">@(Math.Round((double)replay.GetIncome(0), 2))k</span></td>
-                            <td><span class="badge @pldiffcolor">@replay.GetIncomeDiff()</span></td>
-                            <td><span class="badge badge-light">@(Math.Round((double)replay.GetIncome(1), 2))k</span></td>
-                        </tr>
-                        <!--
-                        <tr class="table-primary" style="line-height: 10px; ">
-                            <th colspan="3"><font size="1">Kills</font></th>
-                        </tr>
-
-                            @if (replay.WINNER == 0)
-                            {
-                                <tr class="table-primary">
-                                    <td><span class="badge badge-light">@Math.Round((double)replay.MIDTEAMWINNER / (double)replay.DURATION * 100, 2) %</span></td>
-                                    <td>&lt;=&gt;</td>
-                                    <td><span class="badge badge-light">@Math.Round((double)replay.MIDTEAMSECOND / (double)replay.DURATION * 100, 2) %</span></td>
-                                </tr>
-                            }
-                            else
-                            {
-                                <tr class="table-primary">
-                                    <td><span class="badge badge-light">@Math.Round((double)replay.MIDTEAMSECOND / (double)replay.DURATION * 100, 2) %</span></td>
-                                    <td>&lt;=&gt;</td>
-                                    <td><span class="badge badge-light">@Math.Round((double)replay.MIDTEAMWINNER / (double)replay.DURATION * 100, 2) %</span></td>
-                                </tr>
-                            }
-                                -->
-                    </table>
-                </div>
-            </div>
             <div class="ml-4">
                 <div class="row">
                     <h4><span class="badge badge-secondary mr-2">ID @replay.ID</span></h4>
-                    <h4><span class="badge badge-secondary mr-2">Duration @replay.GetDuration() min</span></h4>
-                    <h4><span class="badge badge-secondary mr-2">Gametime @replay.GAMETIME.ToString().Substring(0, 8)</span></h4>
-                    @if (@replay.PLAYERS.Where(x => DSdata.Config.Players.Contains(x.NAME)).FirstOrDefault() != null)
+                    <h4><span class="badge badge-secondary mr-2">Duration @replay.DURATION.ToString(@"mm\:ss") min</span></h4>
+                    <h4><span class="badge badge-secondary mr-2">Gametime @replay.GAMETIME.ToString("yyyy/MM/dd")</span></h4>
+                    @if (replay.DSPlayer.FirstOrDefault(f => f.NAME.Length == 64) != null)
                     {
-                        <h4><span class="badge badge-secondary mr-2">Player POS @replay.PLAYERS.Where(x => DSdata.Config.Players.Contains(x.NAME)).FirstOrDefault().REALPOS</span></h4>
+                        <h4><span class="badge badge-secondary mr-2">Player POS @replay.DSPlayer.First(f => f.NAME.Length == 64).REALPOS</span></h4>
                     }
-                    <h4><span class="badge badge-secondary">MVP Player @replay.PLAYERS.Where(x => x.KILLSUM == replay.MAXKILLSUM).ToList().ElementAt(0).REALPOS</span></h4>
+                    <h4><span class="badge badge-secondary">MVP Player @replay.DSPlayer.Where(x => x.KILLSUM == replay.MAXKILLSUM).First().REALPOS</span></h4>
                 </div>
                 <div class="row">
                     @for (int i = 0; i < 2; i++)
@@ -118,22 +48,8 @@
                             <table class="table table-sm table-dark table-hover">
                                 <thead>
                                     <tr>
-                                        @if (replay.PLAYERS.Where(x => x.TEAM == i).FirstOrDefault() != null && replay.PLAYERS.Where(x => x.TEAM == i).FirstOrDefault().UNITS.ContainsKey(Breakpoint) && replay.PLAYERS.Where(x => x.TEAM == i).FirstOrDefault().UNITS[Breakpoint].ContainsKey("Mid"))
-                                        {
-                                            @if (replay.DURATION > BreakpointMid[Breakpoint])
-                                            {
-                                                <th colspan="2"><span class="badge badge-light">Mid @(Math.Round((double)replay.PLAYERS.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS).FirstOrDefault().UNITS[Breakpoint]["Mid"] * 100 / BreakpointMid[Breakpoint], 2))%</span></th>
-                                            }
-                                            else
-                                            {
-                                                <th colspan="2"><span class="badge badge-light">Mid @(Math.Round((double)replay.PLAYERS.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS).FirstOrDefault().UNITS[Breakpoint]["Mid"] * 100 / replay.DURATION, 2))%</span></th>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <th></th>
-                                            <th></th>
-                                        }
+                                        <th colspan="2"><h5><span class="badge badge-light">Mid @Mid[i]%</span></h5></th>
+
                                         <th>Build</th>
                                         <th>Cmdr</th>
                                         <th>Army</th>
@@ -143,15 +59,15 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (dsplayer pl in @replay.PLAYERS.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
+                                    @foreach (DSPlayer pl in replay.DSPlayer.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
                                     {
-                                        @if (DSdata.Config.Players.Contains(pl.NAME))
+                                        @if (pl.NAME.Length == 64)
                                         {
                                             PlayerClass = "table-primary";
                                         }
                                         else if (pl.KILLSUM == replay.MAXKILLSUM)
                                         {
-                                            PlayerClass = "table-secondary";
+                                            PlayerClass = "table-success";
                                         }
                                         else
                                         {
@@ -165,7 +81,7 @@
                                             <td>@(Math.Round((double)pl.ARMY / 1000, 2))k</td>
                                             <td>@(Math.Round((double)pl.KILLSUM / 1000, 2))k</td>
                                             <td>@(Math.Round((double)pl.INCOME / 1000, 2))k</td>
-                                            <td>@pl.GetDPV().ToString("0.00")</td>
+                                            <td>@Math.Round((double)pl.KILLSUM / (double)pl.ARMY, 2)</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -175,29 +91,30 @@
                 </div>
                 <div>
                     <div class="form-check  form-check-inline">
-                        <input class="form-check-input" type="radio" name="breakpoints" id="bp5" @onchange="@(() => Breakpoint = "MIN5")" />
+                        <input class="form-check-input" type="radio" name="breakpoints" id="bp5" @onchange="eventArgs => { BreakpointClick(DSdata.s_breakpoints[0], eventArgs.Value); }" />
                         <label class="form-check-label" for="bp5">
                             min5
                         </label>
                     </div>
                     <div class="form-check  form-check-inline">
-                        <input class="form-check-input" type="radio" name="breakpoints" checked id="bp10" @onchange="@(() => Breakpoint = "MIN10")" />
+                        <input class="form-check-input" type="radio" name="breakpoints" checked id="bp10" @onchange="eventArgs => { BreakpointClick(DSdata.s_breakpoints[1], eventArgs.Value); }" />
                         <label class="form-check-label" for="bp10">
                             min10
                         </label>
                     </div>
                     <div class="form-check  form-check-inline">
-                        <input class="form-check-input" type="radio" name="breakpoints" id="bp15" @onchange="@(() => Breakpoint = "MIN15")" />
+                        <input class="form-check-input" type="radio" name="breakpoints" id="bp15" @onchange="eventArgs => { BreakpointClick(DSdata.s_breakpoints[2], eventArgs.Value); }" />
                         <label class="form-check-label" for="bp15">
                             min15
                         </label>
                     </div>
                     <div class="form-check  form-check-inline">
-                        <input class="form-check-input" type="radio" name="breakpoints" id="bpall" @onchange="@(() => Breakpoint = "ALL")" />
+                        <input class="form-check-input" type="radio" name="breakpoints" id="bpall" @onchange="eventArgs => { BreakpointClick(DSdata.s_breakpoints[3], eventArgs.Value); }" />
                         <label class="form-check-label" for="bpall">
                             all
                         </label>
                     </div>
+                    <a href="@link">@link</a>
                 </div>
                 <div class="container-fluid" style="min-height: 594px !important;">
                     <div class="row">
@@ -205,7 +122,7 @@
                         {
                             if (BuildCheck[i] == true)
                             {
-                                dsplayer pl = replay.PLAYERS.Where(x => x.REALPOS == i).FirstOrDefault();
+                                DSPlayer pl = replay.DSPlayer.Where(x => x.REALPOS == i).FirstOrDefault();
                                 if (pl != null)
                                 {
                                     if (pl.TEAM == replay.WINNER)
@@ -218,13 +135,13 @@
                                     }
                                     <div>
                                         <h4><span class="badge @BuildPlayerClass">Build Player @i</span></h4>
-                                        @if (pl.UNITS.ContainsKey(Breakpoint) && pl.UNITS[Breakpoint].ContainsKey("Gas") && pl.UNITS[Breakpoint].ContainsKey("Upgrades"))
-                                        {
+                                            @if (pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Gas") != null && pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Upgrades") != null)
+                                            {
                                             <div class="row ml-2">
-                                                <span class="badge badge-light">Gas @pl.UNITS[Breakpoint]["Gas"]</span>
-                                                <span class="badge badge-light">Upgrades @pl.UNITS[Breakpoint]["Upgrades"]</span>
+                                                <span class="badge badge-light">Gas @pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Gas").Count</span>
+                                                <span class="badge badge-light">Upgrades @pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Upgrades").Count</span>
                                             </div>
-                                        }
+                                            }
                                         <table class="table table-sm table-dark">
                                             <thead>
                                                 <tr>
@@ -233,17 +150,14 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @if (pl.UNITS.ContainsKey(Breakpoint))
+                                                @foreach (var unit in pl.DSUnit.Where(x => x.BP == Breakpoint).OrderByDescending(o => o.Count))
                                                 {
-                                                    @foreach (var unit in pl.UNITS[Breakpoint].OrderByDescending(o => o.Value))
-                                                    {
-                                                        if (unit.Key == "Gas" || unit.Key == "Mid" || unit.Key == "Upgrades")
-                                                            continue;
-                                                        <tr>
-                                                            <td>@unit.Key</td>
-                                                            <td>@unit.Value</td>
-                                                        </tr>
-                                                    }
+                                                    if (unit.Name == "Gas" || unit.Name == "Mid" || unit.Name == "Upgrades")
+                                                        continue;
+                                                    <tr>
+                                                        <td>@BuildService.FixUnitName(unit.Name)</td>
+                                                        <td>@unit.Count</td>
+                                                    </tr>
                                                 }
                                             </tbody>
                                         </table>
@@ -257,11 +171,12 @@
             </div>
         </div>
     </div>
+    
 }
 
 @code {
     [Parameter]
-    public dsreplay replay { get; set; }
+    public DSReplay replay { get; set; }
 
     string TeamClass = "badge-primary";
     string PlayerClass = "table-primary";
@@ -272,21 +187,10 @@
     int replayid = 0;
     bool showDetails = false;
     bool showMap = false;
+    List<double> Mid = new List<double>() { 0, 0 };
+    string link = "";
 
-    static double MIN5 = 6720;
-    static double MIN10 = 13440;
-    static double MIN15 = 20160;
-
-    //static double MIN5 = 6240;
-    //static double MIN10 = 13440;
-    //static double MIN15 = 20640;
-
-    Dictionary<string, double> BreakpointMid = new Dictionary<string, double>()
-{
-        { "MIN5", MIN5 },
-        { "MIN10", MIN10 },
-        { "MIN15", MIN15 }
-    };
+    Dictionary<string, double> BreakpointMid = new Dictionary<string, double>(DSdata.BreakpointMid);
 
     protected override void OnInitialized()
     {
@@ -298,8 +202,9 @@
 
         if (replay != null)
         {
-            BreakpointMid.Add("ALL", replay.DURATION);
+            BreakpointMid["ALL"] = replay.DURATION.TotalSeconds * 22.4;
         }
+
     }
 
     object NewReplay()
@@ -309,16 +214,20 @@
         showMap = false;
         if (replay != null)
         {
-            BreakpointMid["ALL"] = replay.DURATION;
+            BreakpointMid["ALL"] = replay.DURATION.TotalSeconds * 22.4;
+            SetMid();
+
+            link = _nav.BaseUri;
+            link += "db/" + replay.ID;
         }
 
-        dsplayer pl = replay.PLAYERS.Where(x => DSdata.Config.Players.Contains(x.NAME)).FirstOrDefault();
+        DSPlayer pl = replay.DSPlayer.Where(x => x.NAME.Length == 64).FirstOrDefault();
         int plpos = 0;
         int opppos = 0;
         if (pl != null)
         {
             plpos = pl.REALPOS;
-            dsplayer opp = replay.GetOpp(plpos);
+            DSPlayer opp = replay.DSPlayer.FirstOrDefault(x => x.REALPOS == DBFunctions.GetOpp(pl.REALPOS));
             if (opp != null)
             {
                 opppos = opp.REALPOS;
@@ -335,9 +244,37 @@
         return null;
     }
 
-    void BreakpointClick(string bp)
+    void SetMid()
     {
-        Breakpoint = bp;
+
+        double bpmbp = BreakpointMid[Breakpoint];
+        if (bpmbp > BreakpointMid["ALL"])
+            bpmbp = BreakpointMid["ALL"];
+
+
+        DSPlayer mpl1 = replay.DSPlayer.FirstOrDefault(f => f.TEAM == 0);
+        if (mpl1 != null) {
+            DSUnit munit1 = mpl1.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Mid");
+            if (munit1 != null)
+                Mid[0] = Math.Round(munit1.Count * 100 / bpmbp, 2);
+        }
+        DSPlayer mpl2 = replay.DSPlayer.FirstOrDefault(f => f.TEAM == 1);
+        if (mpl2 != null)
+        {
+            DSUnit munit2 = mpl2.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Mid");
+            if (munit2 != null)
+                Mid[1] = Math.Round(munit2.Count * 100 / bpmbp, 2);
+        }
+    }
+
+    void BreakpointClick(string bp, object e)
+    {
+        if ((string)e == "on")
+        {
+            Breakpoint = bp;
+            SetMid();
+            StateHasChanged();
+        }
     }
 
     EventCallback ShowBuild(int pos)

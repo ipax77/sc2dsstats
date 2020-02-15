@@ -334,7 +334,7 @@ namespace sc2dsstats.lib.Data
                 FIL.Gametime -= fil_replays.Count;
             }
 
-            if (opt.Duration > 0)
+            if (opt.Duration > TimeSpan.Zero)
             {
                 string duration = opt.Duration.ToString();
                 string mod = duration.Substring(0, 1);

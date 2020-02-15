@@ -1,33 +1,37 @@
-﻿@using Microsoft.AspNetCore.Components;
-@using System.ComponentModel;
-@using sc2dsstats.lib.Models;
-@using sc2dsstats.lib.Data;
-@using sc2dsstats.decode.Models;
-@inject DSoptions _options
+﻿@using sc2dsstats.lib.Db
+@using sc2dsstats.lib.Models
+@using sc2dsstats.lib.Data
+@inject DSoptions  _options;
 @inject NavigationManager _nav
 
-<h3>Database</h3>
-<div class="row mb-2">
-    <button class="btn btn-secondary mr-3" @onclick="@ToggleFilter">Filter</button>
+<div class="mr-3">
+    @if (Loading)
+    {
+        <button class="btn btn-primary ml-1" disabled>
+            <span class="spinner-border spinner-border-sm"></span>
+            Database
+        </button>
+    }
+    else
+    {
+        <button class="btn btn-primary ml-4" disabled>
+            Database
+        </button>
+    }
 </div>
-<div class="@FilterClass" id="div_filter">
-    <div class="card card-body">
-        <sc2dsstats.shared.WebOptions />
-    </div>
-</div>
-<div class="container-fluid">
+
+<div>
     <div class="row">
-        <div class="w-50">
-            <div class="row">
-                @foreach (var opt in RepOpt.Opt.Keys)
-                {
-                    <div class="custom-control custom-checkbox ml-1 w-auto">
-                        <input type="checkbox" class="custom-control-input" name="cb_opt" id="cb_opt_@opt" @bind="@RepOpt.Opt[opt]" />
-                        <label class="custom-control-label" for="cb_opt_@opt">@opt</label>
-                    </div>
-                }
+        @foreach (var opt in RepOpt.Opt.Keys)
+        {
+            <div class="custom-control custom-checkbox ml-1 w-auto">
+                <input type="checkbox" class="custom-control-input" name="cb_opt" id="cb_opt_@opt" @bind="@RepOpt.Opt[opt]" />
+                <label class="custom-control-label" for="cb_opt_@opt">@opt</label>
             </div>
-            <h5>Total: @myReplays.Count() (@skip-@(take + skip))</h5>
+        }
+    </div>
+    <div class="row">
+        <div class="col-auto">
             <table class="table table-sm table-hover table-dark">
                 <thead>
                     <tr>
@@ -41,24 +45,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var ent in myReplays.Skip(skip).Take(take))
-                    {
-                        @if (replay_id == ent.ID)
+                    @if  (Loading == false) {
+                        @foreach (var ent in Replays)
                         {
-                            <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
-                                @foreach (var opt in RepOpt.Opt.Keys)
-                                {
-                                    if (RepOpt.Opt[opt] == true)
-                                    {
-                                        <td>@GetRepProperty(ent, opt)</td>
-                                    }
-                                }
-                            </tr>
-
-                        }
-                        else
-                        {
-                            <tr class="table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
+                            string rowclass = "sort-link";
+                            @if (RepId == ent.ID)
+                            {
+                                rowclass = "table-info";
+                            }
+                            <tr class="table-row @rowclass" @onclick="@(() => ShowGame(@ent.ID))">
                                 @foreach (var opt in RepOpt.Opt.Keys)
                                 {
                                     if (RepOpt.Opt[opt] == true)
@@ -71,388 +66,160 @@
                     }
                 </tbody>
             </table>
-            <div class="row">
-                <button class="btn btn-sm mr-1" @onclick="@Skip">&lt&lt</button>
-                <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
-            </div>
         </div>
-        <div class="w-auto mb-2">
-            <button class="btn btn-primary" @onclick="@DoFind">Find</button>
-            <button class="btn btn-primary mr-3" @onclick="@Reset">Reset</button>
-            <h5>Find</h5>
-            <div class="container-fluid">
-                @for (int i = 0; i < DBFindDic.Count(); i++)
-                {
-                    var ent = DBFindDic[i];
-                    ent.ID = i;
-                    <div class="row">
-                        @if (i > 0 && i == DBFindDic.Count() - 1)
-                        {
-                            <button class="btn btn-secondary btn-sm mr-2" style="max-height: 35px !important;" @onclick="@(() => @RemoveDBFind(ent.ID))">-</button>
-                        }
-                        <div class="form-group mr-1">
-                            <label for="filter_@i">
-                                Race @i
-                            </label>
-                            <select class="form-control w-auto" id="sel_@i" @bind="@ent.RACE">
-                                <option selected="selected"></option>
-                                @foreach (var opt in DSdata.s_races)
-                                {
-                                    <option value=@opt>@opt</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="form-group mr-1">
-                            <label for="filter_@i">
-                                vs Race @i
-                            </label>
-                            <select class="form-control w-auto" id="sel_@i" @bind="@ent.RACEVS">
-                                <option selected="selected"></option>
-                                @foreach (var opt in DSdata.s_races)
-                                {
-                                    <option value=@opt>@opt</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="custom-control custom-checkbox mr-1">
-                            <input type="checkbox" class="custom-control-input" name="cbfil_player_@i" id="cbfil_player_@i" @bind="@ent.PLAYER" />
-                            <label class="custom-control-label" for="cbfil_player_@i">Player</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div>
-                            <div class="custom-control custom-radio mr-1">
-                                <input type="radio" class="custom-control-input" name="cbfil_unit_@i" id="cbfil_unitGr_@i" checked="checked" @onchange="@(() => ent.UNITMOD = ">")" />
-                                <label class="custom-control-label" for="cbfil_unitGr_@i">&gt;</label>
-                            </div>
-                            <div class="custom-control custom-radio mr-1">
-                                <input type="radio" class="custom-control-input" name="cbfil_unit_@i" id="cbfil_unitEq_@i" @onchange="@(() => ent.UNITMOD = "=")" />
-                                <label class="custom-control-label" for="cbfil_unitEq_@i">=</label>
-                            </div>
-                            <div class="custom-control custom-radio mr-1">
-                                <input type="radio" class="custom-control-input" name="cbfil_unit_@i" id="cbfil_unitLo_@i" @onchange="@(() => ent.UNITMOD = "<")" />
-                                <label class="custom-control-label" for="cbfil_unitLo_@i">&lt;</label>
-                            </div>
-                        </div>
-                        <div>
-                            <!--
-                            <div class="input-group mr-1">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text" id="cbfil_unitL_@i">Unit</span>
-                                </div>
-                                <input type="text" class="form-control" placeholder="RaynorHyperion" name="cbfil_unit_@i" id="cbfil_unit_@i" aria-describedby="cbfil_unitL_@i" @bind="@ent.UNIT" />
-                            </div>
-                            -->
-                            <div>
-                                <!--<MatAutocomplete Collection="@DSdata.s_units" ItemType="string" @bind-Value="@ent.UNIT" Label="Unit"></MatAutocomplete>-->
-                                <input list="pasta" autocomplete=off @bind="@ent.UNIT">
-
-                                <datalist id="pasta">
-                                    @foreach (string unitname in DSdata.s_units)
-                                    {
-                                        <option>@unitname</option>
-                                    }
-                                </datalist>
-                            </div>
-                            <div class="input-group mr-1">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text" id="cbfil_unitCL_@i">Count</span>
-                                </div>
-                                <input type="number" class="form-control" name="cbfil_unitC_@i" id="cbfil_unitC_@i" aria-describedby="dbfil_unitCL_@i" @bind="@ent.UNITCOUNT" />
-                            </div>
-
-                        </div>
-                    </div>
-                }
-            </div>
-            <div>
-                <p>
-                    <button class="btn btn-secondary btn-sm" @onclick="@AddDBFind">+</button>
-                </p>
-            </div>
-            <!--
+        <div class="col-auto">
             <h5>Search</h5>
-            <div class="container-fluid">
-                @for (int i = 0; i < DBFilterDic.Count(); i++)
-                {
-                    var ent = DBFilterDic[i];
-                    <div class="form-group">
-                        <label for="filter_@i">
-                            Filter @i
-                        </label>
-                        <select class="form-control w-auto" id="sel_@i" @bind="@ent.Opt">
-                            @foreach (var opt in RepOpt.Opt.Keys)
-                            {
-                                <option value=@opt>@opt</option>
-                            }
-                        </select>
-                        <input type="text" name="Filter" id="filter_@i" @bind="ent.Value" class="w-auto" />
-                    </div>
-                }
-            </div>
-            <div>
-                <p>
-                    <button class="btn btn-secondary btn-sm" @onclick="@AddDBFilter">+</button>
-                </p>
-            </div>
-            -->
         </div>
     </div>
 </div>
-<br />
-<sc2dsstats.shared.WebGame replay="replay" />
+<div class="row">
+    <button class="btn btn-sm mr-1" @onclick="@Skip">&lt&lt</button>
+    <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
+</div>
+
+
+<div class="@GameClass" id="RepId">
+    <WebGame replay="replay" />
+
+</div>
 
 @code {
     [Parameter]
-    public int RepId { get; set; }
+    public int RepId { get; set; } = 0;
 
-    private string GameClass = "colapsed";
-    private dsreplay replay;
-    int skip = 0;
-    int take = 12;
-    string last = "";
-    bool chart = false;
-    IEnumerable<dsreplay> myReplays;
-    int replay_id = 0;
-    ReplayOptions RepOpt = new ReplayOptions();
-    string FilterClass => _options.Filter ? null : "collapse";
-    string ladderstring = "";
+    private DSReplay replay;
+    private int skip = 0;
+    private string GameClass = "collapse";
+    private bool Loading = true;
+    private ReplayOptions RepOpt = new ReplayOptions();
+    private string lastsortid = "";
 
-    public class DBFilter
+    List<DSReplay> Replays = new List<DSReplay>();
+
+    const int take = 12;
+
+    protected override async Task OnInitializedAsync()
     {
-        public string Value { get; set; } = "";
-        public string Opt { get; set; } = "Filter1";
-    }
-    Dictionary<int, DBFilter> DBFilterDic;
-    Dictionary<int, DBFind> DBFindDic;
+        _options.DefaultFilter();
+        _options.Mode = "Database";
 
-    protected override void OnInitialized()
-    {
-        DBFilterDic = new Dictionary<int, DBFilter>();
-        DBFilterDic.Add(0, new DBFilter());
-        DBFindDic = new Dictionary<int, DBFind>();
-        DBFindDic.Add(0, new DBFind());
-        myReplays = new List<dsreplay>(DSdata.Replays.OrderByDescending(o => o.GAMETIME));
-        if (RepId == null || RepId == 0)
-            RepId = myReplays.First().ID;
-
-        ShowGame(RepId);
-
-        _options.PropertyChanged += OptionChanged;
-    }
-
-    void Skip()
-    {
-        skip -= 12;
-        if (skip < 0 || take < 0)
+        using (var context = new DSReplayContext())
         {
-            skip = 0;
-            take = 12;
+            Replays = context.DSReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList();
         }
-    }
-
-    void Take()
-    {
-        skip += 12;
-    }
-
-    void ToggleFilter()
-    {
-        _options.Filter = !_options.Filter;
-    }
-
-    void Chart()
-    {
-        if (chart == true) { chart = false; }
+        if (RepId > 0)
+            ShowGame(RepId, true);
         else
         {
-            if (_options.Interest != "") { _options.Icons = 1; }
-            chart = true;
+            ShowGame(16752, true);
+            /*
+            var uri = new Uri(_nav.Uri);
+            var fragment = uri.Fragment;
+            int id = 0;
+            int.TryParse(fragment, out id);
+            if (id > 0) {
+                RepId = id;
+                ShowGame(RepId);
+            }
+            
+            */
         }
-    }
-
-    void Reset()
-    {
-        skip = 0;
-        take = 12;
-        DBFilterDic = new Dictionary<int, DBFilter>();
-        DBFilterDic.Add(0, new DBFilter());
-        DBFindDic = new Dictionary<int, DBFind>();
-        DBFindDic.Add(0, new DBFind());
-        myReplays = new List<dsreplay>(DSdata.Replays);
-    }
-
-    void AddDBFilter()
-    {
-        int nk = -1;
-        try
-        {
-            nk = DBFilterDic.Keys.OrderByDescending(x => x).First();
-        }
-        catch { }
-        DBFilterDic.Add(nk + 1, new DBFilter());
-    }
-
-    void AddDBFind()
-    {
-        int nk = -1;
-        try
-        {
-            nk = DBFindDic.Keys.OrderByDescending(x => x).First();
-        }
-        catch { }
-        DBFindDic.Add(nk + 1, new DBFind());
-    }
-
-    void RemoveDBFind(int i)
-    {
-        DBFindDic.Remove(i);
-    }
-
-    string GetRepProperty(dsreplay rep, string prop)
-    {
-        return rep.GetType().GetProperty(prop).GetValue(rep, null).ToString();
+        Loading = false;
     }
 
     public async void SortReps(string id)
     {
-        if (last == id)
+        Loading = true;
+
+        using (var context = new DSReplayContext())
         {
-            myReplays = myReplays.OrderByDescending(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
-            last = "";
+            if (id == lastsortid)
+            {
+                Replays = id switch
+                {
+                    "ID" => context.DSReplays.OrderByDescending(o => o.ID).Take(take).ToList(),
+                    "REPLAY" => context.DSReplays.OrderByDescending(o => o.REPLAY).Take(take).ToList(),
+                    "GAMETIME" => context.DSReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList(),
+                    "WINNER" => context.DSReplays.OrderByDescending(o => o.WINNER).Take(take).ToList(),
+                    "DURATION" => context.DSReplays.OrderByDescending(o => o.DURATION).Take(take).ToList(),
+                    "MAXLEAVER" => context.DSReplays.OrderByDescending(o => o.MAXLEAVER).Take(take).ToList(),
+                    "MINKILLSUM" => context.DSReplays.OrderByDescending(o => o.MINKILLSUM).Take(take).ToList(),
+                    "MININCOME" => context.DSReplays.OrderByDescending(o => o.MININCOME).Take(take).ToList(),
+                    "MINARMY" => context.DSReplays.OrderByDescending(o => o.MINARMY).Take(take).ToList(),
+                    "PLAYERCOUNT" => context.DSReplays.OrderByDescending(o => o.PLAYERCOUNT).Take(take).ToList(),
+                    "GAMEMODE" => context.DSReplays.OrderByDescending(o => o.GAMEMODE).Take(take).ToList(),
+                    _ => context.DSReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList()
+                };
+                lastsortid = "";
+            } else
+            {
+                Replays = id switch
+                {
+                    "ID" => context.DSReplays.OrderBy(o => o.ID).Take(take).ToList(),
+                    "REPLAY" => context.DSReplays.OrderBy(o => o.REPLAY).Take(take).ToList(),
+                    "GAMETIME" => context.DSReplays.OrderBy(o => o.GAMETIME).Take(take).ToList(),
+                    "WINNER" => context.DSReplays.OrderBy(o => o.WINNER).Take(take).ToList(),
+                    "DURATION" => context.DSReplays.OrderBy(o => o.DURATION).Take(take).ToList(),
+                    "MAXLEAVER" => context.DSReplays.OrderBy(o => o.MAXLEAVER).Take(take).ToList(),
+                    "MINKILLSUM" => context.DSReplays.OrderBy(o => o.MINKILLSUM).Take(take).ToList(),
+                    "MININCOME" => context.DSReplays.OrderBy(o => o.MININCOME).Take(take).ToList(),
+                    "MINARMY" => context.DSReplays.OrderBy(o => o.MINARMY).Take(take).ToList(),
+                    "PLAYERCOUNT" => context.DSReplays.OrderBy(o => o.PLAYERCOUNT).Take(take).ToList(),
+                    "GAMEMODE" => context.DSReplays.OrderBy(o => o.GAMEMODE).Take(take).ToList(),
+                    _ => context.DSReplays.OrderBy(o => o.GAMETIME).Take(take).ToList()
+                };
+                lastsortid = id;
+            }
         }
-        else
-        {
-            myReplays = myReplays.OrderBy(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
-            last = id;
-        }
+        skip = 0;
+        Loading = false;
     }
 
-    void DoFind()
+    string GetRepProperty(DSReplay rep, string prop)
     {
-        myReplays = new List<dsreplay>(DSdata.Replays.OrderByDescending(o => o.GAMETIME));
-
-        foreach (var dic in DBFindDic.Keys)
-        {
-            var ent = DBFindDic[dic];
-
-            if (ent.RACE.Length > 0)
-            {
-                if (ent.PLAYER == false)
-                {
-                    myReplays = myReplays.Where(x => x.RACES.Contains(ent.RACE));
-                }
-                else
-                {
-                    myReplays = myReplays.Where(x => x.PLAYERS.Exists(y => DSdata.Config.Players.Contains(y.NAME) && y.RACE == ent.RACE));
-                }
-            }
-
-            if (ent.RACE.Length > 0 && ent.RACEVS.Length > 0)
-            {
-                if (ent.PLAYER == false)
-                {
-                    myReplays = myReplays.Where(x => x.PLAYERS.Exists(y => y.RACE == ent.RACE && x.GetOpp(y.REALPOS).RACE == ent.RACEVS));
-                }
-                else
-                {
-                    myReplays = myReplays.Where(x => x.PLAYERS.Exists(y => DSdata.Config.Players.Contains(y.NAME) && y.RACE == ent.RACE && x.GetOpp(y.REALPOS).RACE == ent.RACEVS));
-                }
-            }
-
-            if (ent.UNIT.Length > 0)
-            {
-                if (ent.UNITMOD == ">")
-                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS.ContainsKey("ALL") && y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] > ent.UNITCOUNT).Count() > 0).ToList();
-                else if (ent.UNITMOD == "=")
-                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS.ContainsKey("ALL") && y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] == ent.UNITCOUNT).Count() > 0).ToList();
-                else if (ent.UNITMOD == "<")
-                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS.ContainsKey("ALL") && y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] < ent.UNITCOUNT).Count() > 0).ToList();
-            }
-        }
-
+        return rep.GetType().GetProperty(prop).GetValue(rep, null).ToString();
     }
 
-    private async void OptionChanged(object sender, PropertyChangedEventArgs e)
+    void ShowGame(int repid, bool isInit = false)
     {
-        if (_options.DOIT == true)
-        {
-            if (e.PropertyName == "Filter") { StateHasChanged(); }
-            else
-            {
-                (myReplays, _) = DBfilter.Filter(DSdata.Replays, _options);
-                myReplays = myReplays.OrderByDescending(o => o.GAMETIME);
-            }
-        }
-    }
-
-    public async Task ShowGame(int repid)
-    {
-        GameClass = "null";
-        replay = myReplays.Where(x => x.ID == repid).FirstOrDefault();
+        GameClass = String.Empty;
+        replay = DBService.GetReplay(repid);
         if (replay != null)
         {
-            replay_id = replay.ID;
-            string cururi = _nav.Uri;
-            while (char.IsNumber(cururi.Last()))
-                cururi = cururi.Remove(cururi.Length - 1);
-            if (cururi.Last() == '/')
-                cururi = cururi.Remove(cururi.Length - 1);
-            _nav.NavigateTo(cururi + "/" + replay.ID);
-            RepId = replay_id;
-            //ladderstring = await GetReplayString(replay);
+            if (isInit == false)
+            {
+                string cururi = _nav.Uri;
+                while (char.IsNumber(cururi.Last()))
+                    cururi = cururi.Remove(cururi.Length - 1);
+                if (cururi.Last() == '/')
+                    cururi = cururi.Remove(cururi.Length - 1);
+                _nav.NavigateTo(cururi + "/" + replay.ID);
+                RepId = replay.ID;
+            }
         }
     }
 
-
-    public void Dispose()
+    void Skip()
     {
-        _options.PropertyChanged -= OptionChanged;
-    }
-
-
-    async Task<string> GetReplayString(dsreplay game)
-    {
-        string result1 = "";
-        string result2 = "";
-        string result = "unknown";
-        if (game != null)
+        skip -= take;
+        if (skip < 0)
+            skip = 0;
+        Loading = true;
+        using (var context = new DSReplayContext())
         {
-            await Task.Run(() =>
-            {
-                foreach (dsplayer player in game.PLAYERS.OrderBy(o => o.REALPOS))
-                {
-                    if (player.REALPOS <= game.PLAYERCOUNT / 2)
-                    {
-                        result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                        if (player.REALPOS != game.PLAYERCOUNT / 2)
-                        {
-                            result1 += ", ";
-                        }
-                    }
-                    else if (player.REALPOS > game.PLAYERCOUNT / 2)
-                    {
-                        result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
-                        if (player.REALPOS != game.PLAYERCOUNT)
-                        {
-                            result2 += ", ";
-                        }
-
-                    }
-                }
-            });
-
-
-            if (game.WINNER == 0)
-            {
-                result = result1 + " vs " + result2;
-            }
-            else if (game.WINNER == 1)
-            {
-                result = result2 + " vs " + result1;
-            }
+            Replays = context.DSReplays.OrderBy(o => o.GAMETIME).Skip(skip).Take(take).ToList();
         }
-        return result;
+        Loading = false;
     }
 
+    void Take()
+    {
+        skip += take;
+        Loading = true;
+        using (var context = new DSReplayContext())
+        {
+            Replays = context.DSReplays.OrderBy(o => o.GAMETIME).Skip(skip).Take(take).ToList();
+        }
+        Loading = false;
+    }
 }

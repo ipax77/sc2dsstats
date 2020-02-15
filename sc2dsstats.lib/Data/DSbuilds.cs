@@ -242,7 +242,7 @@ namespace sc2dsstats.lib.Data
                     if (WINS.ContainsKey(bp) && WINS[bp].ContainsKey(cmdr) && WINS[bp][cmdr].ContainsKey("ALL") &&
                         GAMES.ContainsKey(bp) && GAMES[bp].ContainsKey(cmdr) && GAMES[bp][cmdr].ContainsKey("ALL"))
                     {
-                        gwr = DSstats.GenWr(WINS[bp][cmdr]["ALL"], GAMES[bp][cmdr]["ALL"]);
+                        gwr = DSDbStats.GenWr(WINS[bp][cmdr]["ALL"], GAMES[bp][cmdr]["ALL"]);
                     }
                     double gdur = 0;
                     if (DURATION.ContainsKey(bp) && DURATION[bp].ContainsKey(cmdr) && DURATION[bp][cmdr].ContainsKey("ALL"))
@@ -285,7 +285,7 @@ namespace sc2dsstats.lib.Data
                         if (WINS.ContainsKey(bp) && WINS[bp].ContainsKey(cmdr) && WINS[bp][cmdr].ContainsKey(vs) &&
                             GAMES.ContainsKey(bp) && GAMES[bp].ContainsKey(cmdr) && GAMES[bp][cmdr].ContainsKey(vs))
                         {
-                            wr = DSstats.GenWr(WINS[bp][cmdr][vs], GAMES[bp][cmdr][vs]);
+                            wr = DSDbStats.GenWr(WINS[bp][cmdr][vs], GAMES[bp][cmdr][vs]);
                         }
                         double dur = 0;
                         if (DURATION.ContainsKey(bp) && DURATION[bp].ContainsKey(cmdr) && DURATION[bp][cmdr].ContainsKey(vs))
