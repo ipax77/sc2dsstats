@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using sc2dsstats.lib.Data;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.web.Controllers
 {

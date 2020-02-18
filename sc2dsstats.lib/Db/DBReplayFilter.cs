@@ -1,11 +1,9 @@
-﻿using sc2dsstats.lib.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using System.Linq;
-using sc2dsstats.lib.Models;
 
 namespace sc2dsstats.lib.Db
 {
@@ -50,28 +48,28 @@ namespace sc2dsstats.lib.Db
                                 ;
                 else
                     if (options.Leaver > 0)
-                        filReplays = replays
-                                .Where(x => x.DURATION > options.Duration)
-                                .Where(x => x.MAXLEAVER < options.Leaver)
-                                .Where(x => x.MINARMY > options.Army)
-                                .Where(x => x.MININCOME > options.Income)
-                                .Where(x => x.MINKILLSUM > options.Kills)
-                                .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
-                                .Where(x => Gamemodes.Contains(x.GAMEMODE))
-                                .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
-                                //.ToArray()
-                                ;
-                    else
-                        filReplays = replays
-                                .Where(x => x.DURATION > options.Duration)
-                                .Where(x => x.MINARMY > options.Army)
-                                .Where(x => x.MININCOME > options.Income)
-                                .Where(x => x.MINKILLSUM > options.Kills)
-                                .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
-                                .Where(x => Gamemodes.Contains(x.GAMEMODE))
-                                .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
-                                //.ToArray()
-                                ;
+                    filReplays = replays
+                            .Where(x => x.DURATION > options.Duration)
+                            .Where(x => x.MAXLEAVER < options.Leaver)
+                            .Where(x => x.MINARMY > options.Army)
+                            .Where(x => x.MININCOME > options.Income)
+                            .Where(x => x.MINKILLSUM > options.Kills)
+                            .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
+                            .Where(x => Gamemodes.Contains(x.GAMEMODE))
+                            .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
+                            //.ToArray()
+                            ;
+                else
+                    filReplays = replays
+                            .Where(x => x.DURATION > options.Duration)
+                            .Where(x => x.MINARMY > options.Army)
+                            .Where(x => x.MININCOME > options.Income)
+                            .Where(x => x.MINKILLSUM > options.Kills)
+                            .Where(x => x.PLAYERCOUNT >= options.PlayerCount)
+                            .Where(x => Gamemodes.Contains(x.GAMEMODE))
+                            .Where(x => x.DSPlayer.FirstOrDefault(s => s.RACE == options.Interest) != null)
+                            //.ToArray()
+                            ;
             }
             else
                 filReplays = replays;
@@ -80,11 +78,11 @@ namespace sc2dsstats.lib.Db
                 filReplays = filReplays.Where(x => x.GAMETIME >= options.Startdate);
             if (options.Enddate != default(DateTime))
                 filReplays = filReplays.Where(x => x.GAMETIME <= options.Enddate);
-            
-            if (!String.IsNullOrEmpty(options.Dataset))
+
+            if (options.Dataset.Any() && options.db.Database.IsMySql())
             {
                 filReplays = filReplays
-                    .Where(x => x.DSPlayer.Select(s => s.NAME).Contains(options.Dataset));
+                    .Where(x => x.DSPlayer.Select(s => s.NAME).Contains(options.Dataset.First()));
             }
             return filReplays;
         }

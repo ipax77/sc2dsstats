@@ -1,0 +1,368 @@
+﻿@page "/buildarea"
+@page "/buildarea/{PlayerID:long}"
+@using System.Numerics;
+@using paxgamelib;
+@using paxgamelib.Data;
+@using paxgamelib.Models;
+@using paxgamelib.Service;
+@using sc2dsstats.desktop.Data
+@using sc2dsstats.desktop.Service
+@inject Refresh _refresh
+@inject IJSRuntime JsRuntime
+@implements IDisposable
+
+<head>
+    <link href="_content/sc2dsstats.shared/css/BuildArea.razor.css" rel="stylesheet" />
+</head>
+
+@if (locked == false)
+{
+<div class="container-fluid sticky-top">
+    <div class="row justify-content-between">
+        <div class="col" style="width: 120px !important; height: 80px !important;">
+            @if (container != null)
+            {
+                string Info = "Buy unit";
+                if (container.Status != UnitStatuses.Available)
+                    Info = "Replace/Sell";
+                <div>
+                    <span class="badge badge-info">@Info</span>
+                </div>
+                CSSClass.cursorclass = "cursor" + container.Name.ToLower();
+                <div class="rounded border unitcontainerclass" title="@container.Name">
+                    <p>@container.Name @container.Cost</p>
+                    <img src="_content/sc2dsstats.shared/@container.Image" />
+                </div>
+            }
+        </div>
+    </div>
+</div>
+}
+<h5>Build<button class="btn btn-sm button-secondary ml-5 mr-1" @onclick="@(() => ShowHideAvailables_bool = !ShowHideAvailables_bool)">Show/Hide Build</button><button class="btn btn-sm button-secondary mr-1" @onclick="@(() => ShowHideAvailableUpdates_bool = !ShowHideAvailableUpdates_bool)">Show/Hide Updates</button></h5>
+<div class="container-fluid">
+    @if (ShowHideInfo_bool == true)
+    {
+    <div>
+        <div class="row">
+            @foreach (UnitUpgrade uupgrade in _player.Upgrades)
+            {
+                UnitUpgrades upgrade = uupgrade.Upgrade;
+                <div class="rounded border p-2 m-2 unitclass" title="@upgrade">
+                    @upgrade
+                </div>
+            }
+        </div>
+        <div class="row">
+            @foreach (UnitAbility ability in _player.AbilityUpgrades)
+            {
+                <div class="rounded border p-2 m-2 unitclass" title="@ability.Ability">
+                    @ability.Ability
+                    <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @ability.Cost
+                </div>
+            }
+        </div>
+    </div>
+    }
+    @if (ShowHideAvailables_bool == true)
+    {
+    <div style="position: sticky !important; left: 10px !important;">
+    
+    @if (ShowHideAvailableUpdates_bool == true && locked == false)
+    {
+        <div>
+            <h5>Upgrades available</h5>
+            <div class="row">
+                @foreach (UnitUpgrades upgrade in _player.UpgradesAvailable)
+                {
+                    (int cost, int lvl) = UnitService.GetUpgradeCost(upgrade, _player);
+                    <div>
+                        @if (_player.MineralsCurrent < cost)
+                        {
+                            <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@upgrade">
+                                @upgrade
+                                Lvl @lvl <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @cost
+                            </div>
+                        }
+                        else if (lvl <= 3 && _player.Tier >= lvl)
+                        {
+                            <div class="rounded border p-2 m-2 unitclass" title="@upgrade" @onclick="@(() => _player.MineralsCurrent -= UnitService.UpgradeUnit(upgrade, _player))">
+                                @upgrade
+                                Lvl @lvl <img class="m-0 p-0" src="_content/sc2dsstats.shared/images/pax_mins.png" /> @cost
+                            </div>
+                        }
+                        else if (lvl == 4)
+                        {
+                            <div class="rounded border p-2 m-2 unitclass_researched" title="@upgrade">
+                                @upgrade
+                                Lvl 3
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="rounded border p-2 m-2 unitclass_availablesoon" title="@upgrade">
+                                @upgrade
+                                Lvl @lvl <img class="m-0 p-0" src="_content/sc2dsstats.shared/images/pax_mins.png" /> @cost
+                            </div>
+                        }
+                    </div>
+                }
+
+            </div>
+            <h5>Ability Upgrades</h5>
+            <div class="row">
+                @foreach (UnitAbility ability in AbilityPool.AbilitiesAvailable[_player.Race].Where(x => x.Tier <= _player.Tier && x.Ability != UnitAbilities.Tier2))
+                {
+                    @if (_player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) != null)
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_researched" title="@ability.Ability">
+                            @ability.Ability
+                            <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @ability.Cost
+                        </div>
+                    }
+                    else if (!_player.AbilityUpgradesAvailable.Contains(ability.Ability) && ability.Ability != UnitAbilities.Tier2 && ability.Ability != UnitAbilities.Tier3)
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_availablesoon" title="@ability.Ability">
+                            @ability.Ability
+                            <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @ability.Cost
+                        </div>
+                    }
+                    else if (ability.Cost > 0 && (_player.AbilityUpgradesAvailable.Contains(ability.Ability) || ability.Ability == UnitAbilities.Tier2 || ability.Ability == UnitAbilities.Tier3) && _player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) == null)
+                    {
+                        <div>
+                            @if (_player.MineralsCurrent < ability.Cost)
+                            {
+                                <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@ability.Ability">
+                                    @ability.Ability
+                                    <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @ability.Cost
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="rounded border p-2 m-2 unitclass" title="@ability.Ability" @onclick="@(() => _player.MineralsCurrent -= UnitService.AbilityUpgradeUnit(ability, _player))">
+                                    @ability.Ability
+                                    <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @ability.Cost
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+    <h5>Available Units</h5>
+    <div class="row">
+        @foreach (Unit unit in _player.Units.Where(x => x.Status == UnitStatuses.Available))
+        {
+            @if (_player.MineralsCurrent < unit.Cost)
+            {
+                <div class="px-2 mx-2" @ondblclick="@(() => OpenDialog(unit))">
+                    <div class="rounded border border-primary p-2 m-2 unitclass_notenoughmoney" title="@unit.Name">
+                        @unit.Name<br>
+                        <img src="_content/sc2dsstats.shared/@unit.Image" width="20" height="20" style="background-color: #a6a4ca;" /> <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @unit.Cost
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="rounded border p-2 m-2 unitclass" @onclick="@(() => container = unit)" @ondblclick="@(() => OpenDialog(unit))">
+                    <div title="@unit.Name">
+                        @unit.Name<br>
+                        <img src="_content/sc2dsstats.shared/@unit.Image" width="20" height="20" style="background-color: #a6a4ca;" /> <img src="_content/sc2dsstats.shared/images/pax_mins.png" /> @unit.Cost
+                    </div>
+                </div>
+            }
+        }
+            <div>
+                <h5>Sell Unit(s)</h5>
+                <div class="unitsell ml-3" @onclick="@(() => SellUnit())">
+
+                </div>
+            </div>
+      </div>
+
+    </div>
+    }
+    <h5>Build area <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span><span class="badge badge-info">Value: @_player.Units.Where(x => x.Status != UnitStatuses.Available).Sum(s => s.Cost)</span></h5>
+    <div class="position-absolute @CSSClass.buildareaclass @CSSClass.cursorclass @CSSClass.rotateclass" id="BuildArea" @onmousedown="@BuildAreaClick">
+        <div class="no-gutters buildarea_layer">
+            @foreach (Unit unit in _player.Units.Where(x => x.Status != UnitStatuses.Available))
+            {
+                var relpos = GetRelPos(unit);
+            <div class="position-absolute d-inline-block unitimage @CSSClass.rotateclass" style="margin-left: @(relpos.Key)px; margin-top: @(relpos.Value)px;" @onclick="@(() => container = unit)">
+                @if (unit.Image == "images/pax_na_tiny.png")
+                {
+                    <div style="max-height: 20px; max-width: 20px;">
+                        <p style="transform: rotate(-45deg);"><small><font color="black">@unit.Name</font></small></p>
+                    
+                    </div>
+                }
+                else
+                {
+                    <img src="_content/sc2dsstats.shared/@unit.Image" />
+                }
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public long PlayerID { get; set; } = 0;
+
+    [Parameter]
+    public bool locked { get; set; } = false;
+
+    Player _player;
+    Unit container;
+    bool ShowHideInfo_bool = false;
+    bool ShowHideAvailables_bool = true;
+    bool ShowHideAvailableUpdates_bool = true;
+    bool ShowHideAvailableUnits_bool = true;
+
+    BACSSClass CSSClass = new BACSSClass();
+    ILibData _store = LibData.Instance;
+
+    protected override void OnInitialized()
+    {
+        if (locked == true)
+        {
+            ShowHideInfo_bool = true;
+            ShowHideAvailables_bool = false;
+            CSSClass.rotateclass = "buildrotate";
+        }
+
+        if (PlayerID == 0)
+        {
+            _player = new Player();
+            _player.Name = "Player#1";
+            _player.Pos = 1;
+            _player.ID = paxgame.GetPlayerID();
+            _player.Race = UnitRace.Terran;
+            _player.inGame = true;
+            _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _player.Race && x.Cost > 0));
+            _player.Game = new GameHistory();
+            _player.Game.ID = paxgame.GetGameID();
+            _player.MineralsCurrent = 1500;
+        } else
+        {
+            _player = _store.GetPlayer((ulong)PlayerID);
+        }
+
+
+        _refresh.PropertyChanged += Update;
+    }
+
+    public KeyValuePair<float, float> GetRelPos(Unit unit)
+    {
+        Vector2 pos = unit.PlacePos;
+        float distance_left = pos.Y;
+        float distance_top = pos.X;
+        // 60 => 1200
+        // 20 => 400
+
+        float distance_left_percent = distance_left * 40;
+        float distance_top_percent = distance_top * 40;
+
+        return new KeyValuePair<float, float>(distance_top_percent, distance_left_percent);
+    }
+
+    public async void BuildAreaClick(MouseEventArgs e)
+    {
+        if (locked == true)
+            return;
+        string areaPos = await GetBuildAreaPos();
+        Unit unit = BuildAreaService.ClickHandler(_player, e.ClientX, e.ClientY, areaPos, container, _player.Units);
+        if (unit != null)
+        {
+            // Buy unit
+            if (unit.Status == UnitStatuses.Available)
+            {
+                if (_player.MineralsCurrent >= unit.Cost)
+                {
+                    UnitService.NewUnit(_player, unit);
+                    _player.MineralsCurrent -= unit.Cost;
+                    _player.Units.Add(unit);
+                    CSSClass.buildareaclass = "buildarea_success";
+                }
+                else
+                {
+                    CSSClass.buildareaclass = "buildarea_failed";
+                    container = null;
+                    CSSClass.cursorclass = "";
+                }
+
+            }
+            // Replace Unit
+            else
+            {
+                container = unit;
+            }
+        }
+        else
+        {
+            container = null;
+            CSSClass.cursorclass = "";
+        }
+        StateHasChanged();
+    }
+
+    public void SellUnit()
+    {
+        if (container == null)
+        {
+            // todo help message/dialog
+            //throw new NotImplementedException();
+        }
+        else
+        {
+            if (container.Ownerplayer != _player)
+            {
+                container = null;
+                CSSClass.cursorclass = "";
+                return;
+            }
+            if (container.Status == UnitStatuses.Placed)
+            {
+                _player.MineralsCurrent += container.Cost;
+                _player.Units.Remove(container);
+                container = null;
+                CSSClass.cursorclass = "";
+            }
+            else if (container.Status == UnitStatuses.Spawned)
+            {
+                _player.MineralsCurrent += (int)(container.Cost * 0.66);
+                _player.Units.Remove(container);
+                container = null;
+                CSSClass.cursorclass = "";
+            }
+            else
+            {
+                container = null;
+                CSSClass.cursorclass = "";
+            }
+        }
+    }
+
+    void OpenDialog(Unit unit)
+    {
+
+    }
+
+    public void Update(object sender, EventArgs e)
+    {
+        _player = _store.GetPlayer((ulong)_player.ID);
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public async Task<string> GetBuildAreaPos()
+    {
+        return await JsRuntime.InvokeAsync<string>("getPosition");
+    }
+
+    public void Dispose()
+    {
+        _refresh.PropertyChanged -= Update;
+    }
+}

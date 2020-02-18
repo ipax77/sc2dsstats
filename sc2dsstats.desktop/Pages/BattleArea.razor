@@ -1,0 +1,143 @@
+﻿@page "/battlearea"
+@page "/battlearea/{GameID:long}/{PlayerID:long}"
+@using paxgamelib.Models
+@using paxgamelib.Service
+@using sc2dsstats.desktop.Data
+@using System.Numerics;
+@inject Refresh _refresh
+@inject IJSRuntime JsRuntime
+
+<style>
+    @@viewport {
+        max-width: 1600px !important;
+    }
+
+    .unitimage {
+         text-align: center;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         position: absolute;
+    }
+
+    .startmsg {
+        color: darkblue;
+        animation-name: startmsg;
+        animation-duration: 4s;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+
+    @@keyframes startmsg {
+        0% {
+            transform: scale(0.5);
+            opacity: 1
+        }
+        50% {
+            transform: scale(1.0);
+            opacity: 1
+        }
+        100% {
+            transform: scale(2.0);
+            opacity: 0
+        }
+    }
+
+    @_game.Style
+</style>
+
+<div class="container-fluid overflow-hidden" style="height: 100vh;">
+    <div class="h-100 flex-grow-1 position-relative overflow-hidden" style="background-color: #a6a4ca;">
+        <button class="btn btn-sm btn-secondary mr-2" @onclick="FullScreen">Fullscreen</button>
+        @foreach (Unit unit in _game.Units)
+        {
+            string color = "rgba(255, 0, 0, 0.1)";
+            @if (unit.Attributes.Contains(UnitAttributes.Neutral))
+            {
+                color = "";
+            }
+            else if (unit.Owner > 3)
+            {
+                color = "rgba(0, 0, 255, 0.1)";
+            }
+            if (Colorize == false)
+            {
+                <div class="@("m" + unit.ID + "t") position-absolute">
+                    <img class="unitimage" src="_content/sc2dsstats.shared/@GameService.GetPicture(unit.Image, unit.Owner)" />
+                </div>
+            }
+            else
+            {
+                <div class="@("m" + unit.ID + "t") position-absolute">
+                    <img class="unitimage" src="_content/sc2dsstats.shared/@GameService.GetPicture(unit.Image, unit.Owner)" style="border-radius: 50% !important; background: @color  !important;" />
+                </div>
+
+            }
+        }
+        <div class="position-absolute" style="top: @(Def1.Key)%; left: @(Def1.Value)%;">
+            <img src="_content/sc2dsstats.shared/images/pax_cc.png" style="width: 40px; height: 40px;" />
+        </div>
+        <div class="position-absolute" style="top: @(Def2.Key)%; left: @(Def2.Value)%;">
+            <img src="_content/sc2dsstats.shared/images/pax_cc.png" style="width: 40px; height: 40px;" />
+        </div>
+        <div class="position-absolute rounded" style="top: 10vh; left: 5vw; width: 6vw; height: 20vh;">
+            <font color="black">Army Shield HP</font>
+            <div class="row border-right border-danger">
+                <div class="ArmyTeamOne rounded mr-2">
+                </div>
+                <div class="SPDefOne rounded">
+                </div>
+                <div class="HPDefOne rounded">
+                </div>
+            </div>
+        </div>
+        <div class="position-absolute rounded" style="top: 10vh; left: 85vw; width: 6vw; height: 20vh;">
+            <font color="black">Army Shield HP</font>
+            <div class="row border-right border-danger">
+                <div class="ArmyTeamTwo rounded mr-2">
+                </div>
+                <div class="SPDefTwo rounded">
+                </div>
+                <div class="HPDefTwo rounded">
+                </div>
+            </div>
+        </div>
+        <div class="position-absolute startmsg" style="top: 50%; left: 50%;">
+            <h1 style="text-shadow: 1px  1px 2px darkmagenta,
+                                    1px -1px 2px darkmagenta,
+                                   -1px  1px 2px darkmagenta,
+                                   -1px -1px 2px darkmagenta;">
+                Round @_game.Spawn
+            </h1>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public GameHistory _game { get; set; }
+
+    [Parameter]
+    public Player _player { get; set; }
+
+    [Parameter]
+    public bool Colorize { get; set; } = false;
+
+
+    KeyValuePair<float, float> Def1 = MoveService.GetRelPos(new Vector2(2, Battlefield.Ymax / 2));
+    KeyValuePair<float, float> Def2 = MoveService.GetRelPos(new Vector2(Battlefield.Xmax - 3, Battlefield.Ymax / 2));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(_game.battlefield.Def1.Path.Count() * Battlefield.Ticks);
+        _refresh.Update = !_refresh.Update;
+    }
+
+    private async void FullScreen()
+    {
+        await JsRuntime.InvokeAsync<string>("toggleFullScreen");
+    }
+}
+

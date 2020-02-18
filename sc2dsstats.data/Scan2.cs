@@ -38,7 +38,7 @@ namespace sc2dsstats.data
             mReplays = new List<dsreplay>();
             sReplays = new List<dsreplay>();
 
-            
+
             List<FileInfo> NewJsons = new List<FileInfo>();
             foreach (var dir in Directory.GetDirectories(DSdata.ServerConfig.SumDir).Where(x => Path.GetFileName(x).Length == 64))
                 foreach (var file in Directory.GetFiles(dir).Where(d => new FileInfo(d).LastWriteTime > DSdata.ServerConfig.LastRun).Select(s => new FileInfo(s)))
@@ -49,7 +49,7 @@ namespace sc2dsstats.data
                 Console.WriteLine("No new datafiles found.");
                 return;
             }
-                
+
 
             ReadMonsterJson();
             foreach (var file in NewJsons.OrderBy(o => o.LastWriteTime))
@@ -58,7 +58,7 @@ namespace sc2dsstats.data
             DupFind();
             WriteMonsterJson();
 
-            
+
             if (File.Exists(DSdata.ServerConfig.MonsterJson + "_bak"))
                 File.Delete(DSdata.ServerConfig.MonsterJson + "_bak");
 
@@ -139,7 +139,7 @@ namespace sc2dsstats.data
                 }
                 else
                     d1++;
-                    
+
             }
             Console.WriteLine("Dups found: " + d1 + "/" + d2);
         }
@@ -168,7 +168,7 @@ namespace sc2dsstats.data
             Console.WriteLine("Working on " + Path.GetFileName(file));
             foreach (var line in File.ReadAllLines(file, Encoding.UTF8))
             {
-                
+
                 dsreplay replay = JsonSerializer.Deserialize<dsreplay>(line);
                 if (replay != null)
                 {

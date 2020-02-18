@@ -1,5 +1,3 @@
-using System;
-
 namespace sc2dsstats.rest.Models
 {
     public class ErrorViewModel

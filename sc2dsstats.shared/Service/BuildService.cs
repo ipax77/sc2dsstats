@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using sc2dsstats.decode.Models;
-using sc2dsstats.lib.Models;
+﻿using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using sc2dsstats.lib.Data;
-using System.Collections.Concurrent;
 
 namespace sc2dsstats.shared.Service
 {
@@ -57,17 +53,17 @@ namespace sc2dsstats.shared.Service
 
             BuildResult bresult = new BuildResult();
 
-            using (var context = new DSReplayContext())
-            {
-                var replays = DBReplayFilter.Filter(_options, context);
+
+                var replays = DBReplayFilter.Filter(_options, _options.db);
                 bresult.TotalGames = replays.Count();
 
-                var result = await Task.Run(() => {
+                var result = await Task.Run(() =>
+                {
                     if (String.IsNullOrEmpty(_options.Vs))
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.RACE == _options.Interest
-                               where t1.NAME == _options.Dataset
+                               where _options.Dataset.Contains(t1.NAME)
                                from u1 in t1.DSUnit
                                where u1.BP == _options.Breakpoint
                                select new
@@ -83,7 +79,7 @@ namespace sc2dsstats.shared.Service
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.RACE == _options.Interest && t1.OPPRACE == _options.Vs
-                               where t1.NAME == _options.Dataset
+                               where _options.Dataset.Contains(t1.NAME)
                                from u1 in t1.DSUnit
                                where u1.BP == _options.Breakpoint
                                select new
@@ -109,10 +105,11 @@ namespace sc2dsstats.shared.Service
                     float wins = result.Where(x => x.WIN == true).Select(s => s.ID).Distinct().Count();
                     bresult.Winrate = MathF.Round(wins * 100 / bresult.Games, 2);
 
-                    var nndur = lsresult.Sum(s => s.DURATION.Ticks);
-                    bresult.Duration = TimeSpan.FromTicks(nndur) / (float)bresult.Games;
+                    var nndur = lsresult.Sum(s => s.DURATION);
+                    bresult.Duration = TimeSpan.FromSeconds(nndur) / (float)bresult.Games;
 
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine("this should not happen :(");
                     return new BuildResult();
@@ -134,7 +131,7 @@ namespace sc2dsstats.shared.Service
                         bresult.Units.RemoveAt(bresult.Units.Count - 1);
                     }
                 }
-            }
+            
 
             lock (BuildCache)
             {

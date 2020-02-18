@@ -4,6 +4,7 @@
 @using sc2dsstats.shared.Service
 @using sc2dsstats.lib.Db
 @inject DSoptions _options
+@inject LoadData  _data
 @implements IDisposable
 
 <style>
@@ -142,7 +143,7 @@
                                     {
                                         rowclass = "table-info";
                                     }
-                                    <tr class="table-row @rowclass" @onclick="@(() => ShowGame(ent.Key))">
+                                    <tr class="table-row @rowclass" @onclick="@(async => { ShowGame(ent.Key); })">
 
                                         <th scope="row">@ent.Key</th>
                                         <td>@ent.Value</td>
@@ -214,21 +215,6 @@
             </div>
         </div>
     </div>
-    <div class="@GameClass">
-        <WebGame replay="replay" />
-
-    </div>
-
-    <br />
-    <br />
-    <div id="dv_info" align="left" style="position: inherit; left: 10px; width: 1011px; margin-left: 10px; overflow: hidden">
-        <div id="dv_info1" style="width: 400px; float: left">
-            <p>@DSdata.INFO["Build"]</p>
-        </div>
-        <div id="dv_info2" style="width: 600px; font-size: 12px; overflow: hidden; left: 10px; float: left">
-            <p></p>
-        </div>
-    </div>
 
 
 @code {
@@ -236,7 +222,6 @@
     [Parameter]
     public string Build { get; set; } = "ALL";
 
-    DSReplay replay;
     int replayid = 0;
     int skip = 0;
     int skip_vs = 0;
@@ -254,7 +239,6 @@
     private int max1 = 100;
     private int max2 = 100;
     private int max3 = 100;
-    private string GameClass = "colapsed";
 
     async Task GetBuild()
     {
@@ -293,8 +277,15 @@
         _options.DefaultFilter();
         _options.Startdate = new DateTime(2019, 1, 1);
         _options.Enddate = DateTime.MinValue;
-        _options.Build = "PAX";
-        _options.Dataset = DSdata.s_builds_hash.Single(x => x.Value == _options.Build).Key;
+        _options.Build = Build;
+        _options.Dataset.Clear();
+
+        if (_options.Build == "player")
+            foreach (var ent in _options.Players.Where(x => x.Value == true))
+                _options.Dataset.Add(ent.Key);
+        else
+            _options.Dataset.Add(DSdata.s_builds_hash.Single(x => x.Value == _options.Build).Key);
+
         _options.Mode = "Build";
         _options.Interest = "Abathur";
         _options.Breakpoint = "MIN10";
@@ -348,11 +339,15 @@
         GetBuild();
     }
 
-    void ShowGame(int id)
+    async Task ShowGame(int id)
     {
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
+        _options.Replay = await DBService.GetReplay(_options.db, id);
         replayid = id;
-        replay = DBService.GetReplay(id);
-        GameClass = String.Empty;
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged());
+        _data.Update();
     }
 
     void ShowRepTable()

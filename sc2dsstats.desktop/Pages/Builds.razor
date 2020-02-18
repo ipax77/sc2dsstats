@@ -1,0 +1,51 @@
+﻿@page "/builds"
+@using sc2dsstats.lib.Data
+@using sc2dsstats.lib.Db
+@inject LoadData _data
+@inject DSoptions _options
+@inject DSReplayContext  _context
+@implements IDisposable
+
+@if (DSdata.Status.Count > 0)
+{
+    <sc2dsstats.shared.WebBuild Build="player" />
+    <sc2dsstats.shared.WebGame replay="_options.Replay" />
+}
+else
+{
+    <button class="btn btn-primary" type="button" disabled>
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Loading...
+    </button>
+}
+<br />
+<br />
+<div id="dv_info" align="left" style="position: inherit; left: 10px; width: 1011px; margin-left: 10px; overflow: hidden">
+    <div id="dv_info1" style="width: 400px; float: left">
+        <p>@DSdata.INFO["Build"]</p>
+    </div>
+    <div id="dv_info2" style="width: 600px; font-size: 12px; overflow: hidden; left: 10px; float: left">
+        <p></p>
+    </div>
+</div>
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (_options.db == null)
+            _options.db = _context;
+        _data.DataLoaded += Update;
+    }
+
+    void Update(object sender, EventArgs ex)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _data.DataLoaded -= Update;
+    }
+
+}

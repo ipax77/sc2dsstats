@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace sc2dsstats.lib.Models
+﻿namespace sc2dsstats.lib.Models
 {
     public class DatasetInfo
     {

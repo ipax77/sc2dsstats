@@ -1,17 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
+using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using sc2dsstats.lib.Db;
-using sc2dsstats.lib.Data;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace sc2dsstats.data
 {
@@ -68,7 +64,8 @@ namespace sc2dsstats.data
             try
             {
                 HttpResponseMessage response = client.GetAsync(DSdata.ServerConfig.Url + "/secure/reload").GetAwaiter().GetResult();
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }

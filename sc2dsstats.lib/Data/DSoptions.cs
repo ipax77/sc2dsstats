@@ -1,11 +1,10 @@
-﻿using System;
+﻿using sc2dsstats.lib.Db;
+using sc2dsstats.lib.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using sc2dsstats.lib.Models;
 
 namespace sc2dsstats.lib.Data
 {
@@ -14,7 +13,7 @@ namespace sc2dsstats.lib.Data
         private bool Update_value = false;
         private string Mode_value = String.Empty;
 
-        public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(5);
+        public int Duration { get; set; } = 5*60;
         public int Leaver { get; set; } = 2000;
         public int Army { get; set; } = 1500;
         public int Kills { get; set; } = 1500;
@@ -64,8 +63,11 @@ namespace sc2dsstats.lib.Data
         public Dictionary<string, bool> Players { get; set; } = new Dictionary<string, bool>();
         public Dictionary<string, bool> CmdrsChecked { get; set; } = new Dictionary<string, bool>();
         public string Hash { get; set; } = "";
-        public string Dataset { get; set; } = "";
+        public List<string> Dataset { get; set; } = new List<string>();
         public string Breakpoint { get; set; } = "";
+        public bool Decoding { get; set; } = false;
+        public DSReplayContext db { get; set; }
+        public DSReplay Replay { get; set; }
 
         public bool Update
         {
@@ -110,14 +112,14 @@ namespace sc2dsstats.lib.Data
 
             opthash += Mode;
             opthash += Build;
-            opthash += Duration.TotalMinutes;
+            opthash += Duration;
             opthash += Leaver + Army + Kills + Income;
             opthash += Startdate.ToString("yyyyMMdd");
             opthash += Enddate.ToString("yyyyMMdd");
             opthash += Interest;
             opthash += Vs;
             opthash += Player;
-            opthash += Dataset;
+            opthash += String.Join("", Dataset);
             opthash += String.Join("", Gamemodes.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += String.Join("", Players.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += Breakpoint;

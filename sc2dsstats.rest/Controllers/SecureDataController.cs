@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using sc2dsstats.rest.Attributes;
+using sc2dsstats.rest.Models;
+using sc2dsstats.rest.Repositories;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using sc2dsstats.rest.Attributes;
-using sc2dsstats.rest.Models;
-using sc2dsstats.rest.Repositories;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace sc2dsstats.rest.Controllers
 {
@@ -71,14 +68,14 @@ namespace sc2dsstats.rest.Controllers
 
             foreach (var formFile in Request.Form.Files)
             {
-                
+
                 if (formFile.Length > 0)
                 {
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await formFile.CopyToAsync(stream);
                     }
-                } 
+                }
                 bool fileok = await _dataRepository.GetFile(id, filePath);
                 if (fileok == false)
                 {

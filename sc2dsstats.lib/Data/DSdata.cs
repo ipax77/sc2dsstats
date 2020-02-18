@@ -1,14 +1,11 @@
-﻿using sc2dsstats.decode.Models;
-using sc2dsstats.lib.Models;
+﻿using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace sc2dsstats.lib.Data
 {
     public static class DSdata
     {
-        public static List<dsreplay> Replays = new List<dsreplay>();
         public static UserConfig Config = new UserConfig();
         public static ServerConfig ServerConfig = new ServerConfig();
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();

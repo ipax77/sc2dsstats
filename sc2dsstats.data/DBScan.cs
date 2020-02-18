@@ -3,7 +3,6 @@ using sc2dsstats.decode.Models;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
-using sc2dsstats.lib.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,8 +43,8 @@ namespace sc2dsstats.data
             foreach (var file in NewJsons.OrderBy(o => o.LastWriteTime))
                 ReadJson(file.FullName);
 
-            Console.WriteLine("New Replays found: " + sReplays.Count); 
-            
+            Console.WriteLine("New Replays found: " + sReplays.Count);
+
 
         }
 
@@ -76,7 +75,7 @@ namespace sc2dsstats.data
                             if (pl != null)
                                 pl.NAME = dup.Hash;
                         }
-                    
+
                 }
             }
         }
@@ -130,7 +129,7 @@ namespace sc2dsstats.data
                             replay.PLDupPos[plhash] = pl.REALPOS;
                         }
                         DSReplay crep = null;
-                        
+
                         /*
                         crep = context.DSReplays
                             .Include(p => p.PLDuplicate)
@@ -176,7 +175,7 @@ namespace sc2dsstats.data
                                     newdup.Pos = (byte)pl.REALPOS;
                                     newdup.DSReplay = crep;
                                     context.PLDuplicates.Add(newdup);
-                                    
+
                                 }
                                 context.SaveChanges();
                             }

@@ -1,21 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Pomelo.EntityFrameworkCore.MySql.Storage;
 using sc2dsstats.lib.Data;
-using System.Globalization;
+using sc2dsstats.lib.Db;
 using sc2dsstats.shared.Service;
 using sc2dsstats.web.Controllers;
-using sc2dsstats.lib.Models;
+using System;
+using System.Globalization;
 
 namespace sc2dsstats.web
 {
@@ -36,6 +34,9 @@ namespace sc2dsstats.web
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddDbContext<DSReplayContext>(options =>
+                options.UseMySql(DSdata.ServerConfig.DBConnectionString, mySqlOptions => mySqlOptions
+                .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql))));
             services.AddSingleton<ReloadFilterAttribute>();
             services.AddControllers();
             services.AddSingleton<LoadData>();

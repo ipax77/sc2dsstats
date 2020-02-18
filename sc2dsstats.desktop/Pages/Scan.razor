@@ -1,0 +1,168 @@
+﻿@page "/scan"
+@using sc2dsstats.lib.Data
+@using sc2dsstats.decode.Service
+@using sc2dsstats.decode
+@using sc2dsstats.desktop.Service
+@using sc2dsstats.lib.Db
+@inject Status _status
+@inject DSoptions _options
+@implements IDisposable
+
+<h3>Scan</h3>
+<div class="row">
+    <div class="btn-group" role="group" aria-lable="Scan Buttons">
+        <button type="button" class="btn btn-outline-info" @onclick="@( async => manualScan())">Find new Replays</button>
+        @if (_options.Decoding == false)
+        {
+            <button type="button" class="btn btn-primary" @onclick="@runDecode">Decode replays</button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primary" @onclick="@stopDecode">Stop</button>
+        }
+    </div>
+</div>
+<div class="jumbotron">
+    <h4 class="text-warning">New replays found: <strong>@NewReplays</strong></h4>
+    <h5 class="text-warning">Estimated processing time: <strong>@(TimeSpan.FromSeconds(NewReplays * 7.2 / DSdata.Config.Cores).ToString(@"hh\:mm\:ss"))</strong></h5>
+    <br />
+    <p>You can always quit the process, next time it will continue at the last position.</p>
+</div>
+<div class="form-group">
+    <label for="sel1">CPU Cores</label>
+    <select class="form-control w-auto" id="sel1" @bind="@DSdata.Config.Cores">
+        @for (int i = 1; i <= Environment.ProcessorCount; i++)
+        {
+            if (i == @DSdata.Config.Cores)
+            {
+                <option selected="selected" value=@i>@i</option>
+            }
+            else
+            {
+                <option value=@i>@i</option>
+            }
+        }
+    </select>
+</div>
+<div class="mb-2">
+    @if (_options.Decoding == false)
+    {
+        <button type="button" class="btn btn-primary" @onclick="@runDecode">Decode replays</button>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary" @onclick="@stopDecode">Stop</button>
+    }
+</div>
+<h5>@info</h5>
+@if (Decode.Failed.Count() > 0)
+{
+    <div>
+        <h4>@Decode.Failed.Count() replays failed decoding</h4>
+        Please check on <a href="https://github.com/ipax77/dsweb_desktop">GitHub</a> for an update.
+        <br />
+        Failed Replays:
+        <table class="table table-dark">
+            <thead>
+                <tr><th>Path</th></tr>
+            </thead>
+            <tbody>
+                @foreach (string rep in Decode.Failed)
+                {
+                    <tr><td>@rep</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+<UploadCredentialDialog @ref="ucDialog"/>
+
+@code {
+    [Parameter]
+    public bool FrontPage { get; set; } = false;
+
+    [Parameter]
+    public int NewReplays { get; set; } = 0;
+
+    string info = "";
+    UploadCredentialDialog ucDialog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _status.StatusChanged += ScanUpdate;
+        if (!FrontPage)
+            _status.ScanReplayFolders();
+        Decode.s2dec.ScanStateChanged += DecodeUpdate;
+    }
+
+    void ScanUpdate(object sender, EventArgs e)
+    {
+        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
+        NewReplays = arg.NewReplays;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    async void manualScan()
+    {
+        NewReplays = 0;
+        StateHasChanged();
+        _status.ScanReplayFolders();
+    }
+
+    async void runDecode()
+    {
+        if (!DSdata.Config.Uploadcredential)
+            ucDialog.Show();
+        _status.DBCount = 0;
+        await _status.ScanReplayFolders();
+        if (_status.NewReplays.Count() == 0)
+            info = "No new replays found.";
+        else
+        {   
+            info = "Engine start..";
+            _options.Decoding = true;
+            _status.DecodeReplays();
+        }
+        StateHasChanged();
+    }
+
+    async void stopDecode()
+    {
+        info = "Stopping Threads..";
+        Decode.StopIt();
+        await InvokeAsync(() => StateHasChanged());
+        _options.Decoding = false;
+    }
+
+    void DecodeUpdate(object sender, EventArgs e)
+    {
+        ScanState scanState = e as ScanState;
+
+        lock (info)
+        {
+            float wr = MathF.Round((float)scanState.Done * 100 / (float)scanState.Total, 2);
+            info = $"{scanState.Done}/{_status.NewReplays.Count} ({wr}%), inDB: {_status.DBCount} - Running on {scanState.Threads} Threads.";
+            _status.PopulateDb();
+
+            if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
+            {
+                if (scanState.Done == scanState.Total)
+                    wr = 100;
+                info = $"{scanState.Done}/{scanState.Total} ({wr}%) - Elapsed Time: {(DateTime.Now - scanState.Start).ToString(@"hh\:mm\:ss")}";
+                _options.Decoding = false;
+                _status.PopulateDb(true);
+                NewReplays = 0;
+            }
+        }
+
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _status.StatusChanged -= ScanUpdate;
+        Decode.s2dec.ScanStateChanged -= DecodeUpdate;
+    }
+
+}

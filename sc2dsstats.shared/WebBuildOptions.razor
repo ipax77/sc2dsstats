@@ -7,9 +7,16 @@
             <Dropdown TItem="string" OnSelected="@OnBuildSelected">
                 <InitialTip>Build</InitialTip>
                 <ChildContent>
-                    @foreach (string build in DSdata.s_builds_hash.Values)
+                    @if (_options.Players.Any())
                     {
-                        <DropdownListItem Item="@build">@build</DropdownListItem>
+                        <DropdownListItem Item="@("player")">@("player")</DropdownListItem>
+                    }
+                    else
+                    {
+                        @foreach (string build in DSdata.s_builds_hash.Values)
+                        {
+                            <DropdownListItem Item="@build">@build</DropdownListItem>
+                        }
                     }
                 </ChildContent>
             </Dropdown>
@@ -54,8 +61,11 @@
 
     private void OnBuildSelected(string selection)
     {
+        if (selection == "player")
+            return;
         _options.Build = selection;
-        _options.Dataset = DSdata.s_builds_hash.Single(x => x.Value == _options.Build).Key;
+        _options.Dataset.Clear();
+        _options.Dataset.Add(DSdata.s_builds_hash.Single(x => x.Value == _options.Build).Key);
         _options.Update = !_options.Update;
     }
     private void OnCmdrSelected(string selection)

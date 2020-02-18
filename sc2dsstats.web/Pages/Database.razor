@@ -1,12 +1,16 @@
 ﻿@page "/db"
 @page "/db/{RepID:int}"
 @using sc2dsstats.lib.Data
+@using sc2dsstats.lib.Db
 @inject LoadData _data
+@inject DSoptions _options
+@inject DSReplayContext  _context
 @implements IDisposable
 
 @if (DSdata.Status.Count > 0)
 {
     <sc2dsstats.shared.WebDatabase RepId="RepID" />
+    <sc2dsstats.shared.WebGame replay="_options.Replay" />
 }
 else
 {
@@ -21,6 +25,8 @@ else
 
     protected override void OnInitialized()
     {
+        if (_options.db == null)
+            _options.db = _context;
         _data.DataLoaded += Update;
     }
 

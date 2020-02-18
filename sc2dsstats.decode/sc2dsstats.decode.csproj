@@ -1,8 +1,487 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IronPython" Version="2.7.10-candidate1" />
+    <PackageReference Include="IronPython.StdLib" Version="2.7.10-candidate1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\sc2dsstats.lib\sc2dsstats.lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="pylib\site-packages\mpyq.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\attributes.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\attributes.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\build.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\build.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\compat.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\compat.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\decoders.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\decoders.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\diff.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\diff.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\encoders.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\encoders.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\namespaces.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\namespaces.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\s2_cli.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\s2_cli.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\s2_cli.spec">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol15405.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol15405.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16561.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16561.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16605.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16605.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16755.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16755.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16939.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol16939.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol17266.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol17266.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol17326.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol17326.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol18092.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol18092.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol18468.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol18468.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol18574.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol18574.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19132.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19132.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19458.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19458.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19595.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19595.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19679.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol19679.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol21029.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol21029.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol22612.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol22612.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol23260.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol23260.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol24944.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol24944.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol26490.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol26490.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol27950.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol27950.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol28272.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol28272.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol28667.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol28667.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol32283.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol32283.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol51702.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol51702.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol52910.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol52910.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol53644.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol53644.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol54518.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol54518.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol55505.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol55505.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol55958.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol55958.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol56787.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol56787.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol57507.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol57507.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol58400.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol58400.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol59587.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol59587.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol60196.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol60196.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol60321.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol60321.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol62347.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol62347.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol62848.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol62848.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol63454.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol63454.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol64469.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol64469.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol65094.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol65094.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol65384.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol65384.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol65895.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol65895.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol66668.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol66668.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol67188.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol67188.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol67926.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol67926.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol69232.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol69232.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol70154.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol70154.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol71061.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol71061.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol71523.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol71523.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol71663.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol71663.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol72282.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol72282.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol73286.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol73286.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol73559.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol73559.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol73620.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol73620.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol74071.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol74071.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol74456.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol74456.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol74741.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol74741.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol75025.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol75025.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol75689.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol75689.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol75800.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol75800.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76052.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76052.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76114.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76114.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76811.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76811.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol77379.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol77379.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol77535.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol77535.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol77661.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol77661.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\__init__.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\__init__.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\__init__.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\__init__.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\__init__.spec">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

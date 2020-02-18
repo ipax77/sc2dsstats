@@ -1,16 +1,13 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using sc2dsstats.rest.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Globalization;
-using sc2dsstats.rest.Models;
 
 namespace sc2dsstats.rest.Repositories
 {
@@ -51,7 +48,8 @@ namespace sc2dsstats.rest.Repositories
                 if (_players[id].LastRep == last) return "UpToDate";
                 _players[id]._LastRep = last;
                 return (_players[id].LastRep);
-            } else
+            }
+            else
             {
                 _players.Add(id, new DSplayer());
                 _players[id].Name = id;
@@ -60,7 +58,7 @@ namespace sc2dsstats.rest.Repositories
             }
         }
 
-        public async Task<string> Info (DSinfo info)
+        public async Task<string> Info(DSinfo info)
         {
             if (_players.ContainsKey(info.Name))
             {
@@ -112,7 +110,7 @@ namespace sc2dsstats.rest.Repositories
                 _players[info.Name].Name = info.Name;
                 _players[info.Name]._LastRep = info.LastRep;
                 _players[info.Name].Info = info;
-                myreturn  = "0";
+                myreturn = "0";
             }
 
             if (!File.Exists(mysum) || new FileInfo(mysum).Length == 0)
@@ -163,7 +161,7 @@ namespace sc2dsstats.rest.Repositories
                                 string dest = WorkDir + "/bak/" + Path.GetFileName(mysum);
                                 if (File.Exists(dest))
                                     File.Delete(dest);
-                                
+
                                 if (File.Exists(mysum))
                                     File.Move(mysum, dest);
 
@@ -320,10 +318,11 @@ namespace sc2dsstats.rest.Repositories
         {
             string data_json = WorkDir + "/data.json";
             List<string> tmp = new List<string>();
-            foreach (string line in File.ReadLines(data_json)) {
+            foreach (string line in File.ReadLines(data_json))
+            {
                 var player = JsonSerializer.Deserialize<DSplayer>(line);
                 if (player.Name != id) tmp.Add(line);
-                
+
             }
             tmp.Add(JsonSerializer.Serialize(_players[id]));
             _readWriteLock.EnterWriteLock();
@@ -358,7 +357,8 @@ namespace sc2dsstats.rest.Repositories
                         try
                         {
                             decompressionStream.CopyTo(decompressedFileStream);
-                        } catch (Exception e)
+                        }
+                        catch (Exception e)
                         {
                             _logger.LogError("Failed decompressing " + fileToDecompress.FullName + " to " + newFileName + ": " + e.Message);
                             return "";

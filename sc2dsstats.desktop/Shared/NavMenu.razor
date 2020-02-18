@@ -1,6 +1,13 @@
 ﻿@using System.ComponentModel
 @using sc2dsstats.lib.Data
-@inject LoadData _data
+@using sc2dsstats.decode
+@using sc2dsstats.decode.Service
+@using sc2dsstats.desktop.Service
+@using sc2dsstats.lib.Db
+@inject DSoptions _options
+@inject DSReplayContext _context
+@inject Status _status
+@implements IDisposable
 
 <div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">sc2dsstats.web</a>
@@ -16,61 +23,76 @@
                 <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
         </li>
-        @if (DSdata.Status.isReplaysLoaded)
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="charts">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Charts
-                </NavLink>
-            </li>
-        }
-        else
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link disabled">
-                    <span class="oi oi-plus spinner-border spinner-border-sm" aria-hidden="true"></span> Charts
-                </NavLink>
-            </li>
-        }
-        @if (DSdata.Status.isBuildLoaded)
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="builds">
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
-                </NavLink>
-            </li>
-        }
-        else
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link disabled">
-                    <span class="oi oi-list-rich spinner-border spinner-border-sm" aria-hidden="true"></span> Builds
-                </NavLink>
-            </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="charts">
+                <span class="oi oi-bar-chart" aria-hidden="true"></span> Charts
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="builds">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
+            </NavLink>
+        </li>
 
-        }
-        @if (DSdata.Status.isReplaysLoaded)
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="db">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Database
-                </NavLink>
-            </li>
-        }
-        else
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link disabled">
-                    <span class="oi oi-plus spinner-border spinner-border-sm" aria-hidden="true"></span> Database
-                </NavLink>
-            </li>
-        }
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="db">
+                <span class="oi oi-list" aria-hidden="true"></span> Database
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="scan">
+                @if (UploadStatus == UploadStatus.Uploading)
+                {
+                    <span class="oi spinner-grow spinner-grow-sm text-success"></span> @("Scan")
+                }
+                else if (UploadStatus == UploadStatus.UploadSuccess)
+                {
+                    <span class="oi oi-circle-check text-success">&nbsp;</span> @("Scan")
+                }
+                else if (UploadStatus == UploadStatus.UploadFailed)
+                {
+                    <span class="oi oi-circle-x text-danger">&nbsp;</span> @("Scan")
+                }
+                else
+                {
+                    <span class="oi oi-project">&nbsp;</span> @("Scan")
+                }
+            </NavLink>
+            <div class="@ProgbarClass ml-2" id="div_progbar">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped" role="progressbar"
+                         style="width: @((int)Done)%" aria-valuenow=@Done
+                         aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="bestbuild">
+                <span class="oi oi-zoom-in" aria-hidden="true"></span> A-Move Simulator
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="https://www.pax77.org/dsweb/chart" target="_blank">
+                <span class="oi oi-external-link" aria-hidden="true"></span> World Charts
+            </NavLink>
+            <div style="margin-top: -19px !important; margin-left: 60px !important;"><font size="1">external link</font></div>
+        </li>
         <li class="nav-item px-3">
             <NavLink class="nav-link disabled">
                 <h5><span class="badge badge-info">@DSdata.Status.Count Replays loaded</span></h5>
             </NavLink>
         </li>
-
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="config">
+                <span class="oi oi-wrench" aria-hidden="true"></span> Settings
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="info">
+                <span class="oi oi-info" aria-hidden="true"></span> Info
+            </NavLink>
+        </li>
         <li class="nav-item px-3">
             <br />
             <br />
@@ -102,7 +124,10 @@
 
 @code {
     private bool collapseNavMenu = true;
-
+    string ProgbarClass = "d-none";
+    string ScanClass = "oi oi-plus";
+    float Done = 0;
+    UploadStatus UploadStatus = UploadStatus.UploadDone;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
@@ -113,20 +138,49 @@
 
     protected override void OnInitialized()
     {
-        DSdata.Status = new ReplaysLoadedEventArgs();
-        DSdata.Status.isDuplicatesLoaded = true;
-        DSdata.Status.isReplaysLoaded = true;
-        DSdata.Status.isBuildLoaded = true;
-        _data.DataLoaded += Update;
+        Decode.s2dec.ScanStateChanged += Update;
+        _status.StatusChanged += StatusUpdate;
     }
 
-    void Update(object sender, EventArgs ex)
+    async void UpdateMe()
     {
-        lock (DSdata.Status)
-        {
-            DSdata.Status = ex as ReplaysLoadedEventArgs;
-        }
-        InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(() => StateHasChanged());
     }
 
+    void StatusUpdate(object sender, EventArgs e)
+    {
+        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
+        UploadStatus = arg.UploadStatus;
+        UpdateMe();
+    }
+
+    void Update(object sender, EventArgs e)
+    {
+        ScanState scanState = e as ScanState;
+        if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
+            _options.Decoding = false;
+
+        if (_options.Decoding == true)
+        {
+            UploadStatus = UploadStatus.UploadDone;
+            ProgbarClass = "";
+            ScanClass = "oi oi-list-rich spinner-border spinner-border-sm";
+            Done = MathF.Round((float)scanState.Done * 100 / (float)scanState.Total, 2);
+        } else
+        {
+            ProgbarClass = "d-none";
+            ScanClass = "oi oi-plus";
+            if (DSdata.Config.Uploadcredential)
+                _status.UploadReplays();
+        }
+        UpdateMe();
+    }
+
+    public void Dispose()
+    {
+        if (_options.Decoding)
+            Decode.StopIt();
+        Decode.s2dec.ScanStateChanged -= Update;
+        _status.StatusChanged -= StatusUpdate;
+    }
 }

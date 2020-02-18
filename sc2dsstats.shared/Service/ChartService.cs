@@ -1,12 +1,11 @@
 ﻿using Microsoft.JSInterop;
+using Newtonsoft.Json;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -23,7 +22,7 @@ namespace sc2dsstats.shared.Service
 
         public async Task ChartHandler(DSoptions _options, string thisHandle = null)
         {
-            await GetChartBase( _options);
+            await GetChartBase(_options);
 
             // rebuild chart
 
@@ -46,7 +45,7 @@ namespace sc2dsstats.shared.Service
 
             List<string> GameModes = _options.Gamemodes.Where(x => x.Value == true).Select(s => s.Key).ToList();
 
-            if (GameModes.Contains("GameModeStandard") || GameModes.Contains("GameModeGear") || GameModes.Contains("GameModeSabotage") ||GameModes.Contains("GameModeSwitch"))
+            if (GameModes.Contains("GameModeStandard") || GameModes.Contains("GameModeGear") || GameModes.Contains("GameModeSabotage") || GameModes.Contains("GameModeSwitch"))
                 mychart.s_races_ordered = DSdata.s_races.ToList();
             else
                 mychart.s_races_ordered = DSdata.s_races_cmdr.ToList();
@@ -60,7 +59,11 @@ namespace sc2dsstats.shared.Service
                 mychart.type = "line";
                 List<string> _s_races_cmdr_ordered = new List<string>();
                 DateTime startdate = _options.Startdate;
+                if (startdate == DateTime.MinValue)
+                    startdate = new DateTime(2018, 1, 1);
                 DateTime enddate = _options.Enddate;
+                if (enddate == DateTime.MinValue)
+                    enddate = DateTime.Now.AddDays(1);
                 DateTime breakpoint = startdate;
                 while (DateTime.Compare(breakpoint, enddate) < 0)
                 {
@@ -71,8 +74,9 @@ namespace sc2dsstats.shared.Service
                 mychart.s_races_ordered = _s_races_cmdr_ordered;
             }
             mychart.options = GetOptions(_options);
-            
-            if (doit) {
+
+            if (doit)
+            {
                 _options.Chart = mychart;
                 DataResult dresult = await DataService.GetData(_options, _jsRuntime);
                 if (dresult != null)
@@ -219,12 +223,14 @@ namespace sc2dsstats.shared.Service
                 dataset.backgroundColor.Add(dcolor.backgroundColor);
                 dataset.borderColor = dcolor.borderColor;
                 dataset.borderWidth = 1;
-            } else if (charttype == "line")
+            }
+            else if (charttype == "line")
             {
                 dataset.backgroundColor.Add("rgba(0, 0, 0, 0)");
                 dataset.borderColor = dcolor.borderColor;
                 dataset.pointBackgroundColor = dcolor.pointBackgroundColor;
-            } else if (charttype == "radar")
+            }
+            else if (charttype == "radar")
             {
                 dataset.backgroundColor.Add(dcolor.pointBackgroundColor);
                 dataset.borderColor = dcolor.borderColor;

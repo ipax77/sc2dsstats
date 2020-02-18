@@ -1107,7 +1107,7 @@ namespace sc2dsstats.decode.Models
     {
         public int Index { get; set; }
         public int RecycleTag { get; set; }
-        public UnitEvent Born { get; set; } 
+        public UnitEvent Born { get; set; }
         public UnitEvent Died { get; set; }
     }
 

@@ -1,15 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using sc2dsstats.lib.Data;
 
 namespace sc2dsstats.web
 {
@@ -26,9 +17,8 @@ namespace sc2dsstats.web
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-                    config.SetBasePath(workdir);
-                    config.AddJsonFile("config.json", optional: false, reloadOnChange: false);
-                    config.AddJsonFile("serverconfig.json", optional: false, reloadOnChange: false);
+                    config.AddJsonFile( workdir + "/config.json", optional: false, reloadOnChange: false);
+                    config.AddJsonFile( workdir + "/serverconfig.json", optional: false, reloadOnChange: false);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

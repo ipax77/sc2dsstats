@@ -73,9 +73,9 @@
                         &empty; Duration<br />@_options.Cmdrinfo.ADuration.ToString(@"hh\:mm\:ss")
                     </span>
                 </div>
-                @if (_options.Dataset != "")
+                @if (_options.Dataset.Any())
                 {
-                    var dataset = DSdata.Datasets.SingleOrDefault(s => s.Dataset == _options.Dataset);
+                    var dataset = DSdata.Datasets.SingleOrDefault(s => _options.Dataset.Contains(s.Dataset));
                     if (dataset != null)
                     {
                         <div class="form-group mr-2">
@@ -115,7 +115,9 @@
                     <p>Info</p>
                 </div>
             </div>
-            <button type="button" class="btn btn-sm btn-secondary" @onclick="@(() => ShowHideCmdr = !ShowHideCmdr)">Cmdrs played</button>
+            <div>
+                <button type="button" class="btn btn-secondary mt-2" @onclick="@(() => ShowHideCmdr = !ShowHideCmdr)"><span class="oi oi-pie-chart mr-1"></span>Cmdrs played</button>
+            </div>
         </div>
     </div>
     <div class="d-xl-none">

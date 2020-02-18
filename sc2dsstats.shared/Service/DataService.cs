@@ -1,16 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.JSInterop;
+using Newtonsoft.Json;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
 using System;
-using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.JSInterop;
-using Newtonsoft.Json;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace sc2dsstats.shared.Service
 {
@@ -30,7 +29,7 @@ namespace sc2dsstats.shared.Service
             string Hash = _options.GenHash();
 
             if (WinrateCache.ContainsKey(Hash))
-               return WinrateCache[Hash];
+                return WinrateCache[Hash];
 
             bool doWait = false;
             lock (Computing)
@@ -68,11 +67,7 @@ namespace sc2dsstats.shared.Service
             else
                 dresult.Dataset.label = _options.Interest;
 
-            using (var context = new DSReplayContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var replays = DBReplayFilter.Filter(_options, context, false);
+                var replays = DBReplayFilter.Filter(_options, _options.db, false);
 
                 // TODO: ordered 
                 foreach (string race in _options.Chart.s_races_ordered)
@@ -82,13 +77,13 @@ namespace sc2dsstats.shared.Service
 
                     (wr, count) = (_options.Mode switch
                     {
-                        "Winrate" =>  await GetWinrate(_options, context, replays, dresult.CmdrInfo, race),
-                        "MVP" => await GetMVP(_options, context, replays, dresult.CmdrInfo, race),
-                        "DPS" => await GetDPS(_options, context, replays, dresult.CmdrInfo, race),
-                        "Synergy" => await GetSynergy(_options, context, replays, dresult.CmdrInfo, race),
-                        "AntiSynergy" => await GetAntiSynergy(_options, context, replays, dresult.CmdrInfo, race),
-                        "Timeline" => await GetTimeline(_options, context, replays, dresult.CmdrInfo, race),
-                        _    => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
+                        "Winrate" => await GetWinrate(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        "MVP" => await GetMVP(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        "DPS" => await GetDPS(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        "Synergy" => await GetSynergy(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        "AntiSynergy" => await GetAntiSynergy(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        "Timeline" => await GetTimeline(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        _ => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
                     });
                     if (count == 0)
                         continue;
@@ -100,7 +95,7 @@ namespace sc2dsstats.shared.Service
                     dresult.Labels.Add(race + " " + count);
                     dresult.Dataset.data.Add(wr);
 
-                    
+
                     ChartService.SetColor(dresult.Dataset, _options.Chart.type, cmdr);
 
                     if (_options.Chart.type == "bar")
@@ -118,7 +113,8 @@ namespace sc2dsstats.shared.Service
                                 options.plugins.labels.images = dresult.Images;
                             }
                             await ChartJSInterop.ChartChanged(_jsRuntime, JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
-                        } else
+                        }
+                        else
                             await ChartJSInterop.AddDataset(_jsRuntime, JsonConvert.SerializeObject(dresult.Dataset), lockobject);
                     }
                     else
@@ -148,7 +144,8 @@ namespace sc2dsstats.shared.Service
                     }
                     _options.Chart.data.datasets[0] = dresult.Dataset;
                     dresult.Labels = await ChartService.SortChart(_options.Chart);
-                } else if (_options.Chart.data.datasets.Count > 1)
+                }
+                else if (_options.Chart.data.datasets.Count > 1)
                 {
                     _options.Chart.data.datasets[_options.Chart.data.datasets.Count - 1] = dresult.Dataset;
 
@@ -173,9 +170,10 @@ namespace sc2dsstats.shared.Service
                 if (dresult.CmdrInfo.Games > 0)
                     dresult.CmdrInfo.ADuration /= dresult.CmdrInfo.Games;
 
-                dresult.CmdrInfo.AWinrate = (_options.Mode switch { 
+                dresult.CmdrInfo.AWinrate = (_options.Mode switch
+                {
                     "DPS" => Math.Round(dresult.CmdrInfo.Wins / dresult.CmdrInfo.Games, 2),
-                    _      => Math.Round(dresult.CmdrInfo.Wins * 100 / dresult.CmdrInfo.Games, 2),
+                    _ => Math.Round(dresult.CmdrInfo.Wins * 100 / dresult.CmdrInfo.Games, 2),
                 });
 
                 dresult.CmdrInfo.Games = dresult.CmdrInfo.GameIDs.Count();
@@ -188,14 +186,15 @@ namespace sc2dsstats.shared.Service
                 }
                 _ = Computing.TryTake(out Hash);
                 return (null);
-            }
+            
         }
 
         public static async Task<(double, int)> GetWinrate(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = await Task.Run(() => {
+            var result = await Task.Run(() =>
+            {
                 if (String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == cmdr
@@ -208,7 +207,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == cmdr
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == cmdr
                                select new
                                {
                                    t1.WIN,
@@ -217,16 +216,16 @@ namespace sc2dsstats.shared.Service
                                };
                 else if (String.IsNullOrEmpty(_options.Interest))
                     return from r in replays
-                             from t1 in r.DSPlayer
-                             where t1.RACE == cmdr
-                             select new
-                             {
-                                 t1.WIN,
-                                 r.DURATION,
-                                 r.ID
-                             };
+                           from t1 in r.DSPlayer
+                           where t1.RACE == cmdr
+                           select new
+                           {
+                               t1.WIN,
+                               r.DURATION,
+                               r.ID
+                           };
                 else if (!String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
@@ -239,7 +238,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
                                select new
                                {
                                    t1.WIN,
@@ -265,7 +264,7 @@ namespace sc2dsstats.shared.Service
 
             games = resultlist.Count();
             wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromTicks(resultlist.Sum(s => s.DURATION.Ticks));
+            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
             cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
@@ -277,9 +276,10 @@ namespace sc2dsstats.shared.Service
         }
         public static async Task<(double, int)> GetMVP(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = await Task.Run(() => {
+            var result = await Task.Run(() =>
+            {
                 if (String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == cmdr
@@ -293,7 +293,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == cmdr
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == cmdr
                                select new
                                {
                                    t1.KILLSUM,
@@ -313,7 +313,7 @@ namespace sc2dsstats.shared.Service
                                r.ID
                            };
                 else if (!String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
@@ -327,7 +327,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
                                select new
                                {
                                    t1.KILLSUM,
@@ -355,7 +355,7 @@ namespace sc2dsstats.shared.Service
 
             games = resultlist.Count();
             wins = resultlist.Where(x => x.KILLSUM == x.MAXKILLSUM).Count();
-            duration = TimeSpan.FromTicks(resultlist.Sum(s => s.DURATION.Ticks));
+            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
             cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
@@ -367,9 +367,10 @@ namespace sc2dsstats.shared.Service
         }
         public static async Task<(double, int)> GetDPS(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = await Task.Run(() => {
+            var result = await Task.Run(() =>
+            {
                 if (String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == cmdr
@@ -383,7 +384,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == cmdr
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == cmdr
                                select new
                                {
                                    t1.KILLSUM,
@@ -403,7 +404,7 @@ namespace sc2dsstats.shared.Service
                                r.ID
                            };
                 else if (!String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
@@ -417,7 +418,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
                                select new
                                {
                                    t1.KILLSUM,
@@ -445,7 +446,7 @@ namespace sc2dsstats.shared.Service
 
             games = resultlist.Count();
             wins = resultlist.Sum(s => (double)s.KILLSUM / (double)s.ARMY);
-            duration = TimeSpan.FromTicks(resultlist.Sum(s => s.DURATION.Ticks));
+            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
             cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
@@ -457,9 +458,10 @@ namespace sc2dsstats.shared.Service
         }
         public static async Task<(double, int)> GetSynergy(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = await Task.Run(() => {
+            var result = await Task.Run(() =>
+            {
                 if (!String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == _options.Interest
@@ -474,7 +476,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == _options.Interest
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
                                from t3 in r.DSPlayer
                                where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM && t3.RACE == cmdr
                                select new
@@ -504,7 +506,7 @@ namespace sc2dsstats.shared.Service
 
             games = resultlist.Count();
             wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromTicks(resultlist.Sum(s => s.DURATION.Ticks));
+            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
             cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
@@ -516,9 +518,10 @@ namespace sc2dsstats.shared.Service
         }
         public static async Task<(double, int)> GetAntiSynergy(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = await Task.Run(() => {
+            var result = await Task.Run(() =>
+            {
                 if (!String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in replays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == _options.Interest
@@ -533,7 +536,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in replays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == _options.Interest
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
                                from t3 in r.DSPlayer
                                where t3.TEAM != t1.TEAM && t3.RACE == cmdr
                                select new
@@ -563,7 +566,7 @@ namespace sc2dsstats.shared.Service
 
             games = resultlist.Count();
             wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromTicks(resultlist.Sum(s => s.DURATION.Ticks));
+            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
             cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
@@ -579,9 +582,10 @@ namespace sc2dsstats.shared.Service
 
             var treplays = replays.Where(x => x.GAMETIME > t.AddDays(-7) && x.GAMETIME < t);
 
-            var result = await Task.Run(() => {
+            var result = await Task.Run(() =>
+            {
                 if (!String.IsNullOrEmpty(_options.Interest) && _options.Player)
-                    if (String.IsNullOrEmpty(_options.Dataset))
+                    if (!_options.Dataset.Any())
                         return from r in treplays
                                from t1 in r.DSPlayer
                                where t1.NAME.Length == 64 && t1.RACE == _options.Interest
@@ -594,7 +598,7 @@ namespace sc2dsstats.shared.Service
                     else
                         return from r in treplays
                                from t1 in r.DSPlayer
-                               where t1.NAME == _options.Dataset && t1.RACE == _options.Interest
+                               where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
                                select new
                                {
                                    t1.WIN,
@@ -620,7 +624,7 @@ namespace sc2dsstats.shared.Service
 
             games = resultlist.Count();
             wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromTicks(resultlist.Sum(s => s.DURATION.Ticks));
+            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
             cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;

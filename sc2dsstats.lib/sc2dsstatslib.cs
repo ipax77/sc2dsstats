@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using sc2dsstats.lib.Models;
-using System;
 
 namespace sc2dsstats.lib
 {
@@ -11,14 +9,14 @@ namespace sc2dsstats.lib
         public static string JsonFile { get; set; } = "/data/data.json";
         public static ServerConfig Config = new ServerConfig();
         public static string configfile = "/data/serverconfig.json";
-        
+
 
         public static void LoadConfig()
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile(configfile, true, true)
                 .Build();
-                config.GetSection("ServerConfig").Bind(Config);
+            config.GetSection("ServerConfig").Bind(Config);
         }
     }
 }

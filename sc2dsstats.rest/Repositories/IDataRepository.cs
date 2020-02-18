@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using sc2dsstats.rest.Models;
 using System.Threading.Tasks;
-using sc2dsstats.rest.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace sc2dsstats.rest.Repositories
 {

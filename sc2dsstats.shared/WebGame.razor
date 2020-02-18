@@ -3,6 +3,7 @@
 @using sc2dsstats.lib.Models
 @using sc2dsstats.lib.Db
 @using sc2dsstats.shared.Service
+@inject DSoptions _options
 @inject NavigationManager _nav
 
 @if (replay != null)
@@ -23,11 +24,11 @@
             <div class="ml-4">
                 <div class="row">
                     <h4><span class="badge badge-secondary mr-2">ID @replay.ID</span></h4>
-                    <h4><span class="badge badge-secondary mr-2">Duration @replay.DURATION.ToString(@"mm\:ss") min</span></h4>
+                    <h4><span class="badge badge-secondary mr-2">Duration @(TimeSpan.FromSeconds(replay.DURATION).ToString(@"hh\:mm\:ss")) min</span></h4>
                     <h4><span class="badge badge-secondary mr-2">Gametime @replay.GAMETIME.ToString("yyyy/MM/dd")</span></h4>
-                    @if (replay.DSPlayer.FirstOrDefault(f => f.NAME.Length == 64) != null)
+                    @if (plpos > 0)
                     {
-                        <h4><span class="badge badge-secondary mr-2">Player POS @replay.DSPlayer.First(f => f.NAME.Length == 64).REALPOS</span></h4>
+                        <h4><span class="badge badge-secondary mr-2">Player POS @plpos</span></h4>
                     }
                     <h4><span class="badge badge-secondary">MVP Player @replay.DSPlayer.Where(x => x.KILLSUM == replay.MAXKILLSUM).First().REALPOS</span></h4>
                 </div>
@@ -61,7 +62,7 @@
                                 <tbody>
                                     @foreach (DSPlayer pl in replay.DSPlayer.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
                                     {
-                                        @if (pl.NAME.Length == 64)
+                                        @if (pl.NAME.Length == 64 || _options.Players.Where(x => x.Value == true && pl.NAME == x.Key).Any())
                                         {
                                             PlayerClass = "table-primary";
                                         }
@@ -189,6 +190,7 @@
     bool showMap = false;
     List<double> Mid = new List<double>() { 0, 0 };
     string link = "";
+    int plpos = 0;
 
     Dictionary<string, double> BreakpointMid = new Dictionary<string, double>(DSdata.BreakpointMid);
 
@@ -202,7 +204,7 @@
 
         if (replay != null)
         {
-            BreakpointMid["ALL"] = replay.DURATION.TotalSeconds * 22.4;
+            BreakpointMid["ALL"] = replay.DURATION * 22.4;
         }
 
     }
@@ -214,15 +216,22 @@
         showMap = false;
         if (replay != null)
         {
-            BreakpointMid["ALL"] = replay.DURATION.TotalSeconds * 22.4;
+            BreakpointMid["ALL"] = replay.DURATION * 22.4;
             SetMid();
 
             link = _nav.BaseUri;
             link += "db/" + replay.ID;
         }
 
-        DSPlayer pl = replay.DSPlayer.Where(x => x.NAME.Length == 64).FirstOrDefault();
-        int plpos = 0;
+        DSPlayer pl = null;
+        if (DSdata.Config.Players.Any())
+        {
+            List<string> activePlayers = _options.Players.Where(x => x.Value == true).Select(s => s.Key).ToList();
+            pl = replay.DSPlayer.Where(x => activePlayers.Contains(x.NAME)).FirstOrDefault();
+        }
+        else
+            pl = replay.DSPlayer.Where(x => x.NAME.Length == 64).FirstOrDefault();
+        plpos = 0;
         int opppos = 0;
         if (pl != null)
         {

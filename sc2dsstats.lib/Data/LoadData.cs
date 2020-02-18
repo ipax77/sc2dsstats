@@ -1,17 +1,13 @@
-﻿using sc2dsstats.decode.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using sc2dsstats.lib.Db;
+using sc2dsstats.lib.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.IO;
-using sc2dsstats.lib.Models;
-using sc2dsstats.decode.Models;
-using sc2dsstats.lib.Db;
-using Microsoft.EntityFrameworkCore;
 using System.Threading;
-using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace sc2dsstats.lib.Data
 {
@@ -21,10 +17,12 @@ namespace sc2dsstats.lib.Data
         public event EventHandler DataLoaded;
         private ReplaysLoadedEventArgs args = new ReplaysLoadedEventArgs();
         public UserConfig myConfig = new UserConfig();
+        private readonly IServiceScopeFactory scopeFactory;
 
 
-        public LoadData()
+        public LoadData(IServiceScopeFactory scopeFactory)
         {
+            this.scopeFactory = scopeFactory;
         }
 
         protected virtual void OnDataLoaded(ReplaysLoadedEventArgs e)
@@ -40,12 +38,14 @@ namespace sc2dsstats.lib.Data
 
             await Task.Delay(6000);
 
-            int i = 0;
-            using (var context = new DSReplayContext())
-            {
-                i = context.DSReplays.Count();
-            }
+            int i = 1;
 
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
+                i = db.DSReplays.Count();
+            }
+            DSdata.Status.Count = i;
             lock (args)
             {
                 args.Count = i;
@@ -55,19 +55,26 @@ namespace sc2dsstats.lib.Data
             }
             DSdata.Status = args;
             OnDataLoaded(args);
-            
+
             Task.Factory.StartNew(() => { GetDatasetInfo(); }, new CancellationToken(), TaskCreationOptions.None, PriorityScheduler.Lowest);
-            
+
+        }
+
+        public void Update()
+        {
+            OnDataLoaded(args);
         }
 
         async Task GetDatasetInfo()
         {
-            using (var context = new DSReplayContext())
+
+            using (var scope = scopeFactory.CreateScope())
             {
-                
+                var context = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
                 DSdata.Datasets = new List<DatasetInfo>();
-                var datasethashs = from dup in context.PLDuplicates
-                                   select dup.Hash
+                var datasethashs = from p in context.DSPlayers
+                                   where p.NAME.Length == 64
+                                   select p.NAME;
                                ;
                 var datasets = datasethashs.ToHashSet();
 
@@ -87,6 +94,7 @@ namespace sc2dsstats.lib.Data
                     DSdata.Datasets.Add(setinfo);
                 }
             }
+            
         }
     }
 

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.JSInterop;
+using System;
 using System.Threading.Tasks;
-using Microsoft.JSInterop;
 
 namespace sc2dsstats.shared.Service
 {
@@ -30,7 +28,7 @@ namespace sc2dsstats.shared.Service
                 {
                     _jsRuntime.InvokeVoidAsync("AddDynChart", data);
                 }
-                catch{}
+                catch { }
             }
         }
 
@@ -42,7 +40,7 @@ namespace sc2dsstats.shared.Service
                 {
                     _jsRuntime.InvokeVoidAsync("RemoveDynChart", data);
                 }
-                catch{}
+                catch { }
             }
         }
 

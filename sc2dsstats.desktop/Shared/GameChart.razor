@@ -1,0 +1,368 @@
+﻿@using System.IO
+@using sc2dsstats.decode.Models
+@using sc2dsstats.decode.Service
+@using sc2dsstats.lib.Models
+@using sc2dsstats.shared.Service
+@using sc2dsstats.lib.Db
+@inject GameChartService  _chart
+@inject DSReplayContext  _db
+
+<head>
+    <style>
+        canvas {
+            background-color: whitesmoke;
+        }
+    </style>
+</head>
+@if (replay != null)
+{
+    @if (replay.ID != replayid)
+    {
+        <div class="d-none">
+            @NewReplay()
+        </div>
+    }
+    <div class="row">
+        <div>
+            <div>
+                @foreach (var ent in mystats.GetType().GetProperties())
+                {
+                    @if (ent.Name == "ArmyDiff" || ent.Name == "KillsDiff")
+                    {
+                        continue;
+                    }
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox"
+                               class="custom-control-input"
+                               name="stProperties"
+                               checked="@stProperties[ent.Name]"
+                               value=@ent.Name
+                               id="cb_@ent.Name"
+                               @onchange="@(() => AddDataset(@ent.Name, 0))" />
+                        <label class="custom-control-label" for="cb_@ent.Name">
+                            @ent.Name
+                        </label>
+                    </div>
+                }
+
+            </div>
+            <br />
+            <div>
+                @if (replay != null)
+                {
+                    @foreach (DSPlayer pl in replay.DSPlayer.OrderBy(o => o.REALPOS))
+                    {
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="repPlayers"
+                                   checked="@stPlayers[pl.REALPOS]"
+                                   value="@pl.REALPOS"
+                                   id="cb_@pl.NAME"
+                                   @onchange="@(() => AddPlayer(pl.REALPOS))" />
+                            <label class="custom-control-label" for="cb_@pl.NAME">
+                                Player @pl.REALPOS (@pl.NAME)
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+            <br />
+            <div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox"
+                           class="custom-control-input"
+                           name="repMiddle"
+                           checked="@middleChecked"
+                           value="middle"
+                           id="cb_middle"
+                           @onchange="@(() => ShowMiddle())" />
+                    <label class=" custom-control-label" for="cb_middle">
+                        Middle
+                    </label>
+                </div>
+            </div>
+            <br />
+            <h6>adjust Gametime</h6>
+            <div class="slidecontainer">
+                <input type="range" min="1" max="100" @bind="@slidervalue" class="slider" id="myRange" />
+            </div>
+            <button class="btn btn-sm btn-primary" @onclick="@(() => ChangeTime())">Update</button>
+        </div>
+        <div class="w-75">
+            @if (loading == true)
+            {
+                <h4>Loading ...</h4>
+            }
+            else if (loadFailed == true)
+            {
+                <h4>Loading replay failed.</h4>
+            }
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+}
+@code {
+    [Parameter]
+    public DSReplay replay { get; set; }
+    public dsreplay dsreplay;
+    ChartJS mychart = null;
+    bool loading = true;
+    bool loadFailed = false;
+    M_stats mystats = new M_stats();
+    Dictionary<string, bool> stProperties = new Dictionary<string, bool>();
+    Dictionary<string, int> stLabel = new Dictionary<string, int>();
+    Dictionary<int, bool> stPlayers = new Dictionary<int, bool>();
+    bool showChart = false;
+    int slidervalue = 100;
+    int replayid = 0;
+    bool middleChecked = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        replayid = replay.ID;
+        foreach (var ent in mystats.GetType().GetProperties())
+            stProperties.Add(ent.Name, false);
+
+        for (int i = 0; i <= 6; i++)
+            stPlayers.Add(i, false);
+
+        await NewReplay();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (showChart == false)
+        {
+            showChart = true;
+            mychart = await _chart.GetChartBase();
+        }
+    }
+
+
+
+    async Task NewReplay()
+    {
+        loading = true;
+        loadFailed = false;
+        replayid = replay.ID;
+
+        if (File.Exists(replay.REPLAYPATH))
+            await LoadReplay(replay.REPLAYPATH);
+
+        loading = false;
+        if (dsreplay == null)
+            loadFailed = true;
+
+        StateHasChanged();
+    }
+
+    async Task ShowMiddle()
+    {
+        middleChecked = !middleChecked;
+
+        if (middleChecked == true)
+        {
+            ChartJSdataset dataset = new ChartJSdataset();
+            dataset.label = "Middle";
+            List<double> wr = new List<double>();
+
+            Dictionary<int, int> myMid = new Dictionary<int, int>();
+
+            int lastmid = 0;
+            foreach (var ent in stLabel.Values)
+            {
+                foreach (var mid in dsreplay.MIDDLE)
+                {
+                    if (mid.Key > ent + 160)
+                        break;
+
+                    if (mid.Key >= ent)
+                    {
+                        if (mid.Value == 1)
+                            myMid[ent] = 10000;
+                        else if (mid.Value == 2)
+                            myMid[ent] = 20000;
+                        else
+                            myMid[ent] = 0;
+
+                        lastmid = myMid[ent];
+                        break;
+                    }
+                }
+                myMid[ent] = lastmid;
+            }
+
+
+            foreach (var dat in myMid)
+                wr.Add(dat.Value);
+
+            dataset.data = wr.ToList();
+            mychart = await _chart.AddDataset(dataset);
+        }
+        else
+        {
+            mychart = await _chart.RemoveDataset("Middle");
+        }
+    }
+
+    async Task AddPlayer(int pos)
+    {
+        stPlayers[pos] = !stPlayers[pos];
+
+        if (stPlayers[pos] == false)
+            await RemoveDataset(null, pos);
+        else
+            await AddDataset(null, pos);
+    }
+
+    async Task LoadReplay(string file)
+    {
+        string repid = replay.REPLAY;
+        dsreplay myreplay = await Decode.ScanRep(file, true);
+        if (myreplay == null) return;
+        myreplay.REPLAY = repid;
+        myreplay.ID = replayid;
+        dsreplay = myreplay;
+
+        List<string> labels = new List<string>();
+
+        HashSet<int> repLabels = new HashSet<int>();
+
+        foreach (dsplayer pl in dsreplay.PLAYERS)
+            foreach (var ent in pl.STATS)
+                repLabels.Add(ent.Key);
+
+        stLabel.Clear();
+        foreach (var ent in repLabels.OrderBy(o => o))
+        {
+            double dur = 0;
+            string lab = "0";
+            dur = (double)ent / 22.4;
+            TimeSpan t = TimeSpan.FromSeconds(dur);
+            if (t.Hours > 0) lab = t.Hours + ":" + t.Minutes.ToString("D2") + ":" + t.Seconds.ToString("D2") + ":" + t.Milliseconds.ToString("D2");
+            lab = t.Minutes + ":" + t.Seconds.ToString("D2") + ":" + t.Milliseconds.ToString("D2");
+            labels.Add(lab);
+            stLabel.Add(lab, ent);
+        }
+        mychart.data.labels = labels.ToList();
+        await _chart.DrawChart(mychart);
+
+        await AddPlayer(1);
+        await AddDataset("FoodUsed", 0);
+
+        //StateHasChanged();
+    }
+
+    async Task ChangeTime()
+    {
+        mychart = await _chart.GetChartBase();
+
+        //if (dsreplay.MIDDLE.Count() == 0)
+        //    replay = _dsData.Replays.Where(x => x.ID == replay.ID).FirstOrDefault();
+
+        HashSet<int> repLabels = new HashSet<int>();
+        List<string> labels = new List<string>();
+        foreach (dsplayer pl in dsreplay.PLAYERS)
+            foreach (var ent in pl.STATS)
+                repLabels.Add(ent.Key);
+
+        stLabel.Clear();
+
+        double myTake = (double)repLabels.Count() * ((double)slidervalue / 100);
+
+
+        foreach (var ent in repLabels.OrderBy(o => o).Take(Convert.ToInt32(myTake)))
+        {
+            double dur = 0;
+            string lab = "0";
+            dur = (double)ent / 22.4;
+            TimeSpan t = TimeSpan.FromSeconds(dur);
+            if (t.Hours > 0) lab = t.Hours + ":" + t.Minutes.ToString("D2") + ":" + t.Seconds.ToString("D2") + ":" + t.Milliseconds.ToString("D2");
+            lab = t.Minutes + ":" + t.Seconds.ToString("D2") + ":" + t.Milliseconds.ToString("D2");
+            labels.Add(lab);
+            stLabel.Add(lab, ent);
+        }
+        mychart.data.labels = labels.ToList();
+        await _chart.DrawChart(mychart);
+        foreach (var ent in stPlayers.Where(x => x.Value == true))
+            await AddDataset(null, ent.Key);
+    }
+
+    async Task AddDataset(string opt, int player)
+    {
+        if (replay == null) return;
+
+        if (opt != null)
+        {
+            stProperties[opt] = !stProperties[opt];
+            if (stProperties[opt] == false)
+            {
+                await RemoveDataset(opt, 0);
+                return;
+            }
+
+            foreach (var ent in stPlayers.Where(x => x.Value == true))
+            {
+                ChartJSdataset dataset = new ChartJSdataset();
+                dataset.label = "Player " + ent.Key + " " + opt;
+                List<double> wr = new List<double>();
+
+                Dictionary<int, M_stats> st = dsreplay.PLAYERS.Where(x => x.REALPOS == ent.Key).FirstOrDefault().STATS;
+
+                foreach (var dat in mychart.data.labels)
+                {
+                    if (st.ContainsKey(stLabel[dat]))
+                        wr.Add(Double.Parse(st[stLabel[dat]].GetType().GetProperty(opt).GetValue(st[stLabel[dat]], null).ToString()));
+                    else
+                        wr.Add(0);
+
+                    //wr.Add(Double.Parse(ent.Value.GetType().GetProperty(opt).GetValue(ent.Value, null).ToString()));
+                    //wr.Add((double)ent.Value.m_scoreValueMineralsUsedActiveForces);
+                }
+
+                dataset.data = wr.ToList();
+                mychart = await _chart.AddDataset(dataset);
+            }
+        }
+
+        if (player > 0)
+        {
+            foreach (var ent in stProperties.Where(x => x.Value == true))
+            {
+                ChartJSdataset dataset = new ChartJSdataset();
+                dataset.label = "Player " + player + " " + ent.Key;
+                List<double> wr = new List<double>();
+
+                Dictionary<int, M_stats> st = dsreplay.PLAYERS.Where(x => x.REALPOS == player).FirstOrDefault().STATS;
+
+                foreach (var dat in mychart.data.labels)
+                {
+                    if (st.ContainsKey(stLabel[dat]))
+                        wr.Add(Double.Parse(st[stLabel[dat]].GetType().GetProperty(ent.Key).GetValue(st[stLabel[dat]], null).ToString()));
+                    else
+                        wr.Add(0);
+
+                    //wr.Add(Double.Parse(ent.Value.GetType().GetProperty(opt).GetValue(ent.Value, null).ToString()));
+                    //wr.Add((double)ent.Value.m_scoreValueMineralsUsedActiveForces);
+                }
+
+                dataset.data = wr.ToList();
+                mychart = await _chart.AddDataset(dataset);
+            }
+
+        }
+    }
+
+    async Task RemoveDataset(string opt, int player)
+    {
+        if (opt != null)
+            foreach (var ent in mychart.data.datasets.ToList().Where(x => x.label.EndsWith(opt)))
+                mychart = await _chart.RemoveDataset(ent.label);
+
+        if (player > 0)
+            foreach (var ent in mychart.data.datasets.ToList().Where(x => x.label.StartsWith("Player " + player)))
+                mychart = await _chart.RemoveDataset(ent.label);
+    }
+
+}

@@ -139,7 +139,7 @@
 
 @code {
 
-        OptionsDialog myDialog;
+    OptionsDialog myDialog;
 
     private string isActive = "";
     private string myTimespan = "";
@@ -154,6 +154,15 @@
     private void CBPlayerClick(object e)
     {
         _options.Player = (bool)e;
+        if (DSdata.Config.Players.Any())
+        {
+            if ((bool)e)
+                foreach (var ent in _options.Players.Where(x => x.Value == true))
+                    _options.Dataset.Add(ent.Key);
+            else
+                _options.Dataset.Clear();
+
+        }
         _options.Update = !_options.Update;
     }
 

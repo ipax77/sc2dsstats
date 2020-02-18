@@ -1,15 +1,13 @@
-﻿using sc2dsstats.lib.Db;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using sc2dsstats.lib.Models;
-using Newtonsoft.Json;
-using System.IO;
-using System.Text.Json;
-using sc2dsstats.lib.Data;
+﻿using Microsoft.EntityFrameworkCore;
 using sc2dsstats.decode.Models;
+using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Db;
+using sc2dsstats.lib.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace sc2dsstats.data
 {
@@ -88,7 +86,7 @@ namespace sc2dsstats.data
                             int i = 0;
                             foreach (var ent in replay.PLAYERS.Select(s => new { s.NAME, s.REALPOS }))
                             {
-                                
+
                                 try
                                 {
                                     if (ent.NAME.Length == 64 && crep.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME.Length < 64)
@@ -111,7 +109,7 @@ namespace sc2dsstats.data
 
                 foreach (dsreplay rep in sReplays)
                 {
-                    DSReplay replay = DBService.InsertdsReplay(context, rep);
+                    DSReplay replay = InsertdsReplay(context, rep);
                     NewDbReps.Add(replay);
                 }
             }
@@ -141,14 +139,15 @@ namespace sc2dsstats.data
                             pl.NAME = plhash;
                             replay.PLDupPos[plhash] = pl.REALPOS;
                         }
-                            
+
                         dsreplay crep = sReplays.SingleOrDefault(s => s.HASH == replay.HASH);
 
                         if (crep == null)
                         {
                             sReplays.Add(replay);
                             Hashs.Add(replay.HASH);
-                        } else
+                        }
+                        else
                         {
                             if (new Version(replay.VERSION) >= new Version(crep.VERSION))
                             {
@@ -215,7 +214,7 @@ namespace sc2dsstats.data
 
 
                     DSReplay replay = context.DSReplays.Single(s => s.ID == id);
-                    
+
                     foreach (int cid in CompareMe[id])
                     {
                         if (DeleteMe.Contains(cid))
@@ -268,13 +267,15 @@ namespace sc2dsstats.data
                                     {
                                         if (ent.NAME.Length == 64 && replay.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME.Length < 64)
                                             replay.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME = ent.NAME;
-                                    } catch
+                                    }
+                                    catch
                                     {
                                         Console.WriteLine("???");
                                     }
                                 }
                                 DeleteMe.Add(crep.ID);
-                            } else
+                            }
+                            else
                             {
                                 foreach (var ent in replay.DSPlayer.Select(s => new { s.NAME, s.REALPOS }))
                                 {
@@ -282,7 +283,8 @@ namespace sc2dsstats.data
                                     {
                                         if (ent.NAME.Length == 64 && crep.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME.Length < 64)
                                             crep.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME = ent.NAME;
-                                    } catch
+                                    }
+                                    catch
                                     {
                                         Console.WriteLine(":(");
                                     }
@@ -332,7 +334,8 @@ namespace sc2dsstats.data
                     if (compreps.Any())
                     {
                         HashSet<int> ids = rreps.Select(s => s.ID).ToHashSet();
-                        foreach (int id in ids) {
+                        foreach (int id in ids)
+                        {
                             List<string> compRaces = rreps.Where(x => x.ID == id).OrderBy(o => o.REALPOS).Select(s => s.RACE).ToList();
                             if (repRaces.SequenceEqual(compRaces))
                             {
@@ -351,6 +354,87 @@ namespace sc2dsstats.data
                 return CompareMe;
 
             }
+        }
+
+        public static DSReplay InsertdsReplay(DSReplayContext context, dsreplay rep)
+        {
+            Dictionary<int, PLDuplicate> dPos = new Dictionary<int, PLDuplicate>();
+
+            DSReplay dbrep = new DSReplay();
+            dbrep.REPLAY = rep.REPLAY;
+            string gametime = rep.GAMETIME.ToString();
+            int year = int.Parse(gametime.Substring(0, 4));
+            int month = int.Parse(gametime.Substring(4, 2));
+            int day = int.Parse(gametime.Substring(6, 2));
+            int hour = int.Parse(gametime.Substring(8, 2));
+            int min = int.Parse(gametime.Substring(10, 2));
+            int sec = int.Parse(gametime.Substring(12, 2));
+            DateTime gtime = new DateTime(year, month, day, hour, min, sec);
+            dbrep.GAMETIME = gtime;
+            dbrep.WINNER = (sbyte)rep.WINNER;
+            dbrep.DURATION = TimeSpan.FromSeconds(rep.DURATION / 22.4);
+            dbrep.MINKILLSUM = rep.MINKILLSUM;
+            dbrep.MAXKILLSUM = rep.MAXKILLSUM;
+            dbrep.MINARMY = rep.MINARMY;
+            dbrep.MININCOME = (int)rep.MININCOME;
+            dbrep.MAXLEAVER = rep.MAXLEAVER;
+            dbrep.PLAYERCOUNT = (byte)rep.PLAYERCOUNT;
+            dbrep.REPORTED = (byte)rep.REPORTED;
+            dbrep.ISBRAWL = rep.ISBRAWL;
+            dbrep.GAMEMODE = rep.GAMEMODE;
+            dbrep.VERSION = rep.VERSION;
+            dbrep.HASH = rep.HASH;
+            context.DSReplays.Add(dbrep);
+
+            foreach (var dup in rep.PLDupPos)
+            {
+                PLDuplicate dbdup = new PLDuplicate();
+                dbdup.Hash = dup.Key;
+                dbdup.Pos = (byte)dup.Value;
+                dbdup.DSReplay = dbrep;
+                context.PLDuplicates.Add(dbdup);
+                dPos[dup.Value] = dbdup;
+            }
+
+            foreach (dsplayer pl in rep.PLAYERS)
+            {
+                DSPlayer dbpl = new DSPlayer();
+                dbpl.POS = (byte)pl.POS;
+                dbpl.REALPOS = (byte)pl.REALPOS;
+                dbpl.NAME = pl.NAME;
+                dbpl.RACE = pl.RACE;
+                if (pl.TEAM == rep.WINNER)
+                    dbpl.WIN = true;
+                dbpl.TEAM = (byte)pl.TEAM;
+                dbpl.KILLSUM = pl.KILLSUM;
+                dbpl.INCOME = (int)pl.INCOME;
+                dbpl.PDURATION = TimeSpan.FromSeconds(pl.PDURATION / 22.4);
+                dbpl.ARMY = pl.ARMY;
+                dbpl.GAS = (byte)pl.GAS;
+                dsplayer opp = rep.GetOpp(pl.REALPOS);
+                if (opp != null)
+                    dbpl.OPPRACE = opp.RACE;
+                if (dPos.ContainsKey(pl.REALPOS))
+                {
+                    dbpl.PLDuplicate = dPos[pl.REALPOS];
+                    dbpl.NAME = dPos[pl.REALPOS].Hash;
+                }
+                dbpl.DSReplay = dbrep;
+                context.DSPlayers.Add(dbpl);
+
+                foreach (var bp in pl.UNITS.Keys)
+                    foreach (var name in pl.UNITS[bp].Keys)
+                    {
+                        DSUnit dbunit = new DSUnit();
+                        dbunit.BP = bp;
+                        dbunit.Name = name;
+                        dbunit.Count = pl.UNITS[bp][name];
+                        dbunit.DSPlayer = dbpl;
+                        context.DSUnits.Add(dbunit);
+                    }
+            }
+            context.SaveChanges();
+            return dbrep;
         }
     }
 }

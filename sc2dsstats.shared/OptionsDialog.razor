@@ -274,7 +274,7 @@
     void OffFilter()
     {
         _options.Build = String.Empty;
-        _options.Duration = TimeSpan.Zero;
+        _options.Duration = 0;
         _options.Leaver = 0;
         _options.Army = 0;
         _options.Kills = 0;
@@ -288,7 +288,7 @@
         }
         _options.Interest = String.Empty;
         _options.Vs = String.Empty;
-        _options.Dataset = String.Empty;
+        _options.Dataset = new List<string>();
         
         _options.Update = !_options.Update;
         myhash = _options.GenHash();
@@ -305,12 +305,13 @@
     {
         if (selection == "ALL")
         {
-            _options.Dataset = String.Empty;
+            _options.Dataset = new List<string>();
             _options.Player = false;
         }
         else
         {
-            _options.Dataset = selection;
+            _options.Dataset.Clear();
+            _options.Dataset.Add(selection);
             _options.Player = true;
         }
     }

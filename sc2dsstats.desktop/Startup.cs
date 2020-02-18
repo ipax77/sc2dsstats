@@ -1,17 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ElectronNET.API;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using paxgamelib;
+using sc2dsstats.desktop.Data;
+using sc2dsstats.desktop.Service;
 using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Db;
 using sc2dsstats.shared.Service;
+using System.Globalization;
+using System.Threading.Tasks;
 
 namespace sc2dsstats.desktop
 {
@@ -20,6 +21,7 @@ namespace sc2dsstats.desktop
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            
         }
 
         public IConfiguration Configuration { get; }
@@ -30,15 +32,22 @@ namespace sc2dsstats.desktop
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddDbContext<DSReplayContext>(options =>
+                //options.UseSqlServer($"Server=(localdb)\\mssqllocaldb;AttachDbFilename={Program.workdir}\\dsreplays.mdf; Database=sc2dsstats_replays;Trusted_Connection=True;MultipleActiveResultSets=true"));
+                options.UseSqlite($"Data Source={Program.workdir}/data.db"));
             services.AddSingleton<LoadData>();
-            //services.AddSingleton<DSstats>();
             services.AddScoped<DSoptions>();
-            //services.AddScoped<ChartService>();
+            services.AddScoped<ChartService>();
+            services.AddScoped<GameChartService>();
+            services.AddScoped<Refresh>();
+            services.AddScoped<Status>();
         }
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -50,7 +59,7 @@ namespace sc2dsstats.desktop
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -60,6 +69,7 @@ namespace sc2dsstats.desktop
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+            Task.Run(() => { paxgame.Init(); });
             Task.Run(async () => await Electron.WindowManager.CreateWindowAsync());
         }
     }

@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\sc2dsstats.decode\sc2dsstats.decode.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Db\mssql\" />
   </ItemGroup>
 
