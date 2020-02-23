@@ -1,10 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Pomelo.EntityFrameworkCore.MySql.Storage;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -16,6 +21,8 @@ namespace sc2dsstats.data
         static HttpClient client = new HttpClient();
         public static string configfile = "/home/pax77/git/config/serverconfig.json";
 
+        public static DbContextOptions<DSReplayContext> _opt;
+
         static void Main(string[] args)
         {
             IConfiguration config = new ConfigurationBuilder()
@@ -23,11 +30,17 @@ namespace sc2dsstats.data
               .Build();
             config.GetSection("ServerConfig").Bind(DSdata.ServerConfig);
 
-            using (var context = new DSReplayContext())
+            var optionsBuilder = new DbContextOptionsBuilder<DSReplayContext>();
+            optionsBuilder.UseMySql(DSdata.ServerConfig.DBConnectionString, mySqlOptions => mySqlOptions
+                .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql)));
+
+            _opt = optionsBuilder.Options;
+            int i = 0;
+            using (var context = new DSReplayContext(_opt))
             {
                 context.Database.EnsureCreated();
+                i = context.DSReplays.Count();
             }
-
 
             DateTime t = DateTime.Now;
 

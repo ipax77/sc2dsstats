@@ -22,7 +22,7 @@ namespace sc2dsstats.decode.Service
         private static ManualResetEvent _empty = new ManualResetEvent(false);
         private static int CORES = 4;
         public static TimeSpan Elapsed { get; set; } = new TimeSpan(0);
-        public static List<string> Failed { get; set; } = new List<string>();
+        public static ConcurrentBag<string> Failed { get; set; } = new ConcurrentBag<string>();
 
 
 
@@ -43,7 +43,7 @@ namespace sc2dsstats.decode.Service
             _empty = new ManualResetEvent(false);
             CORES = cores;
             
-            Failed = new List<string>();
+            Failed = new ConcurrentBag<string>();
             Console.WriteLine("Engine start.");
             s2dec.DEBUG = DSdata.Config.Debug;
             s2dec.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileList.Count());

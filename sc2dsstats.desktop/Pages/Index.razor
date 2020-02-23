@@ -1,62 +1,43 @@
 ﻿@page "/"
 @using sc2dsstats.desktop.Service
 @using sc2dsstats.lib.Data
-@inject Status _status
+@using System.IO
+
 
 <h2 class="text-primary">
     sc2dsstats
     <small class="text-muted">Starcraft 2 Direct Strike Statistics</small>
 </h2>
-<div class="col-auto">
-    <h4><span class="badge badge-info">DS Replays found:<br />@TotalReplays</span></h4>
-</div>
 
-
-@if (Loading)
+@if (Status.isFirstRun && DSdata.DesktopStatus.FoldersReplays == 0)
 {
-    <button class="btn btn-primary" type="button" disabled>
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Loading...
-    </button>
+    <div class="container">
+        <h3>Welcome to sc2dsstats - this is your first run, so please check the options and press Save.</h3>
+        <h4>You can change the settings at any time at 'Settings' in the Nav menu</h4>
+    </div>
+    <UserSettingsPage />
 }
 else
 {
-    @if (TotalReplays == 0 && ReplaysDecoded == 0)
-    {
-        <div class="container">
-            <h2>Welcome to sc2dsstats - this is your first run, so please check the options and press Save.</h2>
-            <h3>You can change the settings at any time at 'Settings' in the Nav menu</h3>
-        </div>
-        <UserSettingsPage />
-    }
-    else
-    {
-        <br />
-        <Scan FrontPage="true" NewReplays="NewReplays" />
-    }
+    <br />
+    <Scan />
 }
 
+@if (oldDataExists)
+{
+    <LoadOldDataPage />
+}
+
+
+
 @code {
-    bool Loading = true;
-    int TotalReplays = 0;
-    int ReplaysDecoded = 0;
-    int NewReplays = 0;
-
-    protected override async Task OnInitializedAsync()
+    bool oldDataExists = false;
+    protected override void OnInitialized()
     {
-        await _status.Init();
-        _status.StatusChanged += OnReplaysLoaded;
-        _status.ScanReplayFolders();
-    }
+        if (Status.isFirstRun && File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web\\data.json"))
+        {
+            oldDataExists = true;
 
-    void OnReplaysLoaded(object sender, EventArgs e)
-    {
-        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
-        TotalReplays = arg.TotalReplays;
-        ReplaysDecoded = arg.TotalReplays - arg.NewReplays;
-        NewReplays = arg.NewReplays;
-
-        Loading = false;
-        InvokeAsync(() => StateHasChanged());
+        }
     }
 }

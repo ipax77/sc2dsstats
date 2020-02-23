@@ -29,10 +29,10 @@ namespace sc2dsstats.desktop.Service
                 hash = GetHash(sha256Hash, names);
                 hash2 = GetHash(sha256Hash, Program.myJson_file);
             }
-            //var client = new RestClient("https://www.pax77.org:9126");
+            var client = new RestClient("https://www.pax77.org:9126");
             //var client = new RestClient("https://192.168.178.28:9001");
             //var client = new RestClient("http://192.168.178.28:9000");
-            var client = new RestClient("http://localhost:5000");
+            //var client = new RestClient("http://localhost:5000");
 
             List<DSReplay> UploadReplays = new List<DSReplay>();
             List<dsreplay> UploadReplaysMaped = new List<dsreplay>();
@@ -51,7 +51,7 @@ namespace sc2dsstats.desktop.Service
             info.LastRep = lastrep;
             info.LastUpload = DSdata.Config.LastUpload;
             info.Total = DSdata.Status.Count;
-            info.Version = DSdata.Config.Version;
+            info.Version = DSdata.DesktopVersion.ToString();
 
             var restRequest = new RestRequest("/secure/data/autoinfo", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;

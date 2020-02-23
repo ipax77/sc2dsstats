@@ -16,13 +16,13 @@ namespace sc2dsstats.shared.Service
         static Regex rx_hero = new Regex(@"Hero(.*)WaveUnit", RegexOptions.Singleline);
         static Regex rx_mp = new Regex(@"(.*)MP$", RegexOptions.Singleline);
 
-        internal static ConcurrentDictionary<string, BuildResult> BuildCache { get; set; } = new ConcurrentDictionary<string, BuildResult>();
-        internal static ConcurrentBag<string> Computing { get; set; } = new ConcurrentBag<string>();
+        private static ConcurrentDictionary<string, BuildResult> BuildCache { get; set; } = new ConcurrentDictionary<string, BuildResult>();
+        private static HashSet<string> Computing { get; set; } = new HashSet<string>();
 
         public static void Reset()
         {
             BuildCache = new ConcurrentDictionary<string, BuildResult>();
-            Computing = new ConcurrentBag<string>();
+            Computing = new HashSet<string>();
         }
 
         public static async Task<BuildResult> GetBuild(DSoptions _options)
@@ -137,7 +137,11 @@ namespace sc2dsstats.shared.Service
             {
                 BuildCache[Hash] = bresult;
             }
-            _ = Computing.TryTake(out Hash);
+
+            lock (Computing)
+            {
+                Computing.Remove(Hash);
+            }
 
             return bresult;
         }

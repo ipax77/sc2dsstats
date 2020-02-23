@@ -4,136 +4,113 @@
 @inject DSoptions _options
 
     <div>
-        <div class="btn-group">
-            <div class="d-none d-xl-block mr-2">
-                <button type="button" class="btn btn-sm btn-light btn-block" @onclick="OpenDialog">Filter</button>
-            </div>
-            <div class="d-none d-xl-block">
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-primary active" @onclick="@(() => _options.Mode = "Winrate")">
-                        <input type="radio" name="options" id="option1" autocomplete="off" checked=""> Winrate
-                    </label>
-                    <label class="btn btn-primary" @onclick="@(() => _options.Mode = "MVP")">
-                        <input type="radio" name="options" id="option2" autocomplete="off"> MVP
-                    </label>
-                    <label class="btn btn-primary" @onclick="@(() => _options.Mode = "DPS")">
-                        <input type="radio" name="options" id="option3" autocomplete="off"> DPS
-                    </label>
-                    <label class="btn btn-primary" @onclick="@(() => _options.Mode = "Synergy")">
-                        <input type="radio" name="options" id="option4" autocomplete="off"> Synergy
-                    </label>
-                    <label class="btn btn-primary" @onclick="@(() => _options.Mode = "AntiSynergy")">
-                        <input type="radio" name="options" id="option5" autocomplete="off"> AntiSynergy
-                    </label>
-                    <label class="btn btn-primary" @onclick="@(() => _options.Mode = "Timeline")">
-                        <input type="radio" name="options" id="option6" autocomplete="off"> Timeline
-                    </label>
-                </div>
-            </div>
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox"
-                       class="custom-control-input"
-                       name="Player"
-                       id="PlayerCb"
-                       checked="@_options.Player"
-                       @onchange="eventArgs => { CBPlayerClick(eventArgs.Value); }" />
-                <label class="custom-control-label" for="PlayerCb">
-                    Player
-                </label>
-                <div class="collapse">@_options.Player</div>
-            </div>
-            <div class="custom-control custom-checkbox ml-1">
-                <input type="checkbox"
-                       class="custom-control-input"
-                       name="BeginAtZero"
-                       id="BeginAtZeroCb"
-                       checked="@_options.BeginAtZero"
-                       @onchange="eventArgs => { BeginAtZeroClick(eventArgs.Value); }" />
-                <label class="custom-control-label" for="BeginAtZeroCb">
-                    BeginAtZero
-                </label>
-                <div class="collapse">@_options.BeginAtZero</div>
-            </div>
-        </div>
         <div class="d-none d-xl-block">
-            <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                <label class="btn btn-secondary" @onclick="@(() => Gametime(1))">
-                    <input type="radio" name="timeoptions" id="timeoptions1" autocomplete="off" checked=""> This month
+            <div class="row">
+                <button class="btn btn-sm btn-light mr-2" @onclick="OpenDialog">Filter</button>
+                @foreach (string mode in DSdata.s_chartmodes)
+                {
+                    if (_options.Mode == mode)
+                    {
+                        <span class="btn btn-warning" @onclick="@(() => _options.Mode = mode)">@mode</span>
+                    }
+                    else
+                    {
+                        <span class="btn btn-primary" @onclick="@(() => _options.Mode = mode)">@mode</span>
+                    }
+                }
+
+            <div class="position-relative ml-2" style="min-width: 60px;">
+                <div class="position-absolute">
+                    <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-sm btn-outline-info @PlayerClass1">
+                            <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOn"> Player
+                        </label>
+                        <label class="btn btn-sm btn-outline-info @PlayerClass2">
+                            <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOff"> Any
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="position-relative ml-2">
+                <div class="position-absolute">
+                    <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-sm btn-outline-info @ZeroClass1">
+                            <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOn"> BeginAtZero
+                        </label>
+                        <label class="btn btn-sm btn-outline-info @ZeroClass2">
+                            <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOff"> AutoScale
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            @for (int i = 0; i < DSdata.s_timespans.Count(); i++)
+            {
+                var bi = i;
+                @if (_options.Time == DSdata.s_timespans[bi])
+                {
+                    <span class="btn btn-dark" @onclick="@(() => Gametime(bi))">@DSdata.s_timespans[bi]</span>
+                }
+                else
+                {
+                    <span class="btn btn-secondary" @onclick="@(() => Gametime(bi))">@DSdata.s_timespans[bi]</span>
+                }
+            }
+        </div>
+    </div>
+</div>
+    <div class="d-xl-none">
+        <div class="row">
+            <Dropdown TItem="string" OnSelected="@OnModeSelected">
+                <InitialTip>Winrate</InitialTip>
+                <ChildContent>
+                    @foreach (string mode in DSdata.s_chartmodes)
+                    {
+                        <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                    }
+                </ChildContent>
+            </Dropdown>
+            <Dropdown TItem="string" OnSelected="@OnCmdrSelected">
+                <InitialTip>Cmdr</InitialTip>
+                <ChildContent>
+                    <DropdownListItem Item="@("ALL")">ALL</DropdownListItem>
+                    <div class="dropdown-divider"></div>
+                    @foreach (string cmdr in DSdata.s_races)
+                    {
+                        <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                    }
+                </ChildContent>
+            </Dropdown>
+            <Dropdown TItem="string" OnSelected="@OnTimeSelected">
+                <InitialTip>Timespan</InitialTip>
+                <ChildContent>
+                    @foreach (string time in DSdata.s_timespans)
+                    {
+                        <DropdownListItem Item="@time">@time</DropdownListItem>
+                    }
+                </ChildContent>
+            </Dropdown>
+
+            <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-sm btn-outline-info @PlayerClass1">
+                    <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOn"> Player
                 </label>
-                <label class="btn btn-secondary" @onclick="@(() => Gametime(2))">
-                    <input type="radio" name="timeoptions" id="timeoptions2" autocomplete="off"> Last month
-                </label>
-                <label class="btn btn-secondary active" @onclick="@(() => Gametime(3))">
-                    <input type="radio" name="timeoptions" id="timeoptions3" autocomplete="off"> This year
-                </label>
-                <label class="btn btn-secondary" @onclick="@(() => Gametime(4))">
-                    <input type="radio" name="timeoptions" id="timeoptions4" autocomplete="off"> Last year
-                </label>
-                <label class="btn btn-secondary" @onclick="@(() => Gametime(5))">
-                    <input type="radio" name="timeoptions" id="timeoptions5" autocomplete="off"> All
+                <label class="btn btn-sm btn-outline-info @PlayerClass2">
+                    <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOff"> Any
                 </label>
             </div>
-
-        </div>
-
-        <div class="d-xl-none">
-            <div class="row">
-                <Dropdown TItem="string" OnSelected="@OnModeSelected">
-                    <InitialTip>Winrate</InitialTip>
-                    <ChildContent>
-                        @foreach (string mode in DSdata.s_chartmodes)
-                        {
-                            <DropdownListItem Item="@mode">@mode</DropdownListItem>
-                        }
-                    </ChildContent>
-                </Dropdown>
-                <Dropdown TItem="string" OnSelected="@OnCmdrSelected">
-                    <InitialTip>Cmdr</InitialTip>
-                    <ChildContent>
-                        <DropdownListItem Item="@("ALL")">ALL</DropdownListItem>
-                        <div class="dropdown-divider"></div>
-                        @foreach (string cmdr in DSdata.s_races)
-                        {
-                            <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
-                        }
-                    </ChildContent>
-                </Dropdown>
-                <Dropdown TItem="string" OnSelected="@OnTimeSelected">
-                    <InitialTip>Timespan</InitialTip>
-                    <ChildContent>
-                        @foreach (string time in DSdata.s_timespans)
-                        {
-                            <DropdownListItem Item="@time">@time</DropdownListItem>
-                        }
-                    </ChildContent>
-                </Dropdown>
-
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox"
-                            class="custom-control-input"
-                            name="Player1"
-                            id="PlayerCb1"
-                            checked="@_options.Player"
-                            @onchange="eventArgs => { CBPlayerClick(eventArgs.Value); }" />
-                    <label class="custom-control-label" for="PlayerCb1">
-                        Player
-                    </label>
-
-                </div>
-                <div class="custom-control custom-checkbox ml-1">
-                    <input type="checkbox"
-                            class="custom-control-input"
-                            name="BeginAtZero1"
-                            id="BeginAtZeroCb1"
-                            checked="@_options.BeginAtZero"
-                            @onchange="eventArgs => { BeginAtZeroClick(eventArgs.Value); }" />
-                    <label class="custom-control-label" for="BeginAtZeroCb1">
-                        BeginAtZero
-                    </label>
-                </div>
+            <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-sm btn-outline-info @ZeroClass1">
+                    <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOn"> BeginAtZero
+                </label>
+                <label class="btn btn-sm btn-outline-info @ZeroClass2">
+                    <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOff"> AutoScale
+                </label>
             </div>
         </div>
     </div>
+        
 
 <OptionsDialog @ref="myDialog" />
 
@@ -145,18 +122,40 @@
     private string myTimespan = "";
     private object lockobject = new object();
 
+    private string PlayerClass1 => _options.Player ? "active" : "";
+    private string PlayerClass2 => _options.Player ? "" : "active";
+
+    private string ZeroClass1 => _options.BeginAtZero ? "active" : "";
+    private string ZeroClass2 => _options.BeginAtZero ? "" : "active";
 
     void OpenDialog()
     {
         myDialog.Show();
     }
 
-    private void CBPlayerClick(object e)
+    private void CBPlayerClickOn(ChangeEventArgs e)
     {
-        _options.Player = (bool)e;
+        if (e.Value.ToString() == "on")
+            _options.Player = true;
+        else
+            return;
+        CBPlayerClick();
+    }
+
+    private void CBPlayerClickOff(ChangeEventArgs e)
+    {
+        if (e.Value.ToString() == "on")
+            _options.Player = false;
+        else
+            return;
+        CBPlayerClick();
+    }
+
+    private void CBPlayerClick()
+    {
         if (DSdata.Config.Players.Any())
         {
-            if ((bool)e)
+            if (_options.Player)
                 foreach (var ent in _options.Players.Where(x => x.Value == true))
                     _options.Dataset.Add(ent.Key);
             else
@@ -166,9 +165,26 @@
         _options.Update = !_options.Update;
     }
 
-    private void BeginAtZeroClick(object e)
+    private void BeginAtZeroClickOn(ChangeEventArgs e)
     {
-        _options.BeginAtZero = (bool)e;
+        if (e.Value.ToString() == "on")
+            _options.BeginAtZero = true;
+        else
+            return;
+        BeginAtZeroClick();
+    }
+
+    private void BeginAtZeroClickOff(ChangeEventArgs e)
+    {
+        if (e.Value.ToString() == "on")
+            _options.BeginAtZero = false;
+        else
+            return;
+        BeginAtZeroClick();
+    }
+
+    private void BeginAtZeroClick()
+    {
         ChartService.ChangeOption(_options);
         InvokeAsync(() => StateHasChanged());
     }
@@ -176,38 +192,38 @@
     private void Gametime(int i)
     {
         // this month
-        if (i == 1)
+        if (i == 0)
         {
             _options.Startdate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1));
             _options.Enddate = DateTime.MinValue;
         }
 
         // last month
-        else if (i == 2)
+        else if (i == 1)
         {
             _options.Startdate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddMonths(-1);
             _options.Enddate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddDays(-1);
         }
 
         // this year
-        else if (i == 3)
+        else if (i == 2)
         {
             _options.Startdate = new DateTime(DateTime.Now.Year, 1, 1);
             _options.Enddate = DateTime.MinValue;
         }
         // last year
-        else if (i == 4)
+        else if (i == 3)
         {
             _options.Startdate = new DateTime(DateTime.Now.Year - 1, 1, 1);
             _options.Enddate = new DateTime(DateTime.Now.Year, 1, 1);
         }
         // all
-        else if (i == 5)
+        else if (i == 4)
         {
             _options.Startdate = DateTime.MinValue;
             _options.Enddate = DateTime.MinValue;
         }
-
+        _options.Time = DSdata.s_timespans[i];
         _options.Update = !_options.Update;
 
     }
@@ -217,7 +233,8 @@
         if (selection == "ALL")
         {
             _options.Interest = String.Empty;
-            ChartService.GetChartBase(_options);
+            //ChartService.GetChartBase(_options);
+            _options.Update = !_options.Update;
         }
         else
         {

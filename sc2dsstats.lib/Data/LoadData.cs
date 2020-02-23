@@ -40,11 +40,14 @@ namespace sc2dsstats.lib.Data
 
             int i = 1;
 
+            
             using (var scope = scopeFactory.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
                 i = db.DSReplays.Count();
             }
+            
+
             DSdata.Status.Count = i;
             lock (args)
             {

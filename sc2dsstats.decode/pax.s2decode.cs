@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Text.Json;
 using sc2dsstats.decode.Models;
+using sc2dsstats.decode.Service;
 
 namespace sc2dsstats.decode
 {
@@ -26,7 +27,6 @@ namespace sc2dsstats.decode
 
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
         ConcurrentDictionary<string, int> SKIP { get; set; } = new ConcurrentDictionary<string, int>();
-        public ConcurrentDictionary<string, int> REDO { get; set; } = new ConcurrentDictionary<string, int>();
 
         public Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
 
@@ -55,6 +55,7 @@ namespace sc2dsstats.decode
         {
             args = new ScanState();
             args.Total = count;
+            args.Running = true;
             if (ENGINE != null) return ENGINE;
             AddLog("Loading Engine ..");
 
@@ -101,13 +102,13 @@ namespace sc2dsstats.decode
             AddLog("Loading s2protocol ..");
             dynamic MPQArchive = SCOPE.GetVariable("MPQArchive");
             dynamic archive = null;
-            dynamic files = null;
+            //dynamic files = null;
             dynamic contents = null;
             dynamic versions = null;
             try
             {
                 archive = MPQArchive(rep);
-                files = archive.extract();
+                //files = archive.extract();
                 contents = archive.header["user_data_header"]["content"];
 
                 //versions = SCOPE.GetVariable("versions");
@@ -116,7 +117,7 @@ namespace sc2dsstats.decode
             catch
             {
                 AddLog("No MPQArchive for " + id);
-                FailCleanup(rep);
+                FailCleanup(rep, GetDetails);
                 return null;
             }
             dynamic header = null;
@@ -130,7 +131,7 @@ namespace sc2dsstats.decode
             catch (Exception e)
             {
                 AddLog("No header for " + id + ": " + e.Message + " " + versions.latest().ToString());
-                FailCleanup(rep);
+                FailCleanup(rep, GetDetails);
                 return null;
             }
 
@@ -146,7 +147,7 @@ namespace sc2dsstats.decode
                 catch
                 {
                     AddLog("No protocol found for " + id + " " + baseBuild.ToString());
-                    FailCleanup(rep);
+                    FailCleanup(rep, GetDetails);
                     return null;
                 }
                 AddLog("Loading s2protocol protocol finished");
@@ -163,7 +164,7 @@ namespace sc2dsstats.decode
                 catch
                 {
                     AddLog("No Init version for " + id);
-                    FailCleanup(rep);
+                    FailCleanup(rep, GetDetails);
                     return null;
                 }
                 AddLog("Loading s2protocol init finished");
@@ -173,6 +174,7 @@ namespace sc2dsstats.decode
 
                 // details
                 var details_enc = archive.read_file("replay.details");
+                
                 dynamic details_dec = null;
                 try
                 {
@@ -181,7 +183,7 @@ namespace sc2dsstats.decode
                 catch
                 {
                     AddLog("No Version for " + id);
-                    FailCleanup(rep);
+                    FailCleanup(rep, GetDetails);
                     return null;
                 }
                 AddLog("Loading s2protocol details finished");
@@ -191,6 +193,7 @@ namespace sc2dsstats.decode
 
                 // trackerevents
                 var trackerevents_enc = archive.read_file("replay.tracker.events");
+                
                 dynamic trackerevents_dec = null;
                 try
                 {
@@ -200,7 +203,7 @@ namespace sc2dsstats.decode
                 catch
                 {
                     AddLog("No tracker version for " + id);
-                    FailCleanup(rep);
+                    FailCleanup(rep, GetDetails);
                     return null;
                 }
                 AddLog("Loading s2protocol trackerevents finished");
@@ -211,7 +214,7 @@ namespace sc2dsstats.decode
                 } catch
                 {
                     AddLog("Trackerevents failed for " + id);
-                    FailCleanup(rep);
+                    FailCleanup(rep, GetDetails);
                     return null;
                 }
 
@@ -262,18 +265,18 @@ namespace sc2dsstats.decode
 
         }
 
-        private void FailCleanup(string replay_file)
+        private void FailCleanup(string replay_file, bool GetDetails)
         {
             //if (SKIP.ContainsKey(rep)) SKIP[rep]++;
             //else SKIP.TryAdd(rep, 1);
 
-            if (!REDO.ContainsKey(replay_file))
-                REDO.TryAdd(replay_file, 1);
-            else
-                REDO[replay_file]++;
+            Decode.Failed.Add(replay_file);
 
-            //Interlocked.Increment(ref TOTAL_DONE);
+            Interlocked.Increment(ref args.Done);
+            Interlocked.Increment(ref args.Failed);
             Interlocked.Decrement(ref args.Threads);
+            if (GetDetails == false)
+                OnScanStateChanged(args);
         }
 
         void AddLog(string msg)
@@ -292,6 +295,7 @@ namespace sc2dsstats.decode
         public int Threads = 0;
         public int Total = 0;
         public int Done = 0;
+        public int Failed = 0;
         public bool Running = false;
         public DateTime Start = DateTime.Now;
         public DateTime End = DateTime.MinValue;

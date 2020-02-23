@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EFCore.BulkExtensions;
+using ElectronNET.API;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using sc2dsstats.decode.Models;
 using sc2dsstats.decode.Service;
@@ -24,16 +26,21 @@ namespace sc2dsstats.desktop.Service
         private StatusChangedEventArgs args = new StatusChangedEventArgs();
         private readonly ILogger _logger;
         private DSReplayContext _context;
-        public Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
-        public Dictionary<string, string> NewReplays { get; set; } = new Dictionary<string, string>();
+        public static Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
+        public static Dictionary<string, string> NewReplays { get; set; } = new Dictionary<string, string>();
         private static object lockobject = new object();
         public int DBCount = 0;
         private int Limit = 0;
+        public bool isScanning = false;
+        public static bool isFirstRun = true;
+        private DSoptions _options;
 
-        public Status(ILogger<Status> logger, DSReplayContext context)
+        public Status(ILogger<Status> logger, DSReplayContext context, DSoptions options)
         {
             _logger = logger;
             _context = context;
+            _options = options;
+
             foreach (var ent in DSdata.Config.Replays)
             {
                 string reppath = ent;
@@ -44,6 +51,12 @@ namespace sc2dsstats.desktop.Service
                 string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
                 ReplayFolder[reppath] = reppath_md5;
             }
+            //ScanReplayFolders();
+
+            //if (isFirstRun && File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web\\data.json")) {
+            //    BulkInsertOldData();
+            //}
+            
         }
 
         protected virtual void OnDataLoaded(StatusChangedEventArgs e)
@@ -52,52 +65,46 @@ namespace sc2dsstats.desktop.Service
             handler?.Invoke(this, e);
         }
 
-        public async Task Init()
-        {
-            _logger.LogInformation("Init");
-
-            args.Count = _context.DSReplays.Count();
-
-            _logger.LogInformation($"Replays in db: {args.Count}");
-            DSdata.Status.Count = args.Count;
-
-
-        }
-
         public async Task ScanReplayFolders()
         {
+            if (isScanning || _options.Decoding)
+                return;
+            isScanning = true;
             int totalReps = 0;
-            lock (NewReplays)
-            {
-                NewReplays = new Dictionary<string, string>();
-                Dictionary<string, string>  fileHashes = new Dictionary<string, string>();
-                int i = 0;
-                
-                using (var md5 = MD5.Create())
+            await Task.Run(() => { 
+                lock (DSdata.DesktopStatus)
                 {
-                    foreach (var directory in DSdata.Config.Replays)
+                    Status.NewReplays = new Dictionary<string, string>();
+                    Dictionary<string, string> fileHashes = new Dictionary<string, string>();
+                    using (var md5 = MD5.Create())
                     {
-                        string dirHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(directory))).Replace("-", "").ToLowerInvariant();
-                        foreach (var file in Directory.GetFiles(directory, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+                        foreach (var directory in DSdata.Config.Replays)
                         {
-                            i++;
-                            string fileHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFileName(file)))).Replace("-", "").ToLowerInvariant();
+                            string dirHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(directory))).Replace("-", "").ToLowerInvariant();
+                            foreach (var file in Directory.GetFiles(directory, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+                            {
 
-                            fileHashes[dirHash + fileHash] = file;
+                                string fileHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFileName(file)))).Replace("-", "").ToLowerInvariant();
+
+                                fileHashes[dirHash + fileHash] = file;
+                            }
                         }
                     }
+                    DSdata.DesktopStatus.FoldersReplays = fileHashes.Count;
+
+                    HashSet<string> dbHashes = new HashSet<string>();
+                    dbHashes = _context.DSReplays.Select(s => s.REPLAY).ToHashSet();
+
+                    HashSet<string> fileKeys = fileHashes.Keys.ToHashSet();
+                    fileKeys.ExceptWith(dbHashes);
+
+                    foreach (var ent in fileKeys)
+                        Status.NewReplays[ent] = fileHashes[ent];
+
+                    DSdata.DesktopStatus.NewReplays = fileKeys.Count;
+                    DSdata.DesktopStatus.DatabaseReplays = dbHashes.Count;
                 }
-                totalReps = fileHashes.Count();
-                HashSet<string> dbHashes = new HashSet<string>();
-
-                dbHashes = _context.DSReplays.Select(s => s.REPLAY).ToHashSet();
-
-                HashSet<string> fileKeys = fileHashes.Keys.ToHashSet();
-                fileKeys.ExceptWith(dbHashes);
-
-                foreach (var ent in fileKeys)
-                    NewReplays[ent] = fileHashes[ent];
-            }
+            });
             lock (args)
             {
                 args.Count = NewReplays.Count;
@@ -106,14 +113,26 @@ namespace sc2dsstats.desktop.Service
                 args.isReplayFolderScanned = true;
             }
             OnDataLoaded(args);
-            
+            isScanning = false;
         }
+
+
+
+
 
         public async Task UploadReplays()
         {
             args.UploadStatus = UploadStatus.Uploading;
             OnDataLoaded(args);
-            bool result = await Task.Run(() => { return DSrest.AutoUpload(_context); });
+            bool result = await Task.Run(() => {
+                try
+                {
+                    return DSrest.AutoUpload(_context);
+                } catch
+                {
+                    return false;
+                }
+            });
             if (result)
                 args.UploadStatus = UploadStatus.UploadSuccess;
             else
@@ -229,11 +248,5 @@ namespace sc2dsstats.desktop.Service
         public UploadStatus UploadStatus { get; set; } = UploadStatus.UploadDone;
     }
 
-    public enum UploadStatus
-    {
-        Uploading,
-        UploadSuccess,
-        UploadFailed,
-        UploadDone
-    }
+
 }

@@ -4,8 +4,6 @@
 @using sc2dsstats.lib.Db
 @inject LoadData _data
 @inject DSoptions _options
-@inject DSReplayContext  _context
-@inject IJSRuntime _jsRuntime
 @implements IDisposable
 
 <sc2dsstats.shared.WebOptions />
@@ -28,8 +26,6 @@ else
 
     protected override void OnInitialized()
     {
-        if (_options.db == null)
-            _options.db = _context;
         _data.DataLoaded += Update;
     }
 

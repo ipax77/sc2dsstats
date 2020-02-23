@@ -45,6 +45,8 @@ namespace sc2dsstats.desktop
 
             if (!File.Exists(myConfig))
                 FirstRun.Helper();
+            else
+                Status.isFirstRun = false;
 
             var host = CreateHostBuilder(args).Build();
             CreateDbIfNotExists(host);
@@ -63,7 +65,7 @@ namespace sc2dsstats.desktop
 
                 var services = scope.ServiceProvider;
                 var config = services.GetRequiredService<IConfiguration>().GetSection("Config");
-                if (config != null)
+                if (config != null && Status.isFirstRun == false)
                     config.Bind(DSdata.Config);
 
                 try

@@ -1,0 +1,49 @@
+﻿@using System.Threading
+@using sc2dsstats.lib.Data
+@using sc2dsstats.desktop.Service
+@inject DSoptions _options
+@inject BulkInsert _bulk
+
+<p> With this new version we have a new data format. Do you want to transfer your old data, now?</p>
+@if (total > 0)
+{
+    <p>@done/@total  done. (@(MathF.Round((float)done * 100 / total, 2))%)</p>
+    <button type="button" class="btn btn-primary" @onclick="@(async => { _bulk.StopAsync(t); })">Stop transfer</button>
+}
+else if (!isDone)
+{
+    <button type="button" class="btn btn-warning" @onclick="@(async => { BulkInsert(); })">Transfer data</button>
+}
+else
+{
+    <p>Data transfered. Thank you for your patience.</p>
+}
+
+
+@code {
+    long total = 0;
+    long done = 0;
+    bool isDone = false;
+    CancellationToken t = new CancellationToken();
+
+    protected override void OnInitialized()
+    {
+        _bulk.ReplayProcessed += Update;
+    }
+
+    void Update(object sender, EventArgs e)
+    {
+        BulkInsertArgs arg = e as BulkInsertArgs;
+        total = arg.Total;
+        done = arg.Count;
+        isDone = arg.Done;
+        InvokeAsync(() => StateHasChanged()).GetAwaiter();
+    }
+
+    async void BulkInsert()
+    {
+        if (_options.Decoding)
+            return;
+        await _bulk.StartAsync(t);
+    }
+}

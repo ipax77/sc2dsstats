@@ -57,6 +57,11 @@ window.AddData = (label, winrate, dcolor, dimage) => {
 window.ChangeOptionsDynChart = (chchartoptions) => {
     if (window.myChart != null) {
         window.myChart.options = JSON.parse(chchartoptions);
+
+        if (window.myChart && window.myChart["options"] && window.myChart["options"]["plugins"]) {
+            window.myChart["options"]["plugins"]["datalabels"].display = window[window.myChart.myChartDataLabels];
+            window.myChart["plugins"] = [ChartDataLabels];
+        }
         window.myChart.update();
     }
 }

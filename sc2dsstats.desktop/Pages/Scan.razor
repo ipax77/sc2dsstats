@@ -23,8 +23,8 @@
     </div>
 </div>
 <div class="jumbotron">
-    <h4 class="text-warning">New replays found: <strong>@NewReplays</strong></h4>
-    <h5 class="text-warning">Estimated processing time: <strong>@(TimeSpan.FromSeconds(NewReplays * 7.2 / DSdata.Config.Cores).ToString(@"hh\:mm\:ss"))</strong></h5>
+    <h4 class="text-warning">New replays found: <strong>@DSdata.DesktopStatus.NewReplays</strong></h4>
+    <h5 class="text-warning">Estimated processing time: <strong>@(TimeSpan.FromSeconds(@DSdata.DesktopStatus.NewReplays * 7.2 / DSdata.Config.Cores).ToString(@"hh\:mm\:ss"))</strong></h5>
     <br />
     <p>You can always quit the process, next time it will continue at the last position.</p>
 </div>
@@ -82,44 +82,45 @@
     [Parameter]
     public bool FrontPage { get; set; } = false;
 
-    [Parameter]
-    public int NewReplays { get; set; } = 0;
-
     string info = "";
     UploadCredentialDialog ucDialog;
 
     protected override async Task OnInitializedAsync()
     {
         _status.StatusChanged += ScanUpdate;
-        if (!FrontPage)
-            _status.ScanReplayFolders();
+        _status.ScanReplayFolders();
         Decode.s2dec.ScanStateChanged += DecodeUpdate;
     }
 
     void ScanUpdate(object sender, EventArgs e)
     {
-        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
-        NewReplays = arg.NewReplays;
+        //StatusChangedEventArgs arg = e as StatusChangedEventArgs;
+        //NewReplays = arg.NewReplays;
         InvokeAsync(() => StateHasChanged());
     }
 
     async void manualScan()
     {
-        NewReplays = 0;
         StateHasChanged();
         _status.ScanReplayFolders();
     }
 
     async void runDecode()
     {
+        if (_options.Decoding)
+        {
+            info = "A decode process is already running.";
+            return;
+        }
+
         if (!DSdata.Config.Uploadcredential)
             ucDialog.Show();
         _status.DBCount = 0;
         await _status.ScanReplayFolders();
-        if (_status.NewReplays.Count() == 0)
+        if (DSdata.DesktopStatus.NewReplays == 0)
             info = "No new replays found.";
         else
-        {   
+        {
             info = "Engine start..";
             _options.Decoding = true;
             _status.DecodeReplays();
@@ -142,7 +143,7 @@
         lock (info)
         {
             float wr = MathF.Round((float)scanState.Done * 100 / (float)scanState.Total, 2);
-            info = $"{scanState.Done}/{_status.NewReplays.Count} ({wr}%), inDB: {_status.DBCount} - Running on {scanState.Threads} Threads.";
+            info = $"{scanState.Done}/{DSdata.DesktopStatus.NewReplays} ({wr}%), inDB: {_status.DBCount} - Running on {scanState.Threads} Threads.";
             _status.PopulateDb();
 
             if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
@@ -152,7 +153,6 @@
                 info = $"{scanState.Done}/{scanState.Total} ({wr}%) - Elapsed Time: {(DateTime.Now - scanState.Start).ToString(@"hh\:mm\:ss")}";
                 _options.Decoding = false;
                 _status.PopulateDb(true);
-                NewReplays = 0;
             }
         }
 

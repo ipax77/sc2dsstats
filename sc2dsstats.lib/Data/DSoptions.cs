@@ -22,6 +22,7 @@ namespace sc2dsstats.lib.Data
         public bool Player { get; set; } = false;
         public DateTime Startdate { get; set; } = new DateTime(2020, 01, 01);
         public DateTime Enddate { get; set; } = DateTime.MinValue;
+        public string Time { get; set; } = "This Year";
         public string Vs { get; set; } = String.Empty;
         public bool BeginAtZero { get; set; } = false;
         public string Build { get; set; } = String.Empty;
@@ -119,7 +120,7 @@ namespace sc2dsstats.lib.Data
             opthash += Interest;
             opthash += Vs;
             opthash += Player;
-            opthash += String.Join("", Dataset);
+            opthash += String.Join("", Dataset.OrderBy(o => o));
             opthash += String.Join("", Gamemodes.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += String.Join("", Players.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += Breakpoint;
@@ -138,6 +139,7 @@ namespace sc2dsstats.lib.Data
             this.Income = defoptions.Income;
             this.Startdate = defoptions.Startdate;
             this.Enddate = defoptions.Enddate;
+            this.Time = defoptions.Time;
             this.Interest = defoptions.Interest;
             this.Vs = defoptions.Vs;
             this.Player = defoptions.Player;

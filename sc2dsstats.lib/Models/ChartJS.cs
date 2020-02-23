@@ -12,6 +12,9 @@ namespace sc2dsstats.lib.Models
         public ChartJsoptions options { get; set; }
         [JsonIgnore]
         public List<string> s_races_ordered { get; set; } = new List<string>();
+        [JsonIgnore]
+        public List<string> s_races { get; set; } = new List<string>();
+
     }
 
     [Serializable]
@@ -50,6 +53,7 @@ namespace sc2dsstats.lib.Models
     {
         public bool display { get; set; } = true;
         public string labelString { get; set; } = "";
+        //public string fontColor { get; set; } = "red";
     }
 
     [Serializable]

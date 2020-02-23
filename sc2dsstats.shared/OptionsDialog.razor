@@ -127,11 +127,11 @@
                     <div class="row">
                         <div class="col-sm form-group">
                             <label for="startdate">startdate</label>
-                            <input type="date" name="startdate" id="startdate" @bind="@_options.Startdate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
+                            <input type="date" name="startdate" id="startdate" @bind="@_options.Startdate" @bind:culture="CultureInfo.InvariantCulture" @onclick="@(() => _options.Time=String.Empty)" class="form-control" />
                         </div>
                         <div class="col-sm form-group">
                             <label for="enddate">enddate</label>
-                            <input type="date" name="enddate" id="enddate" @bind="@_options.Enddate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
+                            <input type="date" name="enddate" id="enddate" @bind="@_options.Enddate" @bind:culture="CultureInfo.InvariantCulture" @onclick="@(() => _options.Time=String.Empty)" class="form-control" />
                         </div>
                     </div>
                     <div class="row">

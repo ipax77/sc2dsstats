@@ -10,7 +10,7 @@
 
 <sc2dsstats.shared.WebOptions />
 
-@if (DSdata.Status.Count > 0)
+@if (DSdata.DesktopStatus.DatabaseReplays > 0 && !_options.Decoding)
 {
     <div class="mt-1">
         <sc2dsstats.shared.WebChart />

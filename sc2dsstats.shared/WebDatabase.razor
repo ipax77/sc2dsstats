@@ -1,7 +1,9 @@
 ﻿@using sc2dsstats.lib.Db
 @using sc2dsstats.lib.Models
 @using sc2dsstats.lib.Data
-@inject DSoptions  _options;
+@using sc2dsstats.shared.Service
+@using Microsoft.EntityFrameworkCore
+@inject DSoptions  _options
 @inject NavigationManager _nav
 
 <div class="mr-3">
@@ -53,22 +55,31 @@
                             {
                                 rowclass = "table-info";
                             }
-                            <tr class="table-row @rowclass" @onclick="@(async => ShowGame(@ent.ID))">
-                                @foreach (var opt in RepOpt.Opt.Keys)
-                                {
-                                    if (RepOpt.Opt[opt] == true)
-                                    {
-                                        <td>@GetRepProperty(ent, opt)</td>
-                                    }
-                                }
-                            </tr>
+                    <tr class="table-row @rowclass" @onclick="@(async => ShowGame(@ent.ID))">
+                        @foreach (var opt in RepOpt.Opt.Where(x => x.Value == true))
+                        {
+                            if (opt.Key == "DURATION")
+                            {
+                                <td>@TimeSpan.FromSeconds((int)GetRepProperty(ent, opt.Key)).ToString(@"hh\:mm\:ss")</td>
+                            }
+                            else if (opt.Key == "GAMETIME")
+                            {
+                                <td>@(Convert.ToDateTime(GetRepProperty(ent, opt.Key)).ToString("yyyy/MM/dd"))</td>
+                            }
+                            else
+                            {
+                                <td>@GetRepProperty(ent, opt.Key).ToString()</td>
+                            }
+                        }
+                    </tr>
                         }
                     }
                 </tbody>
             </table>
         </div>
         <div class="col-auto">
-            <h5>Search</h5>
+            <h5><button type="button" class="btn btn-secondary" @onclick="DBSearch">Search</button><button type="button" class="btn btn-sm btn-secondary" @onclick="@ResetSearch">Reset</button></h5>
+            <DatabaseSearch @ref="dbSearch" dbOptions="dbOptions" />
         </div>
     </div>
 </div>
@@ -84,9 +95,14 @@
     private int skip = 0;
     private bool Loading = true;
     private ReplayOptions RepOpt = new ReplayOptions();
+    private string sortid = "GAMETIME";
     private string lastsortid = "";
+    private bool sortoder = true;
+    DatabaseSearchOptions dbOptions = new DatabaseSearchOptions();
+    DatabaseSearch dbSearch;
 
     List<DSReplay> Replays = new List<DSReplay>();
+    IQueryable<DSReplay> DBReplays;
 
     const int take = 12;
 
@@ -95,8 +111,8 @@
         _options.DefaultFilter();
         _options.Mode = "Database";
 
-
-        Replays = _options.db.DSReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList();
+        DBReplays = _options.db.DSReplays;
+        Replays = DBReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList();
         if (RepId > 0)
             ShowGame(RepId, true);
         else
@@ -114,64 +130,37 @@
             
             */
         }
+
+        dbOptions.Cmdrs[1] = "Team1";
+        dbOptions.Cmdrs[2] = "Team1";
+        dbOptions.Cmdrs[3] = "Team1";
+        dbOptions.Cmdrs[4] = "Team2";
+        dbOptions.Cmdrs[5] = "Team2";
+        dbOptions.Cmdrs[6] = "Team2";
+
         Loading = false;
     }
 
     public async void SortReps(string id)
     {
         Loading = true;
-
-
-            if (id == lastsortid)
-            {
-                Replays = id switch
-                {
-                    "ID" => _options.db.DSReplays.OrderByDescending(o => o.ID).Take(take).ToList(),
-                    "REPLAY" => _options.db.DSReplays.OrderByDescending(o => o.REPLAY).Take(take).ToList(),
-                    "GAMETIME" => _options.db.DSReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList(),
-                    "WINNER" => _options.db.DSReplays.OrderByDescending(o => o.WINNER).Take(take).ToList(),
-                    "DURATION" => _options.db.DSReplays.OrderByDescending(o => o.DURATION).Take(take).ToList(),
-                    "MAXLEAVER" => _options.db.DSReplays.OrderByDescending(o => o.MAXLEAVER).Take(take).ToList(),
-                    "MINKILLSUM" => _options.db.DSReplays.OrderByDescending(o => o.MINKILLSUM).Take(take).ToList(),
-                    "MININCOME" => _options.db.DSReplays.OrderByDescending(o => o.MININCOME).Take(take).ToList(),
-                    "MINARMY" => _options.db.DSReplays.OrderByDescending(o => o.MINARMY).Take(take).ToList(),
-                    "PLAYERCOUNT" => _options.db.DSReplays.OrderByDescending(o => o.PLAYERCOUNT).Take(take).ToList(),
-                    "GAMEMODE" => _options.db.DSReplays.OrderByDescending(o => o.GAMEMODE).Take(take).ToList(),
-                    _ => _options.db.DSReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList()
-                };
-                lastsortid = "";
-            } else
-            {
-                Replays = id switch
-                {
-                    "ID" => _options.db.DSReplays.OrderBy(o => o.ID).Take(take).ToList(),
-                    "REPLAY" => _options.db.DSReplays.OrderBy(o => o.REPLAY).Take(take).ToList(),
-                    "GAMETIME" => _options.db.DSReplays.OrderBy(o => o.GAMETIME).Take(take).ToList(),
-                    "WINNER" => _options.db.DSReplays.OrderBy(o => o.WINNER).Take(take).ToList(),
-                    "DURATION" => _options.db.DSReplays.OrderBy(o => o.DURATION).Take(take).ToList(),
-                    "MAXLEAVER" => _options.db.DSReplays.OrderBy(o => o.MAXLEAVER).Take(take).ToList(),
-                    "MINKILLSUM" => _options.db.DSReplays.OrderBy(o => o.MINKILLSUM).Take(take).ToList(),
-                    "MININCOME" => _options.db.DSReplays.OrderBy(o => o.MININCOME).Take(take).ToList(),
-                    "MINARMY" => _options.db.DSReplays.OrderBy(o => o.MINARMY).Take(take).ToList(),
-                    "PLAYERCOUNT" => _options.db.DSReplays.OrderBy(o => o.PLAYERCOUNT).Take(take).ToList(),
-                    "GAMEMODE" => _options.db.DSReplays.OrderBy(o => o.GAMEMODE).Take(take).ToList(),
-                    _ => _options.db.DSReplays.OrderBy(o => o.GAMETIME).Take(take).ToList()
-                };
-                lastsortid = id;
-            }
-        
+        sortid = id;
+        if (lastsortid == sortid)
+            sortoder = !sortoder;
         skip = 0;
+        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        lastsortid = id;
         Loading = false;
     }
 
-    string GetRepProperty(DSReplay rep, string prop)
+    object GetRepProperty(DSReplay rep, string prop)
     {
-        return rep.GetType().GetProperty(prop).GetValue(rep, null).ToString();
+        return rep.GetType().GetProperty(prop).GetValue(rep, null);
     }
 
     async void ShowGame(int repid, bool isInit = false)
     {
-        
+
         _options.Replay = await DBService.GetReplay(_options.db, repid);
         if (_options.Replay != null)
         {
@@ -188,6 +177,34 @@
         }
     }
 
+    async void DBSearch()
+    {
+        Loading = true;
+        DBReplays = DatabaseService.CmdrSearch(_options.db.DSReplays, dbOptions);
+        skip = 0;
+        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        Loading = false;
+        if (Replays.Any())
+            ShowGame(Replays.First().ID);
+    }
+
+    void ResetSearch()
+    {
+        dbOptions.Cmdrs[1] = "Team1";
+        dbOptions.Cmdrs[2] = "Team1";
+        dbOptions.Cmdrs[3] = "Team1";
+        dbOptions.Cmdrs[4] = "Team2";
+        dbOptions.Cmdrs[5] = "Team2";
+        dbOptions.Cmdrs[6] = "Team2";
+
+        skip = 0;
+        DBReplays = _options.db.DSReplays;
+        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        dbSearch.Reset();
+        if (Replays.Any())
+            ShowGame(Replays.First().ID);
+    }
+
     void Skip()
     {
         skip -= take;
@@ -195,7 +212,7 @@
             skip = 0;
         Loading = true;
 
-        Replays = _options.db.DSReplays.OrderBy(o => o.GAMETIME).Skip(skip).Take(take).ToList();
+        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         Loading = false;
     }
 
@@ -203,7 +220,7 @@
     {
         skip += take;
         Loading = true;
-        Replays = _options.db.DSReplays.OrderBy(o => o.GAMETIME).Skip(skip).Take(take).ToList();
+        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         Loading = false;
     }
 }

@@ -7,7 +7,7 @@
 @inject DSReplayContext  _context
 @implements IDisposable
 
-@if (DSdata.Status.Count > 0)
+@if (DSdata.DesktopStatus.DatabaseReplays > 0  && !_options.Decoding)
 {
     <sc2dsstats.shared.WebDatabase RepId="RepID" />
     <Game Replay="_options.Replay"/>

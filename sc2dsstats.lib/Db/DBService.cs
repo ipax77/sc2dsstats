@@ -37,7 +37,7 @@ namespace sc2dsstats.lib.Db
                 .SingleOrDefaultAsync(x => x.ID == id);
         }
 
-        public static void SaveReplay(DSReplayContext context, DSReplay rep)
+        public static void SaveReplay(DSReplayContext context, DSReplay rep, bool bulk = false)
         {
             
             foreach (DSPlayer pl in rep.DSPlayer)
@@ -47,7 +47,8 @@ namespace sc2dsstats.lib.Db
                 context.DSPlayers.Add(pl);
             }
             context.DSReplays.Add(rep);
-            context.SaveChanges();
+            if (bulk == false)
+                context.SaveChanges();
         }
     }
 }

@@ -139,10 +139,12 @@
     protected override async Task OnInitializedAsync()
     {
         _options.DefaultFilter();
+
         _options.Mode = "Winrate";
 
-        await ChartService.Init(_options);
-
+        await _chart.Init(_options);
+        if (DSdata.Config.Players.Any())
+            _options.Player = true;
         _options.PropertyChanged += OptionChanged;
         Loading = false;
         _options.Update = !_options.Update;
@@ -159,43 +161,25 @@
     async Task IconClick(string cmdr, object cbValue)
     {
         _options.CmdrsChecked[cmdr] = !_options.CmdrsChecked[cmdr];
+
         if ((bool)cbValue)
         {
             _options.Interest = cmdr;
-            await ChartService.RemoveDataset(_options, "global", lockobject);
-            await ChartService.GetChartBase(_options);
-
-            foreach (var ent in _options.CmdrsChecked.Where(x => x.Value == true && x.Key != cmdr))
-            {
-                _options.CmdrsChecked[ent.Key] = false;
-                await InvokeAsync(() => StateHasChanged());
-            }
-
-            /*
-            if (_options.GetCmdrsChecked().Count == 1)
-            {
-                await ChartService.RemoveDataset(_options, "global", lockobject);
-                await ChartService.GetChartBase(_options);
-            }
+            if (_options.Chart.data.datasets.Count == 0 || (_options.Chart.data.datasets.Count == 1 && _options.Chart.data.datasets.First().label == "global"))
+                await _chart.ChartHandler(_options);
             else
-            {
-                await ChartService.AddDataset(_options, lockobject);
-            }
-            */
-        }
-        else
+                ChartService.AddDataset(_options, lockobject);
+        } else
         {
-            _options.Interest = "";
-            await ChartService.GetChartBase(_options);
-
-            /*
-            if (_options.GetCmdrsChecked().Count == 0)
+            ChartService.RemoveDataset(_options, cmdr, lockobject);
+            if (!_options.Chart.data.datasets.Any())
             {
-                ChartService.GetChartBase(_options);
-            } else
-                ChartService.RemoveDataset(_options, cmdr, lockobject);
-            */
+                _options.Interest = "";
+                if (_options.Chart.type == "bar")
+                    await _chart.ChartHandler(_options);
+            }
         }
+        await InvokeAsync(() => StateHasChanged());
     }
 
 
@@ -207,6 +191,12 @@
         if (Loading == false)
         {
             Loading = true;
+
+            foreach (var ent in _options.CmdrsChecked.Keys.ToArray())
+                _options.CmdrsChecked[ent] = false;
+            if (!String.IsNullOrEmpty(_options.Interest))
+                _options.CmdrsChecked[_options.Interest] = true;
+
             await InvokeAsync(() => StateHasChanged());
             await _chart.ChartHandler(_options);
 

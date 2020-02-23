@@ -41,6 +41,9 @@ namespace sc2dsstats.desktop
             services.AddScoped<GameChartService>();
             services.AddScoped<Refresh>();
             services.AddScoped<Status>();
+            services.AddTransient<StartupBackgroundService>();
+            services.AddTransient<BulkInsert>();
+
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -69,8 +72,15 @@ namespace sc2dsstats.desktop
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+            
+            if (Status.isFirstRun)
+                Task.Run(() => { app.ApplicationServices.GetService<StartupBackgroundService>().StartAsync(new System.Threading.CancellationToken()); });
             Task.Run(() => { paxgame.Init(); });
-            Task.Run(async () => await Electron.WindowManager.CreateWindowAsync());
+            Task.Run(async () => {
+                await Electron.WindowManager.CreateWindowAsync();
+                await ElectronService.Resize();
+                await ElectronService.CheckForUpdate();
+            });
         }
     }
 }

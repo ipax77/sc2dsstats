@@ -4,6 +4,7 @@
 @using sc2dsstats.decode.Service
 @using sc2dsstats.desktop.Service
 @using sc2dsstats.lib.Db
+@using sc2dsstats.lib.Models
 @inject DSoptions _options
 @inject DSReplayContext _context
 @inject Status _status
@@ -80,7 +81,7 @@
         </li>
         <li class="nav-item px-3">
             <NavLink class="nav-link disabled">
-                <h5><span class="badge badge-info">@DSdata.Status.Count Replays loaded</span></h5>
+                <h5><span class="badge badge-info">@DSdata.DesktopStatus.DatabaseReplays Replays loaded</span></h5>
             </NavLink>
         </li>
         <li class="nav-item px-3">
@@ -121,6 +122,11 @@
         </li>
     </ul>
 </div>
+<div class="ml-3">
+    <br />
+    <br />
+    <span class="badge badge-dark">v @DSdata.DesktopVersion</span>
+</div>
 
 @code {
     private bool collapseNavMenu = true;
@@ -149,8 +155,6 @@
 
     void StatusUpdate(object sender, EventArgs e)
     {
-        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
-        UploadStatus = arg.UploadStatus;
         UpdateMe();
     }
 
@@ -158,7 +162,10 @@
     {
         ScanState scanState = e as ScanState;
         if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
+        {
             _options.Decoding = false;
+            _status.ScanReplayFolders();
+        }
 
         if (_options.Decoding == true)
         {

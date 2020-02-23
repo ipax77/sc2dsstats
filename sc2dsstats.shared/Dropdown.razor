@@ -30,4 +30,9 @@
         StateHasChanged();
         await this.OnSelected.InvokeAsync(item);
     }
+
+    public void Reset()
+    {
+        this.Tip = InitialTip;
+    }
 }
