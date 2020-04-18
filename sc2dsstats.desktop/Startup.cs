@@ -13,11 +13,6 @@ using sc2dsstats.lib.Db;
 using sc2dsstats.shared.Service;
 using System.Globalization;
 using System.Threading.Tasks;
-using System.Text.Json;
-using Newtonsoft.Json;
-using System.IO;
-using System.Collections.Generic;
-using sc2dsstats.lib.Models;
 
 namespace sc2dsstats.desktop
 {
@@ -26,7 +21,7 @@ namespace sc2dsstats.desktop
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            
+
         }
 
         public IConfiguration Configuration { get; }
@@ -35,11 +30,14 @@ namespace sc2dsstats.desktop
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddDbContext<DSReplayContext>(options =>
-            options.UseSqlite($"Data Source={Program.workdir}/data.db"));
+            options.UseSqlite($"Data Source={Program.workdir}/data_v3_0.db"));
             services.AddSingleton<LoadData>();
+            services.AddSingleton<OnTheFlyScan>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
             services.AddScoped<GameChartService>();
@@ -68,9 +66,9 @@ namespace sc2dsstats.desktop
                 app.UseHsts();
             }
 
+
             // app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
@@ -78,11 +76,12 @@ namespace sc2dsstats.desktop
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
-            
+
             if (Status.isFirstRun)
                 Task.Run(() => { app.ApplicationServices.GetService<StartupBackgroundService>().StartAsync(new System.Threading.CancellationToken()); });
             Task.Run(() => { paxgame.Init(); });
-            Task.Run(async () => {
+            Task.Run(async () =>
+            {
                 await Electron.WindowManager.CreateWindowAsync();
                 await ElectronService.Resize();
                 //DSdata.DesktopUpdateAvailable = await ElectronService.CheckForUpdate();

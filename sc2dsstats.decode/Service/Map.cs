@@ -60,7 +60,7 @@ namespace sc2dsstats.decode.Service
         {
             dsreplay dbrep = new dsreplay();
             dbrep.REPLAY = rep.REPLAY;
-            dbrep.GAMETIME = double.Parse(rep.GAMETIME.ToString("yyyyMMddhhmmss"));
+            dbrep.GAMETIME = double.Parse(rep.GAMETIME.ToString("yyyyMMddHHmmss"));
             dbrep.WINNER = (sbyte)rep.WINNER;
             dbrep.DURATION = (int)(rep.DURATION * 22.4);
             dbrep.MINKILLSUM = rep.MINKILLSUM;

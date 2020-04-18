@@ -1,4 +1,5 @@
-﻿using sc2dsstats.lib.Data;
+﻿using Microsoft.Extensions.Logging;
+using sc2dsstats.lib.Data;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,10 +18,16 @@ namespace sc2dsstats.desktop.Service
         ConcurrentDictionary<Task, CancellationTokenSource> TASKS { get; set; } = new ConcurrentDictionary<Task, CancellationTokenSource>();
         ConcurrentDictionary<string, FileSystemWatcher> WATCHER { get; set; } = new ConcurrentDictionary<string, FileSystemWatcher>();
         ObservableCollection<string> TODO { get; set; }
-        bool Running = false;
+        public bool Running = false;
         private Status _status;
 
         Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay|(DST.*)\.SC2Replay", RegexOptions.Singleline);
+        private readonly ILogger _logger;
+
+        public OnTheFlyScan(ILogger<OnTheFlyScan> logger)
+        {
+            _logger = logger;
+        }
 
         public void Start(Status status)
         {
@@ -56,6 +63,7 @@ namespace sc2dsstats.desktop.Service
                     TASKS.TryAdd(task, tokenSource);
                 }
             }
+            _logger.LogInformation("otf start.");
         }
 
         public void Stop()
@@ -82,13 +90,14 @@ namespace sc2dsstats.desktop.Service
                 }
                 catch (AggregateException ex)
                 {
-                    Console.WriteLine("Task cancel failed :( {0}", ex.InnerExceptions[0].Message);
+                    _logger.LogError("Task cancel failed :( {0}", ex.InnerExceptions[0].Message);
                 }
             }
 
             TASKS.Clear();
             TASKS = null;
             Running = false;
+            _logger.LogInformation("otf stop.");
         }
 
         private FileSystemWatcher MonitorDirectory(string path)
@@ -108,7 +117,7 @@ namespace sc2dsstats.desktop.Service
 
         private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            Console.WriteLine("File created: {0}", e.Name);
+            _logger.LogInformation("File created: {0}", e.Name);
 
             if (CheckAccess(e.FullPath) == true)
             {
@@ -182,6 +191,7 @@ namespace sc2dsstats.desktop.Service
 
         void Source_CollectionChanged(object aSender, NotifyCollectionChangedEventArgs aArgs)
         {
+            _logger.LogInformation("New replay detected.");
             List<string> todo = TODO.ToList();
             if (todo.Any())
             {

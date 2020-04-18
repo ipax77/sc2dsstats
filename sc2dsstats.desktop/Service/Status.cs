@@ -1,9 +1,6 @@
-﻿using EFCore.BulkExtensions;
-using ElectronNET.API;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using sc2dsstats.decode;
-using sc2dsstats.decode.Models;
 using sc2dsstats.decode.Service;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
@@ -35,18 +32,21 @@ namespace sc2dsstats.desktop.Service
         public bool isScanning = false;
         public static bool isFirstRun = true;
         private DSoptions _options;
+        private OnTheFlyScan _onthefly;
         Regex reg = new Regex(@"\\Direct Strike|\\DST(\(\d+\))?");
 
 
-        public Status(ILogger<Status> logger, DSReplayContext context, DSoptions options)
+        public Status(ILogger<Status> logger, DSReplayContext context, DSoptions options, OnTheFlyScan onthefly)
         {
             _logger = logger;
             _context = context;
             _options = options;
+            _onthefly = onthefly;
 
             if (_options.db == null)
                 _options.db = _context;
 
+            _logger.LogInformation("Start.");
             foreach (var ent in DSdata.Config.Replays)
             {
                 string reppath = ent;
@@ -62,7 +62,9 @@ namespace sc2dsstats.desktop.Service
             //if (isFirstRun && File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web\\data.json")) {
             //    BulkInsertOldData();
             //}
-            
+
+            if (DSdata.Config.OnTheFlyScan)
+                _onthefly.Start(this);
         }
 
         protected virtual void OnDataLoaded(StatusChangedEventArgs e)
@@ -77,7 +79,8 @@ namespace sc2dsstats.desktop.Service
                 return;
             isScanning = true;
             int totalReps = 0;
-            await Task.Run(() => { 
+            await Task.Run(() =>
+            {
                 lock (DSdata.DesktopStatus)
                 {
                     Status.NewReplays = new Dictionary<string, string>();
@@ -132,11 +135,16 @@ namespace sc2dsstats.desktop.Service
         {
             args.UploadStatus = UploadStatus.Uploading;
             OnDataLoaded(args);
-            bool result = await Task.Run(() => {
+            bool result = await Task.Run(() =>
+            {
                 try
                 {
-                    return DSrest.AutoUpload(_context);
-                } catch
+                    lock (DSdata.DesktopStatus)
+                    {
+                        return DSrest.AutoUpload(_context, _logger);
+                    }
+                }
+                catch
                 {
                     return false;
                 }
@@ -150,10 +158,22 @@ namespace sc2dsstats.desktop.Service
 
         public void DecodeReplays(List<string> Replays = null)
         {
-            if (Replays.Any())
+            if (Replays != null && Replays.Any())
             {
+                if (_options.Decoding)
+                    return;
+                _options.OnTheFlyScan = true;
                 NewReplays = Replays.ToDictionary(x => x, x => x);
             }
+            else if (Replays != null)
+                return;
+            else
+            {
+                if (_onthefly.Running)
+                    _onthefly.Stop();
+                _options.OnTheFlyScan = false;
+            }
+            _options.Decoding = true;
             args.UploadStatus = UploadStatus.UploadDone;
             args.inDB = 0;
             args.Decoded = 0;
@@ -185,7 +205,8 @@ namespace sc2dsstats.desktop.Service
                 return;
 
             Interlocked.Increment(ref Limit);
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 lock (lockobject)
                 {
 
@@ -209,7 +230,7 @@ namespace sc2dsstats.desktop.Service
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine(e.Message);
+                                    _logger.LogError(e.Message);
                                 }
                             }
                             if (fin)
@@ -223,21 +244,33 @@ namespace sc2dsstats.desktop.Service
                             try
                             {
                                 _options.db.SaveChanges();
-                            } catch (Exception e)
+                            }
+                            catch (Exception e)
                             {
-                                Console.WriteLine(e.Message);
+                                _logger.LogError(e.Message);
                             }
                             DSdata.Status.Count = _options.db.DSReplays.Count();
                         }
                         _options.Decoding = false;
+
+                        lock (DSdata.DesktopStatus)
+                        {
+                            _options.OnTheFlyReplay = _options.db.DSReplays.Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
+                        }
+                        if (DSdata.Config.OnTheFlyScan && _onthefly.Running == false)
+                        {
+                            _options.OnTheFlyScan = true;
+                            _onthefly.Start(this);
+                        }
+
                         if (DSdata.Config.Uploadcredential)
                             UploadReplays();
                         ScanReplayFolders();
                         OnDataLoaded(args);
 
-                        
+
                     }
-                    
+
                 }
             });
             Interlocked.Decrement(ref Limit);
@@ -260,7 +293,7 @@ namespace sc2dsstats.desktop.Service
 
             using (var md5 = MD5.Create())
             {
-                
+
                 foreach (string line in File.ReadAllLines(@"C:\Users\pax77\AppData\Local\sc2dsstats_web\data.json"))
                 {
                     dsreplay rep = JsonSerializer.Deserialize<dsreplay>(line);
@@ -277,7 +310,7 @@ namespace sc2dsstats.desktop.Service
                         string fileHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFileName(reppath)))).Replace("-", "").ToLowerInvariant();
                         reppathhash = dirHash + fileHash;
                     }
-                    
+
                     //InsertdsDesktopReplay(_context, rep, reppathhash, reppath);
 
                     i++;
@@ -288,7 +321,7 @@ namespace sc2dsstats.desktop.Service
                             break;
                     }
                 }
-                
+
             }
 
         }

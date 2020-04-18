@@ -1,7 +1,6 @@
 ﻿using ElectronNET.API;
 using ElectronNET.API.Entities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -49,8 +48,8 @@ namespace sc2dsstats.desktop.Service
 
             Console.WriteLine("Checking for update ...");
             UpdateCheckResult result;
-            
-            
+
+
             Electron.AutoUpdater.OnUpdateAvailable += AutoUpdater_OnUpdateAvailable;
             try
             {
@@ -62,7 +61,8 @@ namespace sc2dsstats.desktop.Service
             {
                 Console.WriteLine(e.Message);
                 return false;
-            } finally
+            }
+            finally
             {
                 Electron.AutoUpdater.OnUpdateAvailable -= AutoUpdater_OnUpdateAvailable;
             }
@@ -80,7 +80,8 @@ namespace sc2dsstats.desktop.Service
             try
             {
                 result = await Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
-            } catch
+            }
+            catch
             {
                 return false;
             }
@@ -91,7 +92,7 @@ namespace sc2dsstats.desktop.Service
             return true;
         }
 
-        private static void OnAction (object obj)
+        private static void OnAction(object obj)
         {
             Console.WriteLine(obj.ToString());
         }

@@ -1,9 +1,8 @@
 ﻿@page "/scan"
 @using sc2dsstats.lib.Data
 @using sc2dsstats.decode.Service
-@using sc2dsstats.decode
 @using sc2dsstats.desktop.Service
-@using sc2dsstats.lib.Db
+@using sc2dsstats.lib.Models
 @inject Status _status
 @inject DSoptions _options
 @implements IDisposable
@@ -21,6 +20,23 @@
             <button type="button" class="btn btn-primary" @onclick="@stopDecode">Stop</button>
         }
         <button type="button" class="btn btn-outline-info" @onclick="@( async => _status.UploadReplays())">Upload</button>
+        <div class="ml-3">
+            @if (UploadStatus == UploadStatus.Uploading)
+            {
+                <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Uploading")
+            }
+            else if (UploadStatus == UploadStatus.UploadSuccess)
+            {
+                <span class="oi oi-circle-check text-success">&nbsp;</span> @("Upload successful")
+            }
+            else if (UploadStatus == UploadStatus.UploadFailed)
+            {
+                <span class="oi oi-circle-x text-danger">&nbsp;</span> @("Upload failed. Please try again later.")
+            }
+            else
+            {
+            }
+        </div>
     </div>
 </div>
 <div class="jumbotron">
@@ -77,26 +93,34 @@
     </div>
 
 }
-<UploadCredentialDialog @ref="ucDialog"/>
+@if (_options.OnTheFlyReplay != null)
+{
+    <h4>Latest Game</h4>
+    <Game Replay="_options.OnTheFlyReplay" />
+}
+<UploadCredentialDialog @ref="ucDialog" />
 
 @code {
     [Parameter]
     public bool FrontPage { get; set; } = false;
 
     string info = "";
+    string uploadinfo = "";
     UploadCredentialDialog ucDialog;
+    UploadStatus UploadStatus = UploadStatus.UploadDone;
 
     protected override async Task OnInitializedAsync()
     {
         _status.StatusChanged += ScanUpdate;
         _status.ScanReplayFolders();
-        
+
     }
 
     void ScanUpdate(object sender, EventArgs e)
     {
         StatusChangedEventArgs arg = e as StatusChangedEventArgs;
         info = arg.Info;
+        UploadStatus = arg.UploadStatus;
         InvokeAsync(() => StateHasChanged());
     }
 
@@ -113,7 +137,6 @@
             info = "A decode process is already running.";
             return;
         }
-
         if (!DSdata.Config.Uploadcredential)
             ucDialog.Show();
         await _status.ScanReplayFolders();
@@ -125,7 +148,7 @@
             _options.Decoding = true;
             _status.DecodeReplays();
         }
-        StateHasChanged();
+        await InvokeAsync(() => StateHasChanged());
     }
 
     async void stopDecode()

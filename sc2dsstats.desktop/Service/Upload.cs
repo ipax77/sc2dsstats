@@ -1,27 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
-using System.IO.Compression;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using RestSharp;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
-using sc2dsstats.decode.Models;
-using sc2dsstats.decode.Service;
-using Microsoft.EntityFrameworkCore;
-using sc2dsstats.lib.Service;
-using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace sc2dsstats.desktop.Service
 {
     public static class DSrest
     {
-        public static bool AutoUpload(DSReplayContext _context)
+        public static bool AutoUpload(DSReplayContext _context, ILogger logger)
         {
             string hash = "UndEsWarSommer";
             string hash2 = "UndEsWarWinter";
@@ -31,10 +26,10 @@ namespace sc2dsstats.desktop.Service
                 hash = GetHash(sha256Hash, names);
                 hash2 = GetHash(sha256Hash, Program.myJson_file);
             }
-            //var client = new RestClient("https://www.pax77.org:9126");
+            var client = new RestClient("https://www.pax77.org:9126");
             //var client = new RestClient("https://192.168.178.28:9001");
             //var client = new RestClient("http://192.168.178.28:9000");
-            var client = new RestClient("https://localhost:44315");
+            //var client = new RestClient("https://localhost:44315");
             //var client = new RestClient("http://localhost:5000");
 
             List<DSReplay> UploadReplays = new List<DSReplay>();
@@ -45,7 +40,7 @@ namespace sc2dsstats.desktop.Service
                 var lrep = _context.DSReplays.OrderByDescending(o => o.GAMETIME).Take(1);
 
                 //_context.DSReplays.OrderByDescending(o => o.GAMETIME).First();
-                lastrep = lrep.First().GAMETIME.ToString("yyyyMMddhhmmss");
+                lastrep = lrep.First().GAMETIME.ToString("yyyyMMddHHmmss");
             }
 
             DSinfo info = new DSinfo();
@@ -56,14 +51,14 @@ namespace sc2dsstats.desktop.Service
             info.Total = DSdata.Status.Count;
             info.Version = DSdata.DesktopVersion.ToString();
 
-            Console.WriteLine("AutoInfo");
+            logger.LogDebug("Upload: AutoInfo");
             var restRequest = new RestRequest("/secure/data/autoinfo", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddJsonBody(info);
             var response = client.Execute(restRequest);
 
-            Console.WriteLine(response.Content);
+            logger.LogDebug($"Upload: autoinfo response: {response.Content}");
             if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 if (response.Content.Contains("UpToDate")) return true;
@@ -78,7 +73,8 @@ namespace sc2dsstats.desktop.Service
 
             string gametime = lastrep;
             DateTime gtime = DateTime.MinValue;
-            if (gametime.Length == 14) {
+            if (gametime.Length == 14)
+            {
                 int year = int.Parse(gametime.Substring(0, 4));
                 int month = int.Parse(gametime.Substring(4, 2));
                 int day = int.Parse(gametime.Substring(6, 2));
@@ -88,7 +84,6 @@ namespace sc2dsstats.desktop.Service
                 gtime = new DateTime(year, month, day, hour, min, sec);
             }
 
-            DSdata.Config.FullSend = true;
             if (gtime == DateTime.MinValue || DSdata.Config.FullSend == true)
                 UploadReplays = _context.DSReplays
                     .Include(o => o.Middle)
@@ -101,7 +96,6 @@ namespace sc2dsstats.desktop.Service
                     .Include(p => p.DSPlayer)
                     .ThenInclude(p => p.Breakpoints).Where(x => x.GAMETIME > gtime)
                     .ToList();
-            DSdata.Config.FullSend = false;
             List<string> anonymous = new List<string>();
             foreach (DSReplay rep in UploadReplays)
             {
@@ -118,9 +112,11 @@ namespace sc2dsstats.desktop.Service
                 try
                 {
                     json = System.Text.Json.JsonSerializer.Serialize(rep);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+
+                    logger.LogError($"Upload: {e.Message}");
                 }
                 anonymous.Add(json);
             }
@@ -145,7 +141,7 @@ namespace sc2dsstats.desktop.Service
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            logger.LogError($"Upload: {ex.Message}");
                         }
                     }
                 }

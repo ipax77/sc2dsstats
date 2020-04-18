@@ -8,6 +8,8 @@ namespace sc2dsstats.rest
     public class Program
     {
         public static string workdir = "/data";
+        //public static string workdir = "/home/pax77/git/config";
+        
 
         public static void Main(string[] args)
         {

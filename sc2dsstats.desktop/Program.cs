@@ -4,16 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
+using sc2dsstats.desktop.Service;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using sc2dsstats.desktop.Service;
-using sc2dsstats.lib.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
 
 namespace sc2dsstats.desktop
@@ -51,7 +48,7 @@ namespace sc2dsstats.desktop
             var host = CreateHostBuilder(args).Build();
             CreateDbIfNotExists(host);
 
-            
+
 
             await host.RunAsync();
         }

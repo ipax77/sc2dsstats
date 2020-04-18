@@ -26,9 +26,6 @@ namespace sc2dsstats.decode.Service
         public static TimeSpan Elapsed { get; set; } = new TimeSpan(0);
         public static ConcurrentBag<string> Failed { get; set; } = new ConcurrentBag<string>();
 
-
-
-
         public static async Task<DSReplay> ScanRep(string file, bool GetDetails = false)
         {
             return await Task.Run(() =>

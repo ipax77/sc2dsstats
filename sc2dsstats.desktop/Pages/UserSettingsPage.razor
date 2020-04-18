@@ -131,6 +131,15 @@
         <label>Automatically upload your anonymized DS-replay stats.</label>
     </div>
 </div>
+<div class="row">
+    <div class="custom-control custom-checkbox w-25">
+        <input type="checkbox" class="custom-control-input" name="cb_otf" id="cb_otf" @bind="@DSdata.Config.OnTheFlyScan" />
+        <label class="custom-control-label" for="cb_otf">OnTheFlyScan</label>
+    </div>
+    <div class="w-auto">
+        <label>Automatically detects new Direct Strike replays.</label>
+    </div>
+</div>
 
 <br />
 <h5>Credentials</h5>

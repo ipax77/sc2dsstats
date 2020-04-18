@@ -95,11 +95,6 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="dummy">
-                <span class="oi oi-info" aria-hidden="true"></span> Dummy
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
             <br />
             <br />
             <div class="row">
@@ -162,7 +157,7 @@
         StatusChangedEventArgs arg = e as StatusChangedEventArgs;
         if (_options.Decoding)
         {
-            UploadStatus = UploadStatus.UploadDone;
+            UploadStatus = arg.UploadStatus;
             ProgbarClass = "";
             ScanClass = "oi oi-list-rich spinner-border spinner-border-sm";
             Done = arg.Done;

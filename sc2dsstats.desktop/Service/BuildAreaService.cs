@@ -1,12 +1,12 @@
-﻿using System;
+﻿using paxgamelib;
+using paxgamelib.Data;
+using paxgamelib.Models;
+using paxgamelib.Service;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using paxgamelib.Models;
-using paxgamelib.Data;
 using System.Numerics;
-using paxgamelib;
-using paxgamelib.Service;
+using System.Threading.Tasks;
 
 namespace sc2dsstats.desktop.Service
 {

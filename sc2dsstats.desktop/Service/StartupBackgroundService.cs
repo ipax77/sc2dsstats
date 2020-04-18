@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using sc2dsstats.lib.Data;
-using sc2dsstats.lib.Db;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;

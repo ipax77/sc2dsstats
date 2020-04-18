@@ -55,16 +55,30 @@ namespace sc2dsstats.rest.Repositories
 
         public string AutoInfo(DSinfo info)
         {
-            DSRestPlayer player = _context.DSRestPlayers.FirstOrDefault(f => f.Name == info.Name);
+            DSRestPlayer player = null;
+            lock (dblock)
+            {
+                player = _context.DSRestPlayers.FirstOrDefault(f => f.Name == info.Name);
+            }
+
             string myreturn = "";
             if (player != null)
             {
                 DateTime LastRep = DateTime.MinValue;
-                DateTime.TryParseExact(info.LastRep, "yyyyMMddhhmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out LastRep);
+                if (info.LastRep.Length == 14)
+                {
+                    int year = int.Parse(info.LastRep.Substring(0, 4));
+                    int month = int.Parse(info.LastRep.Substring(4, 2));
+                    int day = int.Parse(info.LastRep.Substring(6, 2));
+                    int hour = int.Parse(info.LastRep.Substring(8, 2));
+                    int min = int.Parse(info.LastRep.Substring(10, 2));
+                    int sec = int.Parse(info.LastRep.Substring(12, 2));
+                    LastRep = new DateTime(year, month, day, hour, min, sec);
+                }
                 if (player.LastRep == LastRep) myreturn = "UpToDate";
                 else
                 {
-                    myreturn = player.LastRep.ToString("yyyyMMddhhmmss");
+                    myreturn = player.LastRep.ToString("yyyyMMddHHmmss");
                 }
             }
             else
@@ -89,7 +103,11 @@ namespace sc2dsstats.rest.Repositories
 
         public async Task<bool> GetDBFile(string id, string myfile)
         {
-            DSRestPlayer player = _context.DSRestPlayers.Include(p => p.Uploads).FirstOrDefault(f => f.Name == id);
+            DSRestPlayer player = null;
+            lock (dblock)
+            {
+                player = _context.DSRestPlayers.Include(p => p.Uploads).FirstOrDefault(f => f.Name == id);
+            }
             if (player == null)
                 return false;
 
@@ -152,7 +170,16 @@ namespace sc2dsstats.rest.Repositories
                         if (info != null)
                         {
                             DateTime LastRep = DateTime.MinValue;
-                            DateTime.TryParseExact(info.LastRep, "yyyyMMddhhmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out LastRep);
+                            if (info.LastRep.Length == 14)
+                            {
+                                int year = int.Parse(info.LastRep.Substring(0, 4));
+                                int month = int.Parse(info.LastRep.Substring(4, 2));
+                                int day = int.Parse(info.LastRep.Substring(6, 2));
+                                int hour = int.Parse(info.LastRep.Substring(8, 2));
+                                int min = int.Parse(info.LastRep.Substring(10, 2));
+                                int sec = int.Parse(info.LastRep.Substring(12, 2));
+                                LastRep = new DateTime(year, month, day, hour, min, sec);
+                            }
                             player.LastRep = LastRep;
                             player.Json = info.Json;
                             player.Total = info.Total;
@@ -244,7 +271,16 @@ namespace sc2dsstats.rest.Repositories
                             if (info != null)
                             {
                                 DateTime LastRep = DateTime.MinValue;
-                                DateTime.TryParseExact(info.LastRep, "yyyyMMddhhmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out LastRep);
+                                if (info.LastRep.Length == 14)
+                                {
+                                    int year = int.Parse(info.LastRep.Substring(0, 4));
+                                    int month = int.Parse(info.LastRep.Substring(4, 2));
+                                    int day = int.Parse(info.LastRep.Substring(6, 2));
+                                    int hour = int.Parse(info.LastRep.Substring(8, 2));
+                                    int min = int.Parse(info.LastRep.Substring(10, 2));
+                                    int sec = int.Parse(info.LastRep.Substring(12, 2));
+                                    LastRep = new DateTime(year, month, day, hour, min, sec);
+                                }
                                 player.LastRep = LastRep;
                                 player.Json = info.Json;
                                 player.Total = info.Total;

@@ -1,8 +1,5 @@
-﻿using System;
+﻿using paxgamelib.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using paxgamelib.Models;
 
 namespace sc2dsstats.desktop.Models
 {

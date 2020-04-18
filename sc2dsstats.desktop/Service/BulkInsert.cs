@@ -1,16 +1,12 @@
 ﻿using Microsoft.Extensions.Hosting;
-using sc2dsstats.decode.Models;
-using sc2dsstats.decode.Service;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
 using sc2dsstats.lib.Service;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +42,7 @@ namespace sc2dsstats.desktop.Service
             await Task.Run(() =>
             {
                 DateTime t = DateTime.UtcNow;
-                
+
                 var jsonfile = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web\\data.json";
 
                 if (!File.Exists(jsonfile))
@@ -72,10 +68,10 @@ namespace sc2dsstats.desktop.Service
                             reppath += ".SC2Replay";
                             rep.REPLAY = reppath;
                             DSReplay Rep = Map.Rep(rep);
-                            
-                            
+
+
                             DBService.SaveReplay(_context, Rep, true);
-                            
+
                             arg.Count++;
                             OnReplayProcessed(arg);
 
