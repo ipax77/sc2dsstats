@@ -2,6 +2,7 @@
 using ElectronNET.API;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using sc2dsstats.decode;
 using sc2dsstats.decode.Models;
 using sc2dsstats.decode.Service;
 using sc2dsstats.lib.Data;
@@ -14,6 +15,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,17 +31,21 @@ namespace sc2dsstats.desktop.Service
         public static Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
         public static Dictionary<string, string> NewReplays { get; set; } = new Dictionary<string, string>();
         private static object lockobject = new object();
-        public int DBCount = 0;
         private int Limit = 0;
         public bool isScanning = false;
         public static bool isFirstRun = true;
         private DSoptions _options;
+        Regex reg = new Regex(@"\\Direct Strike|\\DST(\(\d+\))?");
+
 
         public Status(ILogger<Status> logger, DSReplayContext context, DSoptions options)
         {
             _logger = logger;
             _context = context;
             _options = options;
+
+            if (_options.db == null)
+                _options.db = _context;
 
             foreach (var ent in DSdata.Config.Replays)
             {
@@ -81,7 +87,7 @@ namespace sc2dsstats.desktop.Service
                         foreach (var directory in DSdata.Config.Replays)
                         {
                             string dirHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(directory))).Replace("-", "").ToLowerInvariant();
-                            foreach (var file in Directory.GetFiles(directory, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+                            foreach (var file in Directory.GetFiles(directory, "*.SC2Replay", SearchOption.AllDirectories).Where(path => reg.IsMatch(path)))
                             {
 
                                 string fileHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFileName(file)))).Replace("-", "").ToLowerInvariant();
@@ -93,8 +99,10 @@ namespace sc2dsstats.desktop.Service
                     DSdata.DesktopStatus.FoldersReplays = fileHashes.Count;
 
                     HashSet<string> dbHashes = new HashSet<string>();
-                    dbHashes = _context.DSReplays.Select(s => s.REPLAY).ToHashSet();
-
+                    lock (_options.db)
+                    {
+                        dbHashes = _options.db.DSReplays.Select(s => s.REPLAY).ToHashSet();
+                    }
                     HashSet<string> fileKeys = fileHashes.Keys.ToHashSet();
                     fileKeys.ExceptWith(dbHashes);
 
@@ -140,47 +148,98 @@ namespace sc2dsstats.desktop.Service
             OnDataLoaded(args);
         }
 
-        public void DecodeReplays()
+        public void DecodeReplays(List<string> Replays = null)
         {
+            if (Replays.Any())
+            {
+                NewReplays = Replays.ToDictionary(x => x, x => x);
+            }
             args.UploadStatus = UploadStatus.UploadDone;
+            args.inDB = 0;
+            args.Decoded = 0;
+            args.NewReplays = NewReplays.Count;
+            args.Info = "Engine start.";
+            Decode.s2dec.ScanStateChanged += DecodeUpdate;
             Decode.Doit(NewReplays.Values.ToList(), DSdata.Config.Cores);
+            //Decode.Doit(NewReplays.Values.Take(100).ToList(), DSdata.Config.Cores);
+            OnDataLoaded(args);
+        }
+
+        public void StopDecode()
+        {
+            Decode.StopIt();
+            PopulateDb(true);
+            lock (args)
+            {
+                args.Info = "Stopping Threads..";
+            }
             OnDataLoaded(args);
         }
 
         public async Task PopulateDb(bool fin = false)
         {
-            if (DBCount == 0)
+            if (args.inDB == 0)
                 Limit = 0;
 
-            Interlocked.Increment(ref Limit);
-            if (Limit > 2 && fin == false)
+            if (Limit > 3 && fin == false)
                 return;
 
-            lock (lockobject)
-            {
-                while (Decode.s2dec.Replays.Any())
+            Interlocked.Increment(ref Limit);
+            await Task.Run(() => {
+                lock (lockobject)
                 {
-                    dsreplay rep;
-                    Decode.s2dec.Replays.TryTake(out rep);
-                    if (rep != null)
+
+                    while (Decode.s2dec.DSReplays.Any())
                     {
-                        try
+                        DSReplay rep;
+                        Decode.s2dec.DSReplays.TryTake(out rep);
+                        if (rep != null)
                         {
-                            DBService.SaveReplay(_context, Map.Rep(rep));
-                            Interlocked.Increment(ref DBCount);
+                            //DBService.SaveReplay(_options.db, rep, bulk);
+                            _options.db.DSReplays.Add(rep);
+                            Interlocked.Increment(ref args.inDB);
                         }
-                        catch (Exception e)
+                        if (args.inDB % 10 == 0)
                         {
-                            Console.WriteLine(e.Message);
-                            return;
+                            lock (_options.db)
+                            {
+                                try
+                                {
+                                    _options.db.SaveChanges();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.Message);
+                                }
+                            }
+                            if (fin)
+                                OnDataLoaded(args);
                         }
                     }
+                    if (fin == true)
+                    {
+                        lock (_options.db)
+                        {
+                            try
+                            {
+                                _options.db.SaveChanges();
+                            } catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
+                            DSdata.Status.Count = _options.db.DSReplays.Count();
+                        }
+                        _options.Decoding = false;
+                        if (DSdata.Config.Uploadcredential)
+                            UploadReplays();
+                        ScanReplayFolders();
+                        OnDataLoaded(args);
+
+                        
+                    }
+                    
                 }
-                if (fin == true)
-                {
-                    DSdata.Status.Count = _context.DSReplays.Count();
-                }
-            }
+            });
             Interlocked.Decrement(ref Limit);
         }
 
@@ -233,6 +292,29 @@ namespace sc2dsstats.desktop.Service
             }
 
         }
+
+        void DecodeUpdate(object sender, EventArgs e)
+        {
+            ScanState scanState = e as ScanState;
+
+            float wr = MathF.Round((float)scanState.Done * 100 / (float)scanState.Total, 2);
+            lock (args)
+            {
+                args.Decoded = scanState.Done;
+                args.Done = wr;
+                args.Info = $"{scanState.Done}/{DSdata.DesktopStatus.NewReplays} ({wr}%), inDB: {args.inDB} - Running on {scanState.Threads + 1} Threads.";
+                PopulateDb();
+
+                if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
+                {
+                    if (scanState.Done == scanState.Total)
+                        wr = 100;
+                    args.Info = $"{scanState.Done}/{scanState.Total} ({wr}%) - Elapsed Time: {(DateTime.Now - scanState.Start).ToString(@"hh\:mm\:ss")}";
+                    PopulateDb(true);
+                }
+            }
+            OnDataLoaded(args);
+        }
     }
 
 
@@ -241,10 +323,13 @@ namespace sc2dsstats.desktop.Service
     {
         public int Count { get; set; } = 0;
         public int Decoded { get; set; } = 0;
+        public int inDB = 0;
         public int NewReplays { get; set; } = 0;
+        public float Done { get; set; } = 0;
         public int TotalReplays { get; set; } = 0;
         public bool isReplayFolderScanned { get; set; } = false;
         public bool isReplaysDecoded { get; set; } = false;
+        public string Info { get; set; } = "";
         public UploadStatus UploadStatus { get; set; } = UploadStatus.UploadDone;
     }
 

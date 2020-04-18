@@ -2,7 +2,7 @@
 @using sc2dsstats.lib.Data
 @using sc2dsstats.lib.Models
 @using sc2dsstats.lib.Db
-@using sc2dsstats.shared.Service
+@using sc2dsstats.lib.Service
 @using System.IO
 @inject DSoptions _options
 @inject NavigationManager _nav
@@ -24,23 +24,30 @@
         transition: opacity .2s;
     }
 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #4CAF50;
-            cursor: pointer;
-        }
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #4CAF50;
+        cursor: pointer;
+    }
 
-        .slider::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #4CAF50;
-            cursor: pointer;
-        }
+    .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #4CAF50;
+        cursor: pointer;
+    }
+
+    .btn-group-xs > .btn, .btn-xs {
+      padding: .25rem .4rem;
+      font-size: .875rem;
+      line-height: .5;
+      border-radius: .2rem;
+    }
 </style>
 
 @if (replay != null)
@@ -53,17 +60,17 @@
         <div class="row">
             <div class="ml-4">
                 <div class="row">
-                    <h4><span class="badge badge-secondary mr-2">ID @replay.ID</span></h4>
-                    <h4><span class="badge badge-secondary mr-2">Duration @(TimeSpan.FromSeconds(replay.DURATION).ToString(@"hh\:mm\:ss")) min</span></h4>
-                    <h4><span class="badge badge-secondary mr-2">Gametime @replay.GAMETIME.ToString("yyyy/MM/dd")</span></h4>
+                    <h4><span class="badge badge-secondary mr-1">@Game.Id</span></h4>
+                    <h4><span class="badge badge-secondary mr-1">@Game.Duration</span></h4>
                     @if (plpos > 0)
                     {
-                        <h4><span class="badge badge-secondary mr-2">Player POS @plpos</span></h4>
+                        <h4><span class="badge badge-secondary mr-1">@Game.Player</span></h4>
                     }
-                    <h4><span class="badge badge-secondary">MVP Player @replay.DSPlayer.Where(x => x.KILLSUM == replay.MAXKILLSUM).First().REALPOS</span></h4>
+                    <h4><span class="badge badge-secondary mr-1">@Game.MVP</span></h4>
+                    <h4><span class="badge badge-secondary">@Game.Mode</span></h4>
                 </div>
                 <div class="row">
-                    @for (int i = 0; i < 2; i++)
+                    @for (int i = 1; i >= 0; i--)
                     {
                         <div class="ml-1">
                             @if (replay.WINNER == i)
@@ -79,7 +86,7 @@
                             <table class="table table-sm table-dark table-hover">
                                 <thead>
                                     <tr>
-                                        <th colspan="2"><h5><span class="badge badge-light">Mid @Mid[i].ToString("00.00")%</span></h5></th>
+                                        <th colspan="2"><h5><span class="badge badge-light">@Game.Mid[i]</span></h5></th>
 
                                         <th>Build</th>
                                         <th>Cmdr</th>
@@ -127,72 +134,93 @@
                 <div class="row w-auto">
                     <div class="col-auto">
                         <div class="slidecontainer">
-                            <input type="range" min="1" max="4" value="@bpvalue" class="slider" id="myBRange" @onchange="BPSlider">
+                            <input type="range" min="1" max="@Game.BreakpointMid.Count" value="@bpvalue" class="slider" id="myBRange" @onchange="BPSlider">
                         </div>
                     </div>
                     <div class="col-auto">
-                        <h5 class="text-info">Gametime: @Breakpoint.ToLower()</h5>
+                        <h5 class="text-info">Gametime: @_options.GameBreakpoint.ToLower()</h5>
                     </div>
                     <div class="col-auto">
                         <a href="@link.Key">@link.Value</a>
                     </div>
                 </div>
-                    <div class="container-fluid" style="min-height: 594px !important;">
-                        <div class="row">
-                            @for (int i = 0; i < BuildCheck.Count(); i++)
+                <div class="container-fluid" style="min-height: 594px !important;">
+                    <div class="row">
+                        @for (int i = BuildCheck.Count - 1; i > 0; i--)
+                        {
+                            if (BuildCheck[i] == true)
                             {
-                                if (BuildCheck[i] == true)
+                                DSPlayer pl = replay.DSPlayer.FirstOrDefault(f => f.REALPOS == i);
+                                if (pl != null)
                                 {
-                                    DSPlayer pl = replay.DSPlayer.Where(x => x.REALPOS == i).FirstOrDefault();
-                                    if (pl != null)
+                                    DbBreakpoint bp = pl.Breakpoints.FirstOrDefault(s => s.Breakpoint == _options.GameBreakpoint);
+                                    if (pl.TEAM == replay.WINNER)
                                     {
-                                        if (pl.TEAM == replay.WINNER)
-                                        {
-                                            BuildPlayerClass = "badge-success";
-                                        }
-                                        else
-                                        {
-                                            BuildPlayerClass = "badge-danger";
-                                        }
-                                        <div>
-                                            <h4><span class="badge @BuildPlayerClass">Build Player @i</span></h4>
-                                            @if (pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Gas") != null && pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Upgrades") != null)
-                                            {
-                                                <div class="row ml-2">
-                                                    <span class="badge badge-light">Gas @pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Gas").Count</span>
-                                                    <span class="badge badge-light">Upgrades @pl.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Upgrades").Count</span>
-                                                </div>
-                                            }
+                                        BuildPlayerClass = "badge-success";
+                                    }
+                                    else
+                                    {
+                                        BuildPlayerClass = "badge-danger";
+                                    }
+                                    <div>
+                                        <h4><span class="badge @BuildPlayerClass">Build Player @i</span></h4>
+                                        <button type="button" class="btn btn-xs btn-dark" data-toggle="collapse" data-target="#map_@pl.REALPOS">Map</button>
+                                        <div id="map_@pl.REALPOS" class="collapse">
+                                            <WebMap Units="Game.GetDbUnits(pl, bp, replay.OBJECTIVE)" Team="pl.TEAM" />
+                                            <div style="min-width: 500px; min-height: 773px;"></div>
+                                        </div>
+
+                                        @if  (bp != null) { 
+                                        <div class="row ml-2">
+                                            <span class="badge badge-light">Gas @bp.Gas</span>
+                                            <button type="button" class="btn btn-xs btn-light" data-toggle="collapse" data-target="#upgradestable_@pl.REALPOS">Upgrades @bp.Upgrades</button>
+                                        </div>
+                                        <div id="upgradestable_@pl.REALPOS" class="collapse">
                                             <table class="table table-sm table-dark">
                                                 <thead>
                                                     <tr>
-                                                        <th>Unit</th>
-                                                        <th>Count</th>
+                                                        <th>Upgrades</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach (var unit in pl.DSUnit.Where(x => x.BP == Breakpoint).OrderByDescending(o => o.Count))
+                                                    @foreach (string upgrade in Game.Upgrades[pl.REALPOS][_options.GameBreakpoint])
                                                     {
-                                                        if (unit.Name == "Gas" || unit.Name == "Mid" || unit.Name == "Upgrades")
-                                                            continue;
                                                         <tr>
-                                                            <td>@BuildService.FixUnitName(unit.Name)</td>
-                                                            <td>@unit.Count</td>
+                                                            <td>@upgrade</td>
                                                         </tr>
                                                     }
                                                 </tbody>
                                             </table>
                                         </div>
-                                    }
+                                        <table class="table table-sm table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th>Unit</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var ent in Game.Units[pl.REALPOS][_options.GameBreakpoint])
+                                                {
+                                                    <tr>
+                                                        <td>@ent.Key</td>
+                                                        <td>@ent.Value</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                        }
+                                    </div>
                                 }
                             }
-                        </div>
-
+                        }
                     </div>
+
                 </div>
+            </div>
         </div>
     </div>
-    
+
 }
 
 @code {
@@ -203,17 +231,17 @@
     string PlayerClass = "table-primary";
     string BuildPlayerClass = "badge-primary";
     List<bool> BuildCheck;
-    string Breakpoint = "MIN10";
     string pldiffcolor = DSdata.color_plbg_def;
     int replayid = 0;
     bool showDetails = false;
     bool showMap = false;
-    List<double> Mid = new List<double>() { 0, 0 };
     KeyValuePair<string, string> link = new KeyValuePair<string, string>("", "");
     int plpos = 0;
-    int bpvalue = 2;
+    int bpvalue = 1;
+    WebGameModel Game = new WebGameModel();
+    bool UpgradeShowBool = false;
+    string UpgradesShow => UpgradeShowBool ? "show" : "";
 
-    Dictionary<string, double> BreakpointMid = new Dictionary<string, double>(DSdata.BreakpointMid);
 
     protected override void OnInitialized()
     {
@@ -222,12 +250,6 @@
         {
             BuildCheck.Add(false);
         }
-
-        if (replay != null)
-        {
-            BreakpointMid["ALL"] = replay.DURATION * 22.4;
-        }
-
     }
 
     object NewReplay()
@@ -237,8 +259,8 @@
         showMap = false;
         if (replay != null)
         {
-            BreakpointMid["ALL"] = replay.DURATION * 22.4;
-            SetMid();
+            Game.Init(replay, _options);
+            bpvalue = Game.BreakpointMid.Count;
             string linklink = "";
             string linktext = "";
 
@@ -247,9 +269,11 @@
                 linklink = _nav.BaseUri;
                 linklink += "db/" + replay.ID;
                 linktext = linklink;
-            } else
+            }
+            else
             {
-                if (File.Exists(replay.REPLAYPATH)) {
+                if (File.Exists(replay.REPLAYPATH))
+                {
                     linklink = @"file:///" + replay.REPLAYPATH;
                     linktext = Path.GetFileName(replay.REPLAYPATH);
                 }
@@ -287,35 +311,12 @@
         return null;
     }
 
-    void SetMid()
-    {
-
-        double bpmbp = BreakpointMid[Breakpoint];
-        if (bpmbp > BreakpointMid["ALL"])
-            bpmbp = BreakpointMid["ALL"];
-
-
-        DSPlayer mpl1 = replay.DSPlayer.FirstOrDefault(f => f.TEAM == 0);
-        if (mpl1 != null) {
-            DSUnit munit1 = mpl1.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Mid");
-            if (munit1 != null)
-                Mid[0] = Math.Round(munit1.Count * 100 / bpmbp, 2);
-        }
-        DSPlayer mpl2 = replay.DSPlayer.FirstOrDefault(f => f.TEAM == 1);
-        if (mpl2 != null)
-        {
-            DSUnit munit2 = mpl2.DSUnit.FirstOrDefault(x => x.BP == Breakpoint && x.Name == "Mid");
-            if (munit2 != null)
-                Mid[1] = Math.Round(munit2.Count * 100 / bpmbp, 2);
-        }
-    }
-
     void BreakpointClick(string bp, object e)
     {
         if ((string)e == "on")
         {
-            Breakpoint = bp;
-            SetMid();
+            _options.GameBreakpoint = bp;
+            Game.SetMid(replay, _options.GameBreakpoint);
             StateHasChanged();
         }
     }
@@ -324,16 +325,10 @@
     {
         string bp = (string)e.Value;
 
-        if (bp == "1")
-            Breakpoint = "MIN5";
-        else if (bp == "2")
-            Breakpoint = "MIN10";
-        else if (bp == "3")
-            Breakpoint = "MIN15";
-        else if (bp == "4")
-            Breakpoint = "ALL";
+        int i = int.Parse(bp);
+        _options.GameBreakpoint = Game.BreakpointMid.ElementAt(i - 1).Key;
 
-        SetMid();
+        Game.SetMid(replay, _options.GameBreakpoint);
         StateHasChanged();
     }
 

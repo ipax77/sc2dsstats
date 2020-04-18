@@ -45,24 +45,65 @@ namespace sc2dsstats.desktop.Service
         {
             bool success = false;
 
+            await Task.Delay(10000);
+
             Console.WriteLine("Checking for update ...");
             UpdateCheckResult result;
+            
+            
+            Electron.AutoUpdater.OnUpdateAvailable += AutoUpdater_OnUpdateAvailable;
             try
             {
-                Electron.Notification.Show(new NotificationOptions("Hello", await Electron.App.GetVersionAsync()));
                 Electron.AutoUpdater.AutoDownload = false;
+                Electron.Notification.Show(new NotificationOptions("Hello", await Electron.App.GetVersionAsync()));
                 result = await Electron.AutoUpdater.CheckForUpdatesAsync();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 return false;
+            } finally
+            {
+                Electron.AutoUpdater.OnUpdateAvailable -= AutoUpdater_OnUpdateAvailable;
             }
 
             Electron.Notification.Show(new NotificationOptions("New Version available: ", result.UpdateInfo.Version));
 
             Console.WriteLine("Update Check running?!");
             return success;
+        }
+
+        public static async Task<bool> CheckForUpdateAndNotify()
+        {
+            Console.WriteLine("Checking for update ...");
+            UpdateCheckResult result;
+            try
+            {
+                result = await Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
+            } catch
+            {
+                return false;
+            }
+            finally
+            {
+            }
+            Console.WriteLine("Update Check running?!");
+            return true;
+        }
+
+        private static void OnAction (object obj)
+        {
+            Console.WriteLine(obj.ToString());
+        }
+
+        private static void AutoUpdater_OnUpdateAvailable(UpdateInfo obj)
+        {
+            Console.WriteLine("Update available! " + obj.Version);
+        }
+
+        private static void AutoUpdater_OnDownloadProgress(ProgressInfo obj)
+        {
+            Console.WriteLine(obj.Percent);
         }
     }
 }

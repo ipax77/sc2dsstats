@@ -1,5 +1,6 @@
 ﻿using sc2dsstats.decode.Models;
 using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using sc2dsstats.decode;
 
 namespace sc2dsstats.decode.Service
 {
@@ -27,7 +29,7 @@ namespace sc2dsstats.decode.Service
 
 
 
-        public static async Task<dsreplay> ScanRep(string file, bool GetDetails = false)
+        public static async Task<DSReplay> ScanRep(string file, bool GetDetails = false)
         {
             return await Task.Run(() =>
             {

@@ -126,6 +126,10 @@
 </div>
 
 @code {
+    [Parameter]
+    public WebOptions webOptions { get; set; }
+
+
     private bool Loading = true;
     //private string ChartClass = "w-75";
     private string ChartClass = "w-75 chartmobile";
@@ -136,18 +140,30 @@
     string InfoClass = "d-none d-xl-block";
     private object lockobject = new object();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _options.DefaultFilter();
-
         _options.Mode = "Winrate";
 
-        await _chart.Init(_options);
-        if (DSdata.Config.Players.Any())
-            _options.Player = true;
-        _options.PropertyChanged += OptionChanged;
         Loading = false;
-        _options.Update = !_options.Update;
+
+        if (DSdata.Config.Players.Any())
+        {
+            _options.Player = true;
+            foreach (var ent in _options.Players.Where(x => x.Value == true))
+                _options.Dataset.Add(ent.Key);
+        }
+        _options.PropertyChanged += OptionChanged;
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _chart.Init(_options).GetAwaiter();
+            _options.Update = !_options.Update;
+        }
+        return base.OnAfterRenderAsync(firstRender);
     }
 
     void ShowInfo()
@@ -168,10 +184,10 @@
             if (_options.Chart.data.datasets.Count == 0 || (_options.Chart.data.datasets.Count == 1 && _options.Chart.data.datasets.First().label == "global"))
                 await _chart.ChartHandler(_options);
             else
-                ChartService.AddDataset(_options, lockobject);
+                _chart.AddDataset(_options, lockobject);
         } else
         {
-            ChartService.RemoveDataset(_options, cmdr, lockobject);
+            _chart.RemoveDataset(_options, cmdr, lockobject);
             if (!_options.Chart.data.datasets.Any())
             {
                 _options.Interest = "";
@@ -198,7 +214,12 @@
                 _options.CmdrsChecked[_options.Interest] = true;
 
             await InvokeAsync(() => StateHasChanged());
-            await _chart.ChartHandler(_options);
+
+            if (e.PropertyName == "BeginAtZero")
+                await _chart.ChangeOption(_options);
+            else
+                await _chart.ChartHandler(_options);
+
 
             Loading = false;
             await InvokeAsync(() => StateHasChanged());

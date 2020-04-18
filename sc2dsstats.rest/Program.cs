@@ -7,6 +7,8 @@ namespace sc2dsstats.rest
 {
     public class Program
     {
+        public static string workdir = "/data";
+
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
@@ -19,6 +21,11 @@ namespace sc2dsstats.rest
                     logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                     logging.AddConsole();
                     logging.AddDebug();
+                })
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile(workdir + "/config.json", optional: false, reloadOnChange: false);
+                    config.AddJsonFile(workdir + "/localserverconfig.json", optional: false, reloadOnChange: false);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

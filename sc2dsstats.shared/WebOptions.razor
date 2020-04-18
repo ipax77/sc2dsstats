@@ -1,46 +1,126 @@
 ﻿@using System.Globalization
+@using Microsoft.AspNetCore.Components.Forms
 @using sc2dsstats.lib.Data
 @using sc2dsstats.shared.Service
+@using System.ComponentModel
+@using sc2dsstats.shared;
+@inject ChartService _chart
 @inject DSoptions _options
+@implements IDisposable
 
-    <div>
-        <div class="d-none d-xl-block">
+<style>
+    /* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 45px !important;
+        height: 20px !important;
+    }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 15px !important;
+            width: 15px !important;
+            left: 2px !important;
+            bottom: 2px !important;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(13px);
+        -ms-transform: translateX(13px);
+        transform: translateX(13px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 17px !important;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+</style>
+
+<div>
+    <div class="d-none d-xl-block">
+        <div class="row">
             <div class="row">
-                <button class="btn btn-sm btn-light mr-2" @onclick="OpenDialog">Filter</button>
+                <div>
+                    <button class="btn btn-sm btn-light" @onclick="OpenDialog">Filter</button>
+                </div>
                 @foreach (string mode in DSdata.s_chartmodes)
                 {
-                    if (_options.Mode == mode)
+                <div>
+                    @if (_options.Mode == mode)
                     {
-                        <span class="btn btn-warning" @onclick="@(() => _options.Mode = mode)">@mode</span>
+                    <span class="btn btn-warning" @onclick="@(() => _options.Mode = mode)">@mode</span>
                     }
                     else
                     {
-                        <span class="btn btn-primary" @onclick="@(() => _options.Mode = mode)">@mode</span>
+                    <span class="btn btn-primary" @onclick="@(() => _options.Mode = mode)">@mode</span>
                     }
+                </div>
                 }
 
-            <div class="position-relative ml-2" style="min-width: 60px;">
-                <div class="position-absolute">
-                    <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                        <label class="btn btn-sm btn-outline-info @PlayerClass1">
-                            <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOn"> Player
-                        </label>
-                        <label class="btn btn-sm btn-outline-info @PlayerClass2">
-                            <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOff"> Any
-                        </label>
-                    </div>
-                </div>
             </div>
-            <div class="position-relative ml-2">
+            <div class="ml-4">
                 <div class="position-absolute">
-                    <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                        <label class="btn btn-sm btn-outline-info @ZeroClass1">
-                            <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOn"> BeginAtZero
-                        </label>
-                        <label class="btn btn-sm btn-outline-info @ZeroClass2">
-                            <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOff"> AutoScale
-                        </label>
-                    </div>
+                    <EditForm Model="@_options" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="row">
+                            <div class="form-group col-xs-4 col-md-4">
+                                <label for="cbplayer">
+                                    Player
+                                </label>
+                                <label id="cbplayer" class="switch">
+                                    <InputCheckbox @bind-Value="_options.Player" />
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="form-group col-xs-4 col-md-4">
+                                <label for="cbzero">
+                                    BeginAtZero
+                                </label>
+                                <label id="cbzero" class="switch">
+                                    <InputCheckbox @bind-Value="_options.BeginAtZero" />
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </EditForm>
                 </div>
             </div>
         </div>
@@ -60,57 +140,65 @@
         </div>
     </div>
 </div>
-    <div class="d-xl-none">
-        <div class="row">
-            <Dropdown TItem="string" OnSelected="@OnModeSelected">
-                <InitialTip>Winrate</InitialTip>
-                <ChildContent>
-                    @foreach (string mode in DSdata.s_chartmodes)
-                    {
-                        <DropdownListItem Item="@mode">@mode</DropdownListItem>
-                    }
-                </ChildContent>
-            </Dropdown>
-            <Dropdown TItem="string" OnSelected="@OnCmdrSelected">
-                <InitialTip>Cmdr</InitialTip>
-                <ChildContent>
-                    <DropdownListItem Item="@("ALL")">ALL</DropdownListItem>
-                    <div class="dropdown-divider"></div>
-                    @foreach (string cmdr in DSdata.s_races)
-                    {
-                        <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
-                    }
-                </ChildContent>
-            </Dropdown>
-            <Dropdown TItem="string" OnSelected="@OnTimeSelected">
-                <InitialTip>Timespan</InitialTip>
-                <ChildContent>
-                    @foreach (string time in DSdata.s_timespans)
-                    {
-                        <DropdownListItem Item="@time">@time</DropdownListItem>
-                    }
-                </ChildContent>
-            </Dropdown>
+<div class="d-xl-none">
+    <div class="row">
+        <Dropdown TItem="string" OnSelected="@OnModeSelected">
+            <InitialTip>Winrate</InitialTip>
+            <ChildContent>
+                @foreach (string mode in DSdata.s_chartmodes)
+                {
+                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                }
+            </ChildContent>
+        </Dropdown>
+        <Dropdown TItem="string" OnSelected="@OnCmdrSelected">
+            <InitialTip>Cmdr</InitialTip>
+            <ChildContent>
+                <DropdownListItem Item="@("ALL")">ALL</DropdownListItem>
+                <div class="dropdown-divider"></div>
+                @foreach (string cmdr in DSdata.s_races)
+                {
+                    <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                }
+            </ChildContent>
+        </Dropdown>
+        <Dropdown TItem="string" OnSelected="@OnTimeSelected">
+            <InitialTip>Timespan</InitialTip>
+            <ChildContent>
+                @foreach (string time in DSdata.s_timespans)
+                {
+                    <DropdownListItem Item="@time">@time</DropdownListItem>
+                }
+            </ChildContent>
+        </Dropdown>
 
-            <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                <label class="btn btn-sm btn-outline-info @PlayerClass1">
-                    <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOn"> Player
-                </label>
-                <label class="btn btn-sm btn-outline-info @PlayerClass2">
-                    <input type="radio" name="playeroption" autocomplete="off" @onchange="CBPlayerClickOff"> Any
-                </label>
+        <EditForm Model="@_options" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="row">
+                <div class="form-group col-xs-4 col-md-4">
+                    <label for="cbplayer">
+                        Player
+                    </label>
+                    <label id="cbplayer" class="switch">
+                        <InputCheckbox @bind-Value="_options.Player" />
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="form-group col-xs-4 col-md-4">
+                    <label for="cbzero">
+                        BeginAtZero
+                    </label>
+                    <label id="cbzero" class="switch">
+                        <InputCheckbox @bind-Value="_options.BeginAtZero" />
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
-            <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                <label class="btn btn-sm btn-outline-info @ZeroClass1">
-                    <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOn"> BeginAtZero
-                </label>
-                <label class="btn btn-sm btn-outline-info @ZeroClass2">
-                    <input type="radio" name="zerooption" autocomplete="off" @onchange="BeginAtZeroClickOff"> AutoScale
-                </label>
-            </div>
-        </div>
+        </EditForm>
     </div>
-        
+</div>
+
 
 <OptionsDialog @ref="myDialog" />
 
@@ -122,71 +210,19 @@
     private string myTimespan = "";
     private object lockobject = new object();
 
-    private string PlayerClass1 => _options.Player ? "active" : "";
-    private string PlayerClass2 => _options.Player ? "" : "active";
+    protected override void OnInitialized()
+    {
+        _options.PropertyChanged += Update;
+    }
 
-    private string ZeroClass1 => _options.BeginAtZero ? "active" : "";
-    private string ZeroClass2 => _options.BeginAtZero ? "" : "active";
+    void Update(object sender, EventArgs e)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
 
     void OpenDialog()
     {
         myDialog.Show();
-    }
-
-    private void CBPlayerClickOn(ChangeEventArgs e)
-    {
-        if (e.Value.ToString() == "on")
-            _options.Player = true;
-        else
-            return;
-        CBPlayerClick();
-    }
-
-    private void CBPlayerClickOff(ChangeEventArgs e)
-    {
-        if (e.Value.ToString() == "on")
-            _options.Player = false;
-        else
-            return;
-        CBPlayerClick();
-    }
-
-    private void CBPlayerClick()
-    {
-        if (DSdata.Config.Players.Any())
-        {
-            if (_options.Player)
-                foreach (var ent in _options.Players.Where(x => x.Value == true))
-                    _options.Dataset.Add(ent.Key);
-            else
-                _options.Dataset.Clear();
-
-        }
-        _options.Update = !_options.Update;
-    }
-
-    private void BeginAtZeroClickOn(ChangeEventArgs e)
-    {
-        if (e.Value.ToString() == "on")
-            _options.BeginAtZero = true;
-        else
-            return;
-        BeginAtZeroClick();
-    }
-
-    private void BeginAtZeroClickOff(ChangeEventArgs e)
-    {
-        if (e.Value.ToString() == "on")
-            _options.BeginAtZero = false;
-        else
-            return;
-        BeginAtZeroClick();
-    }
-
-    private void BeginAtZeroClick()
-    {
-        ChartService.ChangeOption(_options);
-        InvokeAsync(() => StateHasChanged());
     }
 
     private void Gametime(int i)
@@ -242,9 +278,9 @@
             if (String.IsNullOrEmpty(removeme))
                 removeme = "global";
 
-            ChartService.RemoveDataset(_options, removeme, lockobject);
+            _chart.RemoveDataset(_options, removeme, lockobject);
             _options.Interest = selection;
-            ChartService.AddDataset(_options, lockobject);
+            _chart.AddDataset(_options, lockobject);
         }
 
     }
@@ -258,5 +294,15 @@
     {
         myTimespan = selection;
         Gametime(Array.FindIndex(DSdata.s_timespans, w => w == selection) + 1);
+    }
+
+    private void HandleValidSubmit()
+    {
+        //Console.WriteLine("valid");
+    }
+
+    public void Dispose()
+    {
+        _options.PropertyChanged -= Update;
     }
 }

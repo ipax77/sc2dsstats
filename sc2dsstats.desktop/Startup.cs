@@ -13,6 +13,11 @@ using sc2dsstats.lib.Db;
 using sc2dsstats.shared.Service;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Text.Json;
+using Newtonsoft.Json;
+using System.IO;
+using System.Collections.Generic;
+using sc2dsstats.lib.Models;
 
 namespace sc2dsstats.desktop
 {
@@ -33,8 +38,7 @@ namespace sc2dsstats.desktop
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddDbContext<DSReplayContext>(options =>
-                //options.UseSqlServer($"Server=(localdb)\\mssqllocaldb;AttachDbFilename={Program.workdir}\\dsreplays.mdf; Database=sc2dsstats_replays;Trusted_Connection=True;MultipleActiveResultSets=true"));
-                options.UseSqlite($"Data Source={Program.workdir}/data.db"));
+            options.UseSqlite($"Data Source={Program.workdir}/data.db"));
             services.AddSingleton<LoadData>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
@@ -50,6 +54,8 @@ namespace sc2dsstats.desktop
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
+            DSdata.Init();
 
             if (env.IsDevelopment())
             {
@@ -79,7 +85,8 @@ namespace sc2dsstats.desktop
             Task.Run(async () => {
                 await Electron.WindowManager.CreateWindowAsync();
                 await ElectronService.Resize();
-                await ElectronService.CheckForUpdate();
+                //DSdata.DesktopUpdateAvailable = await ElectronService.CheckForUpdate();
+                DSdata.DesktopUpdateAvailable = await ElectronService.CheckForUpdateAndNotify();
             });
         }
     }

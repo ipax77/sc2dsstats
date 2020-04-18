@@ -191,7 +191,7 @@
                                 @foreach (var ent in _options.Players.Keys)
                                 {
                                     <div class="custom-control custom-checkbox mr-2">
-                                        <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" checked="_options.Players[ent]" @onchange="@(() => SetPlayer(ent))" />
+                                        <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" @bind="_options.Players[ent]" />
                                         <label class="custom-control-label" for="cb_players_@ent">@ent</label>
                                     </div>
                                 }
@@ -252,7 +252,15 @@
         else
         {
             if (myhash != _options.GenHash())
+            {
+                if (DSdata.Config.Players.Any())
+                {
+                    _options.Dataset.Clear();
+                    foreach (var ent in _options.Players.Where(x => x.Value == true))
+                        _options.Dataset.Add(ent.Key);
+                }
                 _options.Update = !_options.Update;
+            }
             FadeClass = "fadeout";
             await Task.Delay(500);
         }
@@ -288,8 +296,19 @@
         }
         _options.Interest = String.Empty;
         _options.Vs = String.Empty;
-        _options.Dataset = new List<string>();
-        
+        _options.Dataset = new HashSet<string>();
+
+        _options.Players = new Dictionary<string, bool>();
+        foreach (var ent in DSdata.Config.Players)
+            _options.Players[ent] = true;
+
+        if (DSdata.Config.Players.Any())
+        {
+            _options.Player = true;
+            foreach (var ent in _options.Players.Where(x => x.Value == true))
+                _options.Dataset.Add(ent.Key);
+        }
+
         _options.Update = !_options.Update;
         myhash = _options.GenHash();
     }
@@ -297,6 +316,11 @@
     void SetPlayer(string name)
     {
         _options.Players[name] = !_options.Players[name];
+        if (!_options.Players[name])
+            if (_options.Dataset.Contains(name))
+                _options.Dataset.Remove(name);
+            else
+                _options.Dataset.Add(name);
         _options.Update = !_options.Update;
         myhash = _options.GenHash();
     }
@@ -305,7 +329,7 @@
     {
         if (selection == "ALL")
         {
-            _options.Dataset = new List<string>();
+            _options.Dataset = new HashSet<string>();
             _options.Player = false;
         }
         else

@@ -187,6 +187,18 @@ namespace sc2dsstats.lib.Models
         public int borderWidth { get; set; } = 1;
         public List<double> data { get; set; } = new List<double>();
 
+        public ChartJSdataset DeepCopy()
+        {
+            ChartJSdataset newcp = new ChartJSdataset();
+            newcp.label = this.label;
+            newcp.backgroundColor = new List<string>(this.backgroundColor);
+            newcp.borderColor = this.borderColor;
+            newcp.pointBackgroundColor = this.pointBackgroundColor;
+            newcp.borderWidth = this.borderWidth;
+            newcp.data = new List<double>(this.data);
+            return newcp;
+        }
+
         public ChartJSdataset()
         {
 

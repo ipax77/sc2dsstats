@@ -1,6 +1,10 @@
-﻿using sc2dsstats.lib.Models;
+﻿using Newtonsoft.Json;
+using sc2dsstats.lib.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace sc2dsstats.lib.Data
 {
@@ -11,8 +15,31 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.0");
+        public static Version DesktopVersion = new Version("2.0.1");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
+        public static bool DesktopUpdateAvailable = false;
+
+        public static int OptID = 0;
+        public static ConcurrentDictionary<int, List<string>> Telemetrie = new ConcurrentDictionary<int, List<string>>();
+
+        public static void Init()
+        {
+            var rootDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            DSdata.Units = System.Text.Json.JsonSerializer.Deserialize<List<UnitModelBase>>(File.ReadAllText(rootDir + "/json/dataunits.json"));
+            DSdata.Upgrades = System.Text.Json.JsonSerializer.Deserialize<List<UnitModelBase>>(File.ReadAllText(rootDir + "/json/upgrademap.json"));
+            DSdata.Objectives = JsonConvert.DeserializeObject<List<Objective>>(File.ReadAllText(rootDir + "/json/objectives.json"));
+
+            foreach (string cmdr in s_races)
+            {
+                CmdrBtnStyle += new StringBuilder("" + Environment.NewLine +
+                    cmdr + "Button:before {" + Environment.NewLine +
+                    " background-image : url(" + GetIcon(cmdr) + ");" + Environment.NewLine +
+                    "}" + Environment.NewLine
+                    );
+            }
+        }
+
 
         public static string[] s_races { get; } = new string[]
         {
@@ -165,6 +192,8 @@ namespace sc2dsstats.lib.Data
             {     "Zerg", "#440e5f"   }
         };
 
+        public static string CmdrBtnStyle = "";
+
         public static Dictionary<string, string> s_builds_hash = new Dictionary<string, string>()
         {
             { "b33aef3fcc740b0d67eda3faa12c0f94cef5213fe70921d72fc2bfa8125a5889", "PAX" },
@@ -183,13 +212,13 @@ namespace sc2dsstats.lib.Data
             return r;
         }
 
-        public static double MIN5 = 6720;
-        public static double MIN10 = 13440;
-        public static double MIN15 = 20160;
+        //public static double MIN5 = 6720;
+        //public static double MIN10 = 13440;
+        //public static double MIN15 = 20160;
 
-        //static double MIN5 = 6240;
-        //static double MIN10 = 13440;
-        //static double MIN15 = 20640;
+        public static double MIN5 = 6240;
+        public static double MIN10 = 13440;
+        public static double MIN15 = 20640;
 
         public static Dictionary<string, double> BreakpointMid = new Dictionary<string, double>()
 {
@@ -201,5 +230,8 @@ namespace sc2dsstats.lib.Data
 
         public static string[] s_units { get; set; }
 
+        public static List<UnitModelBase> Units { get; set; } = new List<UnitModelBase>();
+        public static List<UnitModelBase> Upgrades { get; set; } = new List<UnitModelBase>();
+        public static List<Objective> Objectives { get; set; } = new List<Objective>();
     }
 }

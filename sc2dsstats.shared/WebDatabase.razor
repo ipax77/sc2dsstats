@@ -47,33 +47,33 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if  (Loading == false) {
-                        @foreach (var ent in Replays)
+                    
+                    @foreach (var ent in Replays)
+                    {
+                        string rowclass = "sort-link";
+                        @if (RepId == ent.ID)
                         {
-                            string rowclass = "sort-link";
-                            @if (RepId == ent.ID)
-                            {
-                                rowclass = "table-info";
-                            }
-                    <tr class="table-row @rowclass" @onclick="@(async => ShowGame(@ent.ID))">
-                        @foreach (var opt in RepOpt.Opt.Where(x => x.Value == true))
-                        {
-                            if (opt.Key == "DURATION")
-                            {
-                                <td>@TimeSpan.FromSeconds((int)GetRepProperty(ent, opt.Key)).ToString(@"hh\:mm\:ss")</td>
-                            }
-                            else if (opt.Key == "GAMETIME")
-                            {
-                                <td>@(Convert.ToDateTime(GetRepProperty(ent, opt.Key)).ToString("yyyy/MM/dd"))</td>
-                            }
-                            else
-                            {
-                                <td>@GetRepProperty(ent, opt.Key).ToString()</td>
-                            }
+                            rowclass = "table-info";
                         }
-                    </tr>
+                <tr class="table-row @rowclass" @onclick="@(async => ShowGame(@ent.ID))">
+                    @foreach (var opt in RepOpt.Opt.Where(x => x.Value == true))
+                    {
+                        if (opt.Key == "DURATION")
+                        {
+                            <td>@TimeSpan.FromSeconds((int)GetRepProperty(ent, opt.Key)).ToString(@"hh\:mm\:ss")</td>
+                        }
+                        else if (opt.Key == "GAMETIME")
+                        {
+                            <td>@(Convert.ToDateTime(GetRepProperty(ent, opt.Key)).ToString("yyyy/MM/dd"))</td>
+                        }
+                        else
+                        {
+                            <td>@GetRepProperty(ent, opt.Key).ToString()</td>
                         }
                     }
+                </tr>
+                    }
+                    
                 </tbody>
             </table>
         </div>
@@ -158,23 +158,29 @@
         return rep.GetType().GetProperty(prop).GetValue(rep, null);
     }
 
-    async void ShowGame(int repid, bool isInit = false)
+    async Task ShowGame(int repid, bool isInit = false)
     {
-
-        _options.Replay = await DBService.GetReplay(_options.db, repid);
-        if (_options.Replay != null)
-        {
-            if (isInit == false)
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
+        await Task.Run(() => {
+            _options.Replay = DBService.GetReplay(_options.db, repid);
+            if (_options.Replay != null)
             {
-                string cururi = _nav.Uri;
-                while (char.IsNumber(cururi.Last()))
-                    cururi = cururi.Remove(cururi.Length - 1);
-                if (cururi.Last() == '/')
-                    cururi = cururi.Remove(cururi.Length - 1);
-                _nav.NavigateTo(cururi + "/" + _options.Replay.ID);
-                RepId = _options.Replay.ID;
+                if (isInit == false)
+                {
+                    string cururi = _nav.Uri;
+                    while (char.IsNumber(cururi.Last()))
+                        cururi = cururi.Remove(cururi.Length - 1);
+                    if (cururi.Last() == '/')
+                        cururi = cururi.Remove(cururi.Length - 1);
+                    _nav.NavigateTo(cururi + "/" + _options.Replay.ID);
+                    RepId = _options.Replay.ID;
+                }
             }
-        }
+        });
+
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged());
     }
 
     async void DBSearch()

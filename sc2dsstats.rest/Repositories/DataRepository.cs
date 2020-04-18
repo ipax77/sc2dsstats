@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
+using sc2dsstats.lib.Models;
 using sc2dsstats.rest.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -8,128 +10,91 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using sc2dsstats.data;
+using System.Linq;
+using sc2dsstats.lib.Service;
+using sc2dsstats.lib.Db;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.EntityFrameworkCore;
 
 namespace sc2dsstats.rest.Repositories
 {
     public class DataRepository : IDataRepository
     {
-
-        private Dictionary<string, DSplayer> _players = new Dictionary<string, DSplayer>();
         private readonly ILogger _logger;
 
         private static string WorkDir { get; } = "/data";
         private static string SharedDir { get; } = "/autodata";
+        private static string DBDir { get; } = "/dbdata";
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
+        private static ConcurrentBag<DSReplay> DSReplays = new ConcurrentBag<DSReplay>();
+        private static object lockobject = new object();
+        private readonly IServiceScope _scope;
+        private static DSRestContext _context;
+        private object dblock = new object();
+        private ConcurrentDictionary<string, DSinfo> Infos = new ConcurrentDictionary<string, DSinfo>();
 
-        public DataRepository(ILogger<DataRepository> logger)
+
+        public DataRepository(ILogger<DataRepository> logger, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
+            _scope = scopeFactory.CreateScope();
+            _context = _scope.ServiceProvider.GetRequiredService<DSRestContext>();
+            _context.Database.EnsureCreated();
+
             string data_json = WorkDir + "/data.json";
-            if (File.Exists(data_json))
-            {
-                TextReader reader = new StreamReader(data_json, Encoding.UTF8);
-                string fileContents;
-                while ((fileContents = reader.ReadLine()) != null)
-                {
-                    var player = JsonSerializer.Deserialize<DSplayer>(fileContents);
-                    if (player != null)
-                    {
-                        _players.Add(player.Name, player);
-                    }
-                }
-                reader.Close();
-            }
         }
 
-        public string GetLast(string id, string last)
+        public static DSReplay GetDSReplay()
         {
-            if (_players.ContainsKey(id))
-            {
-                if (_players[id].LastRep == last) return "UpToDate";
-                _players[id]._LastRep = last;
-                return (_players[id].LastRep);
-            }
-            else
-            {
-                _players.Add(id, new DSplayer());
-                _players[id].Name = id;
-                _players[id]._LastRep = last;
-                return "0";
-            }
+            DSReplay replay = null;
+            DSReplays.TryTake(out replay);
+            return replay;
         }
 
-        public async Task<string> Info(DSinfo info)
+        public string AutoInfo(DSinfo info)
         {
-            if (_players.ContainsKey(info.Name))
+            DSRestPlayer player = _context.DSRestPlayers.FirstOrDefault(f => f.Name == info.Name);
+            string myreturn = "";
+            if (player != null)
             {
-                if (IsPlausible(info, _players[info.Name]))
-                {
-                    _players[info.Name].Info = info;
-                    if (info.Version.StartsWith("v"))
-                        info.Version = info.Version.Substring(1);
-                    if (_players[info.Name].SendAllV1_5 == false && new Version(info.Version).CompareTo(new Version("1.1.5")) >= 0)
-                        return "0";
-
-                    if (_players[info.Name].LastRep == info.LastRep) return "UpToDate";
-                    _players[info.Name]._LastRep = info.LastRep;
-                    _players[info.Name].Info = info;
-                    return (_players[info.Name].LastRep);
-                }
-                else return "0";
-            }
-            else
-            {
-                _players.Add(info.Name, new DSplayer());
-                _players[info.Name].Name = info.Name;
-                _players[info.Name]._LastRep = info.LastRep;
-                _players[info.Name].Info = info;
-                return "0";
-            }
-        }
-
-        public async Task<string> AutoInfo(DSinfo info)
-        {
-            string mypath = SharedDir + "/" + info.Name;
-            string mysum = SharedDir + "/sum/" + info.Name + ".json";
-
-            string myreturn = "0";
-
-            if (_players.ContainsKey(info.Name))
-            {
-                if (_players[info.Name].LastAutoRep == info.LastRep) myreturn = "UpToDate";
+                DateTime LastRep = DateTime.MinValue;
+                DateTime.TryParseExact(info.LastRep, "yyyyMMddhhmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out LastRep);
+                if (player.LastRep == LastRep) myreturn = "UpToDate";
                 else
                 {
-                    _players[info.Name]._LastAutoRep = info.LastRep;
-                    _players[info.Name].Info = info;
-                    myreturn = _players[info.Name].LastAutoRep;
+                    myreturn = player.LastRep.ToString("yyyyMMddhhmmss");
                 }
             }
             else
             {
-                _players.Add(info.Name, new DSplayer());
-                _players[info.Name].Name = info.Name;
-                _players[info.Name]._LastRep = info.LastRep;
-                _players[info.Name].Info = info;
+                player = new DSRestPlayer();
+                player.Name = info.Name;
+                player.Json = info.Json;
+                player.Total = info.Total;
+                player.Version = info.Version;
                 myreturn = "0";
+                _context.DSRestPlayers.Add(player);
+            }
+            lock (dblock)
+            {
+                _context.SaveChanges();
             }
 
-            if (!File.Exists(mysum) || new FileInfo(mysum).Length == 0)
-                return "0";
-            else
-                return myreturn;
+            Infos[info.Name] = info;
+
+            return myreturn;
         }
 
-        public async Task<bool> GetFile(string id, string myfile)
+        public async Task<bool> GetDBFile(string id, string myfile)
         {
-            DateTime t = new DateTime();
-            t = DateTime.Now;
-            if (!_players.ContainsKey(id))
-            {
+            DSRestPlayer player = _context.DSRestPlayers.Include(p => p.Uploads).FirstOrDefault(f => f.Name == id);
+            if (player == null)
                 return false;
-            }
 
-            string mypath = WorkDir + "/" + id;
-            string mysum = WorkDir + "/sum/" + id + ".json";
+            string mypath = DBDir + "/" + id;
+            string mysum = DBDir + "/sum/" + id + ".json";
             Console.WriteLine(mysum);
             if (!Directory.Exists(mypath))
             {
@@ -143,62 +108,84 @@ namespace sc2dsstats.rest.Repositories
                     return false;
                 }
             }
+            DateTime t = DateTime.Now;
             if (File.Exists(myfile))
             {
                 if (!File.Exists(mysum)) File.Create(mysum).Dispose();
                 string myjson = "";
-                return await Task.Run(() => myjson = Decompress(new FileInfo(myfile), mypath, id, _logger))
-                    .ContinueWith(task =>
+                return await Task.Run(() => myjson = Decompress(new FileInfo(myfile), mypath, id, _logger)).ContinueWith(task =>
+                {
+                    if (myjson == "") return false;
+                    if (File.Exists(myjson) && new FileInfo(myjson).Length > 0)
                     {
-                        if (myjson == "") return false;
-                        if (File.Exists(myjson))
+                        using (StreamWriter sw = File.AppendText(mysum))
                         {
-                            if (_players[id].Info.Version.StartsWith("v"))
-                                _players[id].Info.Version = _players[id].Info.Version.Substring(1);
-
-                            if (_players[id].SendAllV1_5 == false && new Version(_players[id].Info.Version).CompareTo(new Version("1.1.5")) >= 0)
+                            foreach (string line in File.ReadLines(myjson))
                             {
-                                string dest = WorkDir + "/bak/" + Path.GetFileName(mysum);
-                                if (File.Exists(dest))
-                                    File.Delete(dest);
-
-                                if (File.Exists(mysum))
-                                    File.Move(mysum, dest);
-
-                                File.Create(mysum).Dispose();
-                                _players[id].Data = 0;
-                                _players[id].SendAllV1_5 = true;
-                                _players[id].Info.SendAllV1_5 = true;
-                            }
-
-                            using (StreamWriter sw = File.AppendText(mysum))
-                            {
-                                foreach (string line in File.ReadLines(myjson))
+                                if (!line.StartsWith(@"{")) return false;
+                                sw.WriteLine(line);
+                                DSReplay replay = null;
+                                try
                                 {
-                                    if (!line.StartsWith(@"{")) return false;
-                                    sw.WriteLine(line);
-                                    _players[id].Data++;
+                                    replay = JsonSerializer.Deserialize<DSReplay>(line);
+                                } catch (Exception e)
+                                {
+                                    _logger.LogError("Could not Deserialize dsreplay " + e.Message);
+                                }
+                                if (replay != null)
+                                {
+                                    replay.Upload = DateTime.UtcNow;
+                                    DSPlayer dsplayer = replay.DSPlayer.FirstOrDefault(f => f.NAME == "player");
+                                    if (dsplayer != null)
+                                        dsplayer.NAME = id;
+                                    DSReplays.Add(replay);
+                                    player.Data++;
                                 }
                             }
-                            _players[id].LastRep = _players[id]._LastRep;
-                            _players[id].Uploads.Add(t);
-                            SaveInfo(id);
-                            return true;
                         }
-                        else return false;
-                    });
+                        DSRestUpload upload = new DSRestUpload();
+                        upload.Upload = player.LastUpload;
+                        upload.DSRestPlayer = player;
+                        _context.DSRestUploads.Add(upload);
+
+                        DSinfo info = Infos.FirstOrDefault(f => f.Key == id).Value;
+                        if (info != null)
+                        {
+                            DateTime LastRep = DateTime.MinValue;
+                            DateTime.TryParseExact(info.LastRep, "yyyyMMddhhmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out LastRep);
+                            player.LastRep = LastRep;
+                            player.Json = info.Json;
+                            player.Total = info.Total;
+                            player.Version = info.Version;
+                        }
+
+                        lock (dblock)
+                        {
+                            _context.SaveChanges();
+                        }
+                        InsertDSReplays();
+                        return true;
+                    }
+                    else return false;
+                });
+
             }
             else return false;
+
         }
 
         public async Task<bool> GetAutoFile(string id, string myfile)
         {
-            DateTime t = new DateTime();
-            t = DateTime.Now;
+
+            DSRestPlayer player = _context.DSRestPlayers.Include(p => p.Uploads).FirstOrDefault(f => f.Name == id);
+            if (player == null)
+                return false;
+
+            player.LastUpload = DateTime.UtcNow;
 
             string mypath = SharedDir + "/" + id;
             string mysum = SharedDir + "/sum/" + id + ".json";
-            Console.WriteLine(mysum);
+            
             if (!Directory.Exists(mypath))
             {
                 try
@@ -227,112 +214,54 @@ namespace sc2dsstats.rest.Repositories
                                 {
                                     if (!line.StartsWith(@"{")) return false;
                                     sw.WriteLine(line);
-                                    _players[id].Data++;
+                                    dsreplay replay = null;
+                                    try
+                                    {
+                                        replay = JsonSerializer.Deserialize<dsreplay>(line);
+                                        if (replay != null)
+                                        {
+                                            DSReplay dsreplay = Map.Rep(replay);
+                                            DSPlayer dsplayer = dsreplay.DSPlayer.FirstOrDefault(f => f.NAME == "player");
+                                            if (dsplayer != null)
+                                                dsplayer.NAME = id;
+                                            dsreplay.Upload = player.LastUpload;
+                                            DSReplays.Add(dsreplay);
+                                            player.Data++;
+                                        }
+                                    } catch (Exception e)
+                                    {
+                                        _logger.LogError("Could not Deserialize and map replay " + e.Message);
+                                    }
                                 }
                             }
-                            _players[id].LastAutoRep = _players[id]._LastAutoRep;
-                            _players[id].Uploads.Add(t);
-                            SaveInfo(id);
+                            
+                            DSRestUpload upload = new DSRestUpload();
+                            upload.Upload = player.LastUpload;
+                            upload.DSRestPlayer = player;
+                            _context.DSRestUploads.Add(upload);
+
+                            DSinfo info = Infos.FirstOrDefault(f => f.Key == id).Value;
+                            if (info != null)
+                            {
+                                DateTime LastRep = DateTime.MinValue;
+                                DateTime.TryParseExact(info.LastRep, "yyyyMMddhhmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out LastRep);
+                                player.LastRep = LastRep;
+                                player.Json = info.Json;
+                                player.Total = info.Total;
+                                player.Version = info.Version;
+                            }
+                            
+                            lock(dblock)
+                            {
+                                _context.SaveChanges();
+                            }
+                            InsertDSReplays();
                             return true;
                         }
                         else return false;
                     });
             }
             else return false;
-        }
-
-        public async Task<bool> FullSend(string id, string myfile)
-        {
-            DateTime t = new DateTime();
-            t = DateTime.Now;
-
-            string mypath = SharedDir + "/" + id;
-            string mysum = SharedDir + "/sum/" + id + ".json";
-            string mybak = SharedDir + "/bak/" + id + ".json";
-            int i = 0;
-            while (File.Exists(mybak))
-            {
-                mybak = SharedDir + "/bak/" + id + "_" + i + ".json";
-                i++;
-            }
-
-            Console.WriteLine(mysum);
-            if (!Directory.Exists(mypath))
-            {
-                try
-                {
-                    Directory.CreateDirectory(mypath);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError("Could not create directory " + mypath + " " + e.Message);
-                    return false;
-                }
-            }
-            if (File.Exists(myfile))
-            {
-                if (!File.Exists(mysum)) File.Create(mysum).Dispose();
-                string myjson = "";
-                return await Task.Run(() => myjson = Decompress(new FileInfo(myfile), mypath, id, _logger))
-                    .ContinueWith(task =>
-                    {
-                        if (myjson == "") return false;
-                        if (File.Exists(myjson) && new FileInfo(myjson).Length > 0)
-                        {
-                            File.Move(mysum, mybak);
-                            File.Copy(myjson, mysum);
-                            _players[id].LastAutoRep = _players[id]._LastAutoRep;
-                            _players[id].Uploads.Add(t);
-                            SaveInfo(id);
-                            return true;
-                        }
-                        else return false;
-                    });
-            }
-            else return false;
-        }
-
-        public bool IsPlausible(DSinfo Info, DSplayer Player)
-        {
-            int plausible = 0;
-            if (Player.Uploads.Count > 0)
-            {
-                TimeSpan valid = new TimeSpan(0, 6, 0, 0);
-                TimeSpan t = Info.LastUpload.Subtract(Player.Uploads[Player.Uploads.Count - 1]);
-                if (t.Duration().CompareTo(valid) > 0) plausible--;
-                else plausible++;
-            }
-
-            if (Info.Total < Player.Data) plausible--;
-            else plausible++;
-
-            if (Info.Json == Player.Info.Json) plausible++;
-            else plausible--;
-
-            if (plausible > 0) return true;
-            _logger.LogWarning("Not plausible {0}: {1}", plausible, Info.Name);
-            return false;
-        }
-
-        public void SaveInfo(string id)
-        {
-            string data_json = WorkDir + "/data.json";
-            List<string> tmp = new List<string>();
-            foreach (string line in File.ReadLines(data_json))
-            {
-                var player = JsonSerializer.Deserialize<DSplayer>(line);
-                if (player.Name != id) tmp.Add(line);
-
-            }
-            tmp.Add(JsonSerializer.Serialize(_players[id]));
-            _readWriteLock.EnterWriteLock();
-            if (File.Exists(data_json + "_bak"))
-            {
-                File.Delete(data_json + "_bak");
-            }
-            File.Move(data_json, data_json + "_bak");
-            File.WriteAllLines(data_json, tmp);
-            _readWriteLock.ExitWriteLock();
         }
 
         public static string Decompress(FileInfo fileToDecompress, string WorkPath, string id, ILogger _logger)
@@ -369,5 +298,25 @@ namespace sc2dsstats.rest.Repositories
             }
             return newFileName;
         }
+
+        public async Task InsertDSReplays()
+        {
+            List<DSReplay> replays = new List<DSReplay>();
+            lock (lockobject)
+            {
+                while (true)
+                {
+                    DSReplay replay = null;
+                    DSReplays.TryTake(out replay);
+                    if (replay == null)
+                        break;
+                    else
+                        replays.Add(replay);
+                }
+            }
+            if (replays.Any())
+                await Task.Run(() => { DbDupFind.ScanRest(replays); });
+        }
     }
+
 }

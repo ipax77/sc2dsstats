@@ -1,0 +1,273 @@
+﻿@page "/pickban/{pbID:int}"
+@using sc2dsstats.lib.Models
+@using sc2dsstats.shared
+@using sc2dsstats.shared.Models
+@inject Visitor _vis
+@inject NavigationManager _nav
+@implements IDisposable
+
+<style>
+    .vl {
+        border-left: 6px solid red;
+        height: 300px;
+    }
+</style>
+
+<h3>PickBan </h3>
+<h5><a href="@_nav.Uri">@_nav.Uri</a></h5>
+<div class="row">
+    <div class="col-auto">
+        <h4>Team 1</h4>
+        <div class="row">
+            <div class="col-auto">
+                <h5>Bans</h5>
+                <div class="btn-group-vertical">
+                    <div class="btn-group">
+                        <button class="btn @pbModel.isLocked[0]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[0]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 0))">Lock</button>
+                        <Dropdown @ref="pbModel.dropDowns[0]" TItem="string" isDisabled="@pbModel.isDisabled[0]" OnSelected="@( eventArgs => Ban(eventArgs, 0))">
+                            <InitialTip>@pbModel.PB[0]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn @pbModel.isLocked[3]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[3]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 3))">Lock</button>
+
+                        <Dropdown @ref="pbModel.dropDowns[3]" TItem="string" isDisabled="@pbModel.isDisabled[3]" OnSelected="@( eventArgs => Ban(eventArgs, 3))">
+                            <InitialTip>@pbModel.PB[3]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <h5>Picks</h5>
+                <div class="btn-group-vertical">
+                    <div class="btn-group">
+                        <button class="btn @pbModel.isLocked[5]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[5]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 5))">Lock</button>
+                        <Dropdown @ref="pbModel.dropDowns[5]" TItem="string" isDisabled="@pbModel.isDisabled[5]" OnSelected="@( eventArgs => Pick(eventArgs, 5))">
+                            <InitialTip>@pbModel.PB[5]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn @pbModel.isLocked[6]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[6]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 6))">Lock</button>
+                        <Dropdown @ref="pbModel.dropDowns[6]" TItem="string" isDisabled="@pbModel.isDisabled[6]" OnSelected="@( eventArgs => Pick(eventArgs, 6))">
+                            <InitialTip>@pbModel.PB[6]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn @pbModel.isLocked[9]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[9]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 9))">Lock</button>
+                        <Dropdown @ref="pbModel.dropDowns[9]" TItem="string" isDisabled="@pbModel.isDisabled[9]" OnSelected="@( eventArgs => Pick(eventArgs, 9))">
+                            <InitialTip>@pbModel.PB[9]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-auto vl">
+        <h4>Team 2</h4>
+        <div class="row">
+            <div class="col-auto">
+                <h5>Picks</h5>
+                <div class="btn-group-vertical">
+                    <div class="btn-group">
+                        <Dropdown @ref="pbModel.dropDowns[4]" TItem="string" isDisabled="@pbModel.isDisabled[4]" OnSelected="@( eventArgs => Pick(eventArgs, 4))">
+                            <InitialTip>@pbModel.PB[4]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                        <button class="btn @pbModel.isLocked[4]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[4]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 4))">Lock</button>
+                    </div>
+                    <div class="btn-group">
+                        <Dropdown @ref="pbModel.dropDowns[7]" TItem="string" isDisabled="@pbModel.isDisabled[7]" OnSelected="@( eventArgs => Pick(eventArgs, 7))">
+                            <InitialTip>@pbModel.PB[7]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                        <button class="btn @pbModel.isLocked[7]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[7]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 7))">Lock</button>
+                    </div>
+                    <div class="btn-group">
+                        <Dropdown @ref="pbModel.dropDowns[8]" TItem="string" isDisabled="@pbModel.isDisabled[8]" OnSelected="@( eventArgs => Pick(eventArgs, 8))">
+                            <InitialTip>@pbModel.PB[8]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                        <button class="btn @pbModel.isLocked[8]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[8]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 8))">Lock</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <h5>Bans</h5>
+                <div class="btn-group-vertical">
+                    <div class="btn-group">
+                        <Dropdown @ref="pbModel.dropDowns[1]" TItem="string" isDisabled="@pbModel.isDisabled[1]" OnSelected="@( eventArgs => Ban(eventArgs, 1))">
+                            <InitialTip>@pbModel.PB[1]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                        <button class="btn @pbModel.isLocked[1]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[1]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 1))">Lock</button>
+                    </div>
+                    <div class="btn-group">
+                        <Dropdown @ref="pbModel.dropDowns[2]" TItem="string" isDisabled="@pbModel.isDisabled[2]" OnSelected="@( eventArgs => Ban(eventArgs, 2))">
+                            <InitialTip>@pbModel.PB[2]</InitialTip>
+                            <ChildContent>
+                                @foreach (string mode in pbModel.AvailableCmdrs)
+                                {
+                                    <DropdownListItem Item="@mode">@mode</DropdownListItem>
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                        <button class="btn @pbModel.isLocked[2]" disabled="@(String.IsNullOrEmpty(pbModel.isDisabled[2]) ? false : true)" @onclick="@(EventArgs => Lock(EventArgs, 2))">Lock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if (isDone)
+{
+    <div class="jumbotron">
+        Both Team-Captains might want to make a Screenshot to miminize potential confusion.
+    </div>
+}
+
+
+
+@code {
+    [Parameter]
+    public int pbID { get; set; }
+
+    PBModel pbModel = new PBModel();
+    private bool isDone = false;
+
+    protected override void OnInitialized()
+    {
+        if (!PBData.IDs.Contains(pbID))
+            _nav.NavigateTo("");
+
+
+        lock (PBData.PBModels)
+        {
+            if (PBData.PBModels.ContainsKey(pbID))
+                pbModel = PBData.PBModels[pbID];
+            else
+            {
+                pbModel = new PBModel();
+                for (int i = 0; i < 10; i++)
+                {
+                    Dropdown<string> d = null;
+                    pbModel.dropDowns.Add(d);
+                    pbModel.Selection.Add("");
+                    pbModel.isDisabled.Add("disabled");
+                    pbModel.isLocked.Add("btn-danger disabled");
+
+                    if (i < 4)
+                        pbModel.PB.Add("Ban" + (i + 1));
+                    else
+                        pbModel.PB.Add("Pick" + (i + 1));
+
+                }
+                pbModel.isDisabled[0] = "";
+                pbModel.isLocked[0] = "btn-danger";
+                pbModel.AvailableCmdrs = sc2dsstats.lib.Data.DSdata.s_races_cmdr.ToList();
+                PBData.PBModels[pbID] = pbModel;
+            }
+        }
+        pbModel.Visitors.Add(_vis);
+        _vis.PropertyChanged += Update;
+    }
+
+    private void Update(object s, EventArgs e)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private void Ban(string selection, int i)
+    {
+        pbModel.Selection[i] = selection;
+        StateHasChanged();
+    }
+
+    private void Pick(string selection, int i)
+    {
+        pbModel.Selection[i] = selection;
+        StateHasChanged();
+    }
+
+    private void Lock(EventArgs e, int i)
+    {
+        if (!pbModel.AvailableCmdrs.Contains(pbModel.Selection[i]))
+            return;
+
+        if (!String.IsNullOrEmpty(pbModel.Selection[i]))
+        {
+            pbModel.AvailableCmdrs.Remove(pbModel.Selection[i]);
+            pbModel.PB[i] = pbModel.Selection[i];
+            pbModel.isDisabled[i] = "disabled";
+            pbModel.isLocked[i] = "btn-success disabled";
+            if (pbModel.isDisabled.Count > i + 1)
+            {
+                pbModel.isDisabled[i + 1] = "";
+                pbModel.isLocked[i + 1] = "btn-danger";
+            }
+            else
+            {
+                //done
+                isDone = true;
+            }
+        }
+        foreach (Visitor vis in pbModel.Visitors)
+            vis.Update = !vis.Update;
+    }
+
+    public void Dispose()
+    {
+        _vis.PropertyChanged -= Update;
+    }
+}

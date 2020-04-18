@@ -230,7 +230,8 @@ else
     async Task LoadReplay(string file)
     {
         string repid = rep.REPLAY;
-        dsreplay myreplay = await Decode.ScanRep(file, true);
+        //dsreplay myreplay = await Decode.ScanRep(file, true);
+        dsreplay myreplay = new dsreplay();
         if (myreplay == null) return;
         myreplay.REPLAY = repid;
         myreplay.ID = GameID;

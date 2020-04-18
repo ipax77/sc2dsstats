@@ -20,6 +20,7 @@
         {
             <button type="button" class="btn btn-primary" @onclick="@stopDecode">Stop</button>
         }
+        <button type="button" class="btn btn-outline-info" @onclick="@( async => _status.UploadReplays())">Upload</button>
     </div>
 </div>
 <div class="jumbotron">
@@ -89,13 +90,13 @@
     {
         _status.StatusChanged += ScanUpdate;
         _status.ScanReplayFolders();
-        Decode.s2dec.ScanStateChanged += DecodeUpdate;
+        
     }
 
     void ScanUpdate(object sender, EventArgs e)
     {
-        //StatusChangedEventArgs arg = e as StatusChangedEventArgs;
-        //NewReplays = arg.NewReplays;
+        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
+        info = arg.Info;
         InvokeAsync(() => StateHasChanged());
     }
 
@@ -115,7 +116,6 @@
 
         if (!DSdata.Config.Uploadcredential)
             ucDialog.Show();
-        _status.DBCount = 0;
         await _status.ScanReplayFolders();
         if (DSdata.DesktopStatus.NewReplays == 0)
             info = "No new replays found.";
@@ -130,39 +130,14 @@
 
     async void stopDecode()
     {
-        info = "Stopping Threads..";
-        Decode.StopIt();
-        await InvokeAsync(() => StateHasChanged());
-        _options.Decoding = false;
+        _status.StopDecode();
     }
 
-    void DecodeUpdate(object sender, EventArgs e)
-    {
-        ScanState scanState = e as ScanState;
 
-        lock (info)
-        {
-            float wr = MathF.Round((float)scanState.Done * 100 / (float)scanState.Total, 2);
-            info = $"{scanState.Done}/{DSdata.DesktopStatus.NewReplays} ({wr}%), inDB: {_status.DBCount} - Running on {scanState.Threads} Threads.";
-            _status.PopulateDb();
-
-            if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
-            {
-                if (scanState.Done == scanState.Total)
-                    wr = 100;
-                info = $"{scanState.Done}/{scanState.Total} ({wr}%) - Elapsed Time: {(DateTime.Now - scanState.Start).ToString(@"hh\:mm\:ss")}";
-                _options.Decoding = false;
-                _status.PopulateDb(true);
-            }
-        }
-
-        InvokeAsync(() => StateHasChanged());
-    }
 
     public void Dispose()
     {
         _status.StatusChanged -= ScanUpdate;
-        Decode.s2dec.ScanStateChanged -= DecodeUpdate;
     }
 
 }

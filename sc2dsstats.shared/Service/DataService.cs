@@ -28,6 +28,10 @@ namespace sc2dsstats.shared.Service
         {
             string Hash = _options.GenHash();
 
+            if (!DSdata.Telemetrie.ContainsKey(_options.ID))
+                DSdata.Telemetrie[_options.ID] = new List<string>();
+            DSdata.Telemetrie[_options.ID].Add(Hash);
+
             if (WinrateCache.ContainsKey(Hash))
                 return WinrateCache[Hash];
 
@@ -182,7 +186,7 @@ namespace sc2dsstats.shared.Service
             else
                 dresult.Dataset.label = _options.Interest;
 
-            _options.Chart.data.datasets[_options.Chart.data.datasets.Count - 1] = dresult.Dataset;
+            _options.Chart.data.datasets[_options.Chart.data.datasets.Count - 1] = dresult.Dataset.DeepCopy();
             if (_options.Chart.type == "bar")
             {
                 var options = _options.Chart.options as ChartJsoptionsBar;
@@ -269,7 +273,6 @@ namespace sc2dsstats.shared.Service
                                             r.ID
                                         }
             };
-
             var resultlist = result.ToList();
             double games = 0;
             double wins = 0;

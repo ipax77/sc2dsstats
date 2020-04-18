@@ -1,6 +1,7 @@
 ﻿@using System.ComponentModel
+@using Microsoft.AspNetCore.Components.Forms
 @using sc2dsstats.lib.Data
-@using sc2dsstats.lib.Models
+@using sc2dsstats.lib.Service
 @using sc2dsstats.shared.Service
 @using sc2dsstats.lib.Db
 @inject DSoptions _options
@@ -9,212 +10,289 @@
 
 <style>
     .slidecontainer {
-  width: 100%; /* Width of the outside container */
-}
+        width: 100%; /* Width of the outside container */
+    }
 
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 15px;
-  border-radius: 5px;  
-  background: #3641bd;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
+    .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;
+        background: #3641bd;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+    }
 
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%; 
-  background: #4CAF50;
-  cursor: pointer;
-}
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
 
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #4CAF50;
-  cursor: pointer;
-}
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+    .buttonimage:before {
+        content: "";
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        margin-right: 5px;
+        vertical-align: text-top;
+        background-color: transparent;
+        background-position: center center;
+        background-repeat: no-repeat;
+    }
+
+    .cbbutton {
+        min-width: 107px !important;
+        max-height: 32px !important;
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+    }
+
+    .vl {
+        border-left: 6px solid red;
+    }
 
 </style>
 
-    <WebBuildOptions />
+<WebBuildOptions />
 
-
-    <div class="mt-3">
-        <div class="row">
-            <div class="d-none d-xl-block">
-                @foreach (var ent in DSdata.s_races)
-                {
-                    <div class="custom-control custom-radio">
-                        <input type="radio"
-                               class="custom-control-input"
-                               name="CmdrIcons"
-                               id="cb_@ent"
-                               @onchange="eventArgs => { IconClick(ent, eventArgs.Value); }" />
-                        <label class="custom-control-label" for="cb_@ent">
-                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent)" width="30" height="30" />
-                            @ent
-                        </label>
-                    </div>
-                }
-            </div>
-            <div class="d-none d-xl-block">
-                @foreach (var ent in DSdata.s_races)
-                {
-                    <div class="custom-control custom-radio">
-                        <input type="radio"
-                               class="custom-control-input"
-                               name="CmdrIconsVs"
-                               id="cb_vs_@ent"
-                               @onchange="eventArgs => { IconVsClick(ent, eventArgs.Value); }" />
-                        <label class="custom-control-label" for="cb_vs_@ent">
-                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent)" width="30" height="30" />
-                            @ent
-                        </label>
-                    </div>
-                }
-                <div class="custom-control custom-radio">
-                    <input type="radio"
-                           class="custom-control-input"
-                           name="CmdrIconsVs"
-                           id="cb_vs_all"
-                           @onchange="eventArgs => { IconVsClick(String.Empty, eventArgs.Value); }" />
-                    <label class="custom-control-label" for="cb_vs_all">
-                        All
-                    </label>
-                </div>
-            </div>
-            <div class="ml-5">
-                <div class="row">
-                    <div class="col-auto">
-                        @if (Loading)
-                        {
-                            <button class="btn btn-primary" disabled>
-                                <span class="spinner-border spinner-border-sm"></span>
-                                Build
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-primary ml-4" disabled>
-                                Build
-                            </button>
-                        }
-                    </div>
-                    <div class="col-auto">
-                        <div class="slidecontainer">
-                            <label for="myRange">
-                                Gametime
+<div class="mt-3">
+    <div class="row">
+        <div class="d-none d-xl-block">
+            <EditForm Model="_check" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <fieldset>
+                    <div class="form-group">
+                        <h5>Cmdr</h5>
+                        <div class="custom-control custom-radio p-0 m-0">
+                            <label class="btn btn-sm btn-secondary cbbutton">
+                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
                             </label>
-                            <input type="range" min="1" max="4" value="2" class="slider" id="myRange" @onchange="BPSlider">
                         </div>
-                    </div>
-                </div>
-                <div class="row mt-3">
+                        @foreach (string cmdr in DSdata.s_races)
+                        {
+                            string isActive = "";
+                            <div class="custom-control custom-radio p-0 m-0">
 
-                    <div class="ml-1">
-                        <h3><p class="text-info">@_options.Build's average unit count for <font color="@DSdata.color_max1">@_options.Interest @matchup</font>@comptext</p></h3>
+                                @if (_check.Selected == cmdr)
+                                    isActive = "active";
+                                else
+                                    isActive = "";
+                                <label class="btn btn-sm btn-outline-info text-left cbbutton @isActive">
+                                    <InputRadio name="cmdrs" SelectedValue="cmdr" @bind-Value="_check.Selected" />
+                                    <img alt="img_@cmdr" longdesc="img_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
+                                    @cmdr
+                                </label>
+                            </div>
+                        }
                     </div>
-                </div>
-                <div class="d-xl-none">
-                    <button class="btn btn-sm btn-primary" @onclick="ShowRepTable">Show/Hide replays</button>
-                </div>
-                <div class="row">
-                    <div class="@RepTableClass ml-5, mr-3">
-                        <table class="table table-sm table-hover table-dark">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Replays (@skip-@(take + skip)))</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var ent in bresult.RepIDs.OrderByDescending(o => o.Value).Skip(skip).Take(take))
-                                {
-                                    string rowclass = "sort-link";
-                                    if (ent.Key == replayid)
-                                    {
-                                        rowclass = "table-info";
-                                    }
-                                    <tr class="table-row @rowclass" @onclick="@(async => { ShowGame(ent.Key); })">
-
-                                        <th scope="row">@ent.Key</th>
-                                        <td>@ent.Value</td>
-                                        <td></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                        <div class="row">
-                            <button class="btn btn-sm mr-1" @onclick="@Skip">&lt&lt</button>
-                            <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
-                        </div>
-                    </div>
-                    <div>
-                        <table class="table table-sm table-dark">
-                            <thead>
-                                <tr><th><h5>Units at <span class="badge badge-info">@_options.Breakpoint</span></h5></th><th><h5>Count</h5></th></tr>
-                            </thead>
-                            <tr>
-                                <td>
-                                    <h5>
-                                        <span class="badge badge-danger">
-                                            WR: @bresult.Winrate% Games: @bresult.Games
-                                        </span>
-                                    </h5>
-                                </td>
-                                <td>
-                                    <h5>
-                                        <span class="badge badge-danger">
-                                            &empty; @bresult.Duration.ToString(@"mm\:ss") min
-                                        </span>
-                                    </h5>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <h5>
-                                        <span class="badge badge-info">
-                                            Upgrades: @bresult.Upgradespending
-                                        </span>
-                                    </h5>
-                                </td>
-                                <td>
-                                    <h5>
-                                        <span class="badge badge-info">
-                                            Gas: @bresult.Gascount
-                                        </span>
-                                    </h5>
-                                </td>
-                            </tr>
-                            @if (Units != null)
+                </fieldset>
+            </EditForm>
+        </div>
+        <div class="d-none d-xl-block vl">
+            <EditForm Model="_checkvs" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <fieldset>
+                    <div class="form-group">
+                        <h5>Vs</h5>
+                        <div class="custom-control custom-radio p-0 m-0">
+                            @if (_checkvs.Selected == "ALL")
                             {
-                                @foreach (var ent in Units)
-                                {
-                                    var mycolor = DSdata.color_info;
-                                    @if ((int)ent.Value >= max1)
-                                        mycolor = DSdata.color_max1;
-                                    else if ((int)ent.Value >= max2)
-                                        mycolor = DSdata.color_max2;
-                                    else if ((int)ent.Value >= max3)
-                                        mycolor = DSdata.color_max3;
-
-                                    <tr style="font-size: 16px; color: @mycolor;"><td>@BuildService.FixUnitName(ent.Key)</td><td>@ent.Value</td></tr>
-                                }
+                                <label class="btn btn-sm btn-outline-info text-left active cbbutton">
+                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                    ALL
+                                </label>
                             }
-                        </table>
+                            else
+                            {
+                                <label class="btn btn-sm btn-outline-info text-left cbbutton">
+                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                    ALL
+                                </label>
+
+                            }
+                        </div>
+                        @foreach (string cmdr in DSdata.s_races)
+                        {
+                            string isActive = "";
+                            <div class="custom-control custom-radio p-0 m-0">
+
+                                @if (_checkvs.Selected == cmdr)
+                                    isActive = "active";
+                                else
+                                    isActive = "";
+                                <label class="btn btn-sm btn-outline-info text-left cbbutton @isActive">
+                                    <InputRadio name="cmdrsvs" SelectedValue="cmdr" @bind-Value="_checkvs.Selected" />
+                                    <img alt="imgvs_@cmdr" longdesc="imgvs_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
+                                    @cmdr
+                                </label>
+                            </div>
+                        }
+                        <div class="custom-control custom-radio p-0 m-0">
+                            @if (_checkvs.Selected == "ALL")
+                            {
+                                <label class="btn btn-sm btn-outline-info text-left active cbbutton">
+                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                    ALL
+                                </label>
+                            }
+                            else
+                            {
+                                <label class="btn btn-sm btn-outline-info text-left cbbutton">
+                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                    ALL
+                                </label>
+
+                            }
+                        </div>
                     </div>
+                </fieldset>
+            </EditForm>
+        </div>
+        <div class="ml-5">
+            <div class="row">
+                <div class="col-auto">
+                    @if (Loading)
+                    {
+                        <button class="btn btn-primary" disabled>
+                            <span class="spinner-border spinner-border-sm"></span>
+                            Build
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary ml-4" disabled>
+                            Build
+                        </button>
+                    }
+                </div>
+                <div class="col-auto">
+                    <div class="slidecontainer">
+                        <label for="myRange">
+                            Gametime
+                        </label>
+                        <input type="range" min="1" max="4" value="2" class="slider" id="myRange" @onchange="BPSlider">
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+
+                <div class="ml-1">
+                    <h3><p class="text-info">@_options.Build's average unit count for <font color="@DSdata.color_max1">@_options.Interest @matchup</font>@comptext</p></h3>
+                </div>
+            </div>
+            <div class="d-xl-none">
+                <button class="btn btn-sm btn-primary" @onclick="ShowRepTable">Show/Hide replays</button>
+            </div>
+            <div class="row">
+                <div class="@RepTableClass ml-5, mr-3">
+                    <table class="table table-sm table-hover table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Replays (@skip-@(take + skip)))</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ent in _options.buildResult.RepIDs.OrderByDescending(o => o.Value).Skip(skip).Take(take))
+                            {
+                                string rowclass = "sort-link";
+                                if (ent.Key == replayid)
+                                {
+                                    rowclass = "table-info";
+                                }
+                                <tr class="table-row @rowclass" @onclick="@(async => { ShowGame(ent.Key); })">
+
+                                    <th scope="row">@ent.Key</th>
+                                    <td>@ent.Value</td>
+                                    <td></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <button class="btn btn-sm mr-1" @onclick="@Skip">&lt&lt</button>
+                        <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
+                    </div>
+                </div>
+                <div>
+                    <table class="table table-sm table-dark">
+                        <thead>
+                            <tr><th><h5>Units at <span class="badge badge-info">@_options.Breakpoint</span></h5></th><th><h5>Count</h5></th></tr>
+                        </thead>
+                        <tr>
+                            <td>
+                                <h5>
+                                    <span class="badge badge-danger">
+                                        WR: @_options.buildResult.Winrate% Games: @_options.buildResult.Games
+                                    </span>
+                                </h5>
+                            </td>
+                            <td>
+                                <h5>
+                                    <span class="badge badge-danger">
+                                        &empty; @_options.buildResult.Duration.ToString(@"mm\:ss") min
+                                    </span>
+                                </h5>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <h5>
+                                    <span class="badge badge-info">
+                                        Upgrades: @_options.buildResult.Upgradespending
+                                    </span>
+                                </h5>
+                            </td>
+                            <td>
+                                <h5>
+                                    <span class="badge badge-info">
+                                        Gas: @_options.buildResult.Gascount
+                                    </span>
+                                </h5>
+                            </td>
+                        </tr>
+                        @if (_options.buildResult.UnitsOrdered != null)
+                        {
+                            @foreach (var ent in _options.buildResult.UnitsOrdered)
+                            {
+                                var mycolor = DSdata.color_info;
+                                @if ((int)ent.Value >= _options.buildResult.max1)
+                                    mycolor = DSdata.color_max1;
+                                else if ((int)ent.Value >= _options.buildResult.max2)
+                                    mycolor = DSdata.color_max2;
+                                else if ((int)ent.Value >= _options.buildResult.max3)
+                                    mycolor = DSdata.color_max3;
+
+                                <tr style="font-size: 16px; color: @mycolor;"><td>@Fix.UnitName(ent.Key)</td><td>@ent.Value</td></tr>
+                            }
+                        }
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 
 @code {
@@ -234,40 +312,22 @@
     private string matchup = "";
     private string gametimetext = "";
     private string comptext = "";
-    private BuildResult bresult = new BuildResult();
-    private IOrderedEnumerable<KeyValuePair<string, float>> Units;
-    private int max1 = 100;
-    private int max2 = 100;
-    private int max3 = 100;
 
-    async Task GetBuild()
+
+    private string BtnStyle = DSdata.CmdrBtnStyle;
+
+    private RadioCheckString _check = new RadioCheckString();
+    private RadioCheckString _checkvs = new RadioCheckString();
+
+    private object lockobject = new object();
+
+    private async Task GetBuild()
     {
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
 
-        foreach (var ent in _options.Gamemodes.Keys.ToArray())
-            _options.Gamemodes[ent] = false;
+        await BuildService.GetBuild(_options);
 
-        if (_options.Interest == "Terran" || _options.Interest == "Zerg" || _options.Interest == "Protoss")
-        {
-            _options.Gamemodes["GameModeStandard"] = true;
-        } else
-        {
-            _options.Gamemodes["GameModeCommanders"] = true;
-            _options.Gamemodes["GameModeCommandersHeroic"] = true;
-        }
-
-        bresult = await BuildService.GetBuild(_options);
-        Units = bresult.Units.OrderByDescending(o => o.Value);
-        max1 = 100;
-        max2 = 100;
-        max3 = 100;
-        if (bresult.Units.Count > 2)
-        {
-            max1 = (int)Units.ElementAt(0).Value;
-            max2 = (int)Units.ElementAt(1).Value;
-            max3 = (int)Units.ElementAt(2).Value;
-        }
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
     }
@@ -286,24 +346,39 @@
         else
             _options.Dataset.Add(DSdata.s_builds_hash.Single(x => x.Value == _options.Build).Key);
 
+        _check.Selected = "Abathur";
+        _checkvs.Selected = "ALL";
+
         _options.Mode = "Build";
         _options.Interest = "Abathur";
+        _options.Vs = "";
         _options.Breakpoint = "MIN10";
         gametimetext = "at 10min";
+
+
+
         _options.PropertyChanged += Update;
-        GetBuild();
+        _check.PropertyChanged += checkClick;
+        _checkvs.PropertyChanged += checkVsClick;
     }
 
-    async Task IconClick(string cmdr, object cbValue)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _options.Interest = cmdr;
+        if (firstRender)
+        {
+            await GetBuild();
+        }
+    }
+
+    void checkClick(object sender, PropertyChangedEventArgs e)
+    {
+        _options.Interest = _check.Selected;
         _options.Update = !_options.Update;
     }
 
-    async Task IconVsClick(string cmdr, object cbValue)
+    void checkVsClick(object sender, PropertyChangedEventArgs e)
     {
-        _options.Vs = cmdr;
-
+        _options.Vs = _checkvs.Selected;
         _options.Update = !_options.Update;
     }
 
@@ -328,23 +403,30 @@
         _options.Update = !_options.Update;
     }
 
-    private async void Update(object sender, PropertyChangedEventArgs e)
+    private void Update(object sender, PropertyChangedEventArgs e)
     {
+        lock (lockobject)
+        {
+            if (Loading)
+                return;
+            Task.Run(() => GetBuild());
+        }
         if (_options.Mode != "Build")
             return;
         if (!string.IsNullOrEmpty(_options.Vs))
             matchup = "vs " + _options.Vs;
         else
             matchup = String.Empty;
-        GetBuild();
     }
 
     async Task ShowGame(int id)
     {
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
-        _options.Replay = await DBService.GetReplay(_options.db, id);
-        replayid = id;
+        await Task.Run(() => {
+            _options.Replay = DBService.GetReplay(_options.db, id);
+            replayid = id;
+        });
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
         _data.Update();
@@ -393,9 +475,16 @@
         skip_vs += 12;
     }
 
+    private void HandleValidSubmit()
+    {
+
+    }
+
     public void Dispose()
     {
         _options.PropertyChanged -= Update;
+        _check.PropertyChanged -= checkClick;
+        _checkvs.PropertyChanged -= checkVsClick;
     }
 
 }

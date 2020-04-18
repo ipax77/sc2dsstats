@@ -16,11 +16,17 @@ namespace sc2dsstats.lib.Db
         public DSReplayContext(DbContextOptions<DSReplayContext> options)
             : base(options)
         {
+            Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
         }
 
         public DbSet<DSUnit> DSUnits { get; set; }
         public DbSet<DSPlayer> DSPlayers { get; set; }
         public DbSet<DSReplay> DSReplays { get; set; }
+        public DbSet<DbBreakpoint> Breakpoints { get; set; }
+        public DbSet<DbMiddle> Middle { get; set; }
+        //public DbSet<DbUnit> Units { get; set; }
+        //public DbSet<DbRefinery> Refineries { get; set; }
+        //public DbSet<DbUpgrade> Upgrades { get; set; }
 
         /*
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -55,9 +61,16 @@ namespace sc2dsstats.lib.Db
                 entity.Property(b => b.HASH)
                     .HasMaxLength(32)
                     .IsFixedLength();
-                entity.HasIndex(b => b.HASH)
-                    .IsUnique();
+                entity.HasIndex(b => b.HASH);
+                //    .IsUnique();
                 entity.HasIndex(b => b.REPLAY);
+            });
+
+            modelBuilder.Entity<DbMiddle>(entity =>
+            {
+                entity.HasKey(e => e.ID);
+                entity.HasOne(p => p.Replay)
+                .WithMany(d => d.Middle);
             });
 
             modelBuilder.Entity<DSPlayer>(entity =>
@@ -76,11 +89,18 @@ namespace sc2dsstats.lib.Db
 
             });
 
-            modelBuilder.Entity<DSUnit>(entitiy =>
+            modelBuilder.Entity<DbBreakpoint>(entity =>
             {
-                entitiy.HasKey(e => e.ID);
-                entitiy.HasOne(d => d.DSPlayer)
-                    .WithMany(p => p.DSUnit);
+                entity.HasKey(p => p.ID);
+                entity.HasOne(p => p.Player)
+                .WithMany(d => d.Breakpoints);
+            });
+
+            modelBuilder.Entity<DSUnit>(entity =>
+            {
+                entity.HasKey(k => k.ID);
+                entity.HasOne(p => p.DSPlayer)
+                .WithMany(d => d.DSUnit);
             });
         }
     }

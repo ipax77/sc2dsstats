@@ -2,18 +2,19 @@
 @page "/chart"
 @using sc2dsstats.lib.Data
 @using sc2dsstats.lib.Db
+@using sc2dsstats.shared
 @inject LoadData _data
 @inject DSoptions _options
 @inject DSReplayContext  _context
 @inject IJSRuntime _jsRuntime
 @implements IDisposable
 
-<sc2dsstats.shared.WebOptions />
+<WebOptions />
 
 @if (DSdata.DesktopStatus.DatabaseReplays > 0 && !_options.Decoding)
 {
     <div class="mt-1">
-        <sc2dsstats.shared.WebChart />
+        <WebChart />
     </div>
 }
 else
@@ -28,8 +29,10 @@ else
 
     protected override void OnInitialized()
     {
+
         if (_options.db == null)
             _options.db = _context;
+
         _data.DataLoaded += Update;
     }
 

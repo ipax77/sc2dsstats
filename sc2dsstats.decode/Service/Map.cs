@@ -4,13 +4,58 @@ using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace sc2dsstats.decode.Service
 {
-    public static class Map
+    public static class Map_deprecated
     {
+        public static DSReplay Rep(DecReplay rep)
+        {
+            DSReplay dbrep = new DSReplay();
+            dbrep.REPLAYPATH = rep.ReplayPath;
+            using (var md5 = MD5.Create())
+            {
+                string dirHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetDirectoryName(rep.ReplayPath)))).Replace("-", "").ToLowerInvariant();
+                string fileHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFileName(rep.ReplayPath)))).Replace("-", "").ToLowerInvariant();
+                dbrep.REPLAY = dirHash + fileHash;
+            }
+            dbrep.GAMETIME = rep.Gametime;
+            dbrep.WINNER = rep.Winner;
+            dbrep.DURATION = rep.Duration;
+            dbrep.PLAYERCOUNT = (byte)rep.PlayerCount;
+            dbrep.GAMEMODE = rep.Gamemode;
+            dbrep.VERSION = rep.Version;
+
+            List<DSPlayer> pls = new List<DSPlayer>();
+            foreach (DecPlayer pl in rep.Players)
+            {
+                DSPlayer dbpl = new DSPlayer();
+                dbpl.POS = (byte)pl.Pos;
+                dbpl.REALPOS = (byte)pl.RealPos;
+                dbpl.NAME = pl.Name;
+                dbpl.RACE = pl.Race;
+                if (pl.Team == rep.Winner)
+                    dbpl.WIN = true;
+                dbpl.TEAM = (byte)pl.Team;
+                dbpl.PDURATION = pl.Duration;
+                dbpl.ARMY = pl.Army;
+                
+                dbpl.OPPRACE = pl.Race;
+                dbpl.DSReplay = dbrep;
+                pls.Add(dbpl);
+
+
+
+            }
+            dbrep.DSPlayer = pls as ICollection<DSPlayer>;
+            return dbrep;
+        }
+
+
+
         public static dsreplay Rep(DSReplay rep)
         {
             dsreplay dbrep = new dsreplay();

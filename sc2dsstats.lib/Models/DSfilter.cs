@@ -204,18 +204,4 @@ namespace sc2dsstats.lib.Models
             return i;
         }
     }
-
-    public class FilHelper
-    {
-        public FilHelper(int _Games, string _Duration, string _Wr)
-        {
-            Games = _Games;
-            Duration = _Duration;
-            Wr = _Wr;
-        }
-
-        public int Games { get; set; }
-        public string Duration { get; set; }
-        public string Wr { get; set; }
-    }
 }

@@ -14,7 +14,7 @@ namespace sc2dsstats.shared.Service
 {
     public class ChartService
     {
-        private static IJSRuntime _jsRuntime;
+        private IJSRuntime _jsRuntime;
         private DSReplayContext _context;
 
         public ChartService(IJSRuntime jsRuntime, DSReplayContext context)
@@ -109,7 +109,7 @@ namespace sc2dsstats.shared.Service
                 if (dresult != null)
                 {
                     _options.Chart.data.labels = new List<string>(dresult.Labels);
-                    _options.Chart.data.datasets[0] = dresult.Dataset;
+                    _options.Chart.data.datasets[0] = dresult.Dataset.DeepCopy();
                     if (_options.Chart.type == "bar")
                     {
                         var options = _options.Chart.options as ChartJsoptionsBar;
@@ -124,7 +124,7 @@ namespace sc2dsstats.shared.Service
             return mychart;
         }
 
-        public static async Task ChangeOption(DSoptions _options)
+        public async Task ChangeOption(DSoptions _options)
         {
             if (_options.Chart.type == "bar")
             {
@@ -135,7 +135,7 @@ namespace sc2dsstats.shared.Service
             }
         }
 
-        public static async Task AddDataset(DSoptions _options, object lockobject)
+        public async Task AddDataset(DSoptions _options, object lockobject)
         {
             ChartJSdataset dataset = new ChartJSdataset();
             if (String.IsNullOrEmpty(_options.Interest))
@@ -184,7 +184,7 @@ namespace sc2dsstats.shared.Service
             }
         }
 
-        public static async Task RemoveDataset(DSoptions _options, string cmdr, object lockobject)
+        public async Task RemoveDataset(DSoptions _options, string cmdr, object lockobject)
         {
             int pos = _options.Chart.data.datasets.FindIndex(i => i.label == cmdr);
             if (pos >= 0)
@@ -234,7 +234,7 @@ namespace sc2dsstats.shared.Service
             return chartoptions;
         }
 
-        public static void SetCmdrPics(ChartJS chart)
+        public void SetCmdrPics(ChartJS chart)
         {
             if (chart.type != "bar") return;
 
@@ -259,7 +259,7 @@ namespace sc2dsstats.shared.Service
 
         }
 
-        public static async Task<List<string>> SortChart(ChartJS chart, bool dry = false)
+        public async Task<List<string>> SortChart(ChartJS chart, bool dry = false)
         {
             if (chart.type != "bar") return chart.data.labels;
             if (chart.data.datasets.Count == 0 || chart.data.datasets.Count > 1) return chart.data.labels;

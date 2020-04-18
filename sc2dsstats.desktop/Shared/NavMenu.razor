@@ -11,7 +11,7 @@
 @implements IDisposable
 
 <div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">sc2dsstats.web</a>
+    <a class="navbar-brand" href="">sc2dsstats.desktop</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -95,6 +95,11 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
+            <NavLink class="nav-link" href="dummy">
+                <span class="oi oi-info" aria-hidden="true"></span> Dummy
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
             <br />
             <br />
             <div class="row">
@@ -144,7 +149,6 @@
 
     protected override void OnInitialized()
     {
-        Decode.s2dec.ScanStateChanged += Update;
         _status.StatusChanged += StatusUpdate;
     }
 
@@ -155,31 +159,19 @@
 
     void StatusUpdate(object sender, EventArgs e)
     {
-        UpdateMe();
-    }
-
-    void Update(object sender, EventArgs e)
-    {
-        ScanState scanState = e as ScanState;
-        if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
-        {
-            _options.Decoding = false;
-            _status.ScanReplayFolders();
-        }
-
-        if (_options.Decoding == true)
+        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
+        if (_options.Decoding)
         {
             UploadStatus = UploadStatus.UploadDone;
             ProgbarClass = "";
             ScanClass = "oi oi-list-rich spinner-border spinner-border-sm";
-            Done = MathF.Round((float)scanState.Done * 100 / (float)scanState.Total, 2);
+            Done = arg.Done;
         } else
         {
             ProgbarClass = "d-none";
             ScanClass = "oi oi-plus";
-            if (DSdata.Config.Uploadcredential)
-                _status.UploadReplays();
         }
+
         UpdateMe();
     }
 
@@ -187,7 +179,6 @@
     {
         if (_options.Decoding)
             Decode.StopIt();
-        Decode.s2dec.ScanStateChanged -= Update;
         _status.StatusChanged -= StatusUpdate;
     }
 }

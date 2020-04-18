@@ -4,5 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\sc2dsstats.data\sc2dsstats.data.csproj" />
+    <ProjectReference Include="..\sc2dsstats.lib\sc2dsstats.lib.csproj" />
+  </ItemGroup>
+
 
 </Project>

@@ -14,6 +14,8 @@ using sc2dsstats.lib.Models;
 using sc2dsstats.decode.Models;
 using sc2dsstats.decode.Service;
 using Microsoft.EntityFrameworkCore;
+using sc2dsstats.lib.Service;
+using Newtonsoft.Json;
 
 namespace sc2dsstats.desktop.Service
 {
@@ -29,9 +31,10 @@ namespace sc2dsstats.desktop.Service
                 hash = GetHash(sha256Hash, names);
                 hash2 = GetHash(sha256Hash, Program.myJson_file);
             }
-            var client = new RestClient("https://www.pax77.org:9126");
+            //var client = new RestClient("https://www.pax77.org:9126");
             //var client = new RestClient("https://192.168.178.28:9001");
             //var client = new RestClient("http://192.168.178.28:9000");
+            var client = new RestClient("https://localhost:44315");
             //var client = new RestClient("http://localhost:5000");
 
             List<DSReplay> UploadReplays = new List<DSReplay>();
@@ -53,13 +56,14 @@ namespace sc2dsstats.desktop.Service
             info.Total = DSdata.Status.Count;
             info.Version = DSdata.DesktopVersion.ToString();
 
+            Console.WriteLine("AutoInfo");
             var restRequest = new RestRequest("/secure/data/autoinfo", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddJsonBody(info);
             var response = client.Execute(restRequest);
 
-
+            Console.WriteLine(response.Content);
             if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 if (response.Content.Contains("UpToDate")) return true;
@@ -84,24 +88,50 @@ namespace sc2dsstats.desktop.Service
                 gtime = new DateTime(year, month, day, hour, min, sec);
             }
 
-            if (gtime == DateTime.MinValue || DSdata.Config.FullSend == true) UploadReplays = _context.DSReplays.Include(p => p.DSPlayer).ThenInclude(p => p.DSUnit).ToList();
-            else UploadReplays = _context.DSReplays.Include(p => p.DSPlayer).ThenInclude(p => p.DSUnit).Where(x => x.GAMETIME > gtime).ToList();
-
+            DSdata.Config.FullSend = true;
+            if (gtime == DateTime.MinValue || DSdata.Config.FullSend == true)
+                UploadReplays = _context.DSReplays
+                    .Include(o => o.Middle)
+                    .Include(p => p.DSPlayer)
+                    .ThenInclude(p => p.Breakpoints)
+                    .ToList();
+            else
+                UploadReplays = _context.DSReplays
+                    .Include(o => o.Middle)
+                    .Include(p => p.DSPlayer)
+                    .ThenInclude(p => p.Breakpoints).Where(x => x.GAMETIME > gtime)
+                    .ToList();
+            DSdata.Config.FullSend = false;
             List<string> anonymous = new List<string>();
             foreach (DSReplay rep in UploadReplays)
             {
-                dsreplay replay = Map.Rep(rep);
-                foreach (dsplayer pl in replay.PLAYERS)
+                rep.REPLAYPATH = "";
+                rep.Upload = DateTime.UtcNow;
+                foreach (DSPlayer pl in rep.DSPlayer)
                 {
                     string plname = pl.NAME;
                     if (DSdata.Config.Players.Contains(pl.NAME)) pl.NAME = "player";
                     else pl.NAME = "player" + pl.REALPOS.ToString();
                 }
-                anonymous.Add(JsonSerializer.Serialize(replay));
+                string json = "";
+                //json = Newtonsoft.Json.JsonConvert.SerializeObject(rep);
+                try
+                {
+                    json = System.Text.Json.JsonSerializer.Serialize(rep);
+                } catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                anonymous.Add(json);
             }
             string exp_csv = Program.workdir + "\\export.json";
 
             File.WriteAllLines(exp_csv, anonymous);
+
+            _context.ChangeTracker.Entries()
+                .Where(e => e.Entity != null).ToList()
+                .ForEach(e => e.State = EntityState.Detached);
+
             string exp_csv_gz = exp_csv + ".gz";
             using (FileStream fileToBeZippedAsStream = new FileInfo(exp_csv).OpenRead())
             {
@@ -121,9 +151,9 @@ namespace sc2dsstats.desktop.Service
                 }
             }
             if (DSdata.Config.FullSend == true)
-                restRequest = new RestRequest("/secure/data/fullsend/" + hash);
+                restRequest = new RestRequest("/secure/data/dbfullsend/" + hash);
             else
-                restRequest = new RestRequest("/secure/data/autoupload/" + hash);
+                restRequest = new RestRequest("/secure/data/dbupload/" + hash);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.Method = Method.POST;
             restRequest.AddHeader("Authorization", "DSupload77");
@@ -163,17 +193,6 @@ namespace sc2dsstats.desktop.Service
             // Return the hexadecimal string.
             return sBuilder.ToString();
         }
-    }
-
-    [Serializable]
-    public class DSinfo
-    {
-        public string Name { get; set; }
-        public string Json { get; set; }
-        public int Total { get; set; }
-        public DateTime LastUpload { get; set; }
-        public string LastRep { get; set; }
-        public string Version { get; set; }
     }
 }
 

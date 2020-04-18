@@ -12,5 +12,6 @@ namespace sc2dsstats.lib.Models
         public DateTime LastRun { get; set; }
         public string Url { get; set; }
         public string DBConnectionString { get; set; }
+        public string DBRestConnectionString { get; set; }
     }
 }

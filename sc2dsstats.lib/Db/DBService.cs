@@ -9,19 +9,21 @@ namespace sc2dsstats.lib.Db
 {
     public static class DBService
     {
-        public static async Task DeleteRep(DSReplayContext context, int id)
+        public static object lockobject = new object();
+
+        public static async Task DeleteRep_bak(DSReplayContext context, int id)
         {
             var replay = await context.DSReplays
                 .Include(p => p.DSPlayer)
-                    .ThenInclude(p => p.DSUnit)
+                    .ThenInclude(p => p.Breakpoints)
                 .SingleAsync(s => s.ID == id);
 
 
             foreach (DSPlayer pl in replay.DSPlayer)
             {
-                if (pl.DSUnit != null)
-                    foreach (DSUnit unit in pl.DSUnit)
-                        context.DSUnits.Remove(unit);
+                if (pl.Breakpoints != null)
+                    foreach (DbBreakpoint bp in pl.Breakpoints)
+                        context.Breakpoints.Remove(bp);
                 context.DSPlayers.Remove(pl);
             }
 
@@ -29,23 +31,49 @@ namespace sc2dsstats.lib.Db
             await context.SaveChangesAsync();
         }
 
-        public static async Task<DSReplay> GetReplay(DSReplayContext context, int id)
+        public static void DeleteRep(DSReplayContext context, int id, bool bulk = false)
         {
-            return await context.DSReplays
+            var replay = context.DSReplays
+                .Include(o => o.Middle)
                 .Include(p => p.DSPlayer)
-                .ThenInclude(q => q.DSUnit)
-                .SingleOrDefaultAsync(x => x.ID == id);
+                .ThenInclude(q => q.Breakpoints)
+                .FirstOrDefault(s => s.ID == id);
+
+            if (replay.DSPlayer != null)
+            {
+                foreach (DSPlayer pl in replay.DSPlayer)
+                {
+                    if (pl.Breakpoints != null)
+                        foreach (DbBreakpoint bp in pl.Breakpoints)
+                            context.Breakpoints.Remove(bp);
+                    context.DSPlayers.Remove(pl);
+                }
+            }
+
+            context.DSReplays.Remove(replay);
+
+            if (replay.Middle != null)
+                foreach (DbMiddle mid in replay.Middle)
+                    context.Middle.Remove(mid);
+            if (bulk == false)
+                context.SaveChanges();
+        }
+
+
+        public static DSReplay GetReplay(DSReplayContext context, int id)
+        {
+            lock (lockobject)
+            {
+                return context.DSReplays
+                    .Include(p => p.Middle)
+                    .Include(p => p.DSPlayer)
+                    .ThenInclude(q => q.Breakpoints)
+                    .FirstOrDefault(x => x.ID == id);
+            }
         }
 
         public static void SaveReplay(DSReplayContext context, DSReplay rep, bool bulk = false)
         {
-            
-            foreach (DSPlayer pl in rep.DSPlayer)
-            {
-                foreach (DSUnit unit in pl.DSUnit)
-                    context.DSUnits.Add(unit);
-                context.DSPlayers.Add(pl);
-            }
             context.DSReplays.Add(rep);
             if (bulk == false)
                 context.SaveChanges();

@@ -10,6 +10,8 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
+using sc2dsstats.lib.Models;
+using sc2dsstats.lib.Service;
 using sc2dsstats.shared.Service;
 using sc2dsstats.web.Controllers;
 using System;
@@ -42,6 +44,7 @@ namespace sc2dsstats.web
             services.AddSingleton<LoadData>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
+            services.AddScoped<Visitor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,7 +52,7 @@ namespace sc2dsstats.web
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
+            DSdata.Init();
             app.ApplicationServices.GetService<LoadData>().Init();
             app.ApplicationServices.GetService<LoadData>().DataLoaded += Update;
 
@@ -105,6 +108,7 @@ namespace sc2dsstats.web
         {
             DataService.Reset();
             BuildService.Reset();
+            UpdateDataService.Reset();
         }
     }
 }

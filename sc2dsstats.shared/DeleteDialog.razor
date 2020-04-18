@@ -44,7 +44,7 @@
         _options.Replay = null;
         _Show = !_Show;
         await InvokeAsync(() => StateHasChanged());
-        await DBService.DeleteRep(_context, ID);
+        DBService.DeleteRep(_context, ID);
     }
 
     public void Show()

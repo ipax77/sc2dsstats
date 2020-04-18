@@ -7,6 +7,7 @@ namespace sc2dsstats.web
     public class Program
     {
         public static string workdir = "/data";
+        //public static string workdir = "/home/pax77/git/config";
 
         public static void Main(string[] args)
         {
@@ -18,7 +19,7 @@ namespace sc2dsstats.web
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile( workdir + "/config.json", optional: false, reloadOnChange: false);
-                    config.AddJsonFile( workdir + "/serverconfig.json", optional: false, reloadOnChange: false);
+                    config.AddJsonFile( workdir + "/localserverconfig.json", optional: false, reloadOnChange: false);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

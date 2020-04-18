@@ -4,11 +4,13 @@
 
 @if (Replay != null)
 {
-<div class="row">
-    <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
-    <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showMap = !showMap)">Show map (beta)</button>
-    <button type="button" class="btn btn-sm btn-danger" @onclick="@DeleteReplay">Delete</button>
-</div>
+    <div class="row">
+        <!--
+        <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
+        <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showMap = !showMap)">Show map (beta)</button>
+        -->
+        <button type="button" class="btn btn-sm btn-danger" @onclick="@DeleteReplay">Delete</button>
+    </div>
 
 <div class="container-fluid">
     <div>

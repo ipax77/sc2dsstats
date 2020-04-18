@@ -1,0 +1,142 @@
+﻿@page "/dummy"
+@using System.ComponentModel
+@using sc2dsstats.lib.Data
+@using sc2dsstats.shared;
+
+<style>
+    .vl {
+        border-left: 6px solid red;
+    }
+</style>
+<h1>Radio Button Group Test</h1>
+
+<div class="row">
+    <div>
+        <EditForm Model="_check" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <fieldset>
+                <div class="form-group">
+                    <h4>Cmdr</h4>
+                    <div class="custom-control custom-radio p-0 m-0">
+                        <label class="btn btn-sm btn-secondary" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                            <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                        </label>
+                    </div>
+                    @foreach (string cmdr in DSdata.s_races)
+                    {
+                        string isActive = "";
+                        <div class="custom-control custom-radio p-0 m-0">
+
+                            @if (_check.Selected == cmdr)
+                                isActive = "active";
+                            else
+                                isActive = "";
+                            <label class="btn btn-sm btn-outline-info text-left @isActive" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                                <InputRadio name="cmdrs" SelectedValue="cmdr" @bind-Value="_check.Selected" />
+                                <img alt="img_@cmdr" longdesc="img_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
+                                @cmdr
+                            </label>
+                        </div>
+                    }
+                </div>
+            </fieldset>
+        </EditForm>
+    </div>
+    <div class="vl">
+        <EditForm Model="_checkvs" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <fieldset>
+                <div class="form-group">
+                    <h4>Vs</h4>
+                    <div class="custom-control custom-radio p-0 m-0">
+                        @if (_checkvs.Selected == "ALL")
+                        {
+                            <label class="btn btn-sm btn-outline-info text-left active" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                ALL
+                            </label>
+                        }
+                        else
+                        {
+                            <label class="btn btn-sm btn-outline-info text-left" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                ALL
+                            </label>
+
+                        }
+                    </div>
+                    @foreach (string cmdr in DSdata.s_races)
+                    {
+                        string isActive = "";
+                        <div class="custom-control custom-radio p-0 m-0">
+
+                            @if (_checkvs.Selected == cmdr)
+                                isActive = "active";
+                            else
+                                isActive = "";
+                            <label class="btn btn-sm btn-outline-info text-left @isActive" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                                <InputRadio name="cmdrsvs" SelectedValue="cmdr" @bind-Value="_checkvs.Selected" />
+                                <img alt="imgvs_@cmdr" longdesc="imgvs_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
+                                @cmdr
+                            </label>
+                        </div>
+                    }
+                    <div class="custom-control custom-radio p-0 m-0">
+                        @if (_checkvs.Selected == "ALL")
+                        {
+                            <label class="btn btn-sm btn-outline-info text-left active" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                ALL
+                            </label>
+                        }
+                        else
+                        {
+                            <label class="btn btn-sm btn-outline-info text-left" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
+                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
+                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                                ALL
+                            </label>
+
+                        }
+                    </div>
+                </div>
+            </fieldset>
+        </EditForm>
+    </div>
+</div>
+
+
+<button type="button" class="btn btn-outline-info" @onclick="@(() => _check.Selected = "4")">4</button>
+<button type="button" class="btn btn-outline-info" @onclick="@(() => _check.Selected = "5")">5</button>
+
+<p>You chose: @_check.Selected</p>
+<p>vs: @_checkvs.Selected</p>
+
+@code {
+    private RadioCheckString _check = new RadioCheckString();
+    private RadioCheckString _checkvs = new RadioCheckString();
+
+    private void HandleValidSubmit()
+    {
+        Console.WriteLine("valid");
+    }
+
+    protected override void OnInitialized()
+    {
+        _check.Selected = "Abathur";
+        _checkvs.Selected = "ALL";
+        base.OnInitialized();
+        _check.PropertyChanged += OnClick;
+    }
+
+    public void OnClick(object sender, PropertyChangedEventArgs e)
+    {
+        Console.WriteLine(e);
+    }
+
+}

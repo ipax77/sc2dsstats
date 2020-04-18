@@ -77,7 +77,7 @@ namespace sc2dsstats.lib.Db
             if (options.Startdate != default(DateTime))
                 filReplays = filReplays.Where(x => x.GAMETIME >= options.Startdate);
             if (options.Enddate != default(DateTime))
-                filReplays = filReplays.Where(x => x.GAMETIME <= options.Enddate);
+                filReplays = filReplays.Where(x => x.GAMETIME <= options.Enddate.AddDays(1));
 
             if (options.Dataset.Any() && options.db.Database.IsMySql())
             {
