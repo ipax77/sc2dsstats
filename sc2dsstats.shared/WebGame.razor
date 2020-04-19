@@ -2,12 +2,63 @@
 @using sc2dsstats.lib.Data
 @using sc2dsstats.lib.Models
 @using sc2dsstats.lib.Db
-@using sc2dsstats.lib.Service
+@using System.ComponentModel
 @using System.IO
 @inject DSoptions _options
 @inject NavigationManager _nav
+@implements IDisposable
+
 
 <style>
+    .fadein {
+        animation-name: fademein;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    .fadeout {
+        animation-name: fademeout;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    @@keyframes fademein {
+        0% {
+            transform: scale(0.25);
+            opacity: 0
+        }
+
+        50% {
+            transform: scale(0.5);
+            opacity: 0.5
+        }
+
+        100% {
+            transform: scale(1.0);
+            opacity: 1
+        }
+    }
+
+    @@keyframes fademeout {
+        0% {
+            transform: scale(1.0);
+            opacity: 1
+        }
+
+        50% {
+            transform: scale(0.5);
+            opacity: 0.5
+        }
+
+        100% {
+            transform: scale(0);
+            opacity: 0
+        }
+    }
+
+
     .slidecontainer {
         width: 100%; /* Width of the outside container */
     }
@@ -24,38 +75,34 @@
         transition: opacity .2s;
     }
 
-    .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #4CAF50;
-        cursor: pointer;
-    }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
 
-    .slider::-moz-range-thumb {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #4CAF50;
-        cursor: pointer;
-    }
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
 
     .btn-group-xs > .btn, .btn-xs {
-      padding: .25rem .4rem;
-      font-size: .875rem;
-      line-height: .5;
-      border-radius: .2rem;
+        padding: .25rem .4rem;
+        font-size: .875rem;
+        line-height: .5;
+        border-radius: .2rem;
     }
 </style>
 
-@if (replay != null)
+@if (_options.Replay != null)
 {
-    @if (replay.ID != replayid)
-    {
-        @NewReplay()
-    }
     <div id="copyme" class="container-fluid">
         <div class="row">
             <div class="ml-4">
@@ -73,7 +120,7 @@
                     @for (int i = 1; i >= 0; i--)
                     {
                         <div class="ml-1">
-                            @if (replay.WINNER == i)
+                            @if (_options.Replay.WINNER == i)
                             {
                                 TeamClass = "badge-success";
                                 <h4><span class="badge @TeamClass">Team @(i + 1) - Winner</span></h4>
@@ -97,17 +144,17 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (DSPlayer pl in replay.DSPlayer.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
+                                    @foreach (DSPlayer pl in _options.Replay.DSPlayer.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
                                     {
                                         @if (pl.NAME.Length == 64 || _options.Players.Where(x => x.Value == true && pl.NAME == x.Key).Any())
                                         {
                                             PlayerClass = "table-primary";
                                         }
-                                        else if (pl.KILLSUM == replay.MAXKILLSUM)
+                                        else if (pl.KILLSUM == _options.Replay.MAXKILLSUM)
                                         {
                                             PlayerClass = "table-success";
                                         }
-                                        else if (pl.PDURATION < replay.DURATION - 90)
+                                        else if (pl.PDURATION < _options.Replay.DURATION - 90)
                                         {
                                             PlayerClass = "table-danger";
                                         }
@@ -150,11 +197,11 @@
                         {
                             if (BuildCheck[i] == true)
                             {
-                                DSPlayer pl = replay.DSPlayer.FirstOrDefault(f => f.REALPOS == i);
+                                DSPlayer pl = _options.Replay.DSPlayer.FirstOrDefault(f => f.REALPOS == i);
                                 if (pl != null)
                                 {
                                     DbBreakpoint bp = pl.Breakpoints.FirstOrDefault(s => s.Breakpoint == _options.GameBreakpoint);
-                                    if (pl.TEAM == replay.WINNER)
+                                    if (pl.TEAM == _options.Replay.WINNER)
                                     {
                                         BuildPlayerClass = "badge-success";
                                     }
@@ -162,55 +209,58 @@
                                     {
                                         BuildPlayerClass = "badge-danger";
                                     }
-                                    <div>
-                                        <h4><span class="badge @BuildPlayerClass">Build Player @i</span></h4>
-                                        <button type="button" class="btn btn-xs btn-dark" data-toggle="collapse" data-target="#map_@pl.REALPOS">Map</button>
-                                        <div id="map_@pl.REALPOS" class="collapse">
-                                            <WebMap Units="Game.GetDbUnits(pl, bp, replay.OBJECTIVE)" Team="pl.TEAM" />
-                                            <div style="min-width: 500px; min-height: 773px;"></div>
-                                        </div>
-
-                                        @if  (bp != null) { 
-                                        <div class="row ml-2">
-                                            <span class="badge badge-light">Gas @bp.Gas</span>
-                                            <button type="button" class="btn btn-xs btn-light" data-toggle="collapse" data-target="#upgradestable_@pl.REALPOS">Upgrades @bp.Upgrades</button>
-                                        </div>
-                                        <div id="upgradestable_@pl.REALPOS" class="collapse">
-                                            <table class="table table-sm table-dark">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Upgrades</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (string upgrade in Game.Upgrades[pl.REALPOS][_options.GameBreakpoint])
-                                                    {
-                                                        <tr>
-                                                            <td>@upgrade</td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <table class="table table-sm table-dark">
-                                            <thead>
-                                                <tr>
-                                                    <th>Unit</th>
-                                                    <th>Count</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var ent in Game.Units[pl.REALPOS][_options.GameBreakpoint])
-                                                {
-                                                    <tr>
-                                                        <td>@ent.Key</td>
-                                                        <td>@ent.Value</td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                        }
+                        <div>
+                            <h4><span class="badge @BuildPlayerClass">Build Player @i</span></h4>
+                            @if (bp != null)
+                            {
+                                @if (!String.IsNullOrEmpty(bp.dbUnitsString))
+                                {
+                                    <button type="button" class="btn btn-xs btn-dark" @onclick="@(() => ShowMap(pl.REALPOS, bp.Breakpoint))">Map</button>
+                                    <div id="map_@pl.REALPOS" class="@MapCheck[pl.REALPOS][bp.Breakpoint]">
+                                        <WebMap Units="Game.GetDbUnits(pl, bp, _options.Replay.OBJECTIVE)" Team="pl.TEAM" />
+                                        <div style="min-width: 500px; min-height: 773px;"></div>
                                     </div>
+                                }
+                                <div class="row ml-2">
+                                    <span class="badge badge-light">Gas @bp.Gas</span>
+                                    <button type="button" class="btn btn-xs btn-light" @onclick="@(() => ShowUpgrades(pl.REALPOS, bp.Breakpoint))">Upgrades @bp.Upgrades</button>
+                                </div>
+                                <div id="upgradestable_@pl.REALPOS" class="@UpgradesCheck[pl.REALPOS][bp.Breakpoint]">
+                                    <table class="table table-sm table-dark">
+                                        <thead>
+                                            <tr>
+                                                <th>Upgrades</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (string upgrade in Game.Upgrades[pl.REALPOS][_options.GameBreakpoint])
+                                            {
+                                                <tr>
+                                                    <td>@upgrade</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <table class="table table-sm table-dark">
+                                    <thead>
+                                        <tr>
+                                            <th>Unit</th>
+                                            <th>Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var ent in Game.Units[pl.REALPOS][_options.GameBreakpoint])
+                                        {
+                                            <tr>
+                                                <td>@ent.Key</td>
+                                                <td>@ent.Value</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
                                 }
                             }
                         }
@@ -224,15 +274,13 @@
 }
 
 @code {
-    [Parameter]
-    public DSReplay replay { get; set; }
-
     string TeamClass = "badge-primary";
     string PlayerClass = "table-primary";
     string BuildPlayerClass = "badge-primary";
     List<bool> BuildCheck;
+    Dictionary<int, Dictionary<string, string>> MapCheck;
+    Dictionary<int, Dictionary<string, string>> UpgradesCheck;
     string pldiffcolor = DSdata.color_plbg_def;
-    int replayid = 0;
     bool showDetails = false;
     bool showMap = false;
     KeyValuePair<string, string> link = new KeyValuePair<string, string>("", "");
@@ -246,60 +294,87 @@
     protected override void OnInitialized()
     {
         BuildCheck = new List<bool>();
+        MapCheck = new Dictionary<int, Dictionary<string, string>>();
+        UpgradesCheck = new Dictionary<int, Dictionary<string, string>>();
         for (int i = 0; i <= 7; i++)
         {
             BuildCheck.Add(false);
+            MapCheck[i] = new Dictionary<string, string>();
+            UpgradesCheck[i] = new Dictionary<string, string>();
+            foreach (string bp in DSdata.s_breakpoints)
+            {
+                MapCheck[i][bp] = "collapse";
+                UpgradesCheck[i][bp] = "collapse";
+            }
+        }
+        _options.PropertyChanged += ReplayChanged;
+    }
+
+    void ReplayChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == "Replay")
+        {
+            if (_options.Replay != null)
+            {
+                NewReplay();
+            }
         }
     }
 
     object NewReplay()
     {
-        replayid = replay.ID;
+
         showDetails = false;
         showMap = false;
-        if (replay != null)
+        if (_options.Replay != null)
         {
-            Game.Init(replay, _options);
+            Game.Init(_options.Replay, _options);
             bpvalue = Game.BreakpointMid.Count;
             string linklink = "";
             string linktext = "";
 
-            if (String.IsNullOrEmpty(replay.REPLAYPATH))
+            if (String.IsNullOrEmpty(_options.Replay.REPLAYPATH))
             {
                 linklink = _nav.BaseUri;
-                linklink += "db/" + replay.ID;
+                linklink += "db/" + _options.Replay.ID;
                 linktext = linklink;
             }
             else
             {
-                if (File.Exists(replay.REPLAYPATH))
+                if (File.Exists(_options.Replay.REPLAYPATH))
                 {
-                    linklink = @"file:///" + replay.REPLAYPATH;
-                    linktext = Path.GetFileName(replay.REPLAYPATH);
+                    linklink = @"file:///" + _options.Replay.REPLAYPATH;
+                    linktext = Path.GetFileName(_options.Replay.REPLAYPATH);
                 }
             }
             link = new KeyValuePair<string, string>(linklink, linktext);
+        }
+        else
+        {
+            return null;
         }
 
         DSPlayer pl = null;
         if (DSdata.Config.Players.Any())
         {
             List<string> activePlayers = _options.Players.Where(x => x.Value == true).Select(s => s.Key).ToList();
-            pl = replay.DSPlayer.Where(x => activePlayers.Contains(x.NAME)).FirstOrDefault();
+            pl = _options.Replay.DSPlayer.Where(x => activePlayers.Contains(x.NAME)).FirstOrDefault();
         }
         else
-            pl = replay.DSPlayer.Where(x => x.NAME.Length == 64).FirstOrDefault();
+            pl = _options.Replay.DSPlayer.Where(x => x.NAME.Length == 64).FirstOrDefault();
         plpos = 0;
         int opppos = 0;
         if (pl != null)
         {
             plpos = pl.REALPOS;
-            DSPlayer opp = replay.DSPlayer.FirstOrDefault(x => x.REALPOS == DBFunctions.GetOpp(pl.REALPOS));
+            DSPlayer opp = _options.Replay.DSPlayer.FirstOrDefault(x => x.REALPOS == DBFunctions.GetOpp(pl.REALPOS));
             if (opp != null)
             {
                 opppos = opp.REALPOS;
             }
         }
+        MapCheck = new Dictionary<int, Dictionary<string, string>>();
+        UpgradesCheck = new Dictionary<int, Dictionary<string, string>>();
         for (int i = 0; i < BuildCheck.Count(); i++)
         {
             BuildCheck[i] = false;
@@ -307,7 +382,15 @@
             {
                 BuildCheck[i] = true;
             }
+            MapCheck[i] = new Dictionary<string, string>();
+            UpgradesCheck[i] = new Dictionary<string, string>();
+            foreach (string bp in DSdata.s_breakpoints)
+            {
+                MapCheck[i][bp] = "collapse";
+                UpgradesCheck[i][bp] = "collapse";
+            }
         }
+        InvokeAsync(() => StateHasChanged());
         return null;
     }
 
@@ -316,7 +399,7 @@
         if ((string)e == "on")
         {
             _options.GameBreakpoint = bp;
-            Game.SetMid(replay, _options.GameBreakpoint);
+            Game.SetMid(_options.Replay, _options.GameBreakpoint);
             StateHasChanged();
         }
     }
@@ -328,21 +411,56 @@
         int i = int.Parse(bp);
         _options.GameBreakpoint = Game.BreakpointMid.ElementAt(i - 1).Key;
 
-        Game.SetMid(replay, _options.GameBreakpoint);
+        Game.SetMid(_options.Replay, _options.GameBreakpoint);
         StateHasChanged();
     }
 
-    EventCallback ShowBuild(int pos)
+    void ShowMap(int pos, string bp)
     {
-        EventCallback e = new EventCallback();
-        BuildCheck[pos] = true;
+        if (MapCheck[pos][bp] == "collapse" || MapCheck[pos][bp] == "fadeout")
+            MapCheck[pos][bp] = "fadein";
+        else
+        {
+            MapCheck[pos][bp] = "fadeout";
+            CollapseMap(pos, bp);
+        }
+        StateHasChanged();
+    }
 
-        return e;
+    void ShowUpgrades(int pos, string bp)
+    {
+        if (UpgradesCheck[pos][bp] == "collapse" || UpgradesCheck[pos][bp] == "fadeout")
+            UpgradesCheck[pos][bp] = "fadein";
+        else
+        {
+            UpgradesCheck[pos][bp] = "fadeout";
+            CollapseUpgrades(pos, bp);
+        }
+        StateHasChanged();
+    }
+
+    async Task CollapseMap(int pos, string bp)
+    {
+        await Task.Delay(500);
+        MapCheck[pos][bp] = "collapse";
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    async Task CollapseUpgrades(int pos, string bp)
+    {
+        await Task.Delay(500);
+        UpgradesCheck[pos][bp] = "collapse";
+        await InvokeAsync(() => StateHasChanged());
     }
 
     async void CreateCanvas()
     {
         //await JSRuntime.InvokeVoidAsync("CopyMe");
+    }
+
+    public void Dispose()
+    {
+        _options.PropertyChanged -= ReplayChanged;
     }
 
 }

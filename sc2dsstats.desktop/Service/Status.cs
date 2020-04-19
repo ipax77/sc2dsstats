@@ -5,6 +5,7 @@ using sc2dsstats.decode.Service;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
+using sc2dsstats.shared.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -267,7 +268,7 @@ namespace sc2dsstats.desktop.Service
                             UploadReplays();
                         ScanReplayFolders();
                         OnDataLoaded(args);
-
+                        Reset();
 
                     }
 
@@ -324,6 +325,12 @@ namespace sc2dsstats.desktop.Service
 
             }
 
+        }
+
+        public void Reset()
+        {
+            DataService.Reset();
+            BuildService.Reset();
         }
 
         void DecodeUpdate(object sender, EventArgs e)

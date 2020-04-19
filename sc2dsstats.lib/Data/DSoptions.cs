@@ -15,6 +15,7 @@ namespace sc2dsstats.lib.Data
         private string Mode_value = String.Empty;
         private bool Player_value = false;
         private bool BeginAtZero_value = false;
+        private DSReplay Replay_value = null;
 
         public int ID { get; set; }
         public int Duration { get; set; } = 5*60;
@@ -74,10 +75,22 @@ namespace sc2dsstats.lib.Data
         public string GameBreakpoint { get; set; } = "MIN10";
         public bool Decoding { get; set; } = false;
         public DSReplayContext db { get; set; }
-        public DSReplay Replay { get; set; }
         public BuildResult buildResult { get; set; } = new BuildResult();
         public bool OnTheFlyScan { get; set; } = false;
         public DSReplay OnTheFlyReplay { get; set; }
+
+        public DSReplay Replay
+        {
+            get { return this.Replay_value; }
+            set
+            {
+                if (value != this.Replay_value)
+                {
+                    this.Replay_value = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public bool Update
         {

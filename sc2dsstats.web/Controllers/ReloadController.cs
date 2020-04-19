@@ -21,5 +21,12 @@ namespace sc2dsstats.web.Controllers
             _data.Init();
             return Ok();
         }
+
+        [HttpGet("secure/softreload")]
+        public async Task<IActionResult> SoftReloadData()
+        {
+            _data.Update();
+            return Ok();
+        }
     }
 }

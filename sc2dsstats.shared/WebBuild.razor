@@ -325,11 +325,11 @@
     {
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
-
         await BuildService.GetBuild(_options);
-
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
+        if (_options.buildResult != null && _options.buildResult.RepIDs.Any())
+            await ShowGame(_options.buildResult.RepIDs.First().Key);
     }
 
     protected override async Task OnInitializedAsync()
@@ -405,14 +405,16 @@
 
     private void Update(object sender, PropertyChangedEventArgs e)
     {
+        if (_options.Mode != "Build")
+            return;
+
         lock (lockobject)
         {
             if (Loading)
                 return;
             Task.Run(() => GetBuild());
         }
-        if (_options.Mode != "Build")
-            return;
+
         if (!string.IsNullOrEmpty(_options.Vs))
             matchup = "vs " + _options.Vs;
         else
@@ -429,7 +431,6 @@
         });
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
-        _data.Update();
     }
 
     void ShowRepTable()

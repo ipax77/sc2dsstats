@@ -1,0 +1,38 @@
+﻿@page "/ranking"
+<h3>Ranking</h3>
+
+<div class="container-fluid">
+    <table class="table table-sm table-hover table-dark">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Dataset</th>
+                <th scope="col">Winrate</th>
+                <th scope="col">Games</th>
+                <th scope="col">~TeamGames</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @if (true)
+            {
+                int i = 0;
+            @foreach (sc2dsstats.lib.Models.DatasetInfo info in sc2dsstats.lib.Data.DSdata.Datasets.OrderByDescending(o => o.Winrate))
+            {
+                    i++;
+                <tr class="table-row">
+                    <td>@i</td>
+                    <td>@info.Dataset.Substring(0, 5)</td>
+                    <td>@info.Winrate%</td>
+                    <td>@info.Count</td>
+                    <td>@info.Teamgames%</td>
+                </tr>
+            }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+}

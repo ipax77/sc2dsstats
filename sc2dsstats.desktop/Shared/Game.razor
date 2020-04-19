@@ -1,37 +1,32 @@
-﻿@using sc2dsstats.lib.Models
+﻿@using sc2dsstats.lib.Data
 @using sc2dsstats.shared
 @inject NavigationManager _nav
+@inject DSoptions _options
 
-@if (Replay != null)
-{
-    <div class="row">
-        <!--
-        <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
-        <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showMap = !showMap)">Show map (beta)</button>
-        -->
-        <button type="button" class="btn btn-sm btn-danger" @onclick="@DeleteReplay">Delete</button>
-    </div>
+<div class="row">
+    <!--
+    <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
+    <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showMap = !showMap)">Show map (beta)</button>
+    -->
+    <button type="button" class="btn btn-sm btn-danger" @onclick="@DeleteReplay">Delete</button>
+</div>
 
 <div class="container-fluid">
     <div>
         @if (showDetails == true)
         {
-            <GameChart replay="@Replay" />
+            <GameChart replay="_options.Replay" />
         }
         @if (showMap == true)
         {
-            _nav.NavigateTo("/gamemap/" + Replay.ID);
+            _nav.NavigateTo("/gamemap/" + _options.Replay.ID);
         }
     </div>
-    <sc2dsstats.shared.WebGame replay="Replay" />
+    <sc2dsstats.shared.WebGame />
 </div>
 <DeleteDialog ID="id" @ref="delDialog" />
-}
 
 @code {
-    [Parameter]
-    public DSReplay Replay { get; set; }
-
     bool showDetails = false;
     bool showMap = false;
 
@@ -41,7 +36,7 @@
     void DeleteReplay()
     {
         delDialog.Show();
-        if (Replay != null)
-            id = Replay.ID;
+        if (_options.Replay != null)
+            id = _options.Replay.ID;
     }
 }

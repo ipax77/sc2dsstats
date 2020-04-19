@@ -1,15 +1,13 @@
 ﻿@page "/builds"
 @using sc2dsstats.lib.Data
 @using sc2dsstats.lib.Db
-@inject LoadData _data
 @inject DSoptions _options
 @inject DSReplayContext  _context
-@implements IDisposable
 
 @if (DSdata.Status.Count > 0)
 {
     <sc2dsstats.shared.WebBuild Build="PAX" />
-    <sc2dsstats.shared.WebGame replay="_options.Replay" />
+    <sc2dsstats.shared.WebGame />
 }
 else
 {
@@ -35,17 +33,5 @@ else
     {
         if (_options.db == null)
             _options.db = _context;
-        _data.DataLoaded += Update;
     }
-
-    void Update(object sender, EventArgs ex)
-    {
-        InvokeAsync(() => StateHasChanged());
-    }
-
-    public void Dispose()
-    {
-        _data.DataLoaded -= Update;
-    }
-
 }

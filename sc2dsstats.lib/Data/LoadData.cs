@@ -70,34 +70,44 @@ namespace sc2dsstats.lib.Data
 
         async Task GetDatasetInfo()
         {
-
+            DateTime t = DateTime.UtcNow;
             using (var scope = scopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
                 DSdata.Datasets = new List<DatasetInfo>();
-                var datasethashs = from p in context.DSPlayers
-                                   where p.NAME.Length == 64
-                                   select p.NAME;
-                               ;
-                var datasets = datasethashs.ToHashSet();
+                var names = context.DSPlayers.Select(s => s.NAME).Distinct().ToArray();
 
-                foreach (var hash in datasets)
+                foreach (var hash in names.Where(x => x.Length == 64))
                 {
                     DatasetInfo setinfo = new DatasetInfo();
                     setinfo.Dataset = hash;
 
-                    var reps = context.DSReplays
-                        .Include(p => p.DSPlayer)
-                        .Where(x => x.DSPlayer.SingleOrDefault(s => s.NAME == hash) != null);
+                    var reps = from r in context.DSReplays
+                               from p in r.DSPlayer
+                               where p.NAME == hash
+                               select new
+                               {
+                                   r.ID,
+                                   r.DSPlayer,
+                                   p.TEAM,
+                                   p.WIN
+                               };
+
+
                     setinfo.Count = reps.Count();
 
-                    var teams = reps.Where(x => x.DSPlayer.Where(x => x.NAME.Length == 64).Count() > 1);
-                    setinfo.Teamgames = teams.Count();
+                    var teams = reps.Where(x => x.DSPlayer.Where(y => y.NAME.Length == 64 && y.TEAM == x.TEAM).Count() > 1);
+                    int teamgames = teams.Count();
+                    setinfo.Teamgames = MathF.Round((float)teamgames * 100 / (float)setinfo.Count, 2);
+
+
+                    int wins = reps.Where(x => x.WIN == true).Count();
+                    setinfo.Winrate = MathF.Round((float)wins * 100 / (float)setinfo.Count, 2);
 
                     DSdata.Datasets.Add(setinfo);
                 }
             }
-            
+            Console.WriteLine($"Dataset info created in {(DateTime.UtcNow - t).TotalSeconds}");
         }
     }
 
