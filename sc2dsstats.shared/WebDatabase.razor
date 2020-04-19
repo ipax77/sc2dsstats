@@ -2,7 +2,6 @@
 @using sc2dsstats.lib.Models
 @using sc2dsstats.lib.Data
 @using sc2dsstats.shared.Service
-@using Microsoft.EntityFrameworkCore
 @inject DSoptions  _options
 @inject NavigationManager _nav
 
@@ -110,14 +109,26 @@
     {
         _options.DefaultFilter();
         _options.Mode = "Database";
+        _options.Replay = null;
+
+        dbOptions.Cmdrs[1] = "Team1";
+        dbOptions.Cmdrs[2] = "Team1";
+        dbOptions.Cmdrs[3] = "Team1";
+        dbOptions.Cmdrs[4] = "Team2";
+        dbOptions.Cmdrs[5] = "Team2";
+        dbOptions.Cmdrs[6] = "Team2";
 
         DBReplays = _options.db.DSReplays;
         Replays = DBReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList();
         if (RepId > 0)
-            ShowGame(RepId, true);
+            await ShowGame(RepId, true);
         else
         {
-            ShowGame(16752, true);
+            lock (_options.db)
+            {
+                RepId = _options.db.DSReplays.OrderByDescending(o => o.GAMETIME).FirstOrDefault().ID;
+            }
+            await ShowGame(RepId, true);
             /*
             var uri = new Uri(_nav.Uri);
             var fragment = uri.Fragment;
@@ -127,16 +138,11 @@
                 RepId = id;
                 ShowGame(RepId);
             }
-            
+
             */
         }
 
-        dbOptions.Cmdrs[1] = "Team1";
-        dbOptions.Cmdrs[2] = "Team1";
-        dbOptions.Cmdrs[3] = "Team1";
-        dbOptions.Cmdrs[4] = "Team2";
-        dbOptions.Cmdrs[5] = "Team2";
-        dbOptions.Cmdrs[6] = "Team2";
+
 
         Loading = false;
     }
@@ -144,6 +150,7 @@
     public async void SortReps(string id)
     {
         Loading = true;
+        await InvokeAsync(() => StateHasChanged());
         sortid = id;
         if (lastsortid == sortid)
             sortoder = !sortoder;
@@ -151,6 +158,7 @@
         Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         lastsortid = id;
         Loading = false;
+        await InvokeAsync(() => StateHasChanged());
     }
 
     object GetRepProperty(DSReplay rep, string prop)
@@ -163,7 +171,7 @@
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
         await Task.Run(() => {
-            _options.Replay = DBService.GetReplay(_options.db, repid);
+            _options.Replay = DBService.GetReplay(_options, repid);
             if (_options.Replay != null)
             {
                 if (isInit == false)

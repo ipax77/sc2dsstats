@@ -34,17 +34,17 @@
 }
 
 @code {
-    [Parameter]
-    public int ID { get; set; } = 0;
-
     private bool _Show = false;
 
     async Task Delete()
     {
-        _options.Replay = null;
         _Show = !_Show;
         await InvokeAsync(() => StateHasChanged());
-        DBService.DeleteRep(_context, ID);
+        if (_options.Replay != null)
+        {
+            DBService.DeleteRep(_context, _options.Replay.ID);
+            _options.Replay = null;
+        }
     }
 
     public void Show()

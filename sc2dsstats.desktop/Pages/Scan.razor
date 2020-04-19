@@ -3,6 +3,7 @@
 @using sc2dsstats.decode.Service
 @using sc2dsstats.desktop.Service
 @using sc2dsstats.lib.Models
+@using Microsoft.EntityFrameworkCore 
 @inject Status _status
 @inject DSoptions _options
 @implements IDisposable
@@ -93,11 +94,9 @@
     </div>
 
 }
-@if (_options.OnTheFlyReplay != null)
-{
     <h4>Latest Game</h4>
-    <Game Replay="_options.OnTheFlyReplay" />
-}
+    <Game />
+
 <UploadCredentialDialog @ref="ucDialog" />
 
 @code {
@@ -112,8 +111,15 @@
     protected override async Task OnInitializedAsync()
     {
         _status.StatusChanged += ScanUpdate;
-        _status.ScanReplayFolders();
-
+        await Task.Run(() =>
+        {
+            lock (_options.db)
+            {
+                DSReplay rep = _options.db.DSReplays.Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
+                _options.Replay = rep;
+            }
+        });
+        await _status.ScanReplayFolders();
     }
 
     void ScanUpdate(object sender, EventArgs e)

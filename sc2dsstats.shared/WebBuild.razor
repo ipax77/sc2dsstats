@@ -426,7 +426,7 @@
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
         await Task.Run(() => {
-            _options.Replay = DBService.GetReplay(_options.db, id);
+            _options.Replay = DBService.GetReplay(_options, id);
             replayid = id;
         });
         Loading = false;

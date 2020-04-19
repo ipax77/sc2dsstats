@@ -254,9 +254,9 @@ namespace sc2dsstats.desktop.Service
                         }
                         _options.Decoding = false;
 
-                        lock (DSdata.DesktopStatus)
+                        lock (_options.db)
                         {
-                            _options.OnTheFlyReplay = _options.db.DSReplays.Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
+                            _options.Replay = _options.db.DSReplays.Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
                         }
                         if (DSdata.Config.OnTheFlyScan && _onthefly.Running == false)
                         {

@@ -24,7 +24,7 @@
     </div>
     <sc2dsstats.shared.WebGame />
 </div>
-<DeleteDialog ID="id" @ref="delDialog" />
+<DeleteDialog @ref="delDialog" />
 
 @code {
     bool showDetails = false;
@@ -35,8 +35,8 @@
 
     void DeleteReplay()
     {
-        delDialog.Show();
         if (_options.Replay != null)
             id = _options.Replay.ID;
+        delDialog.Show();
     }
 }

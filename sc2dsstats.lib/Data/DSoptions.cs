@@ -77,7 +77,6 @@ namespace sc2dsstats.lib.Data
         public DSReplayContext db { get; set; }
         public BuildResult buildResult { get; set; } = new BuildResult();
         public bool OnTheFlyScan { get; set; } = false;
-        public DSReplay OnTheFlyReplay { get; set; }
 
         public DSReplay Replay
         {

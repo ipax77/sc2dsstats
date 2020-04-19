@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.IO;
 using System.Threading.Tasks;
+using sc2dsstats.lib.Data;
 
 namespace sc2dsstats.lib.Db
 {
@@ -60,16 +61,21 @@ namespace sc2dsstats.lib.Db
         }
 
 
-        public static DSReplay GetReplay(DSReplayContext context, int id)
+        public static DSReplay GetReplay(DSoptions _options, int id)
         {
-            lock (lockobject)
+            if (_options.db != null)
             {
-                return context.DSReplays
-                    .Include(p => p.Middle)
-                    .Include(p => p.DSPlayer)
-                    .ThenInclude(q => q.Breakpoints)
-                    .FirstOrDefault(x => x.ID == id);
+                lock (_options.db)
+                {
+                    return _options.db.DSReplays
+                        .Include(p => p.Middle)
+                        .Include(p => p.DSPlayer)
+                        .ThenInclude(q => q.Breakpoints)
+                        .FirstOrDefault(x => x.ID == id);
+                }
             }
+            else
+                return null;
         }
 
         public static void SaveReplay(DSReplayContext context, DSReplay rep, bool bulk = false)

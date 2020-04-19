@@ -53,7 +53,7 @@ namespace sc2dsstats.desktop.Service
             Electron.AutoUpdater.OnUpdateAvailable += AutoUpdater_OnUpdateAvailable;
             try
             {
-                Electron.AutoUpdater.AutoDownload = false;
+                //Electron.AutoUpdater.AutoDownload = false;
                 Electron.Notification.Show(new NotificationOptions("Hello", await Electron.App.GetVersionAsync()));
                 result = await Electron.AutoUpdater.CheckForUpdatesAsync();
             }

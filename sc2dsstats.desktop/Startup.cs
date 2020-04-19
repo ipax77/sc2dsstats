@@ -85,7 +85,7 @@ namespace sc2dsstats.desktop
                 await Electron.WindowManager.CreateWindowAsync();
                 await ElectronService.Resize();
                 //DSdata.DesktopUpdateAvailable = await ElectronService.CheckForUpdate();
-                DSdata.DesktopUpdateAvailable = await ElectronService.CheckForUpdateAndNotify();
+                //DSdata.DesktopUpdateAvailable = await ElectronService.CheckForUpdateAndNotify();
             });
         }
     }
