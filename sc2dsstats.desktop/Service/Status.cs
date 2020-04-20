@@ -142,7 +142,7 @@ namespace sc2dsstats.desktop.Service
                 {
                     lock (DSdata.DesktopStatus)
                     {
-                        return DSrest.AutoUpload(_context, _logger);
+                        return DSrest.AutoUpload(_options, _logger);
                     }
                 }
                 catch
@@ -251,13 +251,10 @@ namespace sc2dsstats.desktop.Service
                                 _logger.LogError(e.Message);
                             }
                             DSdata.Status.Count = _options.db.DSReplays.Count();
+                            _options.Replay = _options.db.DSReplays.Include(m => m.Middle).Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
                         }
                         _options.Decoding = false;
 
-                        lock (_options.db)
-                        {
-                            _options.Replay = _options.db.DSReplays.Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
-                        }
                         if (DSdata.Config.OnTheFlyScan && _onthefly.Running == false)
                         {
                             _options.OnTheFlyScan = true;

@@ -115,7 +115,7 @@
         {
             lock (_options.db)
             {
-                DSReplay rep = _options.db.DSReplays.Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
+                DSReplay rep = _options.db.DSReplays.Include(m => m.Middle).Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
                 _options.Replay = rep;
             }
         });

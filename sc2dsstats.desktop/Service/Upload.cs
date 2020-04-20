@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using sc2dsstats.lib.Data;
-using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ namespace sc2dsstats.desktop.Service
 {
     public static class DSrest
     {
-        public static bool AutoUpload(DSReplayContext _context, ILogger logger)
+        public static bool AutoUpload(DSoptions _options, ILogger logger)
         {
             string hash = "UndEsWarSommer";
             string hash2 = "UndEsWarWinter";
@@ -37,10 +36,14 @@ namespace sc2dsstats.desktop.Service
             string lastrep = "";
             if (DSdata.Status.Count > 0)
             {
-                var lrep = _context.DSReplays.OrderByDescending(o => o.GAMETIME).Take(1);
-
-                //_context.DSReplays.OrderByDescending(o => o.GAMETIME).First();
-                lastrep = lrep.First().GAMETIME.ToString("yyyyMMddHHmmss");
+                DSReplay lrep = null;
+                lock (_options.db)
+                {
+                    lrep = _options.db.DSReplays.OrderByDescending(o => o.GAMETIME).FirstOrDefault();
+                    //_context.DSReplays.OrderByDescending(o => o.GAMETIME).First();
+                }
+                if (lrep != null)
+                    lastrep = lrep.GAMETIME.ToString("yyyyMMddHHmmss");
             }
 
             DSinfo info = new DSinfo();
@@ -51,14 +54,14 @@ namespace sc2dsstats.desktop.Service
             info.Total = DSdata.Status.Count;
             info.Version = DSdata.DesktopVersion.ToString();
 
-            logger.LogDebug("Upload: AutoInfo");
+            logger.LogInformation("Upload: AutoInfo");
             var restRequest = new RestRequest("/secure/data/autoinfo", Method.POST);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddJsonBody(info);
             var response = client.Execute(restRequest);
 
-            logger.LogDebug($"Upload: autoinfo response: {response.Content}");
+            logger.LogInformation($"Upload: autoinfo response: {response.Content}");
             if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 if (response.Content.Contains("UpToDate")) return true;
@@ -84,18 +87,21 @@ namespace sc2dsstats.desktop.Service
                 gtime = new DateTime(year, month, day, hour, min, sec);
             }
 
-            if (gtime == DateTime.MinValue || DSdata.Config.FullSend == true)
-                UploadReplays = _context.DSReplays
-                    .Include(o => o.Middle)
-                    .Include(p => p.DSPlayer)
-                    .ThenInclude(p => p.Breakpoints)
-                    .ToList();
-            else
-                UploadReplays = _context.DSReplays
-                    .Include(o => o.Middle)
-                    .Include(p => p.DSPlayer)
-                    .ThenInclude(p => p.Breakpoints).Where(x => x.GAMETIME > gtime)
-                    .ToList();
+            lock (_options.db)
+            {
+                if (gtime == DateTime.MinValue || DSdata.Config.FullSend == true)
+                    UploadReplays = _options.db.DSReplays
+                        .Include(o => o.Middle)
+                        .Include(p => p.DSPlayer)
+                        .ThenInclude(p => p.Breakpoints)
+                        .ToList();
+                else
+                    UploadReplays = _options.db.DSReplays
+                        .Include(o => o.Middle)
+                        .Include(p => p.DSPlayer)
+                        .ThenInclude(p => p.Breakpoints).Where(x => x.GAMETIME > gtime)
+                        .ToList();
+            }
             List<string> anonymous = new List<string>();
             foreach (DSReplay rep in UploadReplays)
             {
@@ -124,10 +130,12 @@ namespace sc2dsstats.desktop.Service
 
             File.WriteAllLines(exp_csv, anonymous);
 
-            _context.ChangeTracker.Entries()
-                .Where(e => e.Entity != null).ToList()
-                .ForEach(e => e.State = EntityState.Detached);
-
+            lock (_options.db)
+            {
+                _options.db.ChangeTracker.Entries()
+                    .Where(e => e.Entity != null).ToList()
+                    .ForEach(e => e.State = EntityState.Detached);
+            }
             string exp_csv_gz = exp_csv + ".gz";
             using (FileStream fileToBeZippedAsStream = new FileInfo(exp_csv).OpenRead())
             {

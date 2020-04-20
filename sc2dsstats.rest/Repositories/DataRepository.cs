@@ -166,24 +166,23 @@ namespace sc2dsstats.rest.Repositories
                         upload.DSRestPlayer = player;
                         _context.DSRestUploads.Add(upload);
 
-                        DSinfo info = Infos.FirstOrDefault(f => f.Key == id).Value;
-                        if (info != null)
+                        if (Infos.ContainsKey(id))
                         {
                             DateTime LastRep = DateTime.MinValue;
-                            if (info.LastRep.Length == 14)
+                            if (Infos[id].LastRep.Length == 14)
                             {
-                                int year = int.Parse(info.LastRep.Substring(0, 4));
-                                int month = int.Parse(info.LastRep.Substring(4, 2));
-                                int day = int.Parse(info.LastRep.Substring(6, 2));
-                                int hour = int.Parse(info.LastRep.Substring(8, 2));
-                                int min = int.Parse(info.LastRep.Substring(10, 2));
-                                int sec = int.Parse(info.LastRep.Substring(12, 2));
+                                int year = int.Parse(Infos[id].LastRep.Substring(0, 4));
+                                int month = int.Parse(Infos[id].LastRep.Substring(4, 2));
+                                int day = int.Parse(Infos[id].LastRep.Substring(6, 2));
+                                int hour = int.Parse(Infos[id].LastRep.Substring(8, 2));
+                                int min = int.Parse(Infos[id].LastRep.Substring(10, 2));
+                                int sec = int.Parse(Infos[id].LastRep.Substring(12, 2));
                                 LastRep = new DateTime(year, month, day, hour, min, sec);
                             }
                             player.LastRep = LastRep;
-                            player.Json = info.Json;
-                            player.Total = info.Total;
-                            player.Version = info.Version;
+                            player.Json = Infos[id].Json;
+                            player.Total = Infos[id].Total;
+                            player.Version = Infos[id].Version;
                         }
 
                         lock (dblock)
