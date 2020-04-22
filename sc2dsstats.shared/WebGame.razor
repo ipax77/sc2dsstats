@@ -116,66 +116,82 @@
                     <h4><span class="badge badge-secondary mr-1">@Game.MVP</span></h4>
                     <h4><span class="badge badge-secondary">@Game.Mode</span></h4>
                 </div>
+                <div id="middle_chart" class="@MiddleCheck">
+                    <button type="button" class="btn btn-sm" @onclick="ShowMiddle">Hide</button>
+                    <GameMiddle />
+                </div>
                 <div class="row">
+
                     @for (int i = 1; i >= 0; i--)
                     {
-                        <div class="ml-1">
-                            @if (_options.Replay.WINNER == i)
-                            {
-                                TeamClass = "badge-success";
-                                <h4><span class="badge @TeamClass">Team @(i + 1) - Winner</span></h4>
-                            }
-                            else
-                            {
-                                TeamClass = "badge-danger";
-                                <h4><span class="badge @TeamClass">Team @(i + 1)</span></h4>
-                            }
-                            <table class="table table-sm table-dark table-hover">
-                                <thead>
-                                    <tr>
-                                        <th colspan="2"><h5><span class="badge badge-light">@Game.Mid[i]</span></h5></th>
+                    <div class="ml-1">
+                        @if (_options.Replay.WINNER == i)
+                        {
+                            TeamClass = "badge-success";
+                            <h4>
+                                <span class="badge @TeamClass">
+                                    Team @(i + 1) - Winner
+                                    <span type="button" class="badge badge-secondary" @onclick="ShowMiddle">Middle: @Game.Mid[i]</span>
+                                </span>
+                            </h4>
+                        }
+                        else
+                        {
+                            TeamClass = "badge-danger";
+                            <h4>
+                                <span class="badge @TeamClass">
+                                    Team @(i + 1)
+                                    <span type="button" class="badge badge-secondary" @onclick="ShowMiddle">Middle: @Game.Mid[i]</span>
+                                </span>
+                            </h4>
+                        }
+                        <table class="table table-sm table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
 
-                                        <th>Build</th>
-                                        <th>Cmdr</th>
-                                        <th>Army</th>
-                                        <th>Kills</th>
-                                        <th>Cash</th>
-                                        <th>DPV</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (DSPlayer pl in _options.Replay.DSPlayer.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
+                                    </th>
+                                    <th>Build</th>
+                                    <th>Cmdr</th>
+                                    <th>Army</th>
+                                    <th>Kills</th>
+                                    <th>Cash</th>
+                                    <th>DPV</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (DSPlayer pl in _options.Replay.DSPlayer.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS))
+                                {
+                                    @if (pl.NAME.Length == 64 || _options.Players.Where(x => x.Value == true && pl.NAME == x.Key).Any())
                                     {
-                                        @if (pl.NAME.Length == 64 || _options.Players.Where(x => x.Value == true && pl.NAME == x.Key).Any())
-                                        {
-                                            PlayerClass = "table-primary";
-                                        }
-                                        else if (pl.KILLSUM == _options.Replay.MAXKILLSUM)
-                                        {
-                                            PlayerClass = "table-success";
-                                        }
-                                        else if (pl.PDURATION < _options.Replay.DURATION - 90)
-                                        {
-                                            PlayerClass = "table-danger";
-                                        }
-                                        else
-                                        {
-                                            PlayerClass = "table-dark";
-                                        }
-                                        <tr class="@PlayerClass table-row" @onclick="@(() => BuildCheck[pl.REALPOS] = !BuildCheck[pl.REALPOS])">
-                                            <td>@pl.REALPOS</td>
-                                            <td width="30px"><img alt="img_@pl.RACE" longdesc="img_@pl.RACE" src="@DSdata.GetIcon(@pl.RACE)" width="30" height="30" /></td>
-                                            <td><input id="build_@pl.RACE\_@pl.REALPOS" name="build_@pl.RACE" type="checkbox" checked="@BuildCheck[pl.REALPOS]" /></td>
-                                            <td>@pl.RACE</td>
-                                            <td>@(Math.Round((double)pl.ARMY / 1000, 2))k</td>
-                                            <td>@(Math.Round((double)pl.KILLSUM / 1000, 2))k</td>
-                                            <td>@(Math.Round((double)pl.INCOME / 1000, 2))k</td>
-                                            <td>@Math.Round((double)pl.KILLSUM / (double)pl.ARMY, 2)</td>
-                                        </tr>
+                                        PlayerClass = "table-primary";
                                     }
-                                </tbody>
-                            </table>
-                        </div>
+                                    else if (pl.KILLSUM == _options.Replay.MAXKILLSUM)
+                                    {
+                                        PlayerClass = "table-success";
+                                    }
+                                    else if (pl.PDURATION < _options.Replay.DURATION - 90)
+                                    {
+                                        PlayerClass = "table-danger";
+                                    }
+                                    else
+                                    {
+                                        PlayerClass = "table-dark";
+                                    }
+                                    <tr class="@PlayerClass table-row" @onclick="@(() => BuildCheck[pl.REALPOS] = !BuildCheck[pl.REALPOS])">
+                                        <td>@pl.REALPOS</td>
+                                        <td width="30px"><img alt="img_@pl.RACE" longdesc="img_@pl.RACE" src="@DSdata.GetIcon(@pl.RACE)" width="30" height="30" /></td>
+                                        <td><input id="build_@pl.RACE\_@pl.REALPOS" name="build_@pl.RACE" type="checkbox" checked="@BuildCheck[pl.REALPOS]" /></td>
+                                        <td>@pl.RACE</td>
+                                        <td>@(Math.Round((double)pl.ARMY / 1000, 2))k</td>
+                                        <td>@(Math.Round((double)pl.KILLSUM / 1000, 2))k</td>
+                                        <td>@(Math.Round((double)pl.INCOME / 1000, 2))k</td>
+                                        <td>@Math.Round((double)pl.KILLSUM / (double)pl.ARMY, 2)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                     }
                 </div>
                 <div class="row w-auto">
@@ -185,7 +201,14 @@
                         </div>
                     </div>
                     <div class="col-auto">
-                        <h5 class="text-info">Gametime: @_options.GameBreakpoint.ToLower()</h5>
+                        @if (_options.GameBreakpoint == "ALL")
+                        {
+                        <h5 class="text-info">Gametime: min@(TimeSpan.FromSeconds(_options.Replay.DURATION).Minutes)</h5>
+                        }
+                        else
+                        {
+                            <h5 class="text-info">Gametime: @_options.GameBreakpoint.ToLower()</h5>
+                        }
                     </div>
                     <div class="col-auto">
                         <a href="@link.Key">@link.Value</a>
@@ -209,58 +232,66 @@
                                     {
                                         BuildPlayerClass = "badge-danger";
                                     }
-                        <div>
-                            <h4><span class="badge @BuildPlayerClass">Build Player @i</span></h4>
-                            @if (bp != null)
-                            {
-                                @if (!String.IsNullOrEmpty(bp.dbUnitsString))
-                                {
-                                    <button type="button" class="btn btn-xs btn-dark" @onclick="@(() => ShowMap(pl.REALPOS, bp.Breakpoint))">Map</button>
-                                    <div id="map_@pl.REALPOS" class="@MapCheck[pl.REALPOS][bp.Breakpoint]">
-                                        <WebMap Units="Game.GetDbUnits(pl, bp, _options.Replay.OBJECTIVE)" Team="pl.TEAM" />
-                                        <div style="min-width: 500px; min-height: 773px;"></div>
-                                    </div>
-                                }
-                                <div class="row ml-2">
-                                    <span class="badge badge-light">Gas @bp.Gas</span>
-                                    <button type="button" class="btn btn-xs btn-light" @onclick="@(() => ShowUpgrades(pl.REALPOS, bp.Breakpoint))">Upgrades @bp.Upgrades</button>
-                                </div>
-                                <div id="upgradestable_@pl.REALPOS" class="@UpgradesCheck[pl.REALPOS][bp.Breakpoint]">
-                                    <table class="table table-sm table-dark">
-                                        <thead>
-                                            <tr>
-                                                <th>Upgrades</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (string upgrade in Game.Upgrades[pl.REALPOS][_options.GameBreakpoint])
-                                            {
-                                                <tr>
-                                                    <td>@upgrade</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <table class="table table-sm table-dark">
-                                    <thead>
-                                        <tr>
-                                            <th>Unit</th>
-                                            <th>Count</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var ent in Game.Units[pl.REALPOS][_options.GameBreakpoint])
+                                    <div>
+                                        <h4>
+                                            <span class="badge @BuildPlayerClass">
+                                                Build Player @i
+                                                @if (!String.IsNullOrEmpty(bp.dbUnitsString))
+                                                {
+
+                                                    <button type="button" class="btn btn-xs btn-secondary" @onclick="@(() => ShowMap(pl.REALPOS, bp.Breakpoint))">Map</button>
+                                                }
+                                            </span>
+                                        </h4>
+                                        @if (bp != null)
                                         {
-                                            <tr>
-                                                <td>@ent.Key</td>
-                                                <td>@ent.Value</td>
-                                            </tr>
+                                            @if (!String.IsNullOrEmpty(bp.dbUnitsString))
+                                            {
+                                            <div id="map_@pl.REALPOS" class="@MapCheck[pl.REALPOS][bp.Breakpoint]">
+                                                <WebMap Units="Game.GetDbUnits(pl, bp, _options.Replay.OBJECTIVE)" Team="pl.TEAM" />
+                                                <div style="min-width: 500px; min-height: 773px;"></div>
+                                            </div>
+                                            }
+                                            <div class="row ml-2">
+                                                <span class="badge badge-light">Gas @bp.Gas</span>
+                                                <button type="button" class="btn btn-xs btn-light" @onclick="@(() => ShowUpgrades(pl.REALPOS, bp.Breakpoint))">Upgrades @bp.Upgrades</button>
+                                            </div>
+                                            <div id="upgradestable_@pl.REALPOS" class="@UpgradesCheck[pl.REALPOS][bp.Breakpoint]">
+                                                <table class="table table-sm table-dark">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Upgrades</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (string upgrade in Game.Upgrades[pl.REALPOS][_options.GameBreakpoint])
+                                                        {
+                                                            <tr>
+                                                                <td>@upgrade</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <table class="table table-sm table-dark">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Unit</th>
+                                                        <th>Count</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var ent in Game.Units[pl.REALPOS][_options.GameBreakpoint])
+                                                    {
+                                                        <tr>
+                                                            <td>@ent.Key</td>
+                                                            <td>@ent.Value</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
                                         }
-                                    </tbody>
-                                </table>
-                            }
-                        </div>
+                                    </div>
                                 }
                             }
                         }
@@ -289,7 +320,9 @@
     WebGameModel Game = new WebGameModel();
     bool UpgradeShowBool = false;
     string UpgradesShow => UpgradeShowBool ? "show" : "";
-
+    bool MiddleShowBool = false;
+    string MiddleShow => MiddleShowBool ? "show" : "";
+    string MiddleCheck = "collapse";
 
     protected override void OnInitialized()
     {
@@ -440,6 +473,18 @@
         StateHasChanged();
     }
 
+    void ShowMiddle()
+    {
+        if (MiddleCheck == "collapse" || MiddleCheck == "fadeout")
+            MiddleCheck = "fadein";
+        else
+        {
+            MiddleCheck = "fadeout";
+            CollapseMiddle();
+        }
+        StateHasChanged();
+    }
+
     async Task CollapseMap(int pos, string bp)
     {
         await Task.Delay(500);
@@ -451,6 +496,13 @@
     {
         await Task.Delay(500);
         UpgradesCheck[pos][bp] = "collapse";
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    async Task CollapseMiddle()
+    {
+        await Task.Delay(500);
+        MiddleCheck = "collapse";
         await InvokeAsync(() => StateHasChanged());
     }
 

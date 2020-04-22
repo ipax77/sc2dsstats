@@ -44,6 +44,7 @@ namespace sc2dsstats.web
             services.AddSingleton<LoadData>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
+            services.AddScoped<GameChartService>();
             services.AddScoped<Visitor>();
         }
 

@@ -150,6 +150,7 @@ namespace sc2dsstats.shared.Service
                 }
             }
 
+
             if (dresult.CmdrInfo.Games > 0)
                 dresult.CmdrInfo.ADuration /= dresult.CmdrInfo.Games;
 
@@ -706,5 +707,31 @@ namespace sc2dsstats.shared.Service
         public List<ChartJSPluginlabelsImage> Images { get; set; } = new List<ChartJSPluginlabelsImage>();
         public ChartJSdataset Dataset { get; set; } = new ChartJSdataset("Default");
         public CmdrInfo CmdrInfo { get; set; } = new CmdrInfo();
+    }
+
+    public static class SimpleMovingAverageExtensions
+    {
+        public static IEnumerable<double> SimpleMovingAverage(this IEnumerable<double> source, int sampleLength)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            if (sampleLength <= 0) throw new ArgumentException("Invalid sample length");
+
+            return SimpleMovingAverageImpl(source, sampleLength);
+        }
+
+        private static IEnumerable<double> SimpleMovingAverageImpl(IEnumerable<double> source, int sampleLength)
+        {
+            Queue<double> sample = new Queue<double>(sampleLength);
+
+            foreach (double d in source)
+            {
+                if (sample.Count == sampleLength)
+                {
+                    sample.Dequeue();
+                }
+                sample.Enqueue(d);
+                yield return sample.Average();
+            }
+        }
     }
 }

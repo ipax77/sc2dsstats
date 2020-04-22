@@ -1,142 +1,75 @@
 ﻿@page "/dummy"
+
 @using System.ComponentModel
+@using Microsoft.AspNetCore.Components.Forms
 @using sc2dsstats.lib.Data
-@using sc2dsstats.shared;
+@using sc2dsstats.shared.Service
+@using sc2dsstats.shared
+@inject ChartService _chart
+@inject DSoptions _options
 
-<style>
-    .vl {
-        border-left: 6px solid red;
-    }
-</style>
-<h1>Radio Button Group Test</h1>
+<WebOptions />
 
-<div class="row">
-    <div>
-        <EditForm Model="_check" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <fieldset>
-                <div class="form-group">
-                    <h4>Cmdr</h4>
-                    <div class="custom-control custom-radio p-0 m-0">
-                        <label class="btn btn-sm btn-secondary" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                            <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                        </label>
-                    </div>
-                    @foreach (string cmdr in DSdata.s_races)
-                    {
-                        string isActive = "";
-                        <div class="custom-control custom-radio p-0 m-0">
-
-                            @if (_check.Selected == cmdr)
-                                isActive = "active";
-                            else
-                                isActive = "";
-                            <label class="btn btn-sm btn-outline-info text-left @isActive" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                                <InputRadio name="cmdrs" SelectedValue="cmdr" @bind-Value="_check.Selected" />
-                                <img alt="img_@cmdr" longdesc="img_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
-                                @cmdr
-                            </label>
-                        </div>
-                    }
-                </div>
-            </fieldset>
-        </EditForm>
-    </div>
-    <div class="vl">
-        <EditForm Model="_checkvs" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <fieldset>
-                <div class="form-group">
-                    <h4>Vs</h4>
-                    <div class="custom-control custom-radio p-0 m-0">
-                        @if (_checkvs.Selected == "ALL")
-                        {
-                            <label class="btn btn-sm btn-outline-info text-left active" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                ALL
-                            </label>
-                        }
-                        else
-                        {
-                            <label class="btn btn-sm btn-outline-info text-left" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                ALL
-                            </label>
-
-                        }
-                    </div>
-                    @foreach (string cmdr in DSdata.s_races)
-                    {
-                        string isActive = "";
-                        <div class="custom-control custom-radio p-0 m-0">
-
-                            @if (_checkvs.Selected == cmdr)
-                                isActive = "active";
-                            else
-                                isActive = "";
-                            <label class="btn btn-sm btn-outline-info text-left @isActive" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                                <InputRadio name="cmdrsvs" SelectedValue="cmdr" @bind-Value="_checkvs.Selected" />
-                                <img alt="imgvs_@cmdr" longdesc="imgvs_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
-                                @cmdr
-                            </label>
-                        </div>
-                    }
-                    <div class="custom-control custom-radio p-0 m-0">
-                        @if (_checkvs.Selected == "ALL")
-                        {
-                            <label class="btn btn-sm btn-outline-info text-left active" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                ALL
-                            </label>
-                        }
-                        else
-                        {
-                            <label class="btn btn-sm btn-outline-info text-left" style="min-width: 120px !important; max-height: 35px !important; margin-top: 0px !important; margin-bottom: 0px !important;">
-                                <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                ALL
-                            </label>
-
-                        }
-                    </div>
-                </div>
-            </fieldset>
-        </EditForm>
-    </div>
+<div>
+    <canvas id="canvas"></canvas>
 </div>
 
 
-<button type="button" class="btn btn-outline-info" @onclick="@(() => _check.Selected = "4")">4</button>
-<button type="button" class="btn btn-outline-info" @onclick="@(() => _check.Selected = "5")">5</button>
-
-<p>You chose: @_check.Selected</p>
-<p>vs: @_checkvs.Selected</p>
-
 @code {
-    private RadioCheckString _check = new RadioCheckString();
-    private RadioCheckString _checkvs = new RadioCheckString();
 
-    private void HandleValidSubmit()
-    {
-        Console.WriteLine("valid");
-    }
+    bool Loading = true;
 
     protected override void OnInitialized()
     {
-        _check.Selected = "Abathur";
-        _checkvs.Selected = "ALL";
-        base.OnInitialized();
-        _check.PropertyChanged += OnClick;
+        _options.DefaultFilter();
+        _options.Mode = "Timeline";
+        _options.Interest = "Nova";
+
+        Loading = false;
+
+        if (DSdata.Config.Players.Any())
+        {
+            _options.Player = true;
+            foreach (var ent in _options.Players.Where(x => x.Value == true))
+                _options.Dataset.Add(ent.Key);
+        }
+        _options.PropertyChanged += OptionChanged;
     }
 
-    public void OnClick(object sender, PropertyChangedEventArgs e)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        Console.WriteLine(e);
+        if (firstRender)
+        {
+            _chart.Init(_options).GetAwaiter();
+            _options.Update = !_options.Update;
+        }
+        return base.OnAfterRenderAsync(firstRender);
     }
 
+    private async void OptionChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (String.IsNullOrEmpty(_options.Mode) || _options.Mode == "Build" || _options.Mode == "Database")
+            return;
+
+        if (Loading == false)
+        {
+            Loading = true;
+
+            foreach (var ent in _options.CmdrsChecked.Keys.ToArray())
+                _options.CmdrsChecked[ent] = false;
+            if (!String.IsNullOrEmpty(_options.Interest))
+                _options.CmdrsChecked[_options.Interest] = true;
+
+            await InvokeAsync(() => StateHasChanged());
+
+            if (e.PropertyName == "BeginAtZero")
+                await _chart.ChangeOption(_options);
+            else
+                await _chart.ChartHandler(_options);
+
+
+            Loading = false;
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
 }

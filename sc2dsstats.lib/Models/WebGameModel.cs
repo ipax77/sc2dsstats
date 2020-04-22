@@ -15,7 +15,7 @@ namespace sc2dsstats.lib.Models
         public string Player { get; set; } = "";
         public string MVP { get; set; } = "";
         public string Mode { get; set; } = "unknown";
-        public List<string> Mid { get; set; } = new List<string>() { "Mid: 0%", "Mid: 0%" };
+        public List<string> Mid { get; set; } = new List<string>() { "0%", "0%" };
         public Dictionary<string, double> BreakpointMid { get; set; } = new Dictionary<string, double>();
         public Dictionary<int, Dictionary<string, HashSet<string>>> Upgrades { get; set; } = new Dictionary<int, Dictionary<string, HashSet<string>>>();
         public Dictionary<int, Dictionary<string, Dictionary<string, int>>> Units { get; set; } = new Dictionary<int, Dictionary<string, Dictionary<string, int>>>();
@@ -84,21 +84,21 @@ namespace sc2dsstats.lib.Models
                 {
                     DbBreakpoint bp = mpl1.Breakpoints.FirstOrDefault(x => x.Breakpoint == Breakpoint);
                     if (bp != null)
-                        Mid[0] = "Mid: " + Math.Round(bp.Mid * 100 / bpgameloop, 2).ToString("00.00") + "%";
+                        Mid[0] = Math.Round(bp.Mid * 100 / bpgameloop, 2).ToString("00.00") + "%";
                 }
                 DSPlayer mpl2 = replay.DSPlayer.FirstOrDefault(f => f.TEAM == 1);
                 if (mpl2 != null)
                 {
                     DbBreakpoint bp = mpl2.Breakpoints.FirstOrDefault(x => x.Breakpoint == Breakpoint);
                     if (bp != null)
-                        Mid[1] = "Mid: " + Math.Round(bp.Mid * 100 / bpgameloop, 2).ToString("00.00") + "%";
+                        Mid[1] = Math.Round(bp.Mid * 100 / bpgameloop, 2).ToString("00.00") + "%";
                 }
             } else
             {
                 int midt1 = replay.GetMiddle((int)bpgameloop, 0);
                 int midt2 = replay.GetMiddle((int)bpgameloop, 1);
-                Mid[0] = "Mid: " + Math.Round( midt1 * 100 / bpgameloop, 2).ToString("00.00") + "%";
-                Mid[1] = "Mid: " + Math.Round(midt2 * 100 / bpgameloop, 2).ToString("00.00") + "%";
+                Mid[0] = Math.Round( midt1 * 100 / bpgameloop, 2).ToString("00.00") + "%";
+                Mid[1] = Math.Round(midt2 * 100 / bpgameloop, 2).ToString("00.00") + "%";
             }
         }
 

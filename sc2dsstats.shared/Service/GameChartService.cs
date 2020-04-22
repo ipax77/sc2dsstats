@@ -59,8 +59,8 @@ namespace sc2dsstats.shared.Service
                 mychart.type = "line";
                 mychart.options = GetOptions();
                 mychart.options.title.text = "game details";
-                mychart.options.title.fontColor = "#0c07ad";
-                mychart.options.legend.labels.fontColor = "#0c07ad";
+                mychart.options.title.fontColor = "#c9c9ff";
+                mychart.options.legend.labels.fontColor = "#c9c9ff";
                 if (draw == true) await ChartJSInterop.ChartChanged(_jsRuntime, JsonSerializer.Serialize(mychart));
                 mycolorPool = new List<string>(colorPool);
                 return mychart;
@@ -132,7 +132,69 @@ namespace sc2dsstats.shared.Service
                 col.pointBackgroundColor = "rgba(" + temp_col + ", 0.2)";
                 return col;
             }
+
+        public ChartJScolorhelper GetChartColor(bool winner)
+        {
+            Random rnd = new Random();
+
+            string temp_col = "255, 255, 255";
+
+            if (winner)
+                temp_col = "1, 200, 1";
+            else
+                temp_col = "200, 1, 1";
+            
+
+            ChartJScolorhelper col = new ChartJScolorhelper();
+            col.backgroundColor = "rgba(" + temp_col + ", 0.5)";
+            col.borderColor = "rgba(" + temp_col + ",1)";
+            col.barborderColor = "rgb(255, 0, 0)";
+            col.pointBackgroundColor = "rgba(" + temp_col + ", 0.2)";
+            return col;
+        }
+
+        public void CreateMiddleChart(DSReplay replay, ChartJS _chart)
+        {
+            List<string> labels = new List<string>();
+            List<double> midTeam1 = new List<double>();
+            List<double> midTeam2 = new List<double>();
+            TimeSpan gt = TimeSpan.FromSeconds(replay.DURATION) / 100;
+
+
+            for (int i = 0; i < 100; i++) {
+                TimeSpan gtint = gt * i;
+                labels.Add(gtint.ToString(@"hh\:mm\:ss"));
+                midTeam1.Add(replay.GetMiddle((int)(gtint.TotalSeconds * 22.4), 0) / 22.4);
+                midTeam2.Add(replay.GetMiddle((int)(gtint.TotalSeconds * 22.4), 1) / 22.4);
+            }
+
+            _chart.data.labels = labels;
+
+            ChartJSdataset dsTeam1 = new ChartJSdataset();
+            ChartJSdataset dsTeam2 = new ChartJSdataset();
+
+            dsTeam1.label = "Team1";
+            dsTeam2.label = "Team2";
+
+            var col = GetChartColor(replay.WINNER == 0);
+            dsTeam1.backgroundColor.Add("rgba(0, 0, 0, 0)");
+            dsTeam1.borderColor = col.borderColor;
+            dsTeam1.pointBackgroundColor = col.pointBackgroundColor;
+
+            col = GetChartColor(replay.WINNER == 1);
+            dsTeam2.backgroundColor.Add("rgba(0, 0, 0, 0)");
+            dsTeam2.borderColor = col.borderColor;
+            dsTeam2.pointBackgroundColor = col.pointBackgroundColor;
+
+            dsTeam1.data = midTeam1;
+            dsTeam2.data = midTeam2;
+
+            _chart.data.datasets.Add(dsTeam1);
+            _chart.data.datasets.Add(dsTeam2);
+
+            DrawChart(_chart);
         }
     }
+}
 
 

@@ -72,7 +72,6 @@ namespace sc2dsstats.shared.Service
 
 
             var replays = DBReplayFilter.Filter(_options, _options.db);
-            DSReplay rep1 = replays.FirstOrDefault(f => f.ID == 1598);
             bresult.TotalGames = replays.Count();
 
             var result = (String.IsNullOrEmpty(_options.Vs) switch
@@ -110,7 +109,6 @@ namespace sc2dsstats.shared.Service
                              u1.Gas
                          }
             });
-
             if (!result.Any())
             {
                 _options.buildResult = new BuildResult();
