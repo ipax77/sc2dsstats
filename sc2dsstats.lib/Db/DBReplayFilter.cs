@@ -79,7 +79,7 @@ namespace sc2dsstats.lib.Db
             if (options.Enddate != default(DateTime))
                 filReplays = filReplays.Where(x => x.GAMETIME <= options.Enddate.AddDays(1));
 
-            if (options.Dataset.Any() && options.db.Database.IsMySql())
+            if (options.Dataset.Any() && DSdata.IsMySQL)
             {
                 filReplays = filReplays
                     .Where(x => x.DSPlayer.Select(s => s.NAME).Contains(options.Dataset.First()));

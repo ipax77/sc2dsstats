@@ -5,13 +5,11 @@
 @using sc2dsstats.shared
 @inject LoadData _data
 @inject DSoptions _options
-@inject DSReplayContext  _context
-@inject IJSRuntime _jsRuntime
 @implements IDisposable
 
 <WebOptions />
 
-@if (DSdata.DesktopStatus.DatabaseReplays > 0 && !_options.Decoding)
+@if (DSdata.DesktopStatus.DatabaseReplays > 0)
 {
     <div class="mt-1">
         <WebChart />
@@ -29,10 +27,6 @@ else
 
     protected override void OnInitialized()
     {
-
-        if (_options.db == null)
-            _options.db = _context;
-
         _data.DataLoaded += Update;
     }
 

@@ -1,0 +1,90 @@
+﻿@page "/unittest"
+@using sc2dsstats.lib.Data
+@using sc2dsstats.desktop.Service
+@using sc2dsstats.lib.Models
+@using Microsoft.Extensions.Logging
+@inject sc2dsstats.lib.Data.DSoptions _options
+@inject sc2dsstats.desktop.Service.Status _status
+@inject sc2dsstats.lib.Db.DBService _db
+@inject ILogger<UnitTest> _logger
+
+<h3>UnitTest</h3>
+
+<button role="button" class="btn btn-primary" @onclick="OTFTest">Run OTF Test</button>
+
+<div>@i</div>
+<div class="ml-3">
+    @if (UploadStatus == UploadStatus.Uploading)
+    {
+        <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Uploading")
+    }
+    else if (UploadStatus == UploadStatus.UploadSuccess)
+    {
+        <span class="oi oi-circle-check text-success">&nbsp;</span> @("Upload successful")
+    }
+    else if (UploadStatus == UploadStatus.UploadFailed)
+    {
+        <span class="oi oi-circle-x text-danger">&nbsp;</span> @("Upload failed. Please try again later.")
+    }
+    else
+    {
+    }
+</div>
+<div>
+    @info
+</div>
+<div>
+    @error
+</div>
+
+@code {
+
+    string info = "";
+    string error = "";
+    int i = 0;
+    UploadStatus UploadStatus = UploadStatus.UploadDone;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _status.StatusChanged += ScanUpdate;
+    }
+
+
+    void ScanUpdate(object sender, EventArgs e)
+    {
+        StatusChangedEventArgs arg = e as StatusChangedEventArgs;
+        info = arg.Info;
+        UploadStatus = arg.UploadStatus;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    async Task OTFTest()
+    {
+        for (i = 0; i < 10; i++)
+        {
+            while (_options.Decoding)
+            {
+                _logger.LogInformation("Waiting ...");
+                await Task.Delay(250);
+                _logger.LogInformation(_db.GetReplayCount().ToString());
+            }
+
+            sc2dsstats.lib.Models.DSReplay testrep = null;
+
+            _logger.LogInformation("Searching Testrep");
+            testrep = _db.GetReplayFromREPLAY("2c16ad60406ab0c2765cae46f0ab72ffdd513d5ade7a5e60876c166b7ba3b94a");
+            if (testrep != null)
+            {
+                _db.DeleteRep(testrep.ID);
+            } else
+            {
+                _logger.LogInformation("TestReplay not found");
+            }
+
+            await _status.ScanReplayFolders();
+            _options.Decoding = true;
+            _status.DecodeReplays();
+        }
+
+    }
+}

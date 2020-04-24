@@ -15,12 +15,14 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.6");
+        public static Version DesktopVersion = new Version("2.0.7");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
         public static bool DesktopUpdateAvailable = false;
 
         public static int OptID = 0;
         public static ConcurrentDictionary<int, List<string>> Telemetrie = new ConcurrentDictionary<int, List<string>>();
+
+        public static bool IsMySQL = false;
 
         public static void Init()
         {

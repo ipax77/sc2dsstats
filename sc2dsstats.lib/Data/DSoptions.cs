@@ -74,7 +74,7 @@ namespace sc2dsstats.lib.Data
         public string Breakpoint { get; set; } = "";
         public string GameBreakpoint { get; set; } = "MIN10";
         public bool Decoding { get; set; } = false;
-        public DSReplayContext db { get; set; }
+        //public DSReplayContext db { get; set; }
         public BuildResult buildResult { get; set; } = new BuildResult();
         public bool OnTheFlyScan { get; set; } = false;
 

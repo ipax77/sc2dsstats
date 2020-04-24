@@ -1,4 +1,5 @@
-﻿using sc2dsstats.lib.Data;
+﻿using Microsoft.Extensions.Options;
+using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
 using System;
@@ -23,13 +24,13 @@ namespace sc2dsstats.shared.Service
             Computing = new HashSet<string>();
         }
 
-        public static async Task GetBuild(DSoptions _options)
+        public static async Task GetBuild(DSoptions _options, DSReplayContext _context, object dblock)
         {
             if (_options.Vs == "ALL")
                 _options.Vs = String.Empty;
             string Hash = _options.GenHash();
 
-            if (BuildCache.ContainsKey(Hash))
+            if (!_options.Decoding && BuildCache.ContainsKey(Hash))
             {
                 _options.buildResult = BuildCache[Hash];
                 return;
@@ -49,9 +50,9 @@ namespace sc2dsstats.shared.Service
                 while (Computing.Contains(Hash))
                 {
                     await Task.Delay(500);
-
                 }
-                _options.buildResult = BuildCache[Hash];
+                if (BuildCache.ContainsKey(Hash))
+                    _options.buildResult = BuildCache[Hash];
                 return;
             }
 
@@ -70,113 +71,121 @@ namespace sc2dsstats.shared.Service
                 _options.Gamemodes["GameModeCommandersHeroic"] = true;
             }
 
-
-            var replays = DBReplayFilter.Filter(_options, _options.db);
-            bresult.TotalGames = replays.Count();
-
-            var result = (String.IsNullOrEmpty(_options.Vs) switch
+            lock (dblock)
             {
-                true => from r in replays
-                        from t1 in r.DSPlayer
-                        where t1.RACE == _options.Interest
-                        where _options.Dataset.Contains(t1.NAME)
-                        from u1 in t1.Breakpoints
-                        where u1.Breakpoint == _options.Breakpoint
-                        select new
-                        {
-                            r.ID,
-                            r.DURATION,
-                            r.GAMETIME,
-                            t1.WIN,
-                            u1.dsUnitsString,
-                            u1.Upgrades,
-                            u1.Gas
-                        },
-                false => from r in replays
-                         from t1 in r.DSPlayer
-                         where t1.RACE == _options.Interest && t1.OPPRACE == _options.Vs
-                         where _options.Dataset.Contains(t1.NAME)
-                         from u1 in t1.Breakpoints
-                         where u1.Breakpoint == _options.Breakpoint
-                         select new
-                         {
-                             r.ID,
-                             r.DURATION,
-                             r.GAMETIME,
-                             t1.WIN,
-                             u1.dsUnitsString,
-                             u1.Upgrades,
-                             u1.Gas
-                         }
-            });
-            if (!result.Any())
-            {
-                _options.buildResult = new BuildResult();
-                return;
-            }
-            try
-            {
-                var sresult = result.Select(s => new { s.ID, s.GAMETIME, s.DURATION });
-                var lsresult = sresult.Distinct().ToList();
-                bresult.RepIDs = lsresult.Select(s => new { s.ID, s.GAMETIME }).ToDictionary(d => d.ID, d => d.GAMETIME.ToString("yyyy/MM/dd"));
+                var replays = DBReplayFilter.Filter(_options, _context);
+                bresult.TotalGames = replays.Count();
 
-                bresult.Games = bresult.RepIDs.Count;
-                float wins = result.Where(x => x.WIN == true).Select(s => s.ID).Distinct().Count();
-                bresult.Winrate = MathF.Round(wins * 100 / bresult.Games, 2);
-
-                var nndur = lsresult.Sum(s => s.DURATION);
-                bresult.Duration = TimeSpan.FromSeconds(nndur) / (float)bresult.Games;
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("this should not happen :(" + e.Message);
-                _options.buildResult = new BuildResult();
-                return;
-            }
-
-            foreach (string unitsstring in result.Select(s => s.dsUnitsString))
-            {
-                if (!String.IsNullOrEmpty(unitsstring))
+                var result = (String.IsNullOrEmpty(_options.Vs) switch
                 {
-                    foreach (string unitstring in unitsstring.Split("|"))
-                    {
-                        var ent = unitstring.Split(",");
+                    true => from r in replays
+                            from t1 in r.DSPlayer
+                            where t1.RACE == _options.Interest
+                            where _options.Dataset.Contains(t1.NAME)
+                            from u1 in t1.Breakpoints
+                            where u1.Breakpoint == _options.Breakpoint
+                            select new
+                            {
+                                r.ID,
+                                r.DURATION,
+                                r.GAMETIME,
+                                t1.WIN,
+                                u1.dsUnitsString,
+                                u1.Upgrades,
+                                u1.Gas
+                            },
+                    false => from r in replays
+                             from t1 in r.DSPlayer
+                             where t1.RACE == _options.Interest && t1.OPPRACE == _options.Vs
+                             where _options.Dataset.Contains(t1.NAME)
+                             from u1 in t1.Breakpoints
+                             where u1.Breakpoint == _options.Breakpoint
+                             select new
+                             {
+                                 r.ID,
+                                 r.DURATION,
+                                 r.GAMETIME,
+                                 t1.WIN,
+                                 u1.dsUnitsString,
+                                 u1.Upgrades,
+                                 u1.Gas
+                             }
+                });
+                if (!result.Any())
+                {
+                    _options.buildResult = new BuildResult();
+                    return;
+                }
+                try
+                {
+                    var sresult = result.Select(s => new { s.ID, s.GAMETIME, s.DURATION });
+                    var lsresult = sresult.Distinct().ToList();
+                    bresult.RepIDs = lsresult.Select(s => new { s.ID, s.GAMETIME }).ToDictionary(d => d.ID, d => d.GAMETIME.ToString("yyyy/MM/dd"));
 
-                        if (!bresult.Units.ContainsKey(ent[0]))
-                            bresult.Units[ent[0]] = float.Parse(ent[1]);
-                        else
-                            bresult.Units[ent[0]] += float.Parse(ent[1]);
+                    bresult.Games = bresult.RepIDs.Count;
+                    float wins = result.Where(x => x.WIN == true).Select(s => s.ID).Distinct().Count();
+                    bresult.Winrate = MathF.Round(wins * 100 / bresult.Games, 2);
+
+                    var nndur = lsresult.Sum(s => s.DURATION);
+                    bresult.Duration = TimeSpan.FromSeconds(nndur) / (float)bresult.Games;
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("this should not happen :(" + e.Message);
+                    _options.buildResult = new BuildResult();
+                    lock (Computing)
+                    {
+                        Computing.Remove(Hash);
+                    }
+                    return;
+                }
+
+                foreach (string unitsstring in result.Select(s => s.dsUnitsString))
+                {
+                    if (!String.IsNullOrEmpty(unitsstring))
+                    {
+                        foreach (string unitstring in unitsstring.Split("|"))
+                        {
+                            var ent = unitstring.Split(",");
+
+                            if (!bresult.Units.ContainsKey(ent[0]))
+                                bresult.Units[ent[0]] = float.Parse(ent[1]);
+                            else
+                                bresult.Units[ent[0]] += float.Parse(ent[1]);
+                        }
                     }
                 }
-            }
 
-            foreach (string unit in bresult.Units.Keys.ToArray())
-            {
-                bresult.Units[unit] = MathF.Round(bresult.Units[unit] / bresult.Games, 2);
-                int id = 0;
-                if (int.TryParse(unit, out id)) {
-                    UnitModelBase bunit = DSdata.Units.SingleOrDefault(s => s.ID == id);
-                    if (bunit != null)
+
+                foreach (string unit in bresult.Units.Keys.ToArray())
+                {
+                    bresult.Units[unit] = MathF.Round(bresult.Units[unit] / bresult.Games, 2);
+                    int id = 0;
+                    if (int.TryParse(unit, out id))
                     {
-                        bresult.Units[bunit.Name] = bresult.Units[unit];
-                        bresult.Units.Remove(unit);
+                        UnitModelBase bunit = DSdata.Units.SingleOrDefault(s => s.ID == id);
+                        if (bunit != null)
+                        {
+                            bresult.Units[bunit.Name] = bresult.Units[unit];
+                            bresult.Units.Remove(unit);
+                        }
                     }
                 }
-            }
 
-            bresult.Upgradespending = result.Sum(s => s.Upgrades) / bresult.Games;
-            bresult.Gascount = MathF.Round((float)result.Sum(s => s.Gas) / bresult.Games, 2);
+                bresult.Upgradespending = result.Sum(s => s.Upgrades) / bresult.Games;
+                bresult.Gascount = MathF.Round((float)result.Sum(s => s.Gas) / bresult.Games, 2);
 
-            bresult.UnitsOrdered = bresult.Units.OrderByDescending(o => o.Value);
-            bresult.max1 = 100;
-            bresult.max2 = 100;
-            bresult.max3 = 100;
-            if (bresult.Units.Count > 2)
-            {
-                bresult.max1 = (int)bresult.UnitsOrdered.ElementAt(0).Value;
-                bresult.max2 = (int)bresult.UnitsOrdered.ElementAt(1).Value;
-                bresult.max3 = (int)bresult.UnitsOrdered.ElementAt(2).Value;
+                bresult.UnitsOrdered = bresult.Units.OrderByDescending(o => o.Value);
+                bresult.max1 = 100;
+                bresult.max2 = 100;
+                bresult.max3 = 100;
+                if (bresult.Units.Count > 2)
+                {
+                    bresult.max1 = (int)bresult.UnitsOrdered.ElementAt(0).Value;
+                    bresult.max2 = (int)bresult.UnitsOrdered.ElementAt(1).Value;
+                    bresult.max3 = (int)bresult.UnitsOrdered.ElementAt(2).Value;
+                }
             }
 
             lock (BuildCache)

@@ -6,6 +6,8 @@
 @using Microsoft.EntityFrameworkCore 
 @inject Status _status
 @inject DSoptions _options
+@inject sc2dsstats.lib.Db.DBService _db
+@inject DecodeReplays _decode
 @implements IDisposable
 
 <h3>Scan</h3>
@@ -73,10 +75,10 @@
     }
 </div>
 <h5>@info</h5>
-@if (Decode.Failed.Count() > 0)
+@if (_decode.arg.FailedReplays.Count() > 0)
 {
     <div>
-        <h4>@Decode.Failed.Count() replays failed decoding</h4>
+        <h4>@_decode.arg.FailedReplays.Count() replays failed decoding</h4>
         Please check on <a href="https://github.com/ipax77/dsweb_desktop">GitHub</a> for an update.
         <br />
         Failed Replays:
@@ -85,7 +87,7 @@
                 <tr><th>Path</th></tr>
             </thead>
             <tbody>
-                @foreach (string rep in Decode.Failed)
+                @foreach (string rep in _decode.arg.FailedReplays)
                 {
                     <tr><td>@rep</td></tr>
                 }
@@ -94,7 +96,7 @@
     </div>
 
 }
-    <h4>Latest Game</h4>
+    <h4>Latest Game <button type="button" class="btn btn-sm btn-inline-dark" @onclick="@(() => _options.Replay = _db.GetLatestReplay())">Refresh</button></h4>
     <Game />
 
 <UploadCredentialDialog @ref="ucDialog" />
@@ -113,11 +115,8 @@
         _status.StatusChanged += ScanUpdate;
         await Task.Run(() =>
         {
-            lock (_options.db)
-            {
-                DSReplay rep = _options.db.DSReplays.Include(m => m.Middle).Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
-                _options.Replay = rep;
-            }
+            DSReplay rep = _db.GetLatestReplay();
+            _options.Replay = rep;
         });
         await _status.ScanReplayFolders();
     }

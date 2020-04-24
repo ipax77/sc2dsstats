@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sc2dsstats.decode;
 using sc2dsstats.decode.Service;
@@ -25,7 +26,6 @@ namespace sc2dsstats.desktop.Service
         public event EventHandler StatusChanged;
         private StatusChangedEventArgs args = new StatusChangedEventArgs();
         private readonly ILogger _logger;
-        private DSReplayContext _context;
         public static Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
         public static Dictionary<string, string> NewReplays { get; set; } = new Dictionary<string, string>();
         private static object lockobject = new object();
@@ -35,17 +35,18 @@ namespace sc2dsstats.desktop.Service
         private DSoptions _options;
         private OnTheFlyScan _onthefly;
         Regex reg = new Regex(@"\\Direct Strike|\\DST(\(\d+\))?");
+        private readonly IServiceScopeFactory _scope;
+        private DBService _db;
+        private DecodeReplays _decode;
 
-
-        public Status(ILogger<Status> logger, DSReplayContext context, DSoptions options, OnTheFlyScan onthefly)
+        public Status(ILogger<Status> logger, DBService db, DSoptions options, OnTheFlyScan onthefly, DecodeReplays decode, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
-            _context = context;
             _options = options;
             _onthefly = onthefly;
-
-            if (_options.db == null)
-                _options.db = _context;
+            _scope = scopeFactory;
+            _db = db;
+            _decode = decode;
 
             _logger.LogInformation("Start.");
             foreach (var ent in DSdata.Config.Replays)
@@ -103,10 +104,7 @@ namespace sc2dsstats.desktop.Service
                     DSdata.DesktopStatus.FoldersReplays = fileHashes.Count;
 
                     HashSet<string> dbHashes = new HashSet<string>();
-                    lock (_options.db)
-                    {
-                        dbHashes = _options.db.DSReplays.Select(s => s.REPLAY).ToHashSet();
-                    }
+                    dbHashes = _db.GetReplayHashes();
                     HashSet<string> fileKeys = fileHashes.Keys.ToHashSet();
                     fileKeys.ExceptWith(dbHashes);
 
@@ -142,7 +140,7 @@ namespace sc2dsstats.desktop.Service
                 {
                     lock (DSdata.DesktopStatus)
                     {
-                        return DSrest.AutoUpload(_options, _logger);
+                        return DSrest.AutoUpload(_scope, _logger);
                     }
                 }
                 catch
@@ -171,7 +169,15 @@ namespace sc2dsstats.desktop.Service
             else
             {
                 if (_onthefly.Running)
-                    _onthefly.Stop();
+                {
+                    try
+                    {
+                        _onthefly.Stop();
+                    } catch (Exception e)
+                    {
+                        _logger.LogError(e.Message);
+                    }
+                }
                 _options.OnTheFlyScan = false;
             }
             _options.Decoding = true;
@@ -180,16 +186,26 @@ namespace sc2dsstats.desktop.Service
             args.Decoded = 0;
             args.NewReplays = NewReplays.Count;
             args.Info = "Engine start.";
-            Decode.s2dec.ScanStateChanged += DecodeUpdate;
-            Decode.Doit(NewReplays.Values.ToList(), DSdata.Config.Cores);
-            //Decode.Doit(NewReplays.Values.Take(100).ToList(), DSdata.Config.Cores);
+            _decode.ScanStateChanged += DecodeUpdate;
+            _decode.Doit(NewReplays.Values.ToList(), _db, DSdata.Config.Cores);
             OnDataLoaded(args);
+
+            if (DSdata.DesktopStatus.DatabaseReplays == 0)
+            {
+                Task tsscan = Task.Factory.StartNew(() =>
+                {
+                    while (_options.Decoding && _options.Replay == null)
+                    {
+                        _options.Replay = _db.GetLatestReplay();
+                        Task.Delay(1000).GetAwaiter().GetResult();
+                    }
+                });
+            }
         }
 
         public void StopDecode()
         {
-            Decode.StopIt();
-            PopulateDb(true);
+            _decode.StopIt();
             lock (args)
             {
                 args.Info = "Stopping Threads..";
@@ -197,81 +213,15 @@ namespace sc2dsstats.desktop.Service
             OnDataLoaded(args);
         }
 
-        public async Task PopulateDb(bool fin = false)
+        public void DecodeFinished()
         {
-            if (args.inDB == 0)
-                Limit = 0;
-
-            if (Limit > 3 && fin == false)
-                return;
-
-            Interlocked.Increment(ref Limit);
-            await Task.Run(() =>
-            {
-                lock (lockobject)
-                {
-
-                    while (Decode.s2dec.DSReplays.Any())
-                    {
-                        DSReplay rep;
-                        Decode.s2dec.DSReplays.TryTake(out rep);
-                        if (rep != null)
-                        {
-                            //DBService.SaveReplay(_options.db, rep, bulk);
-                            _options.db.DSReplays.Add(rep);
-                            Interlocked.Increment(ref args.inDB);
-                        }
-                        if (args.inDB % 10 == 0)
-                        {
-                            lock (_options.db)
-                            {
-                                try
-                                {
-                                    _options.db.SaveChanges();
-                                }
-                                catch (Exception e)
-                                {
-                                    _logger.LogError(e.Message);
-                                }
-                            }
-                            if (fin)
-                                OnDataLoaded(args);
-                        }
-                    }
-                    if (fin == true)
-                    {
-                        lock (_options.db)
-                        {
-                            try
-                            {
-                                _options.db.SaveChanges();
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e.Message);
-                            }
-                            DSdata.Status.Count = _options.db.DSReplays.Count();
-                            _options.Replay = _options.db.DSReplays.Include(m => m.Middle).Include(p => p.DSPlayer).ThenInclude(b => b.Breakpoints).OrderByDescending(o => o.GAMETIME).FirstOrDefault();
-                        }
-                        _options.Decoding = false;
-
-                        if (DSdata.Config.OnTheFlyScan && _onthefly.Running == false)
-                        {
-                            _options.OnTheFlyScan = true;
-                            _onthefly.Start(this);
-                        }
-
-                        if (DSdata.Config.Uploadcredential)
-                            UploadReplays();
-                        ScanReplayFolders();
-                        OnDataLoaded(args);
-                        Reset();
-
-                    }
-
-                }
-            });
-            Interlocked.Decrement(ref Limit);
+            _options.Decoding = false;
+            if (DSdata.Config.Uploadcredential)
+                UploadReplays();
+            ScanReplayFolders();
+            _options.Replay = _db.GetLatestReplay();
+            OnDataLoaded(args);
+            Reset();
         }
 
         public static void SaveConfig()
@@ -339,15 +289,16 @@ namespace sc2dsstats.desktop.Service
             {
                 args.Decoded = scanState.Done;
                 args.Done = wr;
-                args.Info = $"{scanState.Done}/{DSdata.DesktopStatus.NewReplays} ({wr}%), inDB: {args.inDB} - Running on {scanState.Threads + 1} Threads.";
-                PopulateDb();
+                args.Info = $"{scanState.Done}/{DSdata.DesktopStatus.NewReplays} ({wr}%), ETA: {scanState.ETA.ToString(@"hh\:mm\:ss")} - Running on {scanState.Threads + 1} Threads.";
+                args.inDB = scanState.DbDone;
 
-                if (scanState.Threads == 0 && scanState.Done >= scanState.Total)
+                if (scanState.End != DateTime.MinValue)
                 {
                     if (scanState.Done == scanState.Total)
                         wr = 100;
-                    args.Info = $"{scanState.Done}/{scanState.Total} ({wr}%) - Elapsed Time: {(DateTime.Now - scanState.Start).ToString(@"hh\:mm\:ss")}";
-                    PopulateDb(true);
+                    args.Info = $"{scanState.Done}/{scanState.Total} ({wr}%) - Elapsed Time: {(scanState.End - scanState.Start).ToString(@"hh\:mm\:ss")}";
+                    if (_options.Decoding)
+                        DecodeFinished();
                 }
             }
             OnDataLoaded(args);

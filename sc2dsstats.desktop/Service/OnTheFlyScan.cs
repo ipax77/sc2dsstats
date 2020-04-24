@@ -31,6 +31,7 @@ namespace sc2dsstats.desktop.Service
 
         public void Start(Status status)
         {
+            _logger.LogInformation("otf start request.");
             if (Running == true) return;
             Running = true;
             _status = status;
@@ -68,6 +69,7 @@ namespace sc2dsstats.desktop.Service
 
         public void Stop()
         {
+            _logger.LogInformation("otf stop request.");
             TODO.CollectionChanged -= Source_CollectionChanged;
             TODO.Clear();
             foreach (string path in WATCHER.Keys)

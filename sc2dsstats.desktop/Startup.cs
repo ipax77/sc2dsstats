@@ -10,6 +10,7 @@ using sc2dsstats.desktop.Data;
 using sc2dsstats.desktop.Service;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
+using sc2dsstats.decode.Service;
 using sc2dsstats.shared.Service;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -38,11 +39,13 @@ namespace sc2dsstats.desktop
             options.UseSqlite($"Data Source={Program.workdir}/data_v3_0.db"));
             services.AddSingleton<LoadData>();
             services.AddSingleton<OnTheFlyScan>();
+            services.AddSingleton<DecodeReplays>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
             services.AddScoped<GameChartService>();
             services.AddScoped<Refresh>();
             services.AddScoped<Status>();
+            services.AddScoped<DBService>();
             services.AddTransient<StartupBackgroundService>();
             services.AddTransient<BulkInsert>();
 

@@ -3,6 +3,7 @@
 @using sc2dsstats.lib.Data
 @using sc2dsstats.shared.Service
 @inject DSoptions  _options
+@inject DBService _db
 @inject NavigationManager _nav
 
 <div class="mr-3">
@@ -117,17 +118,14 @@
         dbOptions.Cmdrs[4] = "Team2";
         dbOptions.Cmdrs[5] = "Team2";
         dbOptions.Cmdrs[6] = "Team2";
-
-        DBReplays = _options.db.DSReplays;
+        DBReplays = _db.GetQueriableReplays();
         Replays = DBReplays.OrderByDescending(o => o.GAMETIME).Take(take).ToList();
+        Replays = _db.GetReplays(0, take, "GAMETIME");
         if (RepId > 0)
             await ShowGame(RepId, true);
         else
         {
-            lock (_options.db)
-            {
-                RepId = _options.db.DSReplays.OrderByDescending(o => o.GAMETIME).FirstOrDefault().ID;
-            }
+            RepId = _db.GetLatestReplay().ID;
             await ShowGame(RepId, true);
             /*
             var uri = new Uri(_nav.Uri);
@@ -155,7 +153,7 @@
         if (lastsortid == sortid)
             sortoder = !sortoder;
         skip = 0;
-        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        Replays = _db.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         lastsortid = id;
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
@@ -171,7 +169,7 @@
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
         await Task.Run(() => {
-            _options.Replay = DBService.GetReplay(_options, repid);
+            _options.Replay = _db.GetReplay(repid);
             if (_options.Replay != null)
             {
                 if (isInit == false)
@@ -194,9 +192,9 @@
     async void DBSearch()
     {
         Loading = true;
-        DBReplays = DatabaseService.CmdrSearch(_options.db.DSReplays, dbOptions);
+        DBReplays = _db.CmdrSearch(_db.GetQueriableReplays(), dbOptions);
         skip = 0;
-        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        Replays = _db.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         Loading = false;
         if (Replays.Any())
             ShowGame(Replays.First().ID);
@@ -212,8 +210,8 @@
         dbOptions.Cmdrs[6] = "Team2";
 
         skip = 0;
-        DBReplays = _options.db.DSReplays;
-        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        DBReplays = _db.GetQueriableReplays();
+        Replays = _db.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         dbSearch.Reset();
         if (Replays.Any())
             ShowGame(Replays.First().ID);
@@ -226,7 +224,7 @@
             skip = 0;
         Loading = true;
 
-        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        Replays = _db.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         Loading = false;
     }
 
@@ -234,7 +232,7 @@
     {
         skip += take;
         Loading = true;
-        Replays = DatabaseService.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
+        Replays = _db.GetReplaysPart(DBReplays, sortid, skip, take, sortoder);
         Loading = false;
     }
 }

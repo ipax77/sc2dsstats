@@ -24,7 +24,7 @@ namespace sc2dsstats.shared.Service
             Computing = new HashSet<string>();
         }
 
-        public static async Task<DataResult> GetData(DSoptions _options, IJSRuntime _jsRuntime, bool doit = true)
+        public static async Task<DataResult> GetData(DSoptions _options, DSReplayContext _context, IJSRuntime _jsRuntime, object dblock, bool doit = true)
         {
             string Hash = _options.GenHash();
 
@@ -32,8 +32,9 @@ namespace sc2dsstats.shared.Service
                 DSdata.Telemetrie[_options.ID] = new List<string>();
             DSdata.Telemetrie[_options.ID].Add(Hash);
 
-            if (WinrateCache.ContainsKey(Hash))
-                return WinrateCache[Hash];
+            if (!_options.Decoding)
+                if (WinrateCache.ContainsKey(Hash))
+                    return WinrateCache[Hash];
 
             bool doWait = false;
             lock (Computing)
@@ -68,78 +69,36 @@ namespace sc2dsstats.shared.Service
             Object lockobject = new object();
 
 
-
-            var replays = DBReplayFilter.Filter(_options, _options.db, false);
-
-            HashSet<string> allcmdrs = _options.Chart.s_races.ToHashSet();
-            allcmdrs.ExceptWith(_options.Chart.s_races_ordered.ToHashSet());
-             
-            foreach (string race in _options.Chart.s_races_ordered.ToArray())
+            lock (dblock)
             {
-                double wr = 0;
-                int count = 0;
-                (wr, count) = (_options.Mode switch
-                {
-                    "Winrate" => GetWinrate(_options, _options.db, replays, dresult.CmdrInfo, race),
-                    "MVP" => GetMVP(_options, _options.db, replays, dresult.CmdrInfo, race),
-                    "DPS" => GetDPS(_options, _options.db, replays, dresult.CmdrInfo, race),
-                    "Synergy" => GetSynergy(_options, _options.db, replays, dresult.CmdrInfo, race),
-                    "AntiSynergy" => GetAntiSynergy(_options, _options.db, replays, dresult.CmdrInfo, race),
-                    "Timeline" => GetTimeline(_options, _options.db, replays, dresult.CmdrInfo, race),
-                    _ => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
-                });
-                if (count == 0)
-                {
-                    _options.Chart.s_races_ordered.Remove(race);
-                    continue;
-                }
+                var replays = DBReplayFilter.Filter(_options, _context, false);
 
-                dresult.Labels.Add(race + " " + count);
-                dresult.Dataset.data.Add(wr);
+                HashSet<string> allcmdrs = _options.Chart.s_races.ToHashSet();
+                allcmdrs.ExceptWith(_options.Chart.s_races_ordered.ToHashSet());
 
-                string cmdr = race;
-                if (!String.IsNullOrEmpty(_options.Interest))
-                    cmdr = _options.Interest;
-                ChartService.SetColor(dresult.Dataset, _options.Chart.type, cmdr);
-
-                if (_options.Chart.type == "bar")
-                    dresult.Images.Add(new ChartJSPluginlabelsImage(race));
-
-                string jimage = "";
-                if (_options.Chart.type == "bar")
-                    if (dresult.Images.LastOrDefault() != null)
-                        jimage = JsonConvert.SerializeObject(dresult.Images.Last());
-
-                ChartJSInterop.AddData(_jsRuntime,
-                    dresult.Labels.LastOrDefault(),
-                    dresult.Dataset.data.Last(),
-                    dresult.Dataset.backgroundColor.Last(),
-                    jimage,
-                    lockobject
-                    );
-            }
-
-            if (allcmdrs.Any())
-            {
-                foreach (string race in allcmdrs)
+                foreach (string race in _options.Chart.s_races_ordered.ToArray())
                 {
                     double wr = 0;
                     int count = 0;
                     (wr, count) = (_options.Mode switch
                     {
-                        "Winrate" => GetWinrate(_options, _options.db, replays, dresult.CmdrInfo, race),
-                        "MVP" => GetMVP(_options, _options.db, replays, dresult.CmdrInfo, race),
-                        "DPS" => GetDPS(_options, _options.db, replays, dresult.CmdrInfo, race),
-                        "Synergy" => GetSynergy(_options, _options.db, replays, dresult.CmdrInfo, race),
-                        "AntiSynergy" => GetAntiSynergy(_options, _options.db, replays, dresult.CmdrInfo, race),
-                        "Timeline" => GetTimeline(_options, _options.db, replays, dresult.CmdrInfo, race),
+                        "Winrate" => GetWinrate(_options, _context, replays, dresult.CmdrInfo, race),
+                        "MVP" => GetMVP(_options, _context, replays, dresult.CmdrInfo, race),
+                        "DPS" => GetDPS(_options, _context, replays, dresult.CmdrInfo, race),
+                        "Synergy" => GetSynergy(_options, _context, replays, dresult.CmdrInfo, race),
+                        "AntiSynergy" => GetAntiSynergy(_options, _context, replays, dresult.CmdrInfo, race),
+                        "Timeline" => GetTimeline(_options, _context, replays, dresult.CmdrInfo, race),
                         _ => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
                     });
                     if (count == 0)
+                    {
+                        _options.Chart.s_races_ordered.Remove(race);
                         continue;
+                    }
 
                     dresult.Labels.Add(race + " " + count);
                     dresult.Dataset.data.Add(wr);
+
                     string cmdr = race;
                     if (!String.IsNullOrEmpty(_options.Interest))
                         cmdr = _options.Interest;
@@ -147,9 +106,52 @@ namespace sc2dsstats.shared.Service
 
                     if (_options.Chart.type == "bar")
                         dresult.Images.Add(new ChartJSPluginlabelsImage(race));
+
+                    string jimage = "";
+                    if (_options.Chart.type == "bar")
+                        if (dresult.Images.LastOrDefault() != null)
+                            jimage = JsonConvert.SerializeObject(dresult.Images.Last());
+
+                    ChartJSInterop.AddData(_jsRuntime,
+                        dresult.Labels.LastOrDefault(),
+                        dresult.Dataset.data.Last(),
+                        dresult.Dataset.backgroundColor.Last(),
+                        jimage,
+                        lockobject
+                        );
+                }
+
+                if (allcmdrs.Any())
+                {
+                    foreach (string race in allcmdrs)
+                    {
+                        double wr = 0;
+                        int count = 0;
+                        (wr, count) = (_options.Mode switch
+                        {
+                            "Winrate" => GetWinrate(_options, _context, replays, dresult.CmdrInfo, race),
+                            "MVP" => GetMVP(_options, _context, replays, dresult.CmdrInfo, race),
+                            "DPS" => GetDPS(_options, _context, replays, dresult.CmdrInfo, race),
+                            "Synergy" => GetSynergy(_options, _context, replays, dresult.CmdrInfo, race),
+                            "AntiSynergy" => GetAntiSynergy(_options, _context, replays, dresult.CmdrInfo, race),
+                            "Timeline" => GetTimeline(_options, _context, replays, dresult.CmdrInfo, race),
+                            _ => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
+                        });
+                        if (count == 0)
+                            continue;
+
+                        dresult.Labels.Add(race + " " + count);
+                        dresult.Dataset.data.Add(wr);
+                        string cmdr = race;
+                        if (!String.IsNullOrEmpty(_options.Interest))
+                            cmdr = _options.Interest;
+                        ChartService.SetColor(dresult.Dataset, _options.Chart.type, cmdr);
+
+                        if (_options.Chart.type == "bar")
+                            dresult.Images.Add(new ChartJSPluginlabelsImage(race));
+                    }
                 }
             }
-
 
             if (dresult.CmdrInfo.Games > 0)
                 dresult.CmdrInfo.ADuration /= dresult.CmdrInfo.Games;

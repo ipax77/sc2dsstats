@@ -172,8 +172,6 @@
 
     public void Dispose()
     {
-        if (_options.Decoding)
-            Decode.StopIt();
         _status.StatusChanged -= StatusUpdate;
     }
 }

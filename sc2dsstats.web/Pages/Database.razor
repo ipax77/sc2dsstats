@@ -2,8 +2,6 @@
 @page "/db/{RepID:int}"
 @using sc2dsstats.lib.Data
 @using sc2dsstats.lib.Db
-@inject DSoptions _options
-@inject DSReplayContext  _context
 
 
 @if (DSdata.Status.Count > 0)
@@ -21,10 +19,4 @@ else
 @code {
     [Parameter]
     public int RepID { get; set; } = 0;
-
-    protected override void OnInitialized()
-    {
-        if (_options.db == null)
-            _options.db = _context;
-    }
 }

@@ -12,42 +12,59 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using sc2dsstats.decode;
+using Microsoft.Extensions.Logging;
+using sc2dsstats.lib.Db;
 
 namespace sc2dsstats.decode.Service
 {
-    public static class Decode
+    public class DecodeReplays
     {
-        public static s2decode s2dec = new s2decode();
-        private static BlockingCollection<string> _jobs_decode = new BlockingCollection<string>();
-        private static CancellationTokenSource source = new CancellationTokenSource();
-        private static CancellationToken token = source.Token;
-        private static ManualResetEvent _empty = new ManualResetEvent(false);
-        private static int CORES = 4;
-        public static TimeSpan Elapsed { get; set; } = new TimeSpan(0);
-        public static ConcurrentBag<string> Failed { get; set; } = new ConcurrentBag<string>();
+        private BlockingCollection<string> _jobs_decode = new BlockingCollection<string>();
+        private CancellationTokenSource source = new CancellationTokenSource();
+        private CancellationToken token;
+        private ManualResetEvent _empty = new ManualResetEvent(false);
+        private int CORES = 4;
+        public TimeSpan Elapsed { get; set; } = new TimeSpan(0);
+        public event EventHandler ScanStateChanged;
+        public ScanState arg = new ScanState();
+        ILogger _logger;
+        DBService _db;
 
-        public static async Task<DSReplay> ScanRep(string file, bool GetDetails = false)
+        public DecodeReplays(ILogger<DecodeReplays> logger)
+        {
+            token = source.Token;
+            _logger = logger;
+        }
+
+        protected virtual void OnScanStateChanged(ScanState e)
+        {
+            EventHandler handler = ScanStateChanged;
+            handler?.Invoke(this, e);
+        }
+
+        public async Task<DSReplay> ScanRep(string file, bool GetDetails = false)
         {
             return await Task.Run(() =>
             {
-                s2dec.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), 1);
-                return s2dec.DecodePython(file, false, GetDetails);
+                s2decode.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), 1);
+                return s2decode.DecodePython(file, false, GetDetails);
             });
         }
 
-        public static void Doit(List<string> fileList, int cores = 2)
+        public void Doit(List<string> fileList, DBService db, int cores = 2)
         {
+            _db = db;
+            arg = new ScanState();
             source = new CancellationTokenSource();
             token = source.Token;
             _empty = new ManualResetEvent(false);
             CORES = cores;
-            
-            Failed = new ConcurrentBag<string>();
-            Console.WriteLine("Engine start.");
-            s2dec.DEBUG = DSdata.Config.Debug;
-            s2dec.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileList.Count());
-            
-            int total = 0;
+
+            _logger.LogInformation("Engine start.");
+            arg.Start = DateTime.UtcNow;
+            arg.Total = fileList.Count;
+            s2decode.DEBUG = DSdata.Config.Debug;
+            s2decode.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileList.Count());
 
             _jobs_decode = new BlockingCollection<string>();
             foreach (var ent in fileList)
@@ -60,7 +77,6 @@ namespace sc2dsstats.decode.Service
                 {
                     break;
                 }
-                total++;
             }
 
             for (int i = 0; i < CORES; i++)
@@ -69,9 +85,97 @@ namespace sc2dsstats.decode.Service
                 { IsBackground = true };//Mark 'false' if you want to prevent program exit until jobs finish
                 thread.Start();
             }
+
+            Task tsscan = Task.Factory.StartNew(() =>
+            {
+                int i = 0;
+                while (!_empty.WaitOne(1000))
+                {
+                    i++;
+                    arg.Done = s2decode.DONE;
+                    arg.Failed = s2decode.FAILED;
+                    arg.Threads = s2decode.THREADS;
+                    arg.FailedReplays.AddRange(s2decode.FailedDSReplays);
+
+                    if (arg.Running == false && arg.DbDone >= arg.Total)
+                    {
+                        break;
+                    } else if (arg.Threads == 0 && arg.Done >= arg.Total)
+                    {
+                        arg.Running = false;
+                    }
+
+                    if (arg.Done > 0)
+                    {
+                        double eta = (double)i / (double)arg.Done * (double)arg.Total;
+                        arg.ETA = TimeSpan.FromSeconds(eta);
+                    }
+                    OnScanStateChanged(arg);
+                }
+                arg.End = DateTime.UtcNow;
+                OnScanStateChanged(arg);
+                _logger.LogInformation("Decoding finished");
+            });
+
+            PopulateDb();
         }
 
-        public static void StopIt()
+        public async Task PopulateDb()
+        {
+            _logger.LogInformation("Populating db");
+            await Task.Run(() => {
+                while (arg.DbDone < arg.Total)
+                {
+                    while (s2decode.DSReplays.Any())
+                    {
+                        DSReplay rep = null;
+                        s2decode.DSReplays.TryTake(out rep);
+                        if (rep != null)
+                        {
+                            try
+                            {
+                                _db.SaveReplay(rep, true);
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e.Message);
+                            }
+                            finally
+                            {
+                                Interlocked.Increment(ref arg.DbDone);
+                            }
+                        }
+                        if (arg.DbDone % 10 == 0)
+                        {
+                            try
+                            {
+                                _db.SaveContext();
+                            } catch (Exception e)
+                            {
+                                _logger.LogError(e.Message);
+                            } finally
+                            {
+                                DSdata.DesktopStatus.DatabaseReplays = arg.DbDone;
+                            }
+                        }
+                    }
+                }
+                try
+                {
+                    _db.SaveContext();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e.Message);
+                } finally
+                {
+                    DSdata.DesktopStatus.DatabaseReplays = arg.DbDone;
+                }
+                _logger.LogInformation("Populating db finished.");
+            });
+        }
+
+        public void StopIt()
         {
             Console.WriteLine("Stop requested");
             try
@@ -85,7 +189,7 @@ namespace sc2dsstats.decode.Service
             }
         }
 
-        private static void OnHandlerStart(object obj)
+        private void OnHandlerStart(object obj)
         {
             if (token.IsCancellationRequested == true)
                 return;
@@ -94,7 +198,7 @@ namespace sc2dsstats.decode.Service
             {
                 foreach (var job in _jobs_decode.GetConsumingEnumerable(token))
                 {
-                    s2dec.DecodePython(job);
+                    s2decode.DecodePython(job);
                 }
             }
             catch (OperationCanceledException)
@@ -109,5 +213,17 @@ namespace sc2dsstats.decode.Service
         }
     }
 
-
+    public class ScanState : EventArgs
+    {
+        public int Threads = 0;
+        public int Total = 0;
+        public int Done = 0;
+        public int DbDone = 0;
+        public int Failed = 0;
+        public List<string> FailedReplays = new List<string>();
+        public bool Running = false;
+        public DateTime Start = DateTime.Now;
+        public DateTime End = DateTime.MinValue;
+        public TimeSpan ETA = TimeSpan.Zero;
+    }
 }

@@ -6,6 +6,8 @@
 @using sc2dsstats.lib.Db
 @inject DSoptions _options
 @inject LoadData  _data
+@inject DBService _db
+@inject DSReplayContext _context
 @implements IDisposable
 
 <style>
@@ -325,7 +327,7 @@
     {
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
-        await BuildService.GetBuild(_options);
+        await BuildService.GetBuild(_options, _context, _db.lockobject);
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
         if (_options.buildResult != null && _options.buildResult.RepIDs.Any())
@@ -426,7 +428,7 @@
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
         await Task.Run(() => {
-            _options.Replay = DBService.GetReplay(_options, id);
+            _options.Replay = _db.GetReplay(id);
             replayid = id;
         });
         Loading = false;

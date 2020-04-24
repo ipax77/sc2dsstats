@@ -16,11 +16,13 @@ namespace sc2dsstats.shared.Service
     {
         private IJSRuntime _jsRuntime;
         private DSReplayContext _context;
+        private DBService _db;
 
-        public ChartService(IJSRuntime jsRuntime, DSReplayContext context)
+        public ChartService(IJSRuntime jsRuntime, DSReplayContext context, DBService db)
         {
             _jsRuntime = jsRuntime;
             _context = context;
+            _db = db;
         }
 
         public async Task ChartHandler(DSoptions _options, string thisHandle = null)
@@ -39,8 +41,6 @@ namespace sc2dsstats.shared.Service
         public async Task Init(DSoptions _options)
         {
             _options.Chart = await GetChartBase(_options, false);
-            if (_options.db == null)
-                _options.db = _context;
             await ChartJSInterop.ChartChanged(_jsRuntime, JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
         }
 
@@ -104,7 +104,8 @@ namespace sc2dsstats.shared.Service
                 _options.Chart = mychart;
                 await ChartJSInterop.ChartChanged(_jsRuntime, JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
 
-                DataResult dresult = await DataService.GetData(_options, _jsRuntime);
+
+                DataResult dresult = await DataService.GetData(_options, _context, _jsRuntime, _db.lockobject);
                 
                 if (dresult != null)
                 {
@@ -147,7 +148,7 @@ namespace sc2dsstats.shared.Service
             dataset.backgroundColor.Clear();
             _options.Chart.data.datasets.Add(dataset);
             await ChartJSInterop.AddDataset(_jsRuntime, JsonConvert.SerializeObject(dataset, Formatting.Indented), lockobject);
-            DataResult dresult = await DataService.GetData(_options, _jsRuntime);
+            DataResult dresult = await DataService.GetData(_options, _context, _jsRuntime, _db.lockobject);
             if (dresult != null)
             {
                 foreach (string l in _options.Chart.data.labels)

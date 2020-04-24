@@ -1,7 +1,7 @@
 ﻿@using sc2dsstats.lib.Db
 @using sc2dsstats.lib.Data
 @inject DSoptions _options
-@inject DSReplayContext _context
+@inject DBService _db
 
 @if (_Show)
 {
@@ -42,7 +42,7 @@
         await InvokeAsync(() => StateHasChanged());
         if (_options.Replay != null)
         {
-            DBService.DeleteRep(_context, _options.Replay.ID);
+            _db.DeleteRep(_options.Replay.ID);
             _options.Replay = null;
         }
     }

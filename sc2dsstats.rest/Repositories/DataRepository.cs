@@ -64,6 +64,9 @@ namespace sc2dsstats.rest.Repositories
             string myreturn = "";
             if (player != null)
             {
+                //DEBUG
+                //player.LastRep = new DateTime(2020, 4, 21);
+
                 DateTime LastRep = DateTime.MinValue;
                 if (info.LastRep.Length == 14)
                 {
@@ -189,7 +192,8 @@ namespace sc2dsstats.rest.Repositories
                         {
                             _context.SaveChanges();
                         }
-                        InsertDSReplays();
+                        //InsertDSReplays();
+                        InsertDSReplays().GetAwaiter().GetResult();
                         return true;
                     }
                     else return false;

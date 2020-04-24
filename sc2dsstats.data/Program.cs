@@ -21,12 +21,13 @@ namespace sc2dsstats.data
     class Program
     {
         static HttpClient client = new HttpClient();
-        public static string configfile = "/home/pax77/git/config/localserverconfig.json";
+        public static string configfile = "/data/localserverconfig.json";
 
         public static DbContextOptions<DSReplayContext> _opt;
         private static bool isInit = false;
 
         public static readonly ILoggerFactory MyLoggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
+        public static ILogger logger;
 
         static void Main(string[] args)
         {
@@ -71,6 +72,9 @@ namespace sc2dsstats.data
                 .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql)));
 
             _opt = optionsBuilder.Options;
+
+            logger = MyLoggerFactory.CreateLogger<Program>();
+
             isInit = true;
         }
 

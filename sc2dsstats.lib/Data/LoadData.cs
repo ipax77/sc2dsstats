@@ -45,6 +45,9 @@ namespace sc2dsstats.lib.Data
             {
                 var db = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
                 i = db.DSReplays.Count();
+
+                if (db.Database.IsMySql())
+                    DSdata.IsMySQL = true;
             }
             
 

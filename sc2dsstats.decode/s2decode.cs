@@ -13,51 +13,47 @@ using System.Text.Json;
 using sc2dsstats.decode.Models;
 using sc2dsstats.decode.Service;
 using sc2dsstats.lib.Models;
+using System.Xml.Schema;
 
 namespace sc2dsstats.decode
 {
-    public class s2decode
+    public static class s2decode
     {
-        private ScriptScope SCOPE { get; set; }
-        private ScriptEngine ENGINE { get; set; }
+        private static ScriptScope SCOPE { get; set; }
+        private static ScriptEngine ENGINE { get; set; }
 
         static readonly object _locker = new object();
 
-        public List<string> Log { get; set; } = new List<string>();
-        public int DEBUG { get; set; } = 0;
+        public static List<string> Log { get; set; } = new List<string>();
+        public static int DEBUG { get; set; } = 0;
 
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
-        ConcurrentDictionary<string, int> SKIP { get; set; } = new ConcurrentDictionary<string, int>();
+        static ConcurrentDictionary<string, int> SKIP { get; set; } = new ConcurrentDictionary<string, int>();
 
-        public Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
+        public static Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
 
-        public event EventHandler ScanStateChanged;
-        private static ScanState args = new ScanState();
-        public ConcurrentBag<dsreplay> Replays = new ConcurrentBag<dsreplay>();
-        public ConcurrentBag<DSReplay> DSReplays = new ConcurrentBag<DSReplay>();
+        public static ConcurrentBag<DSReplay> DSReplays { get; set; } = new ConcurrentBag<DSReplay>();
+        public static ConcurrentBag<string> FailedDSReplays { get; set; } = new ConcurrentBag<string>();
 
-        public s2decode()
-        {
-
-        }
-
-        protected virtual void OnScanStateChanged(ScanState e)
-        {
-            EventHandler handler = ScanStateChanged;
-            handler?.Invoke(this, e);
-        }
-
-
+        public static int TOTAL = 0;
+        public static int DONE = 0;
+        public static int THREADS = 0;
+        public static int FAILED = 0;
 
         /// <summary>
         /// Loading PythonEngine
         ///<param name="LibraryPath">Path to this library including the python libraries. In this path should be a Lib and pylib subdirectory.</param>
         /// </summary>
-        public ScriptEngine LoadEngine(string LibraryPath, int count)
+        public static ScriptEngine LoadEngine(string LibraryPath, int count)
         {
-            args = new ScanState();
-            args.Total = count;
-            args.Running = true;
+            TOTAL = count;
+            THREADS = 0;
+            DONE = 0;
+            FAILED = 0;
+
+            DSReplays = new ConcurrentBag<DSReplay>();
+            FailedDSReplays = new ConcurrentBag<string>();
+
             if (ENGINE != null) return ENGINE;
             AddLog("Loading Engine ..");
 
@@ -93,9 +89,9 @@ namespace sc2dsstats.decode
             return engine;
         }
 
-        public DSReplay DecodePython(Object stateInfo, bool toJson = true, bool GetDetails = false)
+        public static DSReplay DecodePython(Object stateInfo, bool toJson = true, bool GetDetails = false)
         {
-            Interlocked.Increment(ref args.Threads);
+            Interlocked.Increment(ref THREADS);
             DSReplay dsreplay = null;
             string rep = (string)stateInfo;
             //Console.WriteLine("Working on rep ..");
@@ -230,17 +226,14 @@ namespace sc2dsstats.decode
                     DSReplays.Add(dsreplay);
 
             }
-
-            Interlocked.Increment(ref args.Done);
-            Interlocked.Decrement(ref args.Threads);
-            if (GetDetails == false)
-                OnScanStateChanged(args);
+            Interlocked.Increment(ref DONE);
+            Interlocked.Decrement(ref THREADS);
 
             return null;
         }
 
 
-        public void SaveDS(string out_file, dsreplay rep)
+        public static void SaveDS(string out_file, dsreplay rep)
         {
             if (out_file == null) return;
 
@@ -265,21 +258,19 @@ namespace sc2dsstats.decode
 
         }
 
-        private void FailCleanup(string replay_file, bool GetDetails)
+        private static void FailCleanup(string replay_file, bool GetDetails)
         {
             //if (SKIP.ContainsKey(rep)) SKIP[rep]++;
             //else SKIP.TryAdd(rep, 1);
 
-            Decode.Failed.Add(replay_file);
+            FailedDSReplays.Add(replay_file);
 
-            Interlocked.Increment(ref args.Done);
-            Interlocked.Increment(ref args.Failed);
-            Interlocked.Decrement(ref args.Threads);
-            if (GetDetails == false)
-                OnScanStateChanged(args);
+            Interlocked.Increment(ref DONE);
+            Interlocked.Increment(ref FAILED);
+            Interlocked.Decrement(ref THREADS);
         }
 
-        void AddLog(string msg)
+        static void AddLog(string msg)
         {
             if (DEBUG > 0)
             {
@@ -288,17 +279,6 @@ namespace sc2dsstats.decode
             }
         }
 
-    }
-
-    public class ScanState : EventArgs
-    {
-        public int Threads = 0;
-        public int Total = 0;
-        public int Done = 0;
-        public int Failed = 0;
-        public bool Running = false;
-        public DateTime Start = DateTime.Now;
-        public DateTime End = DateTime.MinValue;
     }
 
 }

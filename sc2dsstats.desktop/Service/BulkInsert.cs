@@ -22,11 +22,13 @@ namespace sc2dsstats.desktop.Service
         private DSReplayContext _context;
         private DSoptions _options;
         public event EventHandler ReplayProcessed;
+        private DBService _db;
 
-        public BulkInsert(DSReplayContext context, DSoptions options)
+        public BulkInsert(DSReplayContext context, DSoptions options, DBService db)
         {
             _context = context;
             _options = options;
+            _db = db;
         }
 
         protected virtual void OnReplayProcessed(BulkInsertArgs e)
@@ -69,8 +71,7 @@ namespace sc2dsstats.desktop.Service
                             rep.REPLAY = reppath;
                             DSReplay Rep = Map.Rep(rep);
 
-
-                            DBService.SaveReplay(_context, Rep, true);
+                            _db.SaveReplay(Rep, true);
 
                             arg.Count++;
                             OnReplayProcessed(arg);
@@ -78,7 +79,7 @@ namespace sc2dsstats.desktop.Service
                         }
                     }
                 }
-                _context.SaveChanges();
+                _db.SaveContext();
                 Console.WriteLine((DateTime.UtcNow - t).TotalSeconds);
             });
             arg.Done = true;

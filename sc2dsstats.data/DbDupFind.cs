@@ -12,6 +12,8 @@ using Newtonsoft.Json;
 using sc2dsstats.data.Service;
 using sc2dsstats.lib.Db.Models;
 using System.Net.Security;
+using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace sc2dsstats.data
 {
@@ -32,6 +34,10 @@ namespace sc2dsstats.data
             DSReplays = DataService.FindDups(DSReplays);
             Console.WriteLine("New Replays found: " + c);
             Console.WriteLine("Insert Replays: " + DSReplays.Count);
+
+            
+
+            
 
             int i = 0;
             using (var context = new DSReplayContext(Program._opt))
