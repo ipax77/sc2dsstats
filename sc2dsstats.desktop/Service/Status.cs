@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -27,26 +28,25 @@ namespace sc2dsstats.desktop.Service
         private StatusChangedEventArgs args = new StatusChangedEventArgs();
         private readonly ILogger _logger;
         public static Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
-        public static Dictionary<string, string> NewReplays { get; set; } = new Dictionary<string, string>();
+        public HashSet<string> NewReplays { get; set; } = new HashSet<string>();
         private static object lockobject = new object();
-        private int Limit = 0;
         public bool isScanning = false;
         public static bool isFirstRun = true;
         private DSoptions _options;
         private OnTheFlyScan _onthefly;
         Regex reg = new Regex(@"\\Direct Strike|\\DST(\(\d+\))?");
-        private readonly IServiceScopeFactory _scope;
         private DBService _db;
         private DecodeReplays _decode;
+        private DSrest _rest;
 
-        public Status(ILogger<Status> logger, DBService db, DSoptions options, OnTheFlyScan onthefly, DecodeReplays decode, IServiceScopeFactory scopeFactory)
+        public Status(ILogger<Status> logger, DBService db, DSoptions options, OnTheFlyScan onthefly, DecodeReplays decode, DSrest rest)
         {
             _logger = logger;
             _options = options;
             _onthefly = onthefly;
-            _scope = scopeFactory;
             _db = db;
             _decode = decode;
+            _rest = rest;
 
             _logger.LogInformation("Start.");
             foreach (var ent in DSdata.Config.Replays)
@@ -75,58 +75,30 @@ namespace sc2dsstats.desktop.Service
             handler?.Invoke(this, e);
         }
 
+
         public async Task ScanReplayFolders()
         {
-            if (isScanning || _options.Decoding)
-                return;
-            isScanning = true;
-            int totalReps = 0;
-            await Task.Run(() =>
-            {
-                lock (DSdata.DesktopStatus)
-                {
-                    Status.NewReplays = new Dictionary<string, string>();
-                    Dictionary<string, string> fileHashes = new Dictionary<string, string>();
-                    using (var md5 = MD5.Create())
-                    {
-                        foreach (var directory in DSdata.Config.Replays)
-                        {
-                            string dirHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(directory))).Replace("-", "").ToLowerInvariant();
-                            foreach (var file in Directory.GetFiles(directory, "*.SC2Replay", SearchOption.AllDirectories).Where(path => reg.IsMatch(path)))
-                            {
-
-                                string fileHash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFileName(file)))).Replace("-", "").ToLowerInvariant();
-
-                                fileHashes[dirHash + fileHash] = file;
-                            }
-                        }
-                    }
-                    DSdata.DesktopStatus.FoldersReplays = fileHashes.Count;
-
-                    HashSet<string> dbHashes = new HashSet<string>();
-                    dbHashes = _db.GetReplayHashes();
-                    HashSet<string> fileKeys = fileHashes.Keys.ToHashSet();
-                    fileKeys.ExceptWith(dbHashes);
-
-                    foreach (var ent in fileKeys)
-                        Status.NewReplays[ent] = fileHashes[ent];
-
-                    DSdata.DesktopStatus.NewReplays = fileKeys.Count;
-                    DSdata.DesktopStatus.DatabaseReplays = dbHashes.Count;
-                }
+            HashSet<string> DbReplays = null;
+            await Task.Run(() => {
+                DbReplays = new HashSet<string>(_db.GetDbReplays());
             });
+            await Task.Run(() => {
+                DateTime t = DateTime.UtcNow;
+                NewReplays = new HashSet<string>(Scan.ScanReplayFolders(DbReplays));
+                _logger.LogInformation($"RepFolders scanned in: {(DateTime.UtcNow - t).TotalSeconds}");
+            });
+
             lock (args)
             {
+                DSdata.DesktopStatus.NewReplays = NewReplays.Count;
+                DSdata.DesktopStatus.DatabaseReplays = DbReplays.Count;
                 args.Count = NewReplays.Count;
-                args.TotalReplays = totalReps;
-                args.NewReplays = NewReplays.Count();
+                args.NewReplays = NewReplays.Count;
+                args.TotalReplays = DbReplays.Count + NewReplays.Count;
                 args.isReplayFolderScanned = true;
             }
             OnDataLoaded(args);
-            isScanning = false;
         }
-
-
 
 
 
@@ -140,7 +112,7 @@ namespace sc2dsstats.desktop.Service
                 {
                     lock (DSdata.DesktopStatus)
                     {
-                        return DSrest.AutoUpload(_scope, _logger);
+                        return _rest.AutoUpload();
                     }
                 }
                 catch
@@ -155,39 +127,31 @@ namespace sc2dsstats.desktop.Service
             OnDataLoaded(args);
         }
 
-        public void DecodeReplays(List<string> Replays = null)
+        public int DecodeReplays(string otfreplay = "")
         {
-            if (Replays != null && Replays.Any())
-            {
-                if (_options.Decoding)
-                    return;
-                _options.OnTheFlyScan = true;
-                NewReplays = Replays.ToDictionary(x => x, x => x);
-            }
-            else if (Replays != null)
-                return;
-            else
-            {
-                if (_onthefly.Running)
-                {
-                    try
-                    {
-                        _onthefly.Stop();
-                    } catch (Exception e)
-                    {
-                        _logger.LogError(e.Message);
-                    }
-                }
-                _options.OnTheFlyScan = false;
-            }
+            if (_options.Decoding)
+                return -1;
             _options.Decoding = true;
+            ScanReplayFolders().GetAwaiter();
+
+            if (!String.IsNullOrEmpty(otfreplay))
+            {
+                while (!NewReplays.Contains(otfreplay))
+                {
+                    _logger.LogInformation($"{DateTime.Now.ToString("HH:mm:ss.fff")} Waiting for otfreplay: {otfreplay}");
+                    Task.Delay(250).GetAwaiter().GetResult();
+                    ScanReplayFolders().GetAwaiter();
+                }
+            }
+
             args.UploadStatus = UploadStatus.UploadDone;
             args.inDB = 0;
             args.Decoded = 0;
             args.NewReplays = NewReplays.Count;
             args.Info = "Engine start.";
             _decode.ScanStateChanged += DecodeUpdate;
-            _decode.Doit(NewReplays.Values.ToList(), _db, DSdata.Config.Cores);
+            _logger.LogInformation("Decoding start.");
+            _decode.Doit(NewReplays, DSdata.Config.Cores);
             OnDataLoaded(args);
 
             if (DSdata.DesktopStatus.DatabaseReplays == 0)
@@ -201,6 +165,7 @@ namespace sc2dsstats.desktop.Service
                     }
                 });
             }
+            return NewReplays.Count;
         }
 
         public void StopDecode()
@@ -220,8 +185,9 @@ namespace sc2dsstats.desktop.Service
                 UploadReplays();
             ScanReplayFolders();
             _options.Replay = _db.GetLatestReplay();
-            OnDataLoaded(args);
             Reset();
+            if (DSdata.Config.OnTheFlyScan)
+                _onthefly.Start(this);
         }
 
         public static void SaveConfig()

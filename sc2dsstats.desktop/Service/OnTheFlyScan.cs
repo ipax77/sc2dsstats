@@ -18,10 +18,13 @@ namespace sc2dsstats.desktop.Service
         ConcurrentDictionary<Task, CancellationTokenSource> TASKS { get; set; } = new ConcurrentDictionary<Task, CancellationTokenSource>();
         ConcurrentDictionary<string, FileSystemWatcher> WATCHER { get; set; } = new ConcurrentDictionary<string, FileSystemWatcher>();
         ObservableCollection<string> TODO { get; set; }
+        ConcurrentBag<string> fsBag = new ConcurrentBag<string>();
+        
+        public int fsCount = 0;
         public bool Running = false;
         private Status _status;
 
-        Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay|(DST.*)\.SC2Replay", RegexOptions.Singleline);
+        Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay$|(DST.*)\.SC2Replay$", RegexOptions.Singleline);
         private readonly ILogger _logger;
 
         public OnTheFlyScan(ILogger<OnTheFlyScan> logger)
@@ -72,6 +75,7 @@ namespace sc2dsstats.desktop.Service
             _logger.LogInformation("otf stop request.");
             TODO.CollectionChanged -= Source_CollectionChanged;
             TODO.Clear();
+            fsBag.Clear();
             foreach (string path in WATCHER.Keys)
             {
                 WATCHER[path].EnableRaisingEvents = false;
@@ -111,21 +115,46 @@ namespace sc2dsstats.desktop.Service
             fileSystemWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite;
             fileSystemWatcher.EnableRaisingEvents = true;
 
-            fileSystemWatcher.Created += new FileSystemEventHandler(FileSystemWatcher_Created);
+            //fileSystemWatcher.Created += FileSystemWatcher_Created;
+            //fileSystemWatcher.Deleted += FileSystemWatcher_Deleted;
+            fileSystemWatcher.Changed += FileSystemWatcher_Changed;
+            //fileSystemWatcher.Renamed += FileSystemWatcher_Renamed;
             if (WATCHER != null && !WATCHER.ContainsKey(path)) WATCHER.TryAdd(path, fileSystemWatcher);
             fileSystemWatcher.WaitForChanged(WatcherChangeTypes.All);
             return fileSystemWatcher;
         }
 
+        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
+        {
+            _logger.LogInformation($"{DateTime.Now.ToString("HH:mm:ss.fff")} File renamed: {e.OldName} => {e.Name}");
+        }
+
         private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            _logger.LogInformation("File created: {0}", e.Name);
+            _logger.LogInformation($"{DateTime.Now.ToString("HH:mm:ss.fff")} File created: {e.Name}");
+        }
 
-            if (CheckAccess(e.FullPath) == true)
+
+        private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+        {
+            _logger.LogInformation($"{DateTime.Now.ToString("HH:mm:ss.fff")} File changed: {e.Name}");
+            lock (fsBag)
+            {
+                if (!fsBag.Contains(e.Name))
+                {
+                    fsBag.Add(e.Name);
+                    return;
+                }
+            }
+
+            if (rx_ds.IsMatch(e.Name))
             {
                 if (TODO != null)
                 {
-                    TODO.Add(e.FullPath);
+                    lock (TODO)
+                    {
+                        TODO.Add(e.FullPath);
+                    }
                 }
                 else
                 {
@@ -135,68 +164,82 @@ namespace sc2dsstats.desktop.Service
             }
         }
 
+        private void FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e)
+        {
+            _logger.LogInformation($"{DateTime.Now.ToString("HH:mm:ss.fff")} File deleted: {e.Name}");
+
+
+        }
+
         private bool CheckAccess(string replay)
         {
             bool go = false;
             int attemptWaitMS = 250;
 
+            /*
+            if (fsString == replay)
+                fsString = String.Empty;
+            else
+            {
+                fsString = replay;
+                return go;
+            }
+            */
+
             Thread.Sleep(attemptWaitMS);
 
             if (File.Exists(replay))
             {
-                Match m = rx_ds.Match(replay);
-                if (m.Success)
+                FileStream fs = null;
+                int attempts = 0;
+                int maximumAttempts = 14;
+
+                // Loop allow multiple attempts
+                while (true)
                 {
-                    FileStream fs = null;
-                    int attempts = 0;
-                    int maximumAttempts = 14;
-
-                    // Loop allow multiple attempts
-                    while (true)
+                    try
                     {
-                        try
-                        {
-                            fs = File.Open(replay, FileMode.Open, FileAccess.Read, FileShare.None);
+                        fs = File.Open(replay, FileMode.Open, FileAccess.Read, FileShare.None);
 
-                            //If we get here, the File.Open succeeded, so break out of the loop and return the FileStream
+                        //If we get here, the File.Open succeeded, so break out of the loop and return the FileStream
+                        break;
+                    }
+                    catch
+                    {
+                        // IOExcception is thrown if the file is in use by another process.
+
+                        // Check the numbere of attempts to ensure no infinite loop
+                        attempts++;
+                        if (attempts > maximumAttempts)
+                        {
+                            // Too many attempts,cannot Open File, break and return null 
+                            fs = null;
                             break;
                         }
-                        catch
+                        else
                         {
-                            // IOExcception is thrown if the file is in use by another process.
-
-                            // Check the numbere of attempts to ensure no infinite loop
-                            attempts++;
-                            if (attempts > maximumAttempts)
-                            {
-                                // Too many attempts,cannot Open File, break and return null 
-                                fs = null;
-                                break;
-                            }
-                            else
-                            {
-                                // Sleep before making another attempt
-                                Thread.Sleep(attemptWaitMS);
-                            }
+                            // Sleep before making another attempt
+                            Thread.Sleep(attemptWaitMS);
                         }
                     }
-                    if (fs != null)
-                    {
-                        go = true;
-                        fs.Close();
-                        fs = null;
-                    }
+                }
+                if (fs != null)
+                {
+                    go = true;
+                    fs.Close();
+                    fs = null;
                 }
             }
+            
             return go;
         }
 
         void Source_CollectionChanged(object aSender, NotifyCollectionChangedEventArgs aArgs)
         {
-            _logger.LogInformation("New replay detected.");
-            List<string> todo = TODO.ToList();
-            if (todo.Any())
+            string todo = TODO.FirstOrDefault();
+            if (!String.IsNullOrEmpty(todo))
             {
+                _logger.LogInformation($"New replay detected: {todo}");
                 _status.DecodeReplays(todo);
                 TODO.Clear();
             }

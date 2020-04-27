@@ -1,12 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using sc2dsstats.lib.Models;
 using System.Linq;
-using System.Text.Json;
-using System.IO;
-using System.Threading.Tasks;
-using sc2dsstats.lib.Data;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace sc2dsstats.lib.Db
 {
@@ -16,6 +13,7 @@ namespace sc2dsstats.lib.Db
         public static object stlockobject = new object();
         private DSReplayContext _context;
         private ILogger _logger;
+        public HashSet<string> DbReplays { get; set; } = new HashSet<string>();
 
         public DBService(DSReplayContext context, ILogger<DBService> logger)
         {
@@ -23,24 +21,15 @@ namespace sc2dsstats.lib.Db
             _logger = logger;
         }
 
-        public static async Task DeleteRep_bak(DSReplayContext context, int id)
+        public HashSet<string> GetDbReplays()
         {
-            var replay = await context.DSReplays
-                .Include(p => p.DSPlayer)
-                    .ThenInclude(p => p.Breakpoints)
-                .SingleAsync(s => s.ID == id);
-
-
-            foreach (DSPlayer pl in replay.DSPlayer)
-            {
-                if (pl.Breakpoints != null)
-                    foreach (DbBreakpoint bp in pl.Breakpoints)
-                        context.Breakpoints.Remove(bp);
-                context.DSPlayers.Remove(pl);
-            }
-
-            context.DSReplays.Remove(replay);
-            await context.SaveChangesAsync();
+            if (!DbReplays.Any())
+                lock (lockobject)
+                {
+                    DbReplays = new HashSet<string>(_context.DSReplays.Select(s => s.REPLAYPATH).ToHashSet());
+                    
+                }
+            return DbReplays;
         }
 
         public void DeleteRep(int id, bool bulk = false)
@@ -54,6 +43,9 @@ namespace sc2dsstats.lib.Db
                     .ThenInclude(q => q.Breakpoints)
                     .FirstOrDefault(s => s.ID == id);
 
+                if (DbReplays.Contains(replay.REPLAYPATH))
+                    DbReplays.Remove(replay.REPLAYPATH);
+                
                 if (replay.DSPlayer != null)
                 {
                     foreach (DSPlayer pl in replay.DSPlayer)
@@ -124,6 +116,7 @@ namespace sc2dsstats.lib.Db
             _logger.LogInformation("Saveing repls " + rep.REPLAYPATH);
             lock (lockobject)
             {
+                DbReplays.Add(rep.REPLAYPATH);
                 _context.DSReplays.Add(rep);
                 if (bulk == false)
                     _context.SaveChanges();
@@ -303,6 +296,32 @@ namespace sc2dsstats.lib.Db
                 return replays;
             }
         }
+
+        public List<DSReplay> GetUploadReplay(DateTime gtime)
+        {
+            lock (lockobject)
+            {
+                if (gtime == DateTime.MinValue)
+                    return _context.DSReplays
+                        .Include(o => o.Middle)
+                        .Include(p => p.DSPlayer)
+                        .ThenInclude(p => p.Breakpoints)
+                        .AsNoTracking()
+                        .ToList();
+                else
+                    return _context.DSReplays
+                        .Include(o => o.Middle)
+                        .Include(p => p.DSPlayer)
+                        .ThenInclude(p => p.Breakpoints).Where(x => x.GAMETIME > gtime)
+                        .AsNoTracking()
+                        .ToList();
+            }
+        }
+
+
+
+
+
     }
 
 

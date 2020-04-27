@@ -24,6 +24,19 @@ namespace sc2dsstats.lib.Models
 
     }
 
+    public class UnitModelCount : UnitModelBase
+    {
+        public int Count { get; set; } = 0;
+
+        public UnitModelCount(UnitModelBase unit, int count)
+        {
+            ID = unit.ID;
+            Name = unit.Name;
+            Race = unit.Race;
+            Count = count;
+        }
+    }
+
     public class UnitModel : UnitModelBase
     {
         public Vector2 Pos { get; set; } = Vector2.Zero;

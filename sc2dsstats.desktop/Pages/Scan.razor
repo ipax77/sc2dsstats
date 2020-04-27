@@ -3,7 +3,7 @@
 @using sc2dsstats.decode.Service
 @using sc2dsstats.desktop.Service
 @using sc2dsstats.lib.Models
-@using Microsoft.EntityFrameworkCore 
+@using Microsoft.Extensions.Logging
 @inject Status _status
 @inject DSoptions _options
 @inject sc2dsstats.lib.Db.DBService _db
@@ -78,8 +78,8 @@
 @if (_decode.arg.FailedReplays.Count() > 0)
 {
     <div>
-        <h4>@_decode.arg.FailedReplays.Count() replays failed decoding</h4>
-        Please check on <a href="https://github.com/ipax77/dsweb_desktop">GitHub</a> for an update.
+        <h4>@_decode.arg.FailedReplays.Count() replay(s) failed decoding</h4>
+        Please check on <a href="https://github.com/ipax77/sc2dsstats">GitHub</a> for an update.
         <br />
         Failed Replays:
         <table class="table table-dark">
@@ -118,7 +118,7 @@
             DSReplay rep = _db.GetLatestReplay();
             _options.Replay = rep;
         });
-        await _status.ScanReplayFolders();
+        _status.ScanReplayFolders();
     }
 
     void ScanUpdate(object sender, EventArgs e)
@@ -137,22 +137,16 @@
 
     async void runDecode()
     {
-        if (_options.Decoding)
-        {
+        info = "Engine start..";
+
+        int newreps = _status.DecodeReplays();
+        if (newreps == 0)
+            info = "No new replays found.";
+        else if (newreps < 0)
             info = "A decode process is already running.";
-            return;
-        }
+
         if (!DSdata.Config.Uploadcredential)
             ucDialog.Show();
-        await _status.ScanReplayFolders();
-        if (DSdata.DesktopStatus.NewReplays == 0)
-            info = "No new replays found.";
-        else
-        {
-            info = "Engine start..";
-            _options.Decoding = true;
-            _status.DecodeReplays();
-        }
         await InvokeAsync(() => StateHasChanged());
     }
 

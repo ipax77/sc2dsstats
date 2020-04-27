@@ -192,8 +192,10 @@ namespace sc2dsstats.rest.Repositories
                         {
                             _context.SaveChanges();
                         }
-                        //InsertDSReplays();
-                        InsertDSReplays().GetAwaiter().GetResult();
+                        InsertDSReplays();
+
+                        //DEBUG
+                        //InsertDSReplays().GetAwaiter().GetResult();
                         return true;
                     }
                     else return false;

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace sc2dsstats.lib.Data
 {
@@ -15,7 +16,7 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.7");
+        public static Version DesktopVersion = new Version("2.0.8");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
         public static bool DesktopUpdateAvailable = false;
 
@@ -23,6 +24,8 @@ namespace sc2dsstats.lib.Data
         public static ConcurrentDictionary<int, List<string>> Telemetrie = new ConcurrentDictionary<int, List<string>>();
 
         public static bool IsMySQL = false;
+        public static Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay$|(DST.*)\.SC2Replay$", RegexOptions.Singleline);
+        public static PlayerStats PlayerStats;
 
         public static void Init()
         {

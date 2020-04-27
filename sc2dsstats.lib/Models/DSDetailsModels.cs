@@ -1,6 +1,9 @@
-﻿using System;
+﻿using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Service;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -153,6 +156,37 @@ namespace sc2dsstats.lib.Models
         public string dsUnitsString { get; set; }
         public string dbUnitsString { get; set; }
         public string dbUpgradesString { get; set; }
+
+        public List<UnitModelCount> GetUnits()
+        {
+            List<UnitModelCount> Units = new List<UnitModelCount>();
+            if (!String.IsNullOrEmpty(dsUnitsString))
+            {
+                foreach (string unitstring in dsUnitsString.Split("|"))
+                {
+                    var ent = unitstring.Split(",");
+                    if (ent.Length == 2)
+                    {
+                        int id = 0;
+                        UnitModelBase unit = null;
+                        if (int.TryParse(ent[0], out id))
+                        {
+                            unit = DSdata.Units.FirstOrDefault(x => x.ID == id);
+                            if (unit == null)
+                                unit = new UnitModelBase(Fix.UnitName(ent[0]), "");
+                        }
+                        else
+                            unit = new UnitModelBase(Fix.UnitName(ent[0]), "");
+
+                        int c = 0;
+                        if (int.TryParse(ent[1], out c))
+                            Units.Add(new UnitModelCount(unit, c));
+                    }
+                }
+            }
+            return Units;
+        }
+
     }
 
     public class Objective

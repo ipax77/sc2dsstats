@@ -1,4 +1,8 @@
 
+2.0.8
+- On the fly Scan fix
+- PlayerStats
+
 2.0.7
 
 - DBService 

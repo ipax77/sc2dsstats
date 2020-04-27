@@ -39,13 +39,14 @@ namespace sc2dsstats.desktop
             options.UseSqlite($"Data Source={Program.workdir}/data_v3_0.db"));
             services.AddSingleton<LoadData>();
             services.AddSingleton<OnTheFlyScan>();
-            services.AddSingleton<DecodeReplays>();
+            services.AddScoped<DecodeReplays>();
             services.AddScoped<DSoptions>();
             services.AddScoped<ChartService>();
             services.AddScoped<GameChartService>();
             services.AddScoped<Refresh>();
             services.AddScoped<Status>();
             services.AddScoped<DBService>();
+            services.AddScoped<DSrest>();
             services.AddTransient<StartupBackgroundService>();
             services.AddTransient<BulkInsert>();
 

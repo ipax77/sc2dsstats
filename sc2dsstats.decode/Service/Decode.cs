@@ -30,10 +30,11 @@ namespace sc2dsstats.decode.Service
         ILogger _logger;
         DBService _db;
 
-        public DecodeReplays(ILogger<DecodeReplays> logger)
+        public DecodeReplays(ILogger<DecodeReplays> logger, DBService db)
         {
             token = source.Token;
             _logger = logger;
+            _db = db;
         }
 
         protected virtual void OnScanStateChanged(ScanState e)
@@ -51,9 +52,9 @@ namespace sc2dsstats.decode.Service
             });
         }
 
-        public void Doit(List<string> fileList, DBService db, int cores = 2)
+        public void Doit(IEnumerable<string> fileList, int cores = 2)
         {
-            _db = db;
+            //_db = db;
             arg = new ScanState();
             source = new CancellationTokenSource();
             token = source.Token;
@@ -62,7 +63,7 @@ namespace sc2dsstats.decode.Service
 
             _logger.LogInformation("Engine start.");
             arg.Start = DateTime.UtcNow;
-            arg.Total = fileList.Count;
+            arg.Total = fileList.Count();
             s2decode.DEBUG = DSdata.Config.Debug;
             s2decode.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileList.Count());
 
@@ -95,9 +96,15 @@ namespace sc2dsstats.decode.Service
                     arg.Done = s2decode.DONE;
                     arg.Failed = s2decode.FAILED;
                     arg.Threads = s2decode.THREADS;
+                    while (s2decode.FailedDSReplays.Any())
+                    {
+                        string frep = null;
+                        if (s2decode.FailedDSReplays.TryTake(out frep))
+                            arg.FailedReplays.Add(frep);
+                    }
                     arg.FailedReplays.AddRange(s2decode.FailedDSReplays);
 
-                    if (arg.Running == false && arg.DbDone >= arg.Total)
+                    if (arg.Running == false && arg.DbDone + arg.Failed >= arg.Total)
                     {
                         break;
                     } else if (arg.Threads == 0 && arg.Done >= arg.Total)
