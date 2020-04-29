@@ -74,7 +74,7 @@ namespace sc2dsstats.shared.Service
                 DateTime breakpoint = startdate;
                 while (DateTime.Compare(breakpoint, enddate) < 0)
                 {
-                    breakpoint = breakpoint.AddDays(7);
+                    breakpoint = breakpoint.AddDays(1);
                     _s_races_cmdr_ordered.Add(breakpoint.ToString("yyyy-MM-dd"));
                 }
                 _s_races_cmdr_ordered.RemoveAt(_s_races_cmdr_ordered.Count() - 1);
@@ -85,6 +85,15 @@ namespace sc2dsstats.shared.Service
             if (doit)
             {
                 ChartJSdataset dataset = new ChartJSdataset();
+
+                if (_options.Mode == "Timeline")
+                {
+                    dataset.fill = false;
+                    dataset.pointRadius = 2;
+                    dataset.pointHoverRadius = 10;
+                    dataset.showLine = false;
+                }
+
                 if (String.IsNullOrEmpty(_options.Interest))
                 {
                     dataset.label = "global";
@@ -119,6 +128,8 @@ namespace sc2dsstats.shared.Service
                     _options.Cmdrinfo = dresult.CmdrInfo;
                     SetCmdrPics(_options.Chart);
                     await ChartJSInterop.ChartChanged(_jsRuntime, JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
+                    if (dresult.fTimeline != null)
+                        await DrawTimeline(_options, dresult, _db.lockobject);
                 }
                 await SortChart(_options.Chart);
             }
@@ -136,6 +147,29 @@ namespace sc2dsstats.shared.Service
             }
         }
 
+        public async Task DrawTimeline(DSoptions _options, DataResult dresult, object lockobject)
+        {
+            ChartJSdataset dataset = new ChartJSdataset();
+            dataset.label = _options.Interest + "_line";
+            dataset.borderWidth = 3;
+            dataset.pointRadius = 1;
+            ChartService.SetColor(dataset, _options.Chart.type, _options.Interest);
+            dataset.backgroundColor.Clear();
+            _options.Chart.data.datasets.Add(dataset);
+            ChartJSInterop.AddDataset(_jsRuntime, JsonConvert.SerializeObject(dataset, Formatting.Indented), lockobject).GetAwaiter();
+
+            for (int i = 0; i < _options.Chart.data.labels.Count; i++)
+            {
+                ChartJSInterop.AddData(_jsRuntime,
+                    _options.Chart.data.labels[i],
+                    dresult.fTimeline(i),
+                    dresult.Dataset.backgroundColor.Last(),
+                    null,
+                    lockobject
+                    ).GetAwaiter();
+            }
+        }
+
         public async Task AddDataset(DSoptions _options, object lockobject)
         {
             ChartJSdataset dataset = new ChartJSdataset();
@@ -143,6 +177,14 @@ namespace sc2dsstats.shared.Service
                 dataset.label = "global";
             else
                 dataset.label = _options.Interest;
+
+            if (_options.Mode == "Timeline")
+            {
+                dataset.fill = false;
+                dataset.pointRadius = 2;
+                dataset.pointHoverRadius = 10;
+                dataset.showLine = false;
+            }
 
             SetColor(dataset, _options.Chart.type, _options.Interest);
             dataset.backgroundColor.Clear();
@@ -164,9 +206,15 @@ namespace sc2dsstats.shared.Service
                     {
                         int pos = dresult.Labels.FindIndex(i => i == label);
                         _options.Chart.data.datasets.Last().data.Add(dresult.Dataset.data[pos]);
-                        _options.Chart.data.datasets.Last().backgroundColor.Add(dresult.Dataset.backgroundColor[pos]);
+                        if (_options.Chart.type == "line")
+                            _options.Chart.data.datasets.Last().backgroundColor.Add(dresult.Dataset.backgroundColor.Last());
+                        else
+                            _options.Chart.data.datasets.Last().backgroundColor.Add(dresult.Dataset.backgroundColor[pos]);
                         wr = dresult.Dataset.data[pos];
-                        bcolor = dresult.Dataset.backgroundColor[pos];
+                        if (_options.Chart.type == "line")
+                            bcolor = dresult.Dataset.backgroundColor.Last();
+                        else
+                            bcolor = dresult.Dataset.backgroundColor[pos];
                     }
                     else
                     {
@@ -182,16 +230,20 @@ namespace sc2dsstats.shared.Service
                                             );
                 }
                 _options.Cmdrinfo = dresult.CmdrInfo;
+                if (dresult.fTimeline != null)
+                    DrawTimeline(_options, dresult, lockobject);
             }
         }
 
         public async Task RemoveDataset(DSoptions _options, string cmdr, object lockobject)
         {
-            int pos = _options.Chart.data.datasets.FindIndex(i => i.label == cmdr);
-            if (pos >= 0)
-            {
-                _options.Chart.data.datasets.RemoveAt(pos);
-                await ChartJSInterop.RemoveDataset(_jsRuntime, pos, lockobject);
+            foreach (ChartJSdataset dataset in _options.Chart.data.datasets.Where(x => x.label.StartsWith(cmdr)).ToArray()) {
+                int pos = _options.Chart.data.datasets.FindIndex(i => i == dataset);
+                if (pos >= 0)
+                {
+                    _options.Chart.data.datasets.RemoveAt(pos);
+                    await ChartJSInterop.RemoveDataset(_jsRuntime, pos, lockobject);
+                }
             }
             //TODO: CmdrInfo info for remaining dataset
             //TODO?: Check labels and sort 
@@ -225,6 +277,9 @@ namespace sc2dsstats.shared.Service
                 yAxes.scaleLabel.labelString = "% - " + startdate + " - " + enddate + " - " + IsDefaultFilter(_options);
                 if (_options.BeginAtZero == true)
                     yAxes.ticks.beginAtZero = true;
+
+                if (_options.Mode == "Timeline")
+                    baroptions.elements.point = new ChartJSoptionsElementsPoint();
 
                 chartoptions.scales.yAxes.Add(yAxes);
             }

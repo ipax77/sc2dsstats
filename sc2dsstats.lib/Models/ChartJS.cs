@@ -26,6 +26,12 @@ namespace sc2dsstats.lib.Models
         public ChartJSoptionsTitle title { get; set; } = new ChartJSoptionsTitle();
         public ChartJSoptionsScales scales { get; set; } = new ChartJSoptionsScales();
         //public ChartJSoptionsScale scale { get; set; }
+        
+    }
+
+    public class ChartJSoptionsElementsPoint
+    {
+        public string pointStyle { get; set; } = "circle";
     }
 
     [Serializable]
@@ -89,6 +95,7 @@ namespace sc2dsstats.lib.Models
     public class ChartJSoptionselements
     {
         public ChartJSoptionselementsrectangle rectangle { get; set; } = new ChartJSoptionselementsrectangle();
+        public ChartJSoptionsElementsPoint point { get; set; }
     }
 
     [Serializable]
@@ -186,6 +193,11 @@ namespace sc2dsstats.lib.Models
         public string pointBackgroundColor { get; set; }
         public int borderWidth { get; set; } = 1;
         public List<double> data { get; set; } = new List<double>();
+        public bool fill { get; set; } = true;
+        public int pointRadius { get; set; } = 5;
+        public int pointHoverRadius { get; set; } = 10;
+        public bool showLine { get; set; } = true;
+
 
         public ChartJSdataset DeepCopy()
         {
@@ -196,6 +208,10 @@ namespace sc2dsstats.lib.Models
             newcp.pointBackgroundColor = this.pointBackgroundColor;
             newcp.borderWidth = this.borderWidth;
             newcp.data = new List<double>(this.data);
+            newcp.fill = this.fill;
+            newcp.pointRadius = this.pointRadius;
+            newcp.pointHoverRadius = this.pointHoverRadius;
+            newcp.showLine = this.showLine;
             return newcp;
         }
 
@@ -221,6 +237,10 @@ namespace sc2dsstats.lib.Models
             this.pointBackgroundColor = cp.pointBackgroundColor;
             this.borderWidth = cp.borderWidth;
             this.data = new List<double>(cp.data);
+            this.fill = cp.fill;
+            this.pointRadius = cp.pointRadius;
+            this.pointHoverRadius = cp.pointHoverRadius;
+            this.showLine = cp.showLine;
         }
 
     }

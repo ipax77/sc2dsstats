@@ -181,6 +181,9 @@
 
     async Task IconClick(string cmdr, object cbValue)
     {
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
+
         _options.CmdrsChecked[cmdr] = !_options.CmdrsChecked[cmdr];
 
         if ((bool)cbValue)
@@ -189,10 +192,10 @@
             if (_options.Chart.data.datasets.Count == 0 || (_options.Chart.data.datasets.Count == 1 && _options.Chart.data.datasets.First().label == "global"))
                 await _chart.ChartHandler(_options);
             else
-                _chart.AddDataset(_options, lockobject);
+                await _chart.AddDataset(_options, lockobject);
         } else
         {
-            _chart.RemoveDataset(_options, cmdr, lockobject);
+            await _chart.RemoveDataset(_options, cmdr, lockobject);
             if (!_options.Chart.data.datasets.Any())
             {
                 _options.Interest = "";
@@ -200,6 +203,7 @@
                     await _chart.ChartHandler(_options);
             }
         }
+        Loading = false;
         await InvokeAsync(() => StateHasChanged());
     }
 

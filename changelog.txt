@@ -1,4 +1,7 @@
 
+2.0.9
+- timeline polynomial regression
+
 2.0.8
 - On the fly Scan fix
 - PlayerStats
