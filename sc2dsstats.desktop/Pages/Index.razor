@@ -1,8 +1,10 @@
 ﻿@page "/"
 @using sc2dsstats.desktop.Service
 @using sc2dsstats.lib.Data
+@using sc2dsstats.lib.Db
 @using System.IO
-
+@inject DSoptions _options
+@inject DBService _db
 
 <h2 class="text-primary">
     sc2dsstats
@@ -32,7 +34,11 @@ else
 
     </div>
 }
-
+<br />
+<div>
+    <h4>Latest Game <button type="button" class="btn btn-sm btn-inline-dark" @onclick="@(() => _options.Replay = _db.GetLatestReplay())">Refresh</button></h4>
+    <Game />
+</div>
 @code {
     bool oldDataExists = false;
     protected override void OnInitialized()

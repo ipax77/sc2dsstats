@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore.Design;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
 using sc2dsstats.lib.Data;
@@ -105,6 +106,14 @@ namespace sc2dsstats.data
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+        }
+
+        public class DSReplayContextFactory : IDesignTimeDbContextFactory<DSReplayContext>
+        {
+            public DSReplayContext CreateDbContext(string[] args)
+            {
+                return new DSReplayContext(_opt);
             }
         }
     }

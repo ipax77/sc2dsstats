@@ -52,6 +52,14 @@ namespace sc2dsstats.lib.Models
     {
         public ChartJSoptionsScalesYLabel scaleLabel { get; set; } = new ChartJSoptionsScalesYLabel();
         public ChartJSoptionsScaleTicks ticks { get; set; } = new ChartJSoptionsScaleTicks();
+        //public ChartJSoptionsScalesYGridLines gridLines { get; set; } = new ChartJSoptionsScalesYGridLines();
+    }
+
+    public class ChartJSoptionsScalesYGridLines
+    {
+        public bool drawBorder { get; set; } = false;
+        public string color { get; set; } = "#3e3c3c";
+        public bool drawOnChartArea { get; set; } = true;
     }
 
     [Serializable]

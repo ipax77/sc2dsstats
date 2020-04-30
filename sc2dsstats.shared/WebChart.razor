@@ -1,7 +1,7 @@
 ﻿@using System.ComponentModel
-@using Microsoft.AspNetCore.Components.Forms
 @using sc2dsstats.lib.Data
 @using sc2dsstats.shared.Service
+@using Microsoft.AspNetCore.Components.Routing
 @inject ChartService _chart
 @inject DSoptions _options
 @implements IDisposable
@@ -15,7 +15,34 @@
         min-width: 75px;
     }
 </style>
+<!--
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a type="button" class="navbar-brand" data-target="@_options.Mode" @onclick="ToggleNavMenu">Mode</a>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="@NavMenuCssClass">
+            <div class="navbar-nav">
+                @foreach (string mode in DSdata.s_chartmodes)
+                {
+                    string dataTarget = "#" + mode;
+                    string isActive = (_options.Mode == mode) ? "active" : "";
+                    <a type="button" class="nav-item nav-link @isActive" data-target="@dataTarget" @onclick="@(() => _options.Mode = mode)">
+                        @mode
+                    </a>
+                }
+            </div>
+        </div>
+    </nav>
 
+<div class="row">
+    @foreach (string mode in DSdata.s_chartmodes)
+    {
+        <div class="col-auto" id="@mode">
+        </div>
+    }
+</div>
+-->
 <div>
     <div class="row">
         <div class="d-none d-xl-block mt-3">
@@ -23,19 +50,19 @@
                 <div>
                     @foreach (var ent in _options.CmdrsChecked)
                     {
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox"
-                               class="custom-control-input"
-                               name="CmdrIcons"
-                               id="cb_@ent"
-                               checked="@_options.CmdrsChecked[ent.Key]"
-                               @onchange="eventArgs => { IconClick(ent.Key, eventArgs.Value); }" />
-                        <label class="custom-control-label" for="cb_@ent">
-                            <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent.Key)" width="30" height="30" />
-                            @ent.Key
-                        </label>
-                    </div>
-                    <div class="collapse">@ent.Value</div>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="CmdrIcons"
+                                   id="cb_@ent"
+                                   checked="@_options.CmdrsChecked[ent.Key]"
+                                   @onchange="eventArgs => { IconClick(ent.Key, eventArgs.Value); }" />
+                            <label class="custom-control-label" for="cb_@ent">
+                                <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent.Key)" width="30" height="30" />
+                                @ent.Key
+                            </label>
+                        </div>
+                        <div class="collapse">@ent.Value</div>
                     }
                 </div>
             </div>
@@ -97,15 +124,15 @@
                 }
 
             </div>
-                @if (ShowHideCmdr)
-                {
+            @if (ShowHideCmdr)
+            {
                 <div class="@CmdrClass" id="chart-wrapper">
                     <sc2dsstats.shared.WebCmdrs />
                 </div>
-                }
-                <div class="@ChartHideClass">
-                    <canvas id="canvas"></canvas>
-                </div>
+            }
+            <div class="@ChartHideClass">
+                <canvas id="canvas"></canvas>
+            </div>
         </div>
     </div>
     <div class="@InfoClass">
@@ -145,6 +172,9 @@
     string InfoClass = "d-none d-xl-block";
     private object lockobject = new object();
 
+    private bool collapseNavMenu = false;
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
     protected override void OnInitialized()
     {
         _options.DefaultFilter();
@@ -171,6 +201,11 @@
         return base.OnAfterRenderAsync(firstRender);
     }
 
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
     void ShowInfo()
     {
         if (String.IsNullOrEmpty(InfoClass))
@@ -193,7 +228,8 @@
                 await _chart.ChartHandler(_options);
             else
                 await _chart.AddDataset(_options, lockobject);
-        } else
+        }
+        else
         {
             await _chart.RemoveDataset(_options, cmdr, lockobject);
             if (!_options.Chart.data.datasets.Any())

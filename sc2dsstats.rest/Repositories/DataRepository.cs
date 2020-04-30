@@ -78,11 +78,18 @@ namespace sc2dsstats.rest.Repositories
                     int sec = int.Parse(info.LastRep.Substring(12, 2));
                     LastRep = new DateTime(year, month, day, hour, min, sec);
                 }
-                if (player.LastRep == LastRep) myreturn = "UpToDate";
+
+                Version dbversion = new Version(player.Version);
+                Version clversion = new Version(info.Version);
+                Version bpversion = new Version("2.0.0");
+                _logger.LogInformation($"db: {dbversion}; client: {clversion}");
+                if (clversion >= bpversion && dbversion < bpversion)
+                    myreturn = "0";
                 else
-                {
-                    myreturn = player.LastRep.ToString("yyyyMMddHHmmss");
-                }
+                    if (player.LastRep == LastRep)
+                        myreturn = "UpToDate";
+                    else
+                        myreturn = player.LastRep.ToString("yyyyMMddHHmmss");
             }
             else
             {

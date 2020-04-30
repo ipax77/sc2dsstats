@@ -174,7 +174,17 @@ namespace sc2dsstats.shared.Service
             ChartJSdataset dsTeam2 = new ChartJSdataset();
 
             dsTeam1.label = "Team1";
+            dsTeam1.fill = true;
+            dsTeam1.pointRadius = 0;
+            dsTeam1.pointHoverRadius = 6;
+            dsTeam1.showLine = true;
+            dsTeam1.borderWidth = 3;
             dsTeam2.label = "Team2";
+            dsTeam2.fill = true;
+            dsTeam2.pointRadius = 0;
+            dsTeam2.pointHoverRadius = 6;
+            dsTeam2.showLine = true;
+            dsTeam2.borderWidth = 3;
 
             var col = GetChartColor(replay.WINNER == 0);
             dsTeam1.backgroundColor.Add("rgba(0, 0, 0, 0)");

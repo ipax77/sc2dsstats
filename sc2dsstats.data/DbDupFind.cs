@@ -100,27 +100,27 @@ namespace sc2dsstats.data
 
         public static void ScanRest(List<DSReplay> replays) 
         {
+            DateTime t = DateTime.UtcNow;
             lock (lockobject)
             {
                 Program.Init();
-                Console.WriteLine("Inserting Replays ..");
+                Program.logger.LogInformation($"Inserting Replays {replays.Count}");
                 List<DSReplay> NewDBReps = new List<DSReplay>();
                 NewDBReps = InsertDSReplays(replays);
-                Console.WriteLine("Replays added: " + NewDBReps.Count + " (" + replays.Count + ")");
+                Program.logger.LogInformation($"Replays added: {NewDBReps.Count}");
 
-                Console.WriteLine("Finding dups .. ");
                 Dictionary<int, List<int>> CompareDups = FindDbDups(NewDBReps);
-                Console.WriteLine("Dups found: " + CompareDups.Count);
+                Program.logger.LogInformation($"Duplicates found: {CompareDups.Count}");
 
                 //var bab = JsonConvert.SerializeObject(CompareDups);
                 //File.WriteAllText("/data/compdups.json", bab);
-
-                Console.WriteLine("Checking dups ..");
                 HashSet<int> DeleteMe = CheckDups(CompareDups);
 
-                Console.WriteLine("Deleting: " + DeleteMe.Count);
+                Program.logger.LogInformation($"Deleting: {DeleteMe.Count}");
+
                 Delete(DeleteMe);
             }
+            Program.logger.LogInformation($"Job done in {(DateTime.UtcNow - t).ToString(@"HH\:mm\:ss")}");
         }
 
         public static List<DSReplay> InsertDSReplays(List<DSReplay> replays)
@@ -154,9 +154,9 @@ namespace sc2dsstats.data
                                         replay.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME = ent.NAME;
                                     }
                                 }
-                                catch
+                                catch (Exception e)
                                 {
-                                    Console.WriteLine("???");
+                                    Program.logger.LogInformation($"Error in finding RealPos {e.Message}");
                                 }
                             }
                             DBService.DeleteRep(context, crep.ID);
@@ -175,9 +175,9 @@ namespace sc2dsstats.data
                                         crep.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME = ent.NAME;
                                     }
                                 }
-                                catch
+                                catch (Exception e)
                                 {
-                                    Console.WriteLine(":(");
+                                    Program.logger.LogInformation($"Error in finding RealPos {e.Message}");
                                 }
                             }
                             if (i > 0)
@@ -200,7 +200,7 @@ namespace sc2dsstats.data
                     if (j % 100 == 0)
                     {
                         context.SaveChanges();
-                        Console.WriteLine($"{j}/{replays.Count}");
+                        Program.logger.LogInformation($"{j}/{replays.Count}");
                     }
                 }
                 context.SaveChanges();
@@ -389,7 +389,7 @@ namespace sc2dsstats.data
                 {
                     i++;
                     if (i % 100 == 0)
-                        Console.WriteLine($"{i}/{c}");
+                        Program.logger.LogInformation($"{i}/{c}");
 
                     if (DeleteMe.Contains(id))
                         continue;
@@ -450,9 +450,9 @@ namespace sc2dsstats.data
                                         if (ent.NAME.Length == 64 && replay.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME.Length < 64)
                                             replay.DSPlayer.Single(x => x.REALPOS == ent.REALPOS).NAME = ent.NAME;
                                     }
-                                    catch
+                                    catch (Exception e)
                                     {
-                                        Console.WriteLine("???");
+                                        Program.logger.LogInformation($"No RealPos Player found {e.Message}: {replay.ID}");
                                     }
                                 }
                                 DeleteMe.Add(crep.ID);
@@ -468,7 +468,7 @@ namespace sc2dsstats.data
                                     }
                                     catch (Exception e)
                                     {
-                                        Console.WriteLine(":( " + e.Message);
+                                        Program.logger.LogInformation($"No RealPos Player found {e.Message}: {crep.ID}");
                                     }
                                 }
                                 DeleteMe.Add(replay.ID);
@@ -529,7 +529,7 @@ namespace sc2dsstats.data
 
 
                     if (i % 100 == 0)
-                        Console.WriteLine($"{i}: comparereps => {CompareMe.Count}; searching: {compreps.Count()}");
+                        Program.logger.LogInformation($"{i}: comparereps => {CompareMe.Count}; searching: {compreps.Count()}");
                     //if (i > 4000)
                     //    return CompareMe;
                 }

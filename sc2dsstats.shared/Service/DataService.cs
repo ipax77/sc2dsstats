@@ -811,6 +811,8 @@ namespace sc2dsstats.shared.Service
                     {
                         labels.Remove(labels.Last());
                         data.Remove(data.Last());
+                        if (!data.Any())
+                            break;
                         last = data.Last();
                     }
 
@@ -823,13 +825,13 @@ namespace sc2dsstats.shared.Service
                 if (xdata.Any())
                 {
                     int order = 6;
-                    if (xdata.Count < 6)
+                    if (xdata.Count <= 6)
                         if (xdata.Count < 3)
                             order = 1;
                         else
                             order = xdata.Count - 2;
-
                     f = Fit.PolynomialFunc(xdata.ToArray(), ydata.ToArray(), order);
+
                     //f = Fit.LinearCombinationFunc(xdata.ToArray(), ydata.ToArray());
                     //f = Fit.PowerFunc(xdata.ToArray(), ydata.ToArray());
                     //f = Fit.LogarithmFunc(xdata.ToArray(), ydata.ToArray());
