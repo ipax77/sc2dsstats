@@ -125,8 +125,12 @@
             await ShowGame(RepId, true);
         else
         {
-            RepId = _db.GetLatestReplay().ID;
-            await ShowGame(RepId, true);
+            DSReplay lastrep = _db.GetLatestReplay();
+            if (lastrep != null)
+            {
+                RepId = lastrep.ID;
+                await ShowGame(RepId, true);
+            }
             /*
             var uri = new Uri(_nav.Uri);
             var fragment = uri.Fragment;

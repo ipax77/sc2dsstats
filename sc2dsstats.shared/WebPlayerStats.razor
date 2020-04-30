@@ -198,12 +198,12 @@
 
 @code {
 
-    sc2dsstats.lib.Models.PlayerStats Stats = new lib.Models.PlayerStats();
-    sc2dsstats.lib.Models.PlayerStat best = new lib.Models.PlayerStat();
-    sc2dsstats.lib.Models.PlayerStat worst = new lib.Models.PlayerStat();
-    sc2dsstats.lib.Models.PlayerStat most = new lib.Models.PlayerStat();
-    sc2dsstats.lib.Models.PlayerStat least = new lib.Models.PlayerStat();
-    string DetailClass = "d-none";
+        sc2dsstats.lib.Models.PlayerStats Stats = new lib.Models.PlayerStats();
+        sc2dsstats.lib.Models.PlayerStat best = new lib.Models.PlayerStat();
+        sc2dsstats.lib.Models.PlayerStat worst = new lib.Models.PlayerStat();
+        sc2dsstats.lib.Models.PlayerStat most = new lib.Models.PlayerStat();
+        sc2dsstats.lib.Models.PlayerStat least = new lib.Models.PlayerStat();
+        string DetailClass = "d-none";
 
     protected override async Task OnInitializedAsync()
     {
@@ -223,10 +223,13 @@
                 sc2dsstats.lib.Data.DSdata.PlayerStats = Stats;
             });
         }
-        best = Stats.Stats.OrderByDescending(o => o.Winrate).FirstOrDefault();
-        worst = Stats.Stats.OrderBy(o => o.Winrate).FirstOrDefault();
-        most = Stats.Stats.OrderByDescending(o => o.Count).FirstOrDefault();
-        least = Stats.Stats.OrderBy(o => o.Count).FirstOrDefault();
+        if (Stats.Stats.Any())
+        {
+            best = Stats.Stats.OrderByDescending(o => o.Winrate).FirstOrDefault();
+            worst = Stats.Stats.OrderBy(o => o.Winrate).FirstOrDefault();
+            most = Stats.Stats.OrderByDescending(o => o.Count).FirstOrDefault();
+            least = Stats.Stats.OrderBy(o => o.Count).FirstOrDefault();
+        }
     }
 
     void ShowHide()

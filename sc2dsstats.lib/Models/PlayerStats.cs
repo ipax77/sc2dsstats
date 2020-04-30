@@ -46,6 +46,7 @@ namespace sc2dsstats.lib.Models
             int total = 0;
             int totalwins = 0;
             int tduration = 0;
+
             foreach (string cmdr in DSdata.s_races_cmdr)
             {
                 var cmdrreps = reps.Where(x => x.RACE == cmdr);
@@ -112,8 +113,11 @@ namespace sc2dsstats.lib.Models
 
             TStats.Race = "Total";
             TStats.Count = total;
-            TStats.Winrate = MathF.Round((float)totalwins * 100 / total, 2);
-            TStats.AvgGameDuration = TimeSpan.FromSeconds(tduration / total);
+            if (total > 0)
+            {
+                TStats.Winrate = MathF.Round((float)totalwins * 100 / total, 2);
+                TStats.AvgGameDuration = TimeSpan.FromSeconds(tduration / total);
+            }
 
             for (int i = 1; i <= 6; i++)
             {
