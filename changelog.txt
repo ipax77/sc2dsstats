@@ -1,4 +1,9 @@
 
+2.0.11
+
+- UserSettings -> MatBlazor
+- Electron.NET 8.31.1
+
 2.0.10
 
 - timeline bugfix

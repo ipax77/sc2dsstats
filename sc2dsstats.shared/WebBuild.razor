@@ -65,113 +65,74 @@
     }
 
     .vl {
-        border-left: 6px solid red;
+        border-left: 4px solid red;
     }
 
 </style>
 
 <WebBuildOptions />
 
-<div class="mt-3">
+<div class="container-fluid">
     <div class="row">
-        <div class="d-none d-xl-block">
-            <EditForm Model="_check" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <fieldset>
-                    <div class="form-group">
-                        <h5>Cmdr</h5>
-                        <div class="custom-control custom-radio p-0 m-0">
-                            <label class="btn btn-sm btn-secondary cbbutton">
-                                <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                            </label>
-                        </div>
-                        @foreach (string cmdr in DSdata.s_races)
-                        {
-                            string isActive = "";
-                            <div class="custom-control custom-radio p-0 m-0">
+        <div style="max-width: 135px;">
+            <div class="d-none d-xl-block">
+                <div class="navbar navbar-dark bg-dark">
+                    <a class="navbar-brand" data-target="#Winrate">Cmdr</a>
+                    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+                        <span class="navbar-toggler"></span>
+                    </button>
+                    <div class="@NavMenuCssClass navbar-collapse" id="navbarTimes">
+                        <ul class="navbar-nav">
+                            @foreach (string cmdr in DSdata.s_races)
+                            {
+                                string dataTarget = "#" + cmdr;
+                                string isActive = _check.Selected == cmdr ? "active" : "";
+                                <li class="nav-item">
+                                    <a type="button" class="nav-link @isActive" style="padding: 0.5px;" data-target="@dataTarget" @onclick="@(() => _check.Selected = cmdr)">
+                                        <img alt="img_@cmdr" aria-hidden="true" longdesc="img_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
+                                        @cmdr
+                                    </a>
+                                </li>
 
-                                @if (_check.Selected == cmdr)
-                                    isActive = "active";
-                                else
-                                    isActive = "";
-                                <label class="btn btn-sm btn-outline-info text-left cbbutton @isActive">
-                                    <InputRadio name="cmdrs" SelectedValue="cmdr" @bind-Value="_check.Selected" />
-                                    <img alt="img_@cmdr" longdesc="img_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
-                                    @cmdr
-                                </label>
-                            </div>
-                        }
+                            }
+                        </ul>
                     </div>
-                </fieldset>
-            </EditForm>
+                </div>
+            </div>
         </div>
-        <div class="d-none d-xl-block vl">
-            <EditForm Model="_checkvs" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <fieldset>
-                    <div class="form-group">
-                        <h5>Vs</h5>
-                        <div class="custom-control custom-radio p-0 m-0">
-                            @if (_checkvs.Selected == "ALL")
+        <div style="max-width: 139px;">
+            <div class="d-none d-xl-block vl">
+                <div class="navbar navbar-dark bg-dark">
+                    <a class="navbar-brand" data-target="#Winrate">Vs</a>
+                    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="@NavMenuCssClass navbar-collapse" id="navbarTimes">
+                        <ul class="navbar-nav">
+                            @foreach (string cmdr in DSdata.s_races)
                             {
-                                <label class="btn btn-sm btn-outline-info text-left active cbbutton">
-                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                    ALL
-                                </label>
-                            }
-                            else
-                            {
-                                <label class="btn btn-sm btn-outline-info text-left cbbutton">
-                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                    ALL
-                                </label>
+                                string dataTarget2 = "#" + cmdr;
+                                string isActive2 = _checkvs.Selected == cmdr ? "active" : "";
+                                <li class="nav-item">
+                                    <a type="button" class="nav-link m-0 @isActive2" style="padding: 0.5px;" data-target="@dataTarget2" @onclick="@(() => _checkvs.Selected = cmdr)">
+                                        <img alt="imgvs_@cmdr" aria-hidden="true" longdesc="imgvs_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
+                                        @cmdr
+                                    </a>
+                                </li>
 
                             }
-                        </div>
-                        @foreach (string cmdr in DSdata.s_races)
-                        {
-                            string isActive = "";
-                            <div class="custom-control custom-radio p-0 m-0">
-
-                                @if (_checkvs.Selected == cmdr)
-                                    isActive = "active";
-                                else
-                                    isActive = "";
-                                <label class="btn btn-sm btn-outline-info text-left cbbutton @isActive">
-                                    <InputRadio name="cmdrsvs" SelectedValue="cmdr" @bind-Value="_checkvs.Selected" />
-                                    <img alt="imgvs_@cmdr" longdesc="imgvs_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
-                                    @cmdr
-                                </label>
-                            </div>
-                        }
-                        <div class="custom-control custom-radio p-0 m-0">
-                            @if (_checkvs.Selected == "ALL")
-                            {
-                                <label class="btn btn-sm btn-outline-info text-left active cbbutton">
-                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
+                            <li class="nav-item">
+                                <a type="button" class="nav-link m-0 @(_checkvs.Selected == "ALL" ? "active" : "")" style="padding: 0.5px;" data-target="#Winrate" @onclick="@(() => _checkvs.Selected = "ALL")">
+                                    <img alt="imgvs_all" aria-hidden="true" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
                                     ALL
-                                </label>
-                            }
-                            else
-                            {
-                                <label class="btn btn-sm btn-outline-info text-left cbbutton">
-                                    <InputRadio name="cmdrsvs" SelectedValue="@("ALL")" @bind-Value="_checkvs.Selected" />
-                                    <img alt="imgvs_all" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
-                                    ALL
-                                </label>
-
-                            }
-                        </div>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
-                </fieldset>
-            </EditForm>
+                </div>
+            </div>
         </div>
-        <div class="ml-5">
+        <div class="ml-4">
             <div class="row">
                 <div class="col-auto">
                     @if (Loading)
@@ -315,6 +276,10 @@
     private string gametimetext = "";
     private string comptext = "";
 
+    private bool collapseNavMenu = false;
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private bool collapseNavMenu2 = false;
+    private string NavMenuCssClass2 => collapseNavMenu ? "collapse" : null;
 
     private string BtnStyle = DSdata.CmdrBtnStyle;
 
@@ -370,6 +335,15 @@
         {
             await GetBuild();
         }
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+    private void ToggleNavMenu2()
+    {
+        collapseNavMenu = !collapseNavMenu;
     }
 
     void checkClick(object sender, PropertyChangedEventArgs e)

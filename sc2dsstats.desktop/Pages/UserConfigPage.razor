@@ -1,0 +1,222 @@
+﻿@page "/configng"
+@using sc2dsstats.lib.Data
+@using sc2dsstats.lib.Models
+@using sc2dsstats.desktop.Service
+@using System.Security.Cryptography
+
+<MatAppBarContainer>
+    <MatAppBar Fixed="true">
+        <MatAppBarRow>
+            <MatAppBarSection>
+                <MatAppBarTitle>User Settings</MatAppBarTitle>
+                <button type="button" class="btn btn-primary ml-4" @onclick="Reset">Reset</button>
+                <button type="button" class="btn btn-warning" @onclick="Save">SAVE</button>
+            </MatAppBarSection>
+            <MatAppBarSection Align="@MatAppBarSectionAlign.Start">
+                <h4><span class="badge @BadgeClass">@Info</span></h4>
+            </MatAppBarSection>
+        </MatAppBarRow>
+    </MatAppBar>
+
+    <MatAppBarContent>
+        @if (myHash.Any())
+        {
+            <div>
+                Dataset name: <b>@myHash.Substring(0, 5)</b>@myHash.Substring(5, myHash.Length - 5)
+            </div>
+        }
+    </MatAppBarContent>
+</MatAppBarContainer>
+<div class="jumbotron w-50" style="background-color: darkorange">
+    <MatHeadline5>Automatisms and Credential</MatHeadline5>
+    <div class="row">
+        <div class="col-3">
+            <MatCheckbox @bind-Value="@myConfig.Autoupload_v1_1_10" Label="Autoupload">
+            </MatCheckbox>
+        </div>
+        <div class="col">
+            Automatically upload your anonymized DS-replay stats
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <MatCheckbox @bind-Value="@myConfig.OnTheFlyScan" Label="OnTheFlyScan">
+            </MatCheckbox>
+
+        </div>
+        <div class="col">
+            Automatically detects new Direct Strike replays.
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <MatCheckbox @bind-Value="@myConfig.Uploadcredential" Label="Allow Uploads">
+            </MatCheckbox>
+        </div>
+        <div class="col">
+            To improve this application it would be very nice if the statistics were uploaded from time to time.
+            All player names (including yours) will be anonymized before sending. By checking you agree that your anonymized DS-replay data will be used at <a href="https://www.pax77.org/dsweb">https://www.pax77.org/dsweb</a> to generate global charts.
+        </div>
+    </div>
+</div>
+<div class="jumbotron">
+    <MatHeadline5>CPU Cores - used for decoding new replays</MatHeadline5>
+    <MatSelect Label="CPU Cores" @bind-Value="@myConfig.Cores">
+        @for (int i = 0; i < Environment.ProcessorCount; i++)
+        {
+            int cores = i + 1;
+            <MatOption TValue="int" Value="@cores">@cores</MatOption>
+        }
+
+    </MatSelect>
+</div>
+<div class="jumbotron">
+    <MatHeadline5>Players - your ingame Starcraft 2 Player name(s) e.g. shown in the loading screen of Direct Strike</MatHeadline5>
+    @for (int i = 0; i < myConfig.Players.Count; i++)
+    {
+        string label = "PlayerName " + (i + 1);
+        UserConfigDbPlayers player = myConfig.Players.ElementAt(i);
+        <p>
+            <div class="row">
+                <MatTextField @bind-Value="player.Player" Label="@label"></MatTextField>
+                @if (!player.isValidB)
+                {
+                    <h4><span class="badge badge-danger">Invalid!</span></h4>
+                }
+                <button type="button" class="btn" @onclick="() => DeleteName(player)">Delete</button>
+            </div>
+        </p>
+    }
+
+    <button type="button" class="btn" @onclick="AddName">Add</button>
+</div>
+<div class="jumbotron">
+    <MatHeadline5>Replay directories - location of the Direct Strike replays</MatHeadline5>
+    <MatHeadline6>
+        Somethink like:
+        C:\Users\username\Documents\StarCraft II\Accounts\107095123\2-S2-1-226321\Replays\Multiplayer
+    </MatHeadline6>
+
+    @for (int i = 0; i < myConfig.Replays.Count; i++)
+    {
+        string label = "Dir " + (i + 1);
+        UserConfigDbReplays replay = myConfig.Replays.ElementAt(i);
+        <p>
+            <div class="row">
+                <MatTextField Class="w-50" @bind-Value="@replay.Replay" Label="@label"></MatTextField>
+                @if (!replay.isValidB)
+                {
+                    <h4><span class="badge badge-danger">Invalid!</span></h4>
+                }
+                <button type="button" class="btn" @onclick="() => DeleteReplayPath(replay)">Delete</button>
+            </div>
+        </p>
+
+    }
+    <button type="button" class="btn" @onclick="AddReplayPath">Add</button>
+</div>
+
+
+
+@code {
+
+    UserConfigDb myConfig;
+    string Info = "";
+    bool isValid = true;
+    string BadgeClass => isValid ? "badge-success" : "badge-danger";
+    string myHash = "";
+
+    void Success()
+    {
+        Info = "Successfuly saved.";
+    }
+
+    protected override void OnInitialized()
+    {
+        myConfig = new UserConfigDb(DSdata.Config);
+        if (!myConfig.Players.Any())
+            AddName();
+        if (!myConfig.Replays.Any())
+            AddReplayPath();
+
+        GetHash();
+
+        base.OnInitialized();
+    }
+
+    void GetHash()
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            string names = String.Join(";", DSdata.Config.Players);
+            myHash = DSrest.GetHash(sha256Hash, names);
+        }
+    }
+
+    void Reset()
+    {
+        FirstRun.Helper();
+        myConfig = new UserConfigDb(DSdata.Config);
+        Info = "Settings reset successful.";
+    }
+
+    void DeleteName(UserConfigDbPlayers player)
+    {
+        myConfig.Players.Remove(player);
+    }
+
+    void AddName()
+    {
+        myConfig.Players.Add(new UserConfigDbPlayers());
+    }
+
+    void DeleteReplayPath(UserConfigDbReplays replay)
+    {
+        myConfig.Replays.Remove(replay);
+    }
+
+    void AddReplayPath()
+    {
+        myConfig.Replays.Add(new UserConfigDbReplays());
+    }
+
+    void Save()
+    {
+        Info = "Saving new config ...";
+
+        foreach (UserConfigDbPlayers myplayer in myConfig.Players.Where(x => !String.IsNullOrEmpty(x.Player)))
+        {
+            isValid = myplayer.Check();
+            if (!isValid)
+                break;
+        }
+        if (!isValid)
+        {
+            Info = "Invalid player name!";
+            return;
+        }
+        foreach (UserConfigDbReplays myreplay in myConfig.Replays.Where(x => !String.IsNullOrEmpty(x.Replay)))
+        {
+            isValid = myreplay.Check();
+            if (!isValid)
+                break;
+        }
+        if (!isValid)
+        {
+            Info = "Invalid replay plath!";
+            return;
+        }
+        else
+        {
+            DSdata.Config = new UserConfig(myConfig);
+            Status.SaveConfig();
+            Info = "Settings successfuly saved.";
+            GetHash();
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        Console.WriteLine("OnValidSubmit");
+    }
+}

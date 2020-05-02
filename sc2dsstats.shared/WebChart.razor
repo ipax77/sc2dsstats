@@ -1,7 +1,7 @@
 ﻿@using System.ComponentModel
 @using sc2dsstats.lib.Data
 @using sc2dsstats.shared.Service
-@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Forms
 @inject ChartService _chart
 @inject DSoptions _options
 @implements IDisposable
@@ -14,56 +14,165 @@
     .mybadge {
         min-width: 75px;
     }
+    /* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 45px !important;
+        height: 20px !important;
+    }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 15px !important;
+            width: 15px !important;
+            left: 2px !important;
+            bottom: 2px !important;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(13px);
+        -ms-transform: translateX(13px);
+        transform: translateX(13px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 17px !important;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
 </style>
-<!--
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a type="button" class="navbar-brand" data-target="@_options.Mode" @onclick="ToggleNavMenu">Mode</a>
+<div class="d-none d-xl-block">
+    <div class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" data-target="#Winrate">ChartModes</a>
         <button class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="@NavMenuCssClass">
-            <div class="navbar-nav">
+        <div class="@NavMenuCssClass navbar-collapse" id="navbarModes">
+            <ul class="navbar-nav mr-auto">
                 @foreach (string mode in DSdata.s_chartmodes)
                 {
                     string dataTarget = "#" + mode;
                     string isActive = (_options.Mode == mode) ? "active" : "";
-                    <a type="button" class="nav-item nav-link @isActive" data-target="@dataTarget" @onclick="@(() => _options.Mode = mode)">
-                        @mode
-                    </a>
+                    <li class="nav-item">
+                        <a type="button" class="nav-link @isActive" data-target="@dataTarget" @onclick="@(() => _options.Mode = mode)">
+                            @mode
+                        </a>
+                    </li>
                 }
-            </div>
+                <li class="ml-4">
+                    <div class="position-absolute">
+                        <EditForm Model="@_options" OnValidSubmit="HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="row">
+                                <div class="form-group col-xs-4 col-md-4">
+                                    <label for="cbplayer">
+                                        Player
+                                    </label>
+                                    <label id="cbplayer" class="switch">
+                                        <InputCheckbox @bind-Value="_options.Player" />
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group col-xs-4 col-md-4">
+                                    <label for="cbzero">
+                                        BeginAtZero
+                                    </label>
+                                    <label id="cbzero" class="switch">
+                                        <InputCheckbox @bind-Value="_options.BeginAtZero" />
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </EditForm>
+                    </div>
+                </li>
+            </ul>
         </div>
-    </nav>
-
-<div class="row">
-    @foreach (string mode in DSdata.s_chartmodes)
-    {
-        <div class="col-auto" id="@mode">
+    </div>
+    <div class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" data-target="#Winrate">TimeSpan</a>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu2">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="@NavMenuCssClass2 navbar-collapse" id="navbarTimes">
+            <ul class="navbar-nav mr-auto">
+                @foreach (string timespan in DSdata.s_timespans)
+                {
+                    string dataTarget2 = "#" + timespan;
+                    string isActive2 = (_options.Time == timespan) ? "active" : "";
+                    <li class="nav-item">
+                        <a type="button" class="nav-link @isActive2" data-target="@dataTarget2" @onclick="@(() => Gametime(timespan))">
+                            @timespan
+                        </a>
+                    </li>
+                }
+            </ul>
         </div>
-    }
+    </div>
 </div>
--->
+<div class="d-xl-none">
+    <WebOptions />
+</div>
 <div>
     <div class="row">
-        <div class="d-none d-xl-block mt-3">
-            <div>
-                <div>
-                    @foreach (var ent in _options.CmdrsChecked)
-                    {
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox"
-                                   class="custom-control-input"
-                                   name="CmdrIcons"
-                                   id="cb_@ent"
-                                   checked="@_options.CmdrsChecked[ent.Key]"
-                                   @onchange="eventArgs => { IconClick(ent.Key, eventArgs.Value); }" />
-                            <label class="custom-control-label" for="cb_@ent">
-                                <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(ent.Key)" width="30" height="30" />
-                                @ent.Key
-                            </label>
-                        </div>
-                        <div class="collapse">@ent.Value</div>
-                    }
+        <div class="d-none d-xl-block">
+            <div class="navbar navbar-dark bg-dark">
+                <button class="navbar-toggler" @onclick="ToggleNavMenu3">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="@NavMenuCssClass3 navbar-collapse" id="navbarTimes">
+                    <ul class="navbar-nav mr-auto">
+                        @foreach (var ent in _options.CmdrsChecked)
+                        {
+                            string dataTarget3 = "#" + ent.Key;
+                            string isActive3 = ent.Value ? "active" : "";
+                            <li class="nav-item">
+                                <a type="button" class="nav-link m-0 @isActive3" style="padding: 0.5px;" data-target="@dataTarget3" @onclick="@(async => IconClick(ent.Key, !ent.Value))">
+                                    <img alt="img_@ent" aria-hidden="true" longdesc="img_@ent" src="@DSdata.GetIcon(ent.Key)" width="30" height="30" />
+                                    @ent.Key
+                                </a>
+                                <div class="collapse">@ent.Value</div>
+                            </li>
+
+                        }
+                    </ul>
                 </div>
             </div>
         </div>
@@ -84,21 +193,32 @@
                         </button>
                     }
                 </div>
+                <div class="d-none d-xl-block">
+                    <div class="mr-5">
+                        <button class="btn btn-light" @onclick="OpenDialog">Filter</button>
+                    </div>
+                </div>
                 <div class="form-group mr-2">
-                    <span class="badge badge-danger mybadge mr-2">
-                        &sum; Games<br />@_options.Cmdrinfo.Games
-                    </span>
+                    <h5>
+                        <span class="badge badge-danger mybadge mr-2">
+                            &sum; Games<br />@_options.Cmdrinfo.Games
+                        </span>
+                    </h5>
                 </div>
 
                 <div class="form-group mr-2">
-                    <span class="badge badge-danger mybadge mr-2">
-                        &empty; @_options.Mode<br />@_options.Cmdrinfo.AWinrate
-                    </span>
+                    <h5>
+                        <span class="badge badge-danger mybadge mr-2">
+                            &empty; @_options.Mode<br />@_options.Cmdrinfo.AWinrate%
+                        </span>
+                    </h5>
                 </div>
                 <div class="form-group mr-2">
-                    <span class="badge badge-danger mybadge mr-2">
-                        &empty; Duration<br />@_options.Cmdrinfo.ADuration.ToString(@"hh\:mm\:ss")
-                    </span>
+                    <h5>
+                        <span class="badge badge-danger mybadge mr-2">
+                            &empty; Duration<br />@_options.Cmdrinfo.ADuration.ToString(@"hh\:mm\:ss")
+                        </span>
+                    </h5>
                 </div>
                 @if (_options.Dataset.Any())
                 {
@@ -106,19 +226,25 @@
                     if (dataset != null)
                     {
                         <div class="form-group mr-2">
-                            <span class="badge badge-info mr-2">
-                                Dataset<br />@dataset.Dataset.Substring(0, 5)
-                            </span>
+                            <h5>
+                                <span class="badge badge-info mr-2">
+                                    Dataset<br />@dataset.Dataset.Substring(0, 5)
+                                </span>
+                            </h5>
                         </div>
                         <div class="form-group mr-2">
-                            <span class="badge badge-info mr-2">
-                                Winrate<br />@dataset.Winrate%
-                            </span>
+                            <h5>
+                                <span class="badge badge-info mr-2">
+                                    Winrate<br />@dataset.Winrate%
+                                </span>
+                            </h5>
                         </div>
                         <div class="form-group mr-2">
-                            <span class="badge badge-info mr-2">
-                                Teamgames<br />@dataset.Teamgames%
-                            </span>
+                            <h5>
+                                <span class="badge badge-info mr-2">
+                                    Teamgames<br />@dataset.Teamgames%
+                                </span>
+                            </h5>
                         </div>
                     }
                 }
@@ -157,6 +283,8 @@
     </div>
 </div>
 
+<OptionsDialog @ref="myDialog" />
+
 @code {
     [Parameter]
     public WebOptions webOptions { get; set; }
@@ -174,6 +302,12 @@
 
     private bool collapseNavMenu = false;
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private bool collapseNavMenu2 = false;
+    private string NavMenuCssClass2 => collapseNavMenu2 ? "collapse" : null;
+    private bool collapseNavMenu3 = false;
+    private string NavMenuCssClass3 => collapseNavMenu3 ? "collapse" : null;
+
+    OptionsDialog myDialog;
 
     protected override void OnInitialized()
     {
@@ -201,9 +335,29 @@
         return base.OnAfterRenderAsync(firstRender);
     }
 
+    void OpenDialog()
+    {
+        myDialog.Show();
+    }
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void ToggleNavMenu2()
+    {
+        collapseNavMenu2 = !collapseNavMenu2;
+    }
+
+    private void ToggleNavMenu3()
+    {
+        collapseNavMenu3 = !collapseNavMenu3;
+    }
+
+    private void HandleValidSubmit()
+    {
+        //Console.WriteLine("valid");
     }
 
     void ShowInfo()
@@ -214,7 +368,7 @@
             InfoClass = "";
     }
 
-    async Task IconClick(string cmdr, object cbValue)
+    async Task IconClick(string cmdr, bool cbValue)
     {
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
@@ -269,6 +423,47 @@
             Loading = false;
             await InvokeAsync(() => StateHasChanged());
         }
+    }
+
+    private void Gametime(string timespan)
+    {
+        _options.Time = timespan;
+        int i = Array.FindIndex(DSdata.s_timespans, f => f == timespan);
+        // this month
+        if (i == 0)
+        {
+            _options.Startdate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1));
+            _options.Enddate = DateTime.MinValue;
+        }
+
+        // last month
+        else if (i == 1)
+        {
+            _options.Startdate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddMonths(-1);
+            _options.Enddate = DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddDays(-1);
+        }
+
+        // this year
+        else if (i == 2)
+        {
+            _options.Startdate = new DateTime(DateTime.Now.Year, 1, 1);
+            _options.Enddate = DateTime.MinValue;
+        }
+        // last year
+        else if (i == 3)
+        {
+            _options.Startdate = new DateTime(DateTime.Now.Year - 1, 1, 1);
+            _options.Enddate = new DateTime(DateTime.Now.Year, 1, 1);
+        }
+        // all
+        else if (i == 4)
+        {
+            _options.Startdate = DateTime.MinValue;
+            _options.Enddate = DateTime.MinValue;
+        }
+
+        _options.Update = !_options.Update;
+
     }
 
     public void Dispose()

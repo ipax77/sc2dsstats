@@ -23,6 +23,12 @@ namespace sc2dsstats.desktop
         {
             Configuration = configuration;
 
+            var app = Configuration.GetSection("Logging").GetChildren();
+            foreach (var ent in app)
+            {
+                ent.Value = "Information";
+            }
+            
         }
 
         public IConfiguration Configuration { get; }

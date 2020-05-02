@@ -1,0 +1,75 @@
+{
+  "name": "sc2dsstats.desktop",
+  "version": "2.0.0",
+  "description": "sc2dsstats - Direct Strike stats",
+  "executable": "sc2dsstats.desktop",
+  "provider": "github",
+  "owner": "ipax77",
+  "publishAutoUpdate": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipax77/sc2dsstats.git"
+  },
+  "main": "main.js",
+  "author": "ipax77",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "start": "tsc -p ."
+  },
+  "build": {
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "bin/wwwroot/_content/sc2dsstats.shared/images/icon-512x512.png"
+    },
+    "appId": "com.electron.sc2dsstats.desktop.app",
+    "productName": "sc2dsstats.desktop",
+    "copyright": "Copyright © 2019 Philipp Hetzner",
+    "buildVersion": "2.0.0",
+    "compression": "maximum",
+    "directories": {
+      "output": "../../bin/Desktop",
+      "buildResources": "../../build"
+    },
+    "extraResources": [
+      {
+        "from": "./bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "files": [
+      {
+        "from": "./ElectronHostHook/node_modules",
+        "to": "ElectronHostHook/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      },
+      "**/*"
+    ]
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "electron-updater": "^4.2.2",
+    "image-size": "^0.8.3",
+    "portscanner": "^2.2.0",
+    "socket.io": "^2.3.0",
+    "utf-8-validate": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^10.14.4",
+    "@types/socket.io": "^2.1.2",
+    "electron-builder": "^22.3.2",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.2"
+  }
+}

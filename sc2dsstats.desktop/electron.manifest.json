@@ -56,20 +56,5 @@
       },
       "**/*"
     ]
-  },
-  "dependencies": {
-    "bufferutil": "^4.0.1",
-    "electron-updater": "^4.2.2",
-    "image-size": "^0.8.3",
-    "portscanner": "^2.2.0",
-    "socket.io": "^2.3.0",
-    "utf-8-validate": "^5.0.2"
-  },
-  "devDependencies": {
-    "@types/node": "^10.14.4",
-    "@types/socket.io": "^2.1.2",
-    "electron-builder": "^22.3.2",
-    "tslint": "^5.20.1",
-    "typescript": "^3.7.2"
   }
 }
