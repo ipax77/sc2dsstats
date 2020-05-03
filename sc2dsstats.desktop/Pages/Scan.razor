@@ -22,7 +22,7 @@
         {
             <button type="button" class="btn btn-primary" @onclick="@stopDecode">Stop</button>
         }
-        <button type="button" class="btn btn-outline-info" @onclick="@( async => _status.UploadReplays())">Upload</button>
+        <button type="button" class="btn btn-outline-info" @onclick="@(async => Upload())">Upload</button>
         <div class="ml-3">
             @if (UploadStatus == UploadStatus.Uploading)
             {
@@ -154,7 +154,13 @@
         _status.StopDecode();
     }
 
-
+    async void Upload()
+    {
+        if (DSdata.Config.Uploadcredential)
+            await _status.UploadReplays();
+        else
+            ucDialog.Show(true);
+    }
 
     public void Dispose()
     {

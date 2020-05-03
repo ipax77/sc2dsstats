@@ -102,6 +102,9 @@ namespace sc2dsstats.desktop.Service
 
             UploadReplays = _db.GetUploadReplay(gtime);
 
+            if (!UploadReplays.Any())
+                return true;
+
             List<string> anonymous = new List<string>();
 
             foreach (DSReplay rep in UploadReplays)

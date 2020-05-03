@@ -16,7 +16,7 @@
 <div class="container-fluid">
     <div class="d-flex flex-row flex-wrap" style="background-color: aliceblue; border-radius: 20px; max-width: 1200px !important;">
         <div class="p-2 mt-2 mr-2">
-            <label class="col-form-label">Build Race</label>
+            <label class="col-form-label text-primary">Build Race</label>
             <select class="custom-select" @onchange="ChangePlayerRace">
                 <option value="@UnitRace.Terran">Terran</option>
                 <option value="@UnitRace.Protoss">Protoss</option>
@@ -24,7 +24,7 @@
             </select>
         </div>
         <div class="p-2 mt-2 mr-2">
-            <label class="col-form-label">Opponent Race</label>
+            <label class="col-form-label text-primary">Opponent Race</label>
             <select class="custom-select" @onchange="ChangeOppRace">
                 <option value="@UnitRace.Zerg">Zerg</option>
                 <option value="@UnitRace.Terran">Terran</option>
@@ -34,7 +34,7 @@
     </div>
     <div class="d-flex flex-row flex-wrap" style="background-color: aliceblue; border-radius: 20px; max-width: 1200px !important;">
         <div class="p-2 ml-2 mt-2 mr-2">
-            <label>Game Mode</label>
+            <label class="text-primary">Game Mode</label>
             <select class="custom-select" @bind="_player.Mode.Mode">
                 <option value="Bot#1">Zerg Bot</option>
                 <option value="Bot#2">Terran Bot</option>
@@ -42,15 +42,15 @@
             </select>
         </div>
         <div class="p-2 mt-2 mr-2">
-            <label>Builds</label>
+            <label class="text-primary">Builds</label>
             <input type="number" @bind="@builds" />
         </div>
         <div class="p-2 mt-2 mr-2">
-            <label>Positions</label>
+            <label class="text-primary">Positions</label>
             <input type="number" @bind="@positions" />
         </div>
         <div class="p-2 mt-2 mr-2">
-            <label>Cores</label>
+            <label class="text-primary">Cores</label>
             <input type="number" @bind="@cores" max="@Environment.ProcessorCount" />
         </div>
     </div>

@@ -16,7 +16,7 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.11");
+        public static Version DesktopVersion = new Version("2.0.12");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
         public static bool DesktopUpdateAvailable = false;
 
