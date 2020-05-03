@@ -1,4 +1,8 @@
 
+2.0.12
+
+- bugfix Upload.Any() / A-Move colors 
+
 2.0.11
 
 - UserSettings -> MatBlazor
