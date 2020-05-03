@@ -1,4 +1,8 @@
 
+2.0.13
+
+- ElectronNET.CLI Version 8.31.1
+
 2.0.12
 
 - bugfix Upload.Any() / A-Move colors 
