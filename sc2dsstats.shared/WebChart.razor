@@ -76,6 +76,10 @@
         .slider.round:before {
             border-radius: 50%;
         }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
 </style>
 <div class="d-none d-xl-block">
     <div class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -89,8 +93,8 @@
                 {
                     string dataTarget = "#" + mode;
                     string isActive = (_options.Mode == mode) ? "active" : "";
-                    <li class="nav-item">
-                        <a type="button" class="nav-link @isActive" data-target="@dataTarget" @onclick="@(() => _options.Mode = mode)">
+                    <li class="nav-item cursor-pointer">
+                        <a class="nav-link @isActive" data-target="@dataTarget" @onclick="@(() => _options.Mode = mode)">
                             @mode
                         </a>
                     </li>
@@ -137,8 +141,8 @@
                 {
                     string dataTarget2 = "#" + timespan;
                     string isActive2 = (_options.Time == timespan) ? "active" : "";
-                    <li class="nav-item">
-                        <a type="button" class="nav-link @isActive2" data-target="@dataTarget2" @onclick="@(() => Gametime(timespan))">
+                    <li class="nav-item cursor-pointer">
+                        <a class="nav-link @isActive2" data-target="@dataTarget2" @onclick="@(() => Gametime(timespan))">
                             @timespan
                         </a>
                     </li>
@@ -157,14 +161,14 @@
                 <button class="navbar-toggler" @onclick="ToggleNavMenu3">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="@NavMenuCssClass3 navbar-collapse" id="navbarTimes">
+                <div class="@NavMenuCssClass3 navbar-collapse" id="navbarIcons">
                     <ul class="navbar-nav mr-auto">
                         @foreach (var ent in _options.CmdrsChecked)
                         {
                             string dataTarget3 = "#" + ent.Key;
                             string isActive3 = ent.Value ? "active" : "";
-                            <li class="nav-item">
-                                <a type="button" class="nav-link m-0 @isActive3" style="padding: 0.5px;" data-target="@dataTarget3" @onclick="@(async => IconClick(ent.Key, !ent.Value))">
+                            <li class="nav-item cursor-pointer">
+                                <a class="nav-link m-0 @isActive3" style="padding: 0.5px;" data-target="@dataTarget3" @onclick="@(async => IconClick(ent.Key, !ent.Value))">
                                     <img alt="img_@ent" aria-hidden="true" longdesc="img_@ent" src="@DSdata.GetIcon(ent.Key)" width="30" height="30" />
                                     @ent.Key
                                 </a>

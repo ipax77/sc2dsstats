@@ -8,9 +8,9 @@
   "singleInstance": false,
   "build": {
     "appId": "com.sc2dsstats.desktop.app",
-    "productName": "{{executable}}",
+    "productName": "sc2dsstats.desktop",
     "copyright": "Copyright © 2020",
-    "buildVersion": "1.0.0",
+    "buildVersion": "2.0.14",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop"
@@ -19,14 +19,14 @@
       {
         "from": "./bin",
         "to": "bin",
-        "filter": ["**/*"]
+        "filter": [ "**/*" ]
       }
     ],
     "files": [
       {
         "from": "./ElectronHostHook/node_modules",
         "to": "ElectronHostHook/node_modules",
-        "filter": ["**/*"]
+        "filter": [ "**/*" ]
       },
       "**/*"
     ]

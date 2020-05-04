@@ -67,6 +67,9 @@
     .vl {
         border-left: 4px solid red;
     }
+    .cursor-pointer {
+        cursor: pointer;
+    }
 
 </style>
 
@@ -87,8 +90,8 @@
                             {
                                 string dataTarget = "#" + cmdr;
                                 string isActive = _check.Selected == cmdr ? "active" : "";
-                                <li class="nav-item">
-                                    <a type="button" class="nav-link @isActive" style="padding: 0.5px;" data-target="@dataTarget" @onclick="@(() => _check.Selected = cmdr)">
+                                <li class="nav-item cursor-pointer">
+                                    <a class="nav-link @isActive" style="padding: 0.5px;" data-target="@dataTarget" @onclick="@(() => _check.Selected = cmdr)">
                                         <img alt="img_@cmdr" aria-hidden="true" longdesc="img_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
                                         @cmdr
                                     </a>
@@ -108,21 +111,21 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="@NavMenuCssClass navbar-collapse" id="navbarTimes">
-                        <ul class="navbar-nav">
+                        <ul class="navbar-nav cursor-pointer">
                             @foreach (string cmdr in DSdata.s_races)
                             {
                                 string dataTarget2 = "#" + cmdr;
                                 string isActive2 = _checkvs.Selected == cmdr ? "active" : "";
                                 <li class="nav-item">
-                                    <a type="button" class="nav-link m-0 @isActive2" style="padding: 0.5px;" data-target="@dataTarget2" @onclick="@(() => _checkvs.Selected = cmdr)">
+                                    <a class="nav-link m-0 @isActive2" style="padding: 0.5px;" data-target="@dataTarget2" @onclick="@(() => _checkvs.Selected = cmdr)">
                                         <img alt="imgvs_@cmdr" aria-hidden="true" longdesc="imgvs_@cmdr" src="@DSdata.GetIcon(cmdr)" width="30" height="30" />
                                         @cmdr
                                     </a>
                                 </li>
 
                             }
-                            <li class="nav-item">
-                                <a type="button" class="nav-link m-0 @(_checkvs.Selected == "ALL" ? "active" : "")" style="padding: 0.5px;" data-target="#Winrate" @onclick="@(() => _checkvs.Selected = "ALL")">
+                            <li class="nav-item cursor-pointer">
+                                <a class="nav-link m-0 @(_checkvs.Selected == "ALL" ? "active" : "")" style="padding: 0.5px;" data-target="#Winrate" @onclick="@(() => _checkvs.Selected = "ALL")">
                                     <img alt="imgvs_all" aria-hidden="true" longdesc="imgvs_all" src="_content/sc2dsstats.shared/images/dummy.png" width="30" height="30" />
                                     ALL
                                 </a>

@@ -1,4 +1,8 @@
 
+2.0.14
+
+- revert to ElectronNET 7.30.2
+
 2.0.13
 
 - ElectronNET.CLI Version 8.31.1
