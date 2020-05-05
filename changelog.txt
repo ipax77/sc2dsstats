@@ -1,4 +1,8 @@
 
+2.0.15
+
+- database queries optimized
+
 2.0.14
 
 - revert to ElectronNET 7.30.2

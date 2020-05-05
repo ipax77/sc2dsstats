@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
@@ -24,7 +25,7 @@ namespace sc2dsstats.shared.Service
             Computing = new HashSet<string>();
         }
 
-        public static async Task GetBuild(DSoptions _options, DSReplayContext _context, object dblock)
+        public static async Task GetBuild(DSoptions _options, DSReplayContext _context, object dblock, ILogger _logger)
         {
             if (_options.Vs == "ALL")
                 _options.Vs = String.Empty;
@@ -76,7 +77,7 @@ namespace sc2dsstats.shared.Service
                 var replays = DBReplayFilter.Filter(_options, _context);
                 bresult.TotalGames = replays.Count();
 
-                var result = (String.IsNullOrEmpty(_options.Vs) switch
+                var presult = (String.IsNullOrEmpty(_options.Vs) switch
                 {
                     true => from r in replays
                             from t1 in r.DSPlayer
@@ -111,6 +112,8 @@ namespace sc2dsstats.shared.Service
                                  u1.Gas
                              }
                 });
+
+                var result = presult.ToList();
                 if (!result.Any())
                 {
                     _options.buildResult = new BuildResult();
@@ -120,19 +123,19 @@ namespace sc2dsstats.shared.Service
                 {
                     var sresult = result.Select(s => new { s.ID, s.GAMETIME, s.DURATION });
                     var lsresult = sresult.Distinct().ToList();
+                    
                     bresult.RepIDs = lsresult.Select(s => new { s.ID, s.GAMETIME }).ToDictionary(d => d.ID, d => d.GAMETIME.ToString("yyyy/MM/dd"));
-
                     bresult.Games = bresult.RepIDs.Count;
+
                     float wins = result.Where(x => x.WIN == true).Select(s => s.ID).Distinct().Count();
                     bresult.Winrate = MathF.Round(wins * 100 / bresult.Games, 2);
 
                     var nndur = lsresult.Sum(s => s.DURATION);
                     bresult.Duration = TimeSpan.FromSeconds(nndur) / (float)bresult.Games;
-
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("this should not happen :(" + e.Message);
+                    _logger.LogError("this should not happen :(" + e.Message);
                     _options.buildResult = new BuildResult();
                     lock (Computing)
                     {
@@ -157,7 +160,6 @@ namespace sc2dsstats.shared.Service
                     }
                 }
 
-
                 foreach (string unit in bresult.Units.Keys.ToArray())
                 {
                     bresult.Units[unit] = MathF.Round(bresult.Units[unit] / bresult.Games, 2);
@@ -172,7 +174,6 @@ namespace sc2dsstats.shared.Service
                         }
                     }
                 }
-
                 bresult.Upgradespending = result.Sum(s => s.Upgrades) / bresult.Games;
                 bresult.Gascount = MathF.Round((float)result.Sum(s => s.Gas) / bresult.Games, 2);
 

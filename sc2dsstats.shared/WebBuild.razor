@@ -8,6 +8,7 @@
 @inject LoadData  _data
 @inject DBService _db
 @inject DSReplayContext _context
+@inject Microsoft.Extensions.Logging.ILogger<WebBuild> _logger
 @implements IDisposable
 
 <style>
@@ -295,7 +296,7 @@
     {
         Loading = true;
         await InvokeAsync(() => StateHasChanged());
-        await BuildService.GetBuild(_options, _context, _db.lockobject);
+        await BuildService.GetBuild(_options, _context, _db.lockobject, _logger);
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
         if (_options.buildResult != null && _options.buildResult.RepIDs.Any())

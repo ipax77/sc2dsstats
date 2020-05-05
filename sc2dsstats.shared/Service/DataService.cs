@@ -19,6 +19,7 @@ namespace sc2dsstats.shared.Service
     {
         private static ConcurrentDictionary<string, DataResult> WinrateCache { get; set; } = new ConcurrentDictionary<string, DataResult>();
         private static HashSet<string> Computing { get; set; } = new HashSet<string>();
+        private static ConcurrentDictionary<string, List<WinRateHelper>> WinRateHelpers { get; set; } = new ConcurrentDictionary<string, List<WinRateHelper>>();
 
         public static void Reset()
         {
@@ -74,7 +75,6 @@ namespace sc2dsstats.shared.Service
             lock (dblock)
             {
                 var replays = DBReplayFilter.Filter(_options, _context, false);
-               
 
                 HashSet<string> allcmdrs = _options.Chart.s_races.ToHashSet();
                 allcmdrs.ExceptWith(_options.Chart.s_races_ordered.ToHashSet());
@@ -129,11 +129,11 @@ namespace sc2dsstats.shared.Service
                         int count = 0;
                         (wr, count) = (_options.Mode switch
                         {
-                            "Winrate" => GetWinrate(_options, _context, replays, dresult.CmdrInfo, race),
-                            "MVP" => GetMVP(_options, _context, replays, dresult.CmdrInfo, race),
-                            "DPS" => GetDPS(_options, _context, replays, dresult.CmdrInfo, race),
-                            "Synergy" => GetSynergy(_options, _context, replays, dresult.CmdrInfo, race),
-                            "AntiSynergy" => GetAntiSynergy(_options, _context, replays, dresult.CmdrInfo, race),
+                            "Winrate" => GetWinrate(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "MVP" => GetMVP(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "DPS" => GetDPS(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "Synergy" => GetSynergy(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "AntiSynergy" => GetAntiSynergy(_options, Hash, _context, replays, dresult.CmdrInfo, race),
                             //"Timeline" => GetTimeline(_options, _context, replays, dresult.CmdrInfo, race),
                             //"Timeline" => GetTimeline2(_options, _context, replays, dresult.CmdrInfo, race),
                             _ => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
@@ -177,12 +177,12 @@ namespace sc2dsstats.shared.Service
                         int count = 0;
                         (wr, count) = (_options.Mode switch
                         {
-                            "Winrate" => GetWinrate(_options, _context, replays, dresult.CmdrInfo, race),
-                            "MVP" => GetMVP(_options, _context, replays, dresult.CmdrInfo, race),
-                            "DPS" => GetDPS(_options, _context, replays, dresult.CmdrInfo, race),
-                            "Synergy" => GetSynergy(_options, _context, replays, dresult.CmdrInfo, race),
-                            "AntiSynergy" => GetAntiSynergy(_options, _context, replays, dresult.CmdrInfo, race),
-                            "Timeline" => GetTimeline(_options, _context, replays, dresult.CmdrInfo, race),
+                            "Winrate" => GetWinrate(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "MVP" => GetMVP(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "DPS" => GetDPS(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "Synergy" => GetSynergy(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            "AntiSynergy" => GetAntiSynergy(_options, Hash, _context, replays, dresult.CmdrInfo, race),
+                            //"Timeline" => GetTimeline(_options, Hash, _context, replays, dresult.CmdrInfo, race),
                             _ => throw new ArgumentException(message: "invalid mode value", paramName: nameof(_options.Mode)),
                         });
                         if (count == 0)
@@ -214,6 +214,7 @@ namespace sc2dsstats.shared.Service
             dresult.CmdrInfo.GameIDs = new HashSet<int>();
             _options.Cmdrinfo = new CmdrInfo(dresult.CmdrInfo);
 
+            WinRateHelpers.TryRemove(Hash, out _);
             lock (WinrateCache)
             {
                 WinrateCache[Hash] = dresult;
@@ -247,92 +248,121 @@ namespace sc2dsstats.shared.Service
             return (null);
         }
 
-        public static (double, int) GetWinrate(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
+        public static (double, int) GetWinrate(DSoptions _options, string Hash, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+            if (!WinRateHelpers.ContainsKey(Hash)) {
+                var firstresult = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+                {
+                    (true, true, false) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where t1.NAME.Length == 64 
+                                           select new WinRateHelper()
+                                           {
+                                               WIN = t1.WIN,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (true, true, true) => from r in replays
+                                          from t1 in r.DSPlayer
+                                          where _options.Dataset.Contains(t1.NAME)
+                                          select new WinRateHelper()
+                                          {
+                                              WIN = t1.WIN,
+                                              RACE = t1.RACE,
+                                              OPPRACE = t1.OPPRACE,
+                                              DURATION = r.DURATION,
+                                              ID = r.ID
+
+                                          },
+                    (true, false, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            select new WinRateHelper()
+                                            {
+                                                WIN = t1.WIN,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+
+                                            },
+                    (true, false, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           select new WinRateHelper()
+                                           {
+                                               WIN = t1.WIN,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+
+                                           },
+                    (false, true, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.NAME.Length == 64 && t1.RACE == _options.Interest
+                                            select new WinRateHelper()
+                                            {
+                                                WIN = t1.WIN,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+
+                                            },
+                    (false, true, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
+                                           select new WinRateHelper()
+                                           {
+                                               WIN = t1.WIN,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+
+                                           },
+                    (false, false, true) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.RACE == _options.Interest
+                                            select new WinRateHelper()
+                                            {
+                                                WIN = t1.WIN,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+
+                                            },
+                    (false, false, false) => from r in replays
+                                             from t1 in r.DSPlayer
+                                             where t1.RACE == _options.Interest
+                                             select new WinRateHelper()
+                                             {
+                                                 WIN = t1.WIN,
+                                                 RACE = t1.RACE,
+                                                 OPPRACE = t1.OPPRACE,
+                                                 DURATION = r.DURATION,
+                                                 ID = r.ID
+                                             }
+                };
+                WinRateHelpers[Hash] = firstresult.ToList();
+            }
+
+            var result = String.IsNullOrEmpty(_options.Interest) switch
             {
-               (true, true, false) => from r in replays
-                                      from t1 in r.DSPlayer
-                                      where t1.NAME.Length == 64 && t1.RACE == cmdr
-                                      select new
-                                      {
-                                          t1.WIN,
-                                          r.DURATION,
-                                          r.ID
-                                      },
-                (true, true, true) => from r in replays
-                                      from t1 in r.DSPlayer
-                                      where _options.Dataset.Contains(t1.NAME) && t1.RACE == cmdr
-                                      select new
-                                      {
-                                          t1.WIN,
-                                          r.DURATION,
-                                          r.ID
-                                      },
-              (true, false, false) => from r in replays
-                                      from t1 in r.DSPlayer
-                                      where t1.RACE == cmdr
-                                      select new
-                                      {
-                                          t1.WIN,
-                                          r.DURATION,
-                                          r.ID
-                                      },
-                (true, false, true) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == cmdr
-                                        select new
-                                        {
-                                            t1.WIN,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (false, true, false) => from r in replays
-                                     from t1 in r.DSPlayer
-                                     where t1.NAME.Length == 64 && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                     select new
-                                     {
-                                         t1.WIN,
-                                         r.DURATION,
-                                         r.ID
-                                     },
-              (false, true, true) => from r in replays
-                                     from t1 in r.DSPlayer
-                                     where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                     select new
-                                     {
-                                         t1.WIN,
-                                         r.DURATION,
-                                         r.ID
-                                     },
-             (false, false, true) => from r in replays
-                                     from t1 in r.DSPlayer
-                                     where t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                     select new
-                                     {
-                                         t1.WIN,
-                                         r.DURATION,
-                                         r.ID
-                                     },
-               (false, false, false) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                        select new
-                                        {
-                                            t1.WIN,
-                                            r.DURATION,
-                                            r.ID
-                                        }
+                true => WinRateHelpers[Hash].Where(x => x.RACE == cmdr),
+                false => WinRateHelpers[Hash].Where(x => x.OPPRACE == cmdr)
             };
-            var resultlist = result.ToList();
+
             double games = 0;
             double wins = 0;
             TimeSpan duration = TimeSpan.Zero;
 
-            games = resultlist.Count();
-            wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
-            cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
+            games = result.Count();
+            wins = result.Where(x => x.WIN == true).Count();
+            duration = TimeSpan.FromSeconds(result.Sum(s => s.DURATION));
+            cmdrInfo.GameIDs.UnionWith(result.Select(s => s.ID).Distinct());
 
             cmdrInfo.Games += games;
             cmdrInfo.Wins += wins;
@@ -341,101 +371,124 @@ namespace sc2dsstats.shared.Service
 
             return (Math.Round(wins * 100 / games, 2), (int)games);
         }
-        public static (double, int) GetMVP(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
+        public static (double, int) GetMVP(DSoptions _options, string Hash, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+            if (!WinRateHelpers.ContainsKey(Hash))
             {
-                (true, true, false) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.NAME.Length == 64 && t1.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.KILLSUM,
-                                           r.MAXKILLSUM,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (true, true, true) => from r in replays
-                                      from t1 in r.DSPlayer
-                                      where _options.Dataset.Contains(t1.NAME) && t1.RACE == cmdr
-                                      select new
-                                      {
-                                          t1.KILLSUM,
-                                          r.MAXKILLSUM,
-                                          r.DURATION,
-                                          r.ID
-                                      },
-                (true, false, false) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == cmdr
-                                        select new
-                                        {
-                                            t1.KILLSUM,
-                                            r.MAXKILLSUM,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (true, false, true) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.KILLSUM,
-                                           r.MAXKILLSUM,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (false, true, false) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.NAME.Length == 64 && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                        select new
-                                        {
-                                            t1.KILLSUM,
-                                            r.MAXKILLSUM,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (false, true, true) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                       select new
-                                       {
-                                           t1.KILLSUM,
-                                           r.MAXKILLSUM,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (false, false, true) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                        select new
-                                        {
-                                            t1.KILLSUM,
-                                            r.MAXKILLSUM,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (false, false, false) => from r in replays
-                                         from t1 in r.DSPlayer
-                                         where t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                         select new
-                                         {
-                                             t1.KILLSUM,
-                                             r.MAXKILLSUM,
-                                             r.DURATION,
-                                             r.ID
-                                         }
+                var firstresult = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+                {
+                    (true, true, false) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where t1.NAME.Length == 64
+                                           select new WinRateHelper()
+                                           {
+                                               KILLSUM = t1.KILLSUM,
+                                               MAXKILLSUM = r.MAXKILLSUM,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (true, true, true) => from r in replays
+                                          from t1 in r.DSPlayer
+                                          where _options.Dataset.Contains(t1.NAME)
+                                          select new WinRateHelper()
+                                          {
+                                              KILLSUM = t1.KILLSUM,
+                                              MAXKILLSUM = r.MAXKILLSUM,
+                                              RACE = t1.RACE,
+                                              OPPRACE = t1.OPPRACE,
+                                              DURATION = r.DURATION,
+                                              ID = r.ID
+                                          },
+                    (true, false, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            select new WinRateHelper()
+                                            {
+                                                KILLSUM = t1.KILLSUM,
+                                                MAXKILLSUM = r.MAXKILLSUM,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (true, false, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           select new WinRateHelper()
+                                           {
+                                               KILLSUM = t1.KILLSUM,
+                                               MAXKILLSUM = r.MAXKILLSUM,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (false, true, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.NAME.Length == 64 && t1.RACE == _options.Interest
+                                            select new WinRateHelper()
+                                            {
+                                                KILLSUM = t1.KILLSUM,
+                                                MAXKILLSUM = r.MAXKILLSUM,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, true, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
+                                           select new WinRateHelper()
+                                           {
+                                               KILLSUM = t1.KILLSUM,
+                                               MAXKILLSUM = r.MAXKILLSUM,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (false, false, true) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.RACE == _options.Interest
+                                            select new WinRateHelper()
+                                            {
+                                                KILLSUM = t1.KILLSUM,
+                                                MAXKILLSUM = r.MAXKILLSUM,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, false, false) => from r in replays
+                                             from t1 in r.DSPlayer
+                                             where t1.RACE == _options.Interest
+                                             select new WinRateHelper()
+                                             {
+                                                 KILLSUM = t1.KILLSUM,
+                                                 MAXKILLSUM = r.MAXKILLSUM,
+                                                 RACE = t1.RACE,
+                                                 OPPRACE = t1.OPPRACE,
+                                                 DURATION = r.DURATION,
+                                                 ID = r.ID
+                                             }
+                };
+                WinRateHelpers[Hash] = firstresult.ToList();
+            }
+
+            var result = String.IsNullOrEmpty(_options.Interest) switch
+            {
+                true => WinRateHelpers[Hash].Where(x => x.RACE == cmdr),
+                false => WinRateHelpers[Hash].Where(x => x.OPPRACE == cmdr)
             };
-            var resultlist = result.ToList();
 
             double games = 0;
             double wins = 0;
             TimeSpan duration = TimeSpan.Zero;
 
-            games = resultlist.Count();
-            wins = resultlist.Where(x => x.KILLSUM == x.MAXKILLSUM).Count();
-            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
-            cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
+            games = result.Count();
+            wins = result.Where(x => x.KILLSUM == x.MAXKILLSUM).Count();
+            duration = TimeSpan.FromSeconds(result.Sum(s => s.DURATION));
+            cmdrInfo.GameIDs.UnionWith(result.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
             cmdrInfo.Wins += wins;
@@ -444,102 +497,123 @@ namespace sc2dsstats.shared.Service
 
             return (Math.Round(wins * 100 / games, 2), (int)games);
         }
-        public static (double, int) GetDPS(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
+        public static (double, int) GetDPS(DSoptions _options, string Hash, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+            if (!WinRateHelpers.ContainsKey(Hash))
             {
-                (true, true, false) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.NAME.Length == 64 && t1.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.KILLSUM,
-                                           t1.ARMY,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (true, true, true) => from r in replays
-                                      from t1 in r.DSPlayer
-                                      where _options.Dataset.Contains(t1.NAME) && t1.RACE == cmdr
-                                      select new
-                                      {
-                                          t1.KILLSUM,
-                                          t1.ARMY,
-                                          r.DURATION,
-                                          r.ID
-                                      },
-                (true, false, false) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == cmdr
-                                        select new
-                                        {
-                                            t1.KILLSUM,
-                                            t1.ARMY,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (true, false, true) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.KILLSUM,
-                                           t1.ARMY,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (false, true, false) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.NAME.Length == 64 && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                        select new
-                                        {
-                                            t1.KILLSUM,
-                                            t1.ARMY,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (false, true, true) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                       select new
-                                       {
-                                           t1.KILLSUM,
-                                           t1.ARMY,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (false, false, true) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                        select new
-                                        {
-                                            t1.KILLSUM,
-                                            t1.ARMY,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (false, false, false) => from r in replays
-                                         from t1 in r.DSPlayer
-                                         where t1.RACE == _options.Interest && t1.OPPRACE == cmdr
-                                         select new
-                                         {
-                                             t1.KILLSUM,
-                                             t1.ARMY,
-                                             r.DURATION,
-                                             r.ID
-                                         }
+                var firstresult = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+                {
+                    (true, true, false) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where t1.NAME.Length == 64
+                                           select new WinRateHelper()
+                                           {
+                                               KILLSUM = t1.KILLSUM,
+                                               ARMY = t1.ARMY,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (true, true, true) => from r in replays
+                                          from t1 in r.DSPlayer
+                                          where _options.Dataset.Contains(t1.NAME)
+                                          select new WinRateHelper()
+                                          {
+                                              KILLSUM = t1.KILLSUM,
+                                              ARMY = t1.ARMY,
+                                              RACE = t1.RACE,
+                                              OPPRACE = t1.OPPRACE,
+                                              DURATION = r.DURATION,
+                                              ID = r.ID
+                                          },
+                    (true, false, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            select new WinRateHelper()
+                                            {
+                                                KILLSUM = t1.KILLSUM,
+                                                ARMY = t1.ARMY,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (true, false, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           select new WinRateHelper()
+                                           {
+                                               KILLSUM = t1.KILLSUM,
+                                               ARMY = t1.ARMY,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (false, true, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.NAME.Length == 64 && t1.RACE == _options.Interest
+                                            select new WinRateHelper()
+                                            {
+                                                KILLSUM = t1.KILLSUM,
+                                                ARMY = t1.ARMY,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, true, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
+                                           select new WinRateHelper()
+                                           {
+                                               KILLSUM = t1.KILLSUM,
+                                               ARMY = t1.ARMY,
+                                               RACE = t1.RACE,
+                                               OPPRACE = t1.OPPRACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (false, false, true) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.RACE == _options.Interest
+                                            select new WinRateHelper()
+                                            {
+                                                KILLSUM = t1.KILLSUM,
+                                                ARMY = t1.ARMY,
+                                                RACE = t1.RACE,
+                                                OPPRACE = t1.OPPRACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, false, false) => from r in replays
+                                             from t1 in r.DSPlayer
+                                             where t1.RACE == _options.Interest
+                                             select new WinRateHelper()
+                                             {
+                                                 KILLSUM = t1.KILLSUM,
+                                                 ARMY = t1.ARMY,
+                                                 RACE = t1.RACE,
+                                                 OPPRACE = t1.OPPRACE,
+                                                 DURATION = r.DURATION,
+                                                 ID = r.ID
+                                             }
+                };
+                WinRateHelpers[Hash] = firstresult.ToList();
+            }
+            var result = String.IsNullOrEmpty(_options.Interest) switch
+            {
+                true => WinRateHelpers[Hash].Where(x => x.RACE == cmdr),
+                false => WinRateHelpers[Hash].Where(x => x.OPPRACE == cmdr)
             };
-
-            var resultlist = result.ToList();
 
             double games = 0;
             double wins = 0;
             TimeSpan duration = TimeSpan.Zero;
 
-            games = resultlist.Count();
-            wins = resultlist.Sum(s => (double)s.KILLSUM / (double)s.ARMY);
-            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
-            cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
+            games = result.Count();
+            wins = result.Sum(s => (double)s.KILLSUM / (double)s.ARMY);
+            duration = TimeSpan.FromSeconds(result.Sum(s => s.DURATION));
+            cmdrInfo.GameIDs.UnionWith(result.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
             cmdrInfo.Wins += wins;
@@ -548,67 +622,74 @@ namespace sc2dsstats.shared.Service
 
             return (Math.Round(wins / games, 2), (int)games);
         }
-        public static (double, int) GetSynergy(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
+        public static (double, int) GetSynergy(DSoptions _options, string Hash, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-
-            var result = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+            if (!WinRateHelpers.ContainsKey(Hash))
             {
-                (false, true, false) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.NAME.Length == 64 && t1.RACE == _options.Interest
-                                       from t3 in r.DSPlayer
-                                       where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM && t3.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.WIN,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-              (false, true, true) => from r in replays
-                                      from t1 in r.DSPlayer
-                                      where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
-                                      from t3 in r.DSPlayer
-                                      where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM && t3.RACE == cmdr
-                                      select new
-                                      {
-                                          t1.WIN,
-                                          r.DURATION,
-                                          r.ID
-                                      },
-             (false, false, true) => from r in replays
-                                    from t1 in r.DSPlayer
-                                    where t1.RACE == _options.Interest
-                                    from t3 in r.DSPlayer
-                                    where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM && t3.RACE == cmdr
-                                    select new
-                                    {
-                                        t1.WIN,
-                                        r.DURATION,
-                                        r.ID
-                                    },
-                (false, false, false) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.RACE == _options.Interest
-                                       from t3 in r.DSPlayer
-                                       where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM && t3.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.WIN,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                            _ => throw new NotImplementedException()
-            };
-            var resultlist = result.ToList();
+                var firstresult = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+                {
+                    (false, true, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.NAME.Length == 64 && t1.RACE == _options.Interest
+                                            from t3 in r.DSPlayer
+                                            where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM
+                                            select new WinRateHelper()
+                                            { 
+                                                WIN = t1.WIN,
+                                                SYNRACE = t3.RACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, true, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
+                                           from t3 in r.DSPlayer
+                                           where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM
+                                           select new WinRateHelper()
+                                           {
+                                               WIN = t1.WIN,
+                                               SYNRACE = t3.RACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (false, false, true) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.RACE == _options.Interest
+                                            from t3 in r.DSPlayer
+                                            where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM
+                                            select new WinRateHelper()
+                                            {
+                                                WIN = t1.WIN,
+                                                SYNRACE = t3.RACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, false, false) => from r in replays
+                                             from t1 in r.DSPlayer
+                                             where t1.RACE == _options.Interest
+                                             from t3 in r.DSPlayer
+                                             where t3.REALPOS != t1.REALPOS && t3.TEAM == t1.TEAM
+                                             select new WinRateHelper()
+                                             {
+                                                WIN = t1.WIN,
+                                                SYNRACE = t3.RACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                             },
+                    _ => throw new NotImplementedException()
+                };
+                WinRateHelpers[Hash] = firstresult.ToList();
+            }
+            var result = WinRateHelpers[Hash].Where(x => x.SYNRACE == cmdr).ToList();
 
             double games = 0;
             double wins = 0;
             TimeSpan duration = TimeSpan.Zero;
 
-            games = resultlist.Count();
-            wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
-            cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
+            games = result.Count();
+            wins = result.Where(x => x.WIN == true).Count();
+            duration = TimeSpan.FromSeconds(result.Sum(s => s.DURATION));
+            cmdrInfo.GameIDs.UnionWith(result.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
             cmdrInfo.Wins += wins;
@@ -617,66 +698,74 @@ namespace sc2dsstats.shared.Service
 
             return (Math.Round(wins * 100 / games, 2), (int)games);
         }
-        public static (double, int) GetAntiSynergy(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
+        public static (double, int) GetAntiSynergy(DSoptions _options, string Hash, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
-            var result = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+            if (!WinRateHelpers.ContainsKey(Hash))
             {
-                (false, true, false) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.NAME.Length == 64 && t1.RACE == _options.Interest
-                                       from t3 in r.DSPlayer
-                                       where t3.TEAM != t1.TEAM && t3.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.WIN,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (false, true, true) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
-                                        from t3 in r.DSPlayer
-                                        where t3.TEAM != t1.TEAM && t3.RACE == cmdr
-                                        select new
-                                        {
-                                            t1.WIN,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                (false, false, true) => from r in replays
-                                       from t1 in r.DSPlayer
-                                       where t1.RACE == _options.Interest
-                                       from t3 in r.DSPlayer
-                                       where t3.TEAM != t1.TEAM && t3.RACE == cmdr
-                                       select new
-                                       {
-                                           t1.WIN,
-                                           r.DURATION,
-                                           r.ID
-                                       },
-                (false, false, false) => from r in replays
-                                        from t1 in r.DSPlayer
-                                        where t1.RACE == _options.Interest
-                                        from t3 in r.DSPlayer
-                                        where t3.TEAM != t1.TEAM && t3.RACE == cmdr
-                                        select new
-                                        {
-                                            t1.WIN,
-                                            r.DURATION,
-                                            r.ID
-                                        },
-                _ => throw new NotImplementedException()
-            };
-            var resultlist = result.ToList();
+                var firstresult = (String.IsNullOrEmpty(_options.Interest), _options.Player, _options.Dataset.Any()) switch
+                {
+                    (false, true, false) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.NAME.Length == 64 && t1.RACE == _options.Interest
+                                            from t3 in r.DSPlayer
+                                            where t3.TEAM != t1.TEAM
+                                            select new WinRateHelper()
+                                            {
+                                                WIN = t1.WIN,
+                                                SYNRACE = t3.RACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, true, true) => from r in replays
+                                           from t1 in r.DSPlayer
+                                           where _options.Dataset.Contains(t1.NAME) && t1.RACE == _options.Interest
+                                           from t3 in r.DSPlayer
+                                           where t3.TEAM != t1.TEAM
+                                           select new WinRateHelper()
+                                           {
+                                               WIN = t1.WIN,
+                                               SYNRACE = t3.RACE,
+                                               DURATION = r.DURATION,
+                                               ID = r.ID
+                                           },
+                    (false, false, true) => from r in replays
+                                            from t1 in r.DSPlayer
+                                            where t1.RACE == _options.Interest
+                                            from t3 in r.DSPlayer
+                                            where t3.TEAM != t1.TEAM
+                                            select new WinRateHelper()
+                                            {
+                                                WIN = t1.WIN,
+                                                SYNRACE = t3.RACE,
+                                                DURATION = r.DURATION,
+                                                ID = r.ID
+                                            },
+                    (false, false, false) => from r in replays
+                                             from t1 in r.DSPlayer
+                                             where t1.RACE == _options.Interest
+                                             from t3 in r.DSPlayer
+                                             where t3.TEAM != t1.TEAM
+                                             select new WinRateHelper()
+                                             {
+                                                 WIN = t1.WIN,
+                                                 SYNRACE = t3.RACE,
+                                                 DURATION = r.DURATION,
+                                                 ID = r.ID
+                                             },
+                    _ => throw new NotImplementedException()
+                };
+                WinRateHelpers[Hash] = firstresult.ToList();
+            }
+            var result = WinRateHelpers[Hash].Where(x => x.SYNRACE == cmdr).ToList();
 
             double games = 0;
             double wins = 0;
             TimeSpan duration = TimeSpan.Zero;
 
-            games = resultlist.Count();
-            wins = resultlist.Where(x => x.WIN == true).Count();
-            duration = TimeSpan.FromSeconds(resultlist.Sum(s => s.DURATION));
-            cmdrInfo.GameIDs.UnionWith(resultlist.Select(s => s.ID).ToHashSet());
+            games = result.Count();
+            wins = result.Where(x => x.WIN == true).Count();
+            duration = TimeSpan.FromSeconds(result.Sum(s => s.DURATION));
+            cmdrInfo.GameIDs.UnionWith(result.Select(s => s.ID).ToHashSet());
 
             cmdrInfo.Games += games;
             cmdrInfo.Wins += wins;
@@ -840,7 +929,7 @@ namespace sc2dsstats.shared.Service
             }
             return (labels, data, f);
         }
-        public static (double, int) GetTimeline(DSoptions _options, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
+        public static (double, int) GetTimeline(DSoptions _options, string Hash, DSReplayContext context, IQueryable<DSReplay> replays, CmdrInfo cmdrInfo, string cmdr)
         {
             DateTime t = DateTime.ParseExact(cmdr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
@@ -919,6 +1008,19 @@ namespace sc2dsstats.shared.Service
         public ChartJSdataset Dataset { get; set; } = new ChartJSdataset("Default");
         public CmdrInfo CmdrInfo { get; set; } = new CmdrInfo();
         public Func<double, double> fTimeline { get; set; }
+    }
+
+    public class WinRateHelper
+    {
+        public bool WIN { get; set; }
+        public int DURATION { get; set; }
+        public int ID { get; set; }
+        public string RACE { get; set; }
+        public string OPPRACE { get; set; }
+        public string SYNRACE { get; set; }
+        public int KILLSUM { get; set; }
+        public int MAXKILLSUM { get; set; }
+        public int ARMY { get; set; }
     }
 
     public static class SimpleMovingAverageExtensions

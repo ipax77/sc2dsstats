@@ -170,7 +170,7 @@ namespace sc2dsstats.lib.Data
             opthash += String.Join("", Gamemodes.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += String.Join("", Players.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += Breakpoint;
-
+            Hash = opthash;
             return opthash;
         }
 

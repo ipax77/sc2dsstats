@@ -14,7 +14,9 @@ namespace sc2dsstats.lib.Db
             var replays = ireps;
             if (replays == null)
                 replays = context.DSReplays
-                    .Include(p => p.DSPlayer);
+                    .Include(p => p.DSPlayer)
+                    .Where(x => x.WINNER >= 0)
+                    ;
 
 
 
