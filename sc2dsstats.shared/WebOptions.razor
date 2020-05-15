@@ -226,7 +226,7 @@
     private void OnTimeSelected(string selection)
     {
         myTimespan = selection;
-        Gametime(Array.FindIndex(DSdata.s_timespans, w => w == selection) + 1);
+        Gametime(Array.FindIndex(DSdata.s_timespans, w => w == selection));
     }
 
     private void HandleValidSubmit()

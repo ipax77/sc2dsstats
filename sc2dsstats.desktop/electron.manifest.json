@@ -10,7 +10,7 @@
     "appId": "com.sc2dsstats.desktop.app",
     "productName": "sc2dsstats.desktop",
     "copyright": "Copyright © 2020",
-    "buildVersion": "2.0.14",
+    "buildVersion": "2.0.15",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop"

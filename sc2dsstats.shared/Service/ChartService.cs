@@ -201,7 +201,7 @@ namespace sc2dsstats.shared.Service
                     int ssend = 4;
                     if (_options.Chart.type == "line")
                         ssend = 10;
-                    string label = dresult.Labels.SingleOrDefault(s => s.Substring(0, ssend) == l.Substring(0, ssend));
+                    string label = dresult.Labels.FirstOrDefault(s => s.Substring(0, ssend) == l.Substring(0, ssend));
                     if (!String.IsNullOrEmpty(label))
                     {
                         int pos = dresult.Labels.FindIndex(i => i == label);

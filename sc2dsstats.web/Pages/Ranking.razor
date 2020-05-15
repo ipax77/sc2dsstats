@@ -1,32 +1,109 @@
 ﻿@page "/ranking"
-<h3>Ranking</h3>
+@using sc2dsstats.lib.Data
+<style>
+    .fadein {
+        animation-name: fademein;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    .fadeout {
+        animation-name: fademeout;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    @@keyframes fademein {
+        0% {
+            transform: scale(0.25);
+            opacity: 0
+        }
+
+        50% {
+            transform: scale(0.5);
+            opacity: 0.5
+        }
+
+        100% {
+            transform: scale(1.0);
+            opacity: 1
+        }
+    }
+
+    @@keyframes fademeout {
+        0% {
+            transform: scale(1.0);
+            opacity: 1
+        }
+
+        50% {
+            transform: scale(0.5);
+            opacity: 0.5
+        }
+
+        100% {
+            transform: scale(0);
+            opacity: 0
+        }
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .sort-link {
+        cursor: pointer;
+        color: cadetblue;
+        text-decoration: underline;
+    }
+</style>
+<div class="row">
+    <h3 class="text-primary">
+        Ranking
+        <small class="text-muted">default filter</small>
+    </h3>
+    <span class="oi oi-info text-info cursor-pointer ml-1" aria-hidden="true" @onclick="ShowInfo"></span>
+</div>
+<div id="info" class="@InfoClass text-info">
+    <h4>Default filter:</h4>
+    <p>First replay: 2018-01-01</p>
+    <p>Last replay: today</p>
+    <p>Game modes: Commanders, CommandersHeroic</p>
+    <p>Game players: 3 vs 3</p>
+    <p>Game duration: at least five minutes</p>
+    <p>Game leaver: no leaver 1.5 minutes before the end of the game</p>
+    <p>Player army: worst players army values has to be at least 1500 at the end of the game</p>
+</div>
 
 <div class="container-fluid">
     <table class="table table-sm table-hover table-dark">
         <thead>
             <tr>
                 <th scope="col">#</th>
-                <th scope="col">Dataset</th>
-                <th scope="col">Winrate</th>
-                <th scope="col">Games</th>
-                <th scope="col">~TeamGames</th>
-
+                <th scope="col"><span class="sort-link" @onclick="@(() => Datasets = DSdata.Datasets.OrderBy(o => o.Dataset))">Dataset</span></th>
+                <th scope="col"><span class="sort-link" @onclick="@(() => Datasets = DSdata.Datasets.OrderByDescending(o => o.Winrate))">Winrate</span></th>
+                <th scope="col"><span class="sort-link" @onclick="@(() => Datasets = DSdata.Datasets.OrderByDescending(o => o.MVP))">MVP</span></th>
+                <th scope="col"><span class="sort-link" @onclick="@(() => Datasets = DSdata.Datasets.OrderByDescending(o => o.Main.Value))">Main</span></th>
+                <th scope="col"><span class="sort-link" @onclick="@(() => Datasets = DSdata.Datasets.OrderByDescending(o => o.Count))">Games</span></th>
+                <th scope="col"><span class="sort-link" @onclick="@(() => Datasets = DSdata.Datasets.OrderByDescending(o => o.Teamgames))">~TeamGames</span></th>
             </tr>
         </thead>
         <tbody>
             @if (true)
             {
                 int i = 0;
-            @foreach (sc2dsstats.lib.Models.DatasetInfo info in sc2dsstats.lib.Data.DSdata.Datasets.OrderByDescending(o => o.Winrate))
+            @foreach (sc2dsstats.lib.Models.DatasetInfo info in Datasets)
             {
                     i++;
-                <tr class="table-row">
-                    <td>@i</td>
-                    <td>@info.Dataset.Substring(0, 5)</td>
-                    <td>@info.Winrate%</td>
-                    <td>@info.Count</td>
-                    <td>@info.Teamgames%</td>
-                </tr>
+            <tr class="table-row">
+                <td>@i</td>
+                <td>@info.Dataset.Substring(0, 5)</td>
+                <td>@info.Winrate%</td>
+                <td>@info.MVP%</td>
+                <td>@info.Main.Key @info.Main.Value%</td>
+                <td>@info.Count</td>
+                <td>@info.Teamgames%</td>
+            </tr>
             }
             }
         </tbody>
@@ -34,5 +111,25 @@
 </div>
 
 @code {
+    private string InfoClass = "collapse";
+    private IOrderedEnumerable<sc2dsstats.lib.Models.DatasetInfo> Datasets = DSdata.Datasets.OrderByDescending(o => o.Winrate);
 
+    void ShowInfo()
+    {
+        if (InfoClass == "collapse" || InfoClass == "fadeout")
+            InfoClass = "fadein";
+        else
+        {
+            InfoClass = "fadeout";
+            CollapseInfo();
+        }
+        StateHasChanged();
+    }
+
+    async Task CollapseInfo()
+    {
+        await Task.Delay(500);
+        InfoClass = "collapse";
+        await InvokeAsync(() => StateHasChanged());
+    }
 }

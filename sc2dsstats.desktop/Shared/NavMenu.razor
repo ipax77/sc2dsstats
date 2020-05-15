@@ -5,6 +5,7 @@
 @using sc2dsstats.desktop.Service
 @using sc2dsstats.lib.Db
 @using sc2dsstats.lib.Models
+@using ElectronNET.API 
 @inject DSoptions _options
 @inject DSReplayContext _context
 @inject Status _status
@@ -74,10 +75,11 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="https://www.pax77.org/dsweb/chart" target="_blank">
+            <NavLink class="nav-link" style="cursor: pointer;" data-target="#Winrate" @onclick="@(async => { Electron.Shell.OpenExternalAsync("https://www.pax77.org/dsweb/chart");})">
                 <span class="oi oi-external-link" aria-hidden="true"></span> World Charts
             </NavLink>
             <div style="margin-top: -19px !important; margin-left: 60px !important;"><font size="1">external link</font></div>
+            <!--await Electron.Shell.OpenExternalAsync("https://github.com/ElectronNET");-->
         </li>
         <li class="nav-item px-3">
             <NavLink class="nav-link disabled">

@@ -16,7 +16,7 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.14");
+        public static Version DesktopVersion = new Version("2.0.15");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
         public static bool DesktopUpdateAvailable = false;
 
@@ -189,12 +189,12 @@ namespace sc2dsstats.lib.Data
             {     "Stetmann", "#ebeae8" },
             {     "Stukov", "#663b35" },
             {     "Swann", "#ab4f21" },
-            {     "Tychus", "#150d9f" },
+            {     "Tychus", "#342db5" },
             {     "Vorazun", "#07c543" },
             {     "Zagara", "#b01c48" },
             {     "Protoss", "#fcc828"   },
-            {     "Terran", "#242331"   },
-            {     "Zerg", "#440e5f"   }
+            {     "Terran", "#4a4684"   },
+            {     "Zerg", "#6b1c92"   }
         };
 
         public static string CmdrBtnStyle = "";

@@ -219,9 +219,18 @@
                 </div>
                 <div class="form-group mr-2">
                     <h5>
-                        <span class="badge badge-danger mybadge mr-2">
-                            &empty; Duration<br />@_options.Cmdrinfo.ADuration.ToString(@"hh\:mm\:ss")
-                        </span>
+                        @if (_options.Mode == "Timeline")
+                        {
+                            <span class="badge badge-danger mybadge mr-2">
+                                &empty; Step<br />@_options.Cmdrinfo.ADuration.Days
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-danger mybadge mr-2">
+                                &empty; Duration<br />@_options.Cmdrinfo.ADuration.ToString(@"hh\:mm\:ss")
+                            </span>
+                        }
                     </h5>
                 </div>
                 @if (_options.Dataset.Any())

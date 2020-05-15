@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
@@ -80,33 +82,83 @@ namespace sc2dsstats.lib.Data
                 DSdata.Datasets = new List<DatasetInfo>();
                 var names = context.DSPlayers.Select(s => s.NAME).Distinct().ToArray();
 
+                DSoptions _options = new DSoptions();
+                _options.Startdate = new DateTime(2018, 1, 1);
+                var replays = DBReplayFilter.Filter(_options, context, false);
+
+                var ireps = from r in replays
+                            from p in r.DSPlayer
+                            where p.NAME.Length == 64
+                            from p2 in r.DSPlayer
+                            where p2 != p && p2.TEAM == p.TEAM
+                            select new
+                            {
+                                r.ID,
+                                r.GAMETIME,
+                                p.WIN,
+                                p.NAME,
+                                p.RACE,
+                                TEAM = p2.NAME.Length == 64,
+                                MVP = r.MAXKILLSUM == p.KILLSUM
+                            };
+                var lireps = ireps.ToList();
+
                 foreach (var hash in names.Where(x => x.Length == 64))
                 {
-                    DatasetInfo setinfo = new DatasetInfo();
-                    setinfo.Dataset = hash;
-
-                    var reps = from r in context.DSReplays
+                    /*
+                    var qreps = from r in replays
                                from p in r.DSPlayer
                                where p.NAME == hash
+                               from p2 in r.DSPlayer
+                               where p2 != p && p2.TEAM == p.TEAM
                                select new
                                {
                                    r.ID,
-                                   r.DSPlayer,
-                                   p.TEAM,
-                                   p.WIN
+                                   p.WIN,
+                                   TEAM = p2.NAME.Length == 64,
+                                   MVP = r.MAXKILLSUM == p.KILLSUM
                                };
+                    */
+                    // var reps = qreps.ToList();
+                    var reps = lireps.Where(x => x.NAME == hash);
 
+                    if (reps.Count() < 20)
+                        continue;
+
+                    if (reps.OrderByDescending(o => o.GAMETIME).First().GAMETIME.AddMonths(3) < DateTime.UtcNow)
+                        continue;
+
+                    DatasetInfo setinfo = new DatasetInfo();
+                    setinfo.Dataset = hash;
 
                     setinfo.Count = reps.Count();
 
-                    var teams = reps.Where(x => x.DSPlayer.Where(y => y.NAME.Length == 64 && y.TEAM == x.TEAM).Count() > 1);
-                    int teamgames = teams.Count();
-                    setinfo.Teamgames = MathF.Round((float)teamgames * 100 / (float)setinfo.Count, 2);
+                    //var teams = reps.Where(x => x.DSPlayer.Where(y => y.NAME.Length == 64 && y.TEAM == x.TEAM).Count() > 1);
+                    //int teamgames = teams.Count();
+                    setinfo.Teamgames = MathF.Round((float)reps.Where(x => x.TEAM == true).Count() * 100 / (float)setinfo.Count, 2);
 
 
                     int wins = reps.Where(x => x.WIN == true).Count();
                     setinfo.Winrate = MathF.Round((float)wins * 100 / (float)setinfo.Count, 2);
+                    setinfo.MVP = MathF.Round((float)reps.Where(x => x.MVP == true).Count() * 100 / (float)setinfo.Count, 2);
 
+                    int maincount = 0;
+                    string maincmdr = "";
+                    foreach (string cmdr in DSdata.s_races_cmdr)
+                    {
+                        int c = reps.Where(x => x.RACE == cmdr).Count();
+                        if (c > maincount)
+                        {
+                            maincount = c;
+                            maincmdr = cmdr;
+                        }
+                    }
+                    float mainper = MathF.Round((float)maincount * 100 / (float)setinfo.Count, 2);
+                    //if (mainper < 100 / DSdata.s_races_cmdr.Count() + 5)
+                    //    maincmdr = "Random";
+                    setinfo.Main = new KeyValuePair<string, float>(maincmdr, mainper);
+
+                    setinfo.Count = reps.Select(s => s.ID).Distinct().Count();
                     DSdata.Datasets.Add(setinfo);
                 }
             }

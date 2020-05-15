@@ -81,45 +81,7 @@ namespace sc2dsstats.shared.Service
 
                 if (_options.Mode == "Timeline")
                 {
-                    (dresult.Labels, dresult.Dataset.data, dresult.fTimeline) = GetTimeline2(_options, _context, replays, dresult.CmdrInfo, _options.Interest);
-                    double c = dresult.Dataset.data.Where(x => double.IsNaN(x)).Count();
-                    ChartService.SetColor(dresult.Dataset, _options.Chart.type, _options.Interest);
-                    dresult.Dataset.fill = false;
-                    dresult.Dataset.pointRadius = 2;
-                    dresult.Dataset.pointHoverRadius = 10;
-                    dresult.Dataset.showLine = false;
-                    for (int i = 0; i < dresult.Labels.Count; i++)
-                    {
-                        ChartJSInterop.AddData(_jsRuntime,
-                            dresult.Labels[i],
-                            dresult.Dataset.data[i],
-                            dresult.Dataset.backgroundColor.Last(),
-                            null,
-                            lockobject
-                            ).GetAwaiter();
-                    }
-                    if (dresult.fTimeline != null)
-                    {
-                        ChartJSdataset dataset = new ChartJSdataset();
-                        dataset.label = _options.Interest + "_line";
-                        dataset.borderWidth = 3;
-                        dataset.pointRadius = 1;
-                        ChartService.SetColor(dataset, _options.Chart.type, _options.Interest);
-                        dataset.backgroundColor.Clear();
-                        _options.Chart.data.datasets.Add(dataset);
-                        ChartJSInterop.AddDataset(_jsRuntime, JsonConvert.SerializeObject(dataset, Formatting.Indented), lockobject).GetAwaiter();
-
-                        for (int i = 0; i < dresult.Labels.Count; i++)
-                        {
-                            ChartJSInterop.AddData(_jsRuntime,
-                                dresult.Labels[i],
-                                dresult.fTimeline(i),
-                                dresult.Dataset.backgroundColor.Last(),
-                                null,
-                                lockobject
-                                ).GetAwaiter();
-                        }
-                    }
+                    dresult = TimelineService.GetTimeLine(_options, _context, _jsRuntime, lockobject);
                 }
                 else
                 {
@@ -201,17 +163,20 @@ namespace sc2dsstats.shared.Service
                 }
             }
 
-            if (dresult.CmdrInfo.Games > 0)
-                dresult.CmdrInfo.ADuration /= dresult.CmdrInfo.Games;
-
-            dresult.CmdrInfo.AWinrate = (_options.Mode switch
+            if (_options.Mode != "Timeline")
             {
-                "DPS" => Math.Round(dresult.CmdrInfo.Wins / dresult.CmdrInfo.Games, 2),
-                _ => Math.Round(dresult.CmdrInfo.Wins * 100 / dresult.CmdrInfo.Games, 2),
-            });
+                if (dresult.CmdrInfo.Games > 0)
+                    dresult.CmdrInfo.ADuration /= dresult.CmdrInfo.Games;
 
-            dresult.CmdrInfo.Games = dresult.CmdrInfo.GameIDs.Count();
-            dresult.CmdrInfo.GameIDs = new HashSet<int>();
+                dresult.CmdrInfo.AWinrate = (_options.Mode switch
+                {
+                    "DPS" => Math.Round(dresult.CmdrInfo.Wins / dresult.CmdrInfo.Games, 2),
+                    _ => Math.Round(dresult.CmdrInfo.Wins * 100 / dresult.CmdrInfo.Games, 2),
+                });
+
+                dresult.CmdrInfo.Games = dresult.CmdrInfo.GameIDs.Count();
+                dresult.CmdrInfo.GameIDs = new HashSet<int>();
+            }
             _options.Cmdrinfo = new CmdrInfo(dresult.CmdrInfo);
 
             WinRateHelpers.TryRemove(Hash, out _);
@@ -1008,6 +973,7 @@ namespace sc2dsstats.shared.Service
         public ChartJSdataset Dataset { get; set; } = new ChartJSdataset("Default");
         public CmdrInfo CmdrInfo { get; set; } = new CmdrInfo();
         public Func<double, double> fTimeline { get; set; }
+        public DateTime fStartTime { get; set; } = DateTime.MinValue;
     }
 
     public class WinRateHelper
