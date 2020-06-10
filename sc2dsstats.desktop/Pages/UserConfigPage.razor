@@ -10,7 +10,10 @@
             <MatAppBarSection>
                 <MatAppBarTitle>User Settings</MatAppBarTitle>
                 <button type="button" class="btn btn-primary ml-4" @onclick="Reset">Reset</button>
-                <button type="button" class="btn btn-warning" @onclick="Save">SAVE</button>
+                <button type="button" class="btn btn-warning ml-1" @onclick="Save">SAVE</button>
+                <!--
+            <button type="button" class="btn btn-secondary ml-5" @onclick="@ElectronService.ElectronUpdate">Update App</button>
+                -->
             </MatAppBarSection>
             <MatAppBarSection Align="@MatAppBarSectionAlign.Start">
                 <h4><span class="badge @BadgeClass">@Info</span></h4>
