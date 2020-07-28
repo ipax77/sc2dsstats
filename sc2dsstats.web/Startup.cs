@@ -38,7 +38,9 @@ namespace sc2dsstats.web
             services.AddServerSideBlazor();
             services.AddDbContext<DSReplayContext>(options =>
                 options.UseMySql(DSdata.ServerConfig.DBConnectionString, mySqlOptions => mySqlOptions
-                .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql))));
+                .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql))
+                .EnableRetryOnFailure()
+                ));
             services.AddSingleton<ReloadFilterAttribute>();
             services.AddControllers();
             services.AddSingleton<LoadData>();
