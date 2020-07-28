@@ -42,7 +42,9 @@ namespace sc2dsstats.desktop
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddDbContext<DSReplayContext>(options =>
-            options.UseSqlite($"Data Source={Program.workdir}/data_v3_0.db"));
+            options
+                .UseSqlite($"Data Source={Program.workdir}/data_v3_0.db")
+            );
             services.AddSingleton<LoadData>();
             services.AddSingleton<OnTheFlyScan>();
             services.AddScoped<DecodeReplays>();

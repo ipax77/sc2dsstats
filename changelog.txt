@@ -1,4 +1,9 @@
 
+2.0.18
+
+- protocol 80949
+- electron 9.31.2
+
 2.0.17
 - protocol 80188 'preview'
 

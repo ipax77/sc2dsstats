@@ -4,6 +4,7 @@ using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace sc2dsstats.lib.Db
 {
@@ -81,10 +82,21 @@ namespace sc2dsstats.lib.Db
             if (options.Enddate != default(DateTime))
                 filReplays = filReplays.Where(x => x.GAMETIME <= options.Enddate.AddDays(1));
 
-            if (options.Dataset.Any() && DSdata.IsMySQL)
+            if (DSdata.IsMySQL)
             {
-                filReplays = filReplays
-                    .Where(x => x.DSPlayer.Select(s => s.NAME).Contains(options.Dataset.First()));
+                /*
+                var testReplays = from r in filReplays
+                          from p in r.DSPlayer
+                          where p.RACE == "Mengsk" && r.GAMETIME < new DateTime(2020, 06, 19)
+                          select r.ID;
+                filReplays = filReplays.Where(x => !testReplays.Contains(x.ID));
+                */             
+                if (options.Dataset.Any())
+                {
+
+                    filReplays = filReplays
+                        .Where(x => x.DSPlayer.Select(s => s.NAME).Contains(options.Dataset.First()));
+                }
             }
             return filReplays;
         }
