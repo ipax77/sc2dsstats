@@ -29,6 +29,8 @@ namespace sc2dsstats.lib.Data
         public DateTime Enddate { get; set; } = DateTime.MinValue;
         public string Time { get; set; } = "This Year";
         public string Vs { get; set; } = String.Empty;
+
+        public bool MengskPreviewFilter { get; set; } = true;
         
         public string Build { get; set; } = String.Empty;
 
@@ -170,6 +172,7 @@ namespace sc2dsstats.lib.Data
             opthash += String.Join("", Gamemodes.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += String.Join("", Players.Where(x => x.Value == true).OrderBy(o => o.Key).Select(s => s.Key));
             opthash += Breakpoint;
+            opthash += MengskPreviewFilter;
             Hash = opthash;
             return opthash;
         }
@@ -200,6 +203,7 @@ namespace sc2dsstats.lib.Data
             this.GameBreakpoint = defoptions.GameBreakpoint;
             this.PlayerCount = defoptions.PlayerCount;
             this.Mode = Winrate;
+            this.MengskPreviewFilter = defoptions.MengskPreviewFilter;
         }
     }
 

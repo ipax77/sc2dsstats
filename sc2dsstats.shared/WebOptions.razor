@@ -192,6 +192,13 @@
             _options.Startdate = DateTime.MinValue;
             _options.Enddate = DateTime.MinValue;
         }
+        // patch 2.60
+        else if (i == 5)
+        {
+            _options.Startdate = new DateTime(2020, 07, 28, 5, 23, 0);
+            _options.Enddate = DateTime.MinValue;
+        }
+
         _options.Time = DSdata.s_timespans[i];
         _options.Update = !_options.Update;
 

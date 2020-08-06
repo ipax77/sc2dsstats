@@ -74,7 +74,11 @@ namespace sc2dsstats.shared.Service
 
             lock (dblock)
             {
+                bool mengskfilter = _options.MengskPreviewFilter;
+                _options.MengskPreviewFilter = false;
                 var replays = DBReplayFilter.Filter(_options, _context);
+                _options.MengskPreviewFilter = mengskfilter;
+
                 bresult.TotalGames = replays.Count();
 
                 var presult = (String.IsNullOrEmpty(_options.Vs) switch

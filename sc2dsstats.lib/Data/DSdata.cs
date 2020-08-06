@@ -16,7 +16,7 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.19");
+        public static Version DesktopVersion = new Version("2.0.20");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
         public static bool DesktopUpdateAvailable = false;
 
@@ -107,7 +107,8 @@ namespace sc2dsstats.lib.Data
             "Last Month",
             "This Year",
             "Last Year",
-            "ALL"
+            "ALL",
+            "Patch 2.60"
         };
 
         public static string[] s_gamemodes { get; } = new string[]
@@ -226,12 +227,12 @@ namespace sc2dsstats.lib.Data
         public static double MIN15 = 20640;
 
         public static Dictionary<string, double> BreakpointMid = new Dictionary<string, double>()
-{
-        { "MIN5", MIN5 },
-        { "MIN10", MIN10 },
-        { "MIN15", MIN15 },
-        { "ALL", 0 }
-    };
+        {
+            { "MIN5", MIN5 },
+            { "MIN10", MIN10 },
+            { "MIN15", MIN15 },
+            { "ALL", 0 }
+        };
 
         public static string[] s_units { get; set; }
 

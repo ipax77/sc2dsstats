@@ -196,6 +196,13 @@
                                     </div>
                                 }
                             </div>
+                            <div class="col-sm">
+                                <h5>Mengsk</h5>
+                                <div class="custom-control custom-checkbox mr-2">
+                                    <input type="checkbox" class="custom-control-input" name="cb_mengskprev" id="cb_mengskprev" @bind="@_options.MengskPreviewFilter" />
+                                    <label class="custom-control-label" for="cb_mengskprev">Mengsk PreRelease</label>
+                                </div>
+                            </div>
                             <Dropdown TItem="string" OnSelected="@OnDatasetSelected">
                                 <InitialTip>Dataset</InitialTip>
                                 <ChildContent>

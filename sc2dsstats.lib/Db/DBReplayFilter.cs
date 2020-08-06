@@ -84,13 +84,15 @@ namespace sc2dsstats.lib.Db
 
             if (DSdata.IsMySQL)
             {
-                /*
-                var testReplays = from r in filReplays
-                          from p in r.DSPlayer
-                          where p.RACE == "Mengsk" && r.GAMETIME < new DateTime(2020, 06, 19)
-                          select r.ID;
-                filReplays = filReplays.Where(x => !testReplays.Contains(x.ID));
-                */             
+                if (options.MengskPreviewFilter)
+                {
+                    var testReplays = from r in filReplays
+                                      from p in r.DSPlayer
+                                      where p.RACE == "Mengsk" && r.GAMETIME < new DateTime(2020, 07, 28, 5, 23, 0)
+                                      select r.ID;
+                    filReplays = filReplays.Where(x => !testReplays.Contains(x.ID));
+                }
+
                 if (options.Dataset.Any())
                 {
 

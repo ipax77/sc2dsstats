@@ -36,6 +36,7 @@ namespace sc2dsstats.web
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddMemoryCache();
             services.AddDbContext<DSReplayContext>(options =>
                 options.UseMySql(DSdata.ServerConfig.DBConnectionString, mySqlOptions => mySqlOptions
                 .ServerVersion(new ServerVersion(new Version(5, 7, 29), ServerType.MySql))
@@ -49,6 +50,7 @@ namespace sc2dsstats.web
             services.AddScoped<GameChartService>();
             services.AddScoped<DBService>();
             services.AddScoped<Visitor>();
+            services.AddScoped<DBSearch>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,0 +1,470 @@
+﻿@using sc2dsstats.lib.Db
+@using sc2dsstats.lib.Models
+@using sc2dsstats.lib.Data
+@inject DBSearch  _search
+@inject DSoptions _options
+@inject DBService _db
+
+<div class="mr-3">
+    @if (Loading)
+    {
+        <button class="btn btn-primary ml-1" disabled>
+            <span class="spinner-border spinner-border-sm"></span>
+            Search
+        </button>
+    }
+    else
+    {
+        <button class="btn btn-primary ml-4" disabled>
+            Search
+        </button>
+    }
+</div>
+
+@if (Replays != null)
+{
+    <div>
+        <div class="row">
+            @foreach (var opt in RepOpt.Opt.Keys)
+            {
+                <div class="custom-control custom-checkbox ml-1 w-auto">
+                    <input type="checkbox" class="custom-control-input" name="cb_opt" id="cb_opt_@opt" @bind="@RepOpt.Opt[opt]" />
+                    <label class="custom-control-label" for="cb_opt_@opt">@opt</label>
+                </div>
+            }
+        </div>
+        <div class="row">
+            <div class="col-auto">
+                <h><b>@dbOpt.Count (@dbOpt.Skip - @(dbOpt.Skip + dbOpt.Take))</b></h>
+                <table class="table table-sm table-hover table-dark">
+                    <thead>
+                        <tr>
+                            @foreach (var opt in RepOpt.Opt.Keys)
+                            {
+                                @if (RepOpt.Opt[opt] == true)
+                                {
+                                    <th scope="col"><span class="sort-link" @onclick="@(() => SortReps(opt))">@opt</span></th>
+                                }
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var ent in Replays)
+                        {
+                            string rowclass = "sort-link";
+                            @if (RepId == ent.ID)
+                            {
+                                rowclass = "table-info";
+                            }
+                            <tr class="table-row @rowclass" @onclick="@(async => ShowGame(@ent.ID))">
+                                @foreach (var opt in RepOpt.Opt.Where(x => x.Value == true))
+                                {
+                                    if (opt.Key == "DURATION")
+                                    {
+                                        <td>@TimeSpan.FromSeconds((int)GetRepProperty(ent, opt.Key)).ToString(@"hh\:mm\:ss")</td>
+                                    }
+                                    else if (opt.Key == "GAMETIME")
+                                    {
+                                        <td>@(Convert.ToDateTime(GetRepProperty(ent, opt.Key)).ToString("yyyy/MM/dd"))</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@GetRepProperty(ent, opt.Key).ToString()</td>
+                                    }
+                                }
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+                <div class="row">
+                    <button class="btn btn-sm mr-1" @onclick="@( async => Skip())">&lt&lt</button>
+                    <button class="btn btn-sm" @onclick="@( async => Take())">&gt&gt</button>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="row mt-5">
+                    <div class="col-auto">
+                        <h5>Search</h5>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger" @onclick="@( async => Reset())">Reset</button>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-warning" @onclick="@( async => Search())">Search</button>
+                    </div>
+                    <div class="col-auto">
+                        <div class="custom-control custom-checkbox mr-2">
+                            <input type="checkbox" class="custom-control-input" name="cb_default" id="cb_default" @bind="@dbOpt.DefaultFilter" />
+                            <label class="custom-control-label" for="cb_default">Default Filter</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-4">
+                        Gamemode
+                    </div>
+                    <div class="col-auto">
+                        @foreach (var ent in DSdata.s_gamemodes)
+                        {
+                            <div class="custom-control custom-checkbox mr-2">
+                                <input type="checkbox" class="custom-control-input" name="cb_gamemodes" id="cb_gamemodes_@ent" @bind="@dbOpt.GameModes[ent]" />
+                                <label class="custom-control-label" for="cb_gamemodes_@ent">@(ent.Replace("GameMode", ""))</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-4">
+                        <label>Player Matchup</label>
+                    </div>
+                    <div class="col-auto">
+                        <Dropdown @ref="PlayerDropDown" TItem="string" OnSelected="@( eventArgs => OnPlayerCmdrSelected(eventArgs))">
+                            <InitialTip>Any</InitialTip>
+                            <ChildContent>
+                                @foreach (string cmdr in DSdata.s_races)
+                                {
+                                    <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                                }
+                                <DropdownListItem Item="@("Any")">Any</DropdownListItem>
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                    <div class="col-auto">
+                        <Dropdown @ref="OpponentDropDown" TItem="string" OnSelected="@( eventArgs => OnOpponentCmdrSelected(eventArgs))">
+                            <InitialTip>Opponent Race</InitialTip>
+                            <ChildContent>
+                                @foreach (string cmdr in DSdata.s_races)
+                                {
+                                    <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                                }
+                                <DropdownListItem Item="@("Any")">Any</DropdownListItem>
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-4">
+                        Any Matchup
+                    </div>
+                    <div class="col-auto">
+                        <Dropdown @ref="MatchupDropDownPlayer" TItem="string" OnSelected="@( eventArgs => OnMatchupPlayerCmdrSelected(eventArgs))">
+                            <InitialTip>Any</InitialTip>
+                            <ChildContent>
+                                @foreach (string cmdr in DSdata.s_races)
+                                {
+                                    <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                                }
+                                <DropdownListItem Item="@("Any")">Any</DropdownListItem>
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                    <div class="col-auto">
+                        <Dropdown @ref="MatchupDropDownOpponent" TItem="string" OnSelected="@( eventArgs => OnMatchupOpponentCmdrSelected(eventArgs))">
+                            <InitialTip>Opponent Race</InitialTip>
+                            <ChildContent>
+                                @foreach (string cmdr in DSdata.s_races)
+                                {
+                                    <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                                }
+                                <DropdownListItem Item="@("Any")">Any</DropdownListItem>
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                    <div class="col-auto">
+
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-4">
+                        Units
+                    </div>
+                    <div class="col-auto">
+                        <Dropdown @ref="UnitsDropDownPlayer" TItem="string" OnSelected="@( eventArgs => OnUnitsPlayerCmdrSelected(eventArgs))">
+                            <InitialTip>Race</InitialTip>
+                            <ChildContent>
+                                @foreach (string cmdr in DSdata.s_races)
+                                {
+                                    <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                                }
+                                <DropdownListItem Item="@("Any")">Any</DropdownListItem>
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                    <div class="col-auto">
+                        <Dropdown @ref="UnitsNameDropDownPlayer" TItem="int" OnSelected="@( eventArgs => OnUnitsPlayerNameSelected(eventArgs))">
+                            <InitialTip>Unit</InitialTip>
+                            <ChildContent>
+                                @if (dbOpt.PlayerUnits != null && dbOpt.PlayerUnits.Race != "Any")
+                                {
+                                    @foreach (UnitModelBase unit in DSdata.Units.Where(x => x.Race == dbOpt.PlayerUnits.Race).OrderBy(o => o.Name))
+                                    {
+                                        <DropdownListItem Item="@unit.ID">@unit.Name</DropdownListItem>
+                                    }
+                                }
+                                else
+                                {
+                                    @foreach (UnitModelBase unit in DSdata.Units.OrderBy(o => o.Name))
+                                    {
+                                        <DropdownListItem Item="@unit.ID">@unit.Name</DropdownListItem>
+                                    }
+                                }
+                            </ChildContent>
+                        </Dropdown>
+                    </div>
+                    @if (dbOpt.PlayerUnits != null)
+                    {
+                        <div class="col-sm form-group">
+                            <label>
+                                Min Count
+                                <input type="number" name="Army" id="Army" @bind="@dbOpt.PlayerUnits.Count" class="form-control" />
+                            </label>
+                        </div>
+
+                    }
+                </div>
+                @if (dbOpt.PlayerUnits != null)
+                {
+                    <div class="row mt-2">
+                        <div class="col-4">
+                            Vs Units
+                        </div>
+                        <div class="col-auto">
+                            <Dropdown @ref="UnitsDropDownOpponent" TItem="string" OnSelected="@( eventArgs => OnUnitsOpponentCmdrSelected(eventArgs))">
+                                <InitialTip>Race</InitialTip>
+                                <ChildContent>
+                                    @foreach (string cmdr in DSdata.s_races)
+                                    {
+                                        <DropdownListItem Item="@cmdr">@cmdr</DropdownListItem>
+                                    }
+                                    <DropdownListItem Item="@("Any")">Any</DropdownListItem>
+                                </ChildContent>
+                            </Dropdown>
+                        </div>
+                        <div class="col-auto">
+                            <Dropdown @ref="UnitsNameDropDownOpponent" TItem="int" OnSelected="@( eventArgs => OnUnitsOpponentNameSelected(eventArgs))">
+                                <InitialTip>Unit</InitialTip>
+                                <ChildContent>
+                                    @if (dbOpt.OpponentUnits != null && dbOpt.OpponentUnits.Race != "Any")
+                                    {
+                                        @foreach (UnitModelBase unit in DSdata.Units.Where(x => x.Race == dbOpt.OpponentUnits.Race).OrderBy(o => o.Name))
+                                        {
+                                            <DropdownListItem Item="@unit.ID">@unit.Name</DropdownListItem>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @foreach (UnitModelBase unit in DSdata.Units.OrderBy(o => o.Name))
+                                        {
+                                            <DropdownListItem Item="@unit.ID">@unit.Name</DropdownListItem>
+                                        }
+                                    }
+                                </ChildContent>
+                            </Dropdown>
+                        </div>
+                        @if (dbOpt.OpponentUnits != null)
+                        {
+                            <div class="col-sm form-group">
+                                <label>
+                                    Min Count
+                                    <input type="number" name="Army" id="Army" @bind="@dbOpt.OpponentUnits.Count" class="form-control" />
+                                </label>
+                            </div>
+                        }
+
+                    </div>
+
+                }
+                <div class="row mt-2">
+                    <div class="col-4">
+                        Winrate
+                    </div>
+                    <div class="col-auto">
+                        @dbOpt.Interest
+                    </div>
+                    <div class="col-auto">
+                        @dbOpt.InterestVs
+                    </div>
+                    <div class="col-auto">
+                        @dbOpt.Winrate
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<WebGame />
+
+
+@code {
+
+        IEnumerable<DSReplay> Replays;
+    private ReplayOptions RepOpt = new ReplayOptions();
+    public int RepId { get; set; } = 0;
+    private bool Loading = true;
+    private DBSearchOptions dbOpt;
+
+    Dropdown<string> GameModeDropDown;
+    Dropdown<string> PlayerDropDown;
+    Dropdown<string> OpponentDropDown;
+    Dropdown<string> MatchupDropDownPlayer;
+    Dropdown<string> MatchupDropDownOpponent;
+    Dropdown<string> UnitsDropDownPlayer;
+    Dropdown<string> UnitsDropDownOpponent;
+    Dropdown<int> UnitsNameDropDownPlayer;
+    Dropdown<int> UnitsNameDropDownOpponent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dbOpt = new DBSearchOptions();
+        Replays = await _search.Init(dbOpt);
+        _options.Replay = await _search.GetReplay(Replays.First().ID);
+        Loading = false;
+    }
+
+    object GetRepProperty(DSReplay rep, string prop)
+    {
+        return rep.GetType().GetProperty(prop).GetValue(rep, null);
+    }
+
+    public async void SortReps(string id)
+    {
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
+
+        if (dbOpt.Sort == id)
+            dbOpt.Order = !dbOpt.Order;
+        dbOpt.Sort = id;
+
+        Replays = await _search.GetReplaysPart(dbOpt);
+
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async Task OnPlayerCmdrSelected(string selection)
+    {
+        dbOpt.PlayerRace = selection;
+
+
+        Replays = await _search.Search(dbOpt);
+    }
+
+    private async Task OnOpponentCmdrSelected(string selection)
+    {
+        dbOpt.OpponentRace = selection;
+
+
+        Replays = await _search.Search(dbOpt);
+    }
+
+    private async Task OnMatchupPlayerCmdrSelected(string selection)
+    {
+        dbOpt.MatchupPlayerRace = selection;
+        Replays = await _search.Search(dbOpt);
+    }
+
+    private async Task OnMatchupOpponentCmdrSelected(string selection)
+    {
+        dbOpt.MatchupOpponentRace = selection;
+        Replays = await _search.Search(dbOpt);
+    }
+
+    private async Task OnUnitsPlayerCmdrSelected(string selection)
+    {
+        dbOpt.PlayerUnits = new DBSearchUnits();
+        dbOpt.PlayerUnits.Race = selection;
+    }
+
+    private async Task OnUnitsPlayerNameSelected(int selection)
+    {
+        UnitModelBase unit = DSdata.Units.FirstOrDefault(f => f.ID == selection);
+        if (dbOpt.PlayerUnits == null)
+        {
+            dbOpt.PlayerUnits = new DBSearchUnits();
+
+            dbOpt.PlayerUnits.Race = unit.Race;
+        }
+        dbOpt.PlayerUnits.Name = unit.Name;
+        dbOpt.PlayerUnits.ID = unit.ID;
+
+    }
+
+    private async Task OnUnitsOpponentCmdrSelected(string selection)
+    {
+        dbOpt.OpponentUnits = new DBSearchUnits();
+        dbOpt.OpponentUnits.Race = selection;
+    }
+
+    private async Task OnUnitsOpponentNameSelected(int selection)
+    {
+        UnitModelBase unit = DSdata.Units.FirstOrDefault(f => f.ID == selection);
+        if (dbOpt.OpponentUnits == null)
+        {
+            dbOpt.OpponentUnits = new DBSearchUnits();
+
+            dbOpt.OpponentUnits.Race = unit.Race;
+        }
+        dbOpt.OpponentUnits.Name = unit.Name;
+        dbOpt.OpponentUnits.ID = unit.ID;
+    }
+
+    async Task Search()
+    {
+        Loading = true;
+        Replays = await _search.Search(dbOpt);
+        Loading = false;
+    }
+
+    async Task Skip()
+    {
+        dbOpt.Skip -= dbOpt.Take;
+        if (dbOpt.Skip < 0)
+            dbOpt.Skip = 0;
+        Loading = true;
+
+        Replays = await _search.GetReplaysPart(dbOpt);
+        Loading = false;
+    }
+
+    async Task Take()
+    {
+        dbOpt.Skip += dbOpt.Take;
+        Loading = true;
+        Replays = await _search.GetReplaysPart(dbOpt);
+        Loading = false;
+    }
+
+    async Task Reset()
+    {
+        Loading = true;
+        dbOpt = new DBSearchOptions();
+        PlayerDropDown.Reset();
+        OpponentDropDown.Reset();
+        MatchupDropDownPlayer.Reset();
+        MatchupDropDownOpponent.Reset();
+        UnitsDropDownPlayer.Reset();
+        UnitsNameDropDownPlayer.Reset();
+        if (UnitsDropDownOpponent != null)
+        {
+            UnitsDropDownOpponent.Reset();
+            UnitsNameDropDownOpponent.Reset();
+        }
+        Replays = await _search.Init(dbOpt);
+        Loading = false;
+    }
+
+    async Task ShowGame(int repid, bool isInit = false)
+    {
+        Loading = true;
+        await InvokeAsync(() => StateHasChanged());
+
+        RepId = repid;
+        _options.Replay = await _search.GetReplay(repid);
+
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+}
