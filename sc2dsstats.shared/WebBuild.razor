@@ -161,6 +161,15 @@
                         <input type="range" min="1" max="4" value="2" class="slider" id="myRange" @onchange="BPSlider">
                     </div>
                 </div>
+                <!--
+    <div class="col-5">
+        <div class="form-check">
+            <label class="form-check-label">
+                <input type="checkbox" class="form-check-input" @bind-value="_options.LatestPatch">Patch 2.60 only
+            </label>
+        </div>
+    </div>
+        -->
             </div>
             <div class="row mt-3">
 
@@ -387,6 +396,11 @@
     {
         if (_options.Mode != "Build")
             return;
+
+        if (_options.LatestPatch)
+            _options.Startdate = new DateTime(2020, 07, 28, 5, 23, 0);
+        else
+            _options.Startdate = new DateTime(2019, 1, 1);
 
         lock (lockobject)
         {

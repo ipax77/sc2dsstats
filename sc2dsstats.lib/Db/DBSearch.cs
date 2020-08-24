@@ -16,6 +16,7 @@ namespace sc2dsstats.lib.Db
         private readonly DSReplayContext _context;
         private readonly ILogger _logger;
         private readonly IMemoryCache _cache;
+        private bool searching = false;
 
         public DBSearch(DSReplayContext context, IMemoryCache cache, ILogger<DBSearch> logger)
         {
@@ -42,6 +43,10 @@ namespace sc2dsstats.lib.Db
 
         public async Task<IEnumerable<DSReplay>> Search(DBSearchOptions dbOpt)
         {
+            if (searching)
+                return new List<DSReplay>();
+            searching = true;
+            dbOpt.Replays = null;
             IQueryable<DSReplay> repids = _context.DSReplays;
 
             if (dbOpt.DefaultFilter)
@@ -146,7 +151,9 @@ namespace sc2dsstats.lib.Db
 
             dbOpt.Replays = repids;
             await GetWinrate(dbOpt);
-            return await GetReplaysPart(dbOpt);
+            var result = await GetReplaysPart(dbOpt);
+            searching = false;
+            return result;
         }
 
         public async Task GetWinrate(DBSearchOptions dbOpt)
@@ -183,9 +190,14 @@ namespace sc2dsstats.lib.Db
                 var result = res.Where(x => x.RACE == dbOpt.Interest);
                 float games = 1;
                 float wins = 0;
-                
-                games = await result.CountAsync();
-                wins = await result.Where(x => x.WIN == true).CountAsync();
+                try
+                {
+                    games = await result.CountAsync();
+                    wins = await result.Where(x => x.WIN == true).CountAsync();
+                } catch (Exception e)
+                {
+                    _logger.LogError(e.Message);
+                }
                 dbOpt.Winrate = MathF.Round(wins * 100 / games, 2);
             }
         }

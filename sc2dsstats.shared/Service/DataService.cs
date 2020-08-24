@@ -83,6 +83,10 @@ namespace sc2dsstats.shared.Service
                 {
                     dresult = TimelineService.GetTimeLine(_options, _context, _jsRuntime, lockobject);
                 }
+                else if (_options.Mode == "Duration")
+                {
+                    dresult = DurationService.GetDurations(_options, _context, _jsRuntime, lockobject);
+                }
                 else
                 {
                     foreach (string race in _options.Chart.s_races_ordered.ToArray())

@@ -16,7 +16,7 @@ namespace sc2dsstats.lib.Data
         public static List<DatasetInfo> Datasets = new List<DatasetInfo>();
         public static ReplaysLoadedEventArgs Status = new ReplaysLoadedEventArgs();
 
-        public static Version DesktopVersion = new Version("2.0.20");
+        public static Version DesktopVersion = new Version("2.0.21");
         public static DesktopStatus DesktopStatus = new DesktopStatus();
         public static bool DesktopUpdateAvailable = false;
 
@@ -98,7 +98,23 @@ namespace sc2dsstats.lib.Data
             "DPS",
             "Synergy",
             "AntiSynergy",
-            "Timeline"
+            "Timeline",
+            "Duration"
+        };
+
+        public static string[] s_durations { get; } = new string[]
+        {
+            "5-8",
+            "8-11",
+            "11-14",
+            "14-17",
+            "17-20",
+            "20-23",
+            "23-26",
+            "26-29",
+            "29-32",
+            "32-35",
+            "35"
         };
 
         public static string[] s_timespans { get; } = new string[]
@@ -157,6 +173,7 @@ namespace sc2dsstats.lib.Data
             { "AntiSynergy", "Antisynergy: Shows the winrate for the selected commander when played vs the other commanders (at any position)"},
             { "Build", "Builds: Shows the average unit count for the selected commander at the selected game duration. When selecting a vs commander it shows the average unit count of the selected commander when matched vs the other commanders."},
             { "Timeline", "Timeline: Shows the winrate development for the selected commander over the given time period."},
+            { "Duration", "Duration: Shows the winrate development for the selected commander over the given game duration."}
         };
 
         public static string color_max1 = "Crimson";

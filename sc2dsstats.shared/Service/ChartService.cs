@@ -79,6 +79,10 @@ namespace sc2dsstats.shared.Service
                 }
                 _s_races_cmdr_ordered.RemoveAt(_s_races_cmdr_ordered.Count() - 1);
                 mychart.s_races_ordered = _s_races_cmdr_ordered;
+            } else if (_options.Mode == "Duration")
+            {
+                mychart.type = "line";
+                mychart.s_races_ordered = new List<string>(DSdata.s_durations);
             }
             mychart.options = GetOptions(_options);
             mychart.s_races = new List<string>(mychart.s_races_ordered);
@@ -86,7 +90,7 @@ namespace sc2dsstats.shared.Service
             {
                 ChartJSdataset dataset = new ChartJSdataset();
 
-                if (_options.Mode == "Timeline")
+                if (_options.Mode == "Timeline" || _options.Mode == "Duration")
                 {
                     dataset.fill = false;
                     dataset.pointRadius = 2;
@@ -97,7 +101,7 @@ namespace sc2dsstats.shared.Service
                 if (String.IsNullOrEmpty(_options.Interest))
                 {
                     dataset.label = "global";
-                    if (_options.Mode == "Synergy" || _options.Mode == "AntiSynergy" || _options.Mode == "Timeline")
+                    if (_options.Mode == "Synergy" || _options.Mode == "AntiSynergy" || _options.Mode == "Timeline" || _options.Mode == "Duration")
                     {
                         _options.Interest = "Abathur";
                         dataset.label = _options.Interest;
@@ -178,7 +182,7 @@ namespace sc2dsstats.shared.Service
             else
                 dataset.label = _options.Interest;
 
-            if (_options.Mode == "Timeline")
+            if (_options.Mode == "Timeline" ||_options.Mode == "Duration")
             {
                 dataset.fill = false;
                 dataset.pointRadius = 2;
@@ -199,7 +203,7 @@ namespace sc2dsstats.shared.Service
                     string bcolor = "rgba(0, 0, 0, 0)";
 
                     int ssend = 4;
-                    if (_options.Chart.type == "line")
+                    if (_options.Mode == "Timeline")
                         ssend = 10;
                     string label = dresult.Labels.FirstOrDefault(s => s.Substring(0, ssend) == l.Substring(0, ssend));
                     if (!String.IsNullOrEmpty(label))
