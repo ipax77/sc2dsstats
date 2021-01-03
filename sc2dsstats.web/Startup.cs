@@ -14,6 +14,7 @@ using sc2dsstats.lib.Models;
 using sc2dsstats.lib.Service;
 using sc2dsstats.shared.Service;
 using sc2dsstats.web.Controllers;
+using sc2dsstats.web.Services;
 using System;
 using System.Globalization;
 
@@ -51,6 +52,7 @@ namespace sc2dsstats.web
             services.AddScoped<DBService>();
             services.AddScoped<Visitor>();
             services.AddScoped<DBSearch>();
+            services.AddSingleton<OrderService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

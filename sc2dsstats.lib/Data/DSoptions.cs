@@ -25,7 +25,7 @@ namespace sc2dsstats.lib.Data
         public int Income { get; set; } = 1500;
         public int PlayerCount { get; set; } = 6;
 
-        public DateTime Startdate { get; set; } = new DateTime(2020, 01, 01);
+        public DateTime Startdate { get; set; } = new DateTime(2021, 01, 01);
         public DateTime Enddate { get; set; } = DateTime.MinValue;
         public string Time { get; set; } = "This Year";
         public string Vs { get; set; } = String.Empty;

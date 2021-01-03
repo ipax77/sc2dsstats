@@ -1,0 +1,204 @@
+﻿@page "/order"
+@page "/order/{orderid}"
+@using sc2dsstats.web.Services
+@using sc2dsstats.shared
+@using sc2dsstats.shared.Models
+@inject OrderService _order
+@inject NavigationManager _nav 
+@implements IDisposable
+
+@if (isTeam1)
+{
+<div>
+    <h5>Send this link to your opponents team captain:</h5>
+    <a href="@orderlink">@orderlink</a>
+</div>
+}
+
+<div class="row">
+    @if (isTeam1)
+    {
+        <div class="col">
+            <h4>Team1</h4>
+            <div class="btn-group-vertical">
+                @for (int i = 0; i < 3; i++)
+                {
+                    int j = i;
+                    <label class="col-form-label" for="@("order" + j)">Position @(j + 1)</label>
+                    <Dropdown id="@("order" + j)" TItem="string" isDisabled="@(isTeam1locked ? "disabled" : "")" OnSelected="@( eventArgs => Select(eventArgs, j))">
+                        <InitialTip>@Orders[j]</InitialTip>
+                        <ChildContent>
+                            <DropdownListItem Item="@("Protoss")">Protoss</DropdownListItem>
+                            <DropdownListItem Item="@("Terran")">Terran</DropdownListItem>
+                            <DropdownListItem Item="@("Zerg")">Zerg</DropdownListItem>
+                        </ChildContent>
+                    </Dropdown>
+                }
+                <button type="button" class="btn btn-danger mt-2" disabled="@isTeam1locked" @onclick="e => Lock(0)">Lock</button>
+            </div>
+        </div>
+    }
+    @if (isTeam2)
+    {
+        <div class="col">
+            <h4>Team2</h4>
+            <div class="btn-group-vertical">
+                @for (int i = 3; i < 6; i++)
+                {
+                    int k = i;
+                    <label class="col-form-label" for="@("order" + k)">Position @(k + 1)</label>
+                    <Dropdown id="@("order" + k)" TItem="string" isDisabled="@(isTeam2locked ? "disabled" : "")" OnSelected="@( eventArgs => Select(eventArgs, k))">
+                        <InitialTip>@Orders[k]</InitialTip>
+                        <ChildContent>
+                            <DropdownListItem Item="@("Protoss")">Protoss</DropdownListItem>
+                            <DropdownListItem Item="@("Terran")">Terran</DropdownListItem>
+                            <DropdownListItem Item="@("Zerg")">Zerg</DropdownListItem>
+                        </ChildContent>
+                    </Dropdown>
+                }
+                <button type="button" class="btn btn-danger mt-2" disabled="@isTeam2locked" @onclick="e => Lock(1)">Lock</button>
+            </div>
+        </div>
+    }
+</div>
+@if ((isTeam1 && isTeam1locked) || (isTeam2 && isTeam2locked))
+{
+<div class="m-4">
+    <button type="button" class="btn btn-primary" @onclick="Refresh">Refresh</button>
+</div>
+}
+@if (!String.IsNullOrEmpty(errorMsg))
+{
+<div class="jumbotron">
+    <p>@errorMsg</p>
+</div>
+}
+
+@code {
+
+    [Parameter]
+    public string orderid { get; set; }
+
+    private bool isTeam1 = false;
+    private bool isTeam2 = false;
+    private bool isTeam1locked = false;
+    private bool isTeam2locked = false;
+    private Guid orderId;
+    private List<string> Orders;
+    private string errorMsg = String.Empty;
+    private string orderlink = String.Empty;
+
+    protected override void OnInitialized()
+    {
+        Orders = new List<string>() { "", "", "", "", "", "" };
+
+        if (String.IsNullOrEmpty(orderid))
+        {
+            orderId = _order.CreateOrder();
+            isTeam1 = true;
+        }
+        else
+        {
+            if (Guid.TryParse(orderid, out orderId))
+            {
+                isTeam2 = true;
+                if (_order.GetOrderCount(orderId) == 6)
+                {
+                    isTeam2locked = true;
+                    ShowOrder(false);
+                }
+            }
+        }
+        orderlink = _nav.BaseUri + "order/" + orderId.ToString();
+        base.OnInitialized();
+    }
+
+    void Select(string selection, int i)
+    {
+        //_order.SetOrder(orderId, i, selection);
+        Orders[i] = selection;
+    }
+
+    void Lock(int team)
+    {
+        if (team == 0)
+        {
+            var mypicks = Orders.Take(3);
+            if (mypicks.Where(x => x == "Protoss").Count() == 1
+                && mypicks.Where(x => x == "Terran").Count() == 1
+                && mypicks.Where(x => x == "Zerg").Count() == 1)
+            {
+                isTeam1locked = true;
+                errorMsg = String.Empty;
+                for (int i = 0; i < 3; i++)
+                    _order.SetOrder(orderId, i, Orders[i]);
+            } else
+            {
+                errorMsg = "Failed locking order. Have you picked one race each?";
+                StateHasChanged();
+            }
+        } else if (team == 1)
+        {
+            var mypicks = Orders.Skip(3).Take(3);
+            if (mypicks.Where(x => x == "Protoss").Count() == 1
+                && mypicks.Where(x => x == "Terran").Count() == 1
+                && mypicks.Where(x => x == "Zerg").Count() == 1)
+            {
+                isTeam2locked = true;
+                errorMsg = String.Empty;
+                for (int i = 3; i < 6; i++)
+                    _order.SetOrder(orderId, i, Orders[i]);
+            }
+            else
+            {
+                errorMsg = "Failed locking order. Have you picked one race each?";
+                StateHasChanged();
+            }
+        }
+
+
+        if (String.IsNullOrEmpty(errorMsg))
+        {
+            errorMsg = "Waiting for other team.";
+            StateHasChanged();
+            _order.LockOrder(orderId, this);
+        }
+
+
+    }
+
+    public void ShowOrder(bool refresh = true)
+    {
+        int count = 0;
+        if ((isTeam1 && isTeam1locked) || (isTeam2 && isTeam2locked))
+        {
+            count = _order.GetOrderCount(orderId);
+            errorMsg = String.Empty;
+        }
+
+        if (count == 6)
+        {
+            isTeam1 = true;
+            isTeam2 = true;
+            isTeam1locked = true;
+            isTeam2locked = true;
+            Orders = _order.GetOrders(orderId);
+        } else
+        {
+            errorMsg = "The other team is still ordering.";
+        }
+        if (refresh)
+            InvokeAsync(() => StateHasChanged());
+    }
+
+    void Refresh()
+    {
+        ShowOrder();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _order.Dispose(orderId, this);
+    }
+}

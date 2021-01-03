@@ -1,5 +1,5 @@
 ﻿@typeparam TItem
-<div class="dropdown">
+<div id="@id" class="dropdown">
     <button class="btn btn-primary dropdown-toggle @isDisabled mr-2" data-toggle="dropdown" type="button" @onclick="e => this.show=!this.show "
             aria-haspopup="true" aria-expanded="false">
         @Tip
@@ -20,6 +20,8 @@
     public EventCallback<TItem> OnSelected { get; set; }
     [Parameter]
     public string isDisabled { get; set; } = "";
+    [Parameter]
+    public string id { get; set; }
 
     private bool show = false;
     private RenderFragment Tip;
