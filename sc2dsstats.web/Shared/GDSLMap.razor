@@ -1,0 +1,96 @@
+﻿@using System.Numerics
+@using sc2dsstats.lib.Models
+
+<style>
+    .vbuildarea {
+        width: 500px;
+        min-width: 500px !important;
+        height: 773px;
+        min-height: 773px !important;
+        background-color: #a6a4ca;
+        border: inset 2px darkblue;
+        transition: border-width 0.3s linear;
+    }
+
+    .vbuildrotate {
+        transform: rotate(180deg);
+    }
+
+    .v2buildrotate {
+        transform: rotate(-45deg);
+    }
+</style>
+
+
+
+<head>
+    <link href="_content/sc2dsstats.shared/css/BuildArea.razor.css" rel="stylesheet" />
+</head>
+
+<div class="position-absolute vbuildarea" id="BuildArea">
+    @if (Team == 1)
+    {
+        <div class="position-absolute d-inline-block" style="top: 1%; left: 90%;">
+            <span class="oi oi-arrow-thick-right" aria-hidden="true"></span>
+        </div>
+        <div class="position-absolute d-inline-block" style="top: 95%; left: 90%">
+            <span class="oi oi-arrow-thick-right" aria-hidden="true"></span>
+        </div>
+    }
+    else
+    {
+        <div class="position-absolute d-inline-block" style="top: 1%; left: 5%;">
+            <span class="oi oi-arrow-thick-left" aria-hidden="true"></span>
+        </div>
+        <div class="position-absolute d-inline-block" style="top: 95%; left: 5%;">
+            <span class="oi oi-arrow-thick-left" aria-hidden="true"></span>
+        </div>
+    }
+    <div class="no-gutters buildarea_layer">
+        @foreach (UnitModel unit in Units)
+        {
+            var relpos = GetRelPos(unit);
+            <div class="position-absolute d-inline-block unitimage" style="margin-left: @(relpos.Key)px; margin-top: @(relpos.Value)px;">
+                <div style="max-height: 20px; max-width: 20px;" @onclick="@(() => Interest = unit.Name)">
+                    @if (Interest == unit.Name)
+                    {
+                        <p class="text-danger" style="transform: rotate(-45deg);"><small>@unit.Name</small></p>
+                    }
+                    else
+                    {
+                        <p class="text-secondary" style="transform: rotate(-45deg);"><small>@unit.Name</small></p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+
+@code {
+    [Parameter]
+    public List<UnitModel> Units { get; set; }
+
+    [Parameter]
+    public int Team { get; set; }
+
+    string Interest = "";
+
+    public KeyValuePair<float, float> GetRelPos(UnitModel unit)
+    {
+        Vector2 pos = unit.RotatePos;
+        float distance_left = pos.Y;
+        float distance_top = pos.X;
+        // 60 => 1200
+        // 20 => 400
+
+        // 24.04162 => 773
+        // 15.55635 => 500
+
+        float distance_left_percent = distance_left * 31f;
+        float distance_top_percent = distance_top * 62f;
+
+        return new KeyValuePair<float, float>(distance_top_percent, distance_left_percent);
+    }
+}

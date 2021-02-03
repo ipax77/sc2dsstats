@@ -84,6 +84,8 @@ namespace sc2dsstats.decode
 
             KeyValuePair<Vector2, Vector2> LineT1 = new KeyValuePair<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
             KeyValuePair<Vector2, Vector2> LineT2 = new KeyValuePair<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
+            KeyValuePair<int, int> PhotonCannon = new KeyValuePair<int, int>();
+            KeyValuePair<int, int> Bunker = new KeyValuePair<int, int>();
 
             int UnitID = 0;
             int LastSpawn = 480;
@@ -119,9 +121,15 @@ namespace sc2dsstats.decode
                             else if (pydic["m_unitTypeName"].ToString() == "ObjectiveNexus")
                                 ObjectiveNexus = new Vector2((int)pydic["m_x"], (int)pydic["m_y"]);
                             else if (pydic["m_unitTypeName"].ToString() == "ObjectiveBunker")
+                            {
                                 ObjectiveBunker = new Vector2((int)pydic["m_x"], (int)pydic["m_y"]);
+                                Bunker = new KeyValuePair<int, int>((int)pydic["m_unitTagIndex"], (int)pydic["m_unitTagRecycle"]);
+                            }
                             else if (pydic["m_unitTypeName"].ToString() == "ObjectivePhotonCannon")
+                            {
                                 ObjectivePhotonCannon = new Vector2((int)pydic["m_x"], (int)pydic["m_y"]);
+                                PhotonCannon = new KeyValuePair<int, int>((int)pydic["m_unitTagIndex"], (int)pydic["m_unitTagRecycle"]);
+                            }
 
                             if (ObjectiveBunker != Vector2.Zero
                                 && ObjectivePhotonCannon != Vector2.Zero
@@ -363,6 +371,11 @@ namespace sc2dsstats.decode
                     {
                         if (pydic["m_unitTagRecycle"] != null)
                         {
+                            if (PhotonCannon.Key == (int)pydic["m_unitTagIndex"] && PhotonCannon.Value == (int)pydic["m_unitTagRecycle"])
+                                replay.Cannon = (int)pydic["_gameloop"];
+                            else if (Bunker.Key == (int)pydic["m_unitTagIndex"] && Bunker.Value == (int)pydic["m_unitTagRecycle"])
+                                replay.Bunker = (int)pydic["_gameloop"];
+
                             var units = replay.DSPlayer.Select(s => s.decUnits.SingleOrDefault(x => x.Index == (int)pydic["m_unitTagIndex"] && x.RecycleTag == (int)pydic["m_unitTagRecycle"]));
                             if (units != null)
                             {
@@ -372,6 +385,7 @@ namespace sc2dsstats.decode
                                     unit.DiedX = (int)pydic["m_x"];
                                     unit.DiedY = (int)pydic["m_y"];
                                     unit.DiedGameloop = (int)pydic["_gameloop"];
+
                                     if (pydic["m_killerPlayerId"] != null && pydic["m_killerUnitTagIndex"] != null && pydic["m_killerUnitTagRecycle"] != null)
                                     {
                                         unit.KillerPlayerRealPos = (int)pydic["m_killerPlayerId"];

@@ -85,7 +85,7 @@ namespace sc2dsstats.decode
             //Thread.Sleep(1000);
             SCOPE = scope;
             ENGINE = engine;
-            AddLog("Loading Engine comlete.");
+            AddLog("Loading Engine complete.");
             return engine;
         }
 
@@ -216,6 +216,10 @@ namespace sc2dsstats.decode
                     AddLog("Trackerevents failed for " + id);
                     FailCleanup(rep, GetDetails);
                     return null;
+                }
+                finally
+                {
+                    
                 }
 
                 AddLog("trackerevents analyzed.");

@@ -1,0 +1,40 @@
+﻿@using System.ComponentModel
+@using sc2dsstats.lib.Models
+@using sc2dsstats.lib.Data
+@using sc2dsstats.shared.Service
+@inject GameChartService  _chart
+
+<div style="max-width: 800px; max-height: 600px;">
+    <canvas id="canvas"></canvas>
+</div>
+
+@code {
+    ChartJS mychart = null;
+
+    [Parameter]
+    public DSReplay Replay { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        NewReplay();
+    }
+
+    void ReplayChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == "Replay")
+        {
+            NewReplay();
+        }
+    }
+
+    async void NewReplay()
+    {
+        if (Replay != null && Replay.Middle != null && Replay.Middle.Any())
+        {
+            mychart = await _chart.GetChartBase();
+            mychart.options.title.text = "Middle Control";
+            _chart.CreateMiddleChart(Replay, mychart);
+        }
+    }
+
+}
