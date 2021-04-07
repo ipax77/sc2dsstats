@@ -89,6 +89,22 @@ namespace sc2dsstats.decode
             return engine;
         }
 
+        public static void UnLoadEngine()
+        {
+            DSReplays = new ConcurrentBag<DSReplay>();
+            FailedDSReplays = new ConcurrentBag<string>();
+            try
+            {
+                SCOPE.Engine.Runtime.Shutdown();
+                ENGINE = null;
+                SCOPE = null;
+            } catch (Exception e)
+            {
+                AddLog("error during shutdown.");
+            }
+
+        }
+
         public static DSReplay DecodePython(Object stateInfo, bool toJson = true, bool GetDetails = false)
         {
             Interlocked.Increment(ref THREADS);
@@ -233,7 +249,7 @@ namespace sc2dsstats.decode
             Interlocked.Increment(ref DONE);
             Interlocked.Decrement(ref THREADS);
 
-            return null;
+            return dsreplay;
         }
 
 
