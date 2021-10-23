@@ -50,7 +50,6 @@ namespace sc2dsstats.desktop.Service
             // var client = new RestClient("https://localhost:5001");
 
             HttpClient _http = new HttpClient();
-            // _http.BaseAddress = new Uri("https://localhost:5001");
             _http.BaseAddress = new Uri("https://www.pax77.org:9126");
             _http.DefaultRequestHeaders.Accept.Clear();
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));            
@@ -179,11 +178,15 @@ namespace sc2dsstats.desktop.Service
 
             // response = client.Execute(restRequest);
 
+            var payload = File.ReadAllBytes(exp_csv_gz);
+            MultipartFormDataContent multiContent = new MultipartFormDataContent();
+            multiContent.Add(new ByteArrayContent(payload), "files", "upload");
+
             HttpResponseMessage rresponse;
             if (DSdata.Config.FullSend)
-                rresponse = await _http.PostAsJsonAsync($"secure/data/dbfullsend/{hash}", exp_csv_gz);
+                rresponse = await _http.PostAsync($"secure/data/dbfullsend/{hash}", multiContent);
             else
-                rresponse = await _http.PostAsJsonAsync($"secure/data/dbupload/{hash}", exp_csv_gz);
+                rresponse = await _http.PostAsync($"secure/data/dbupload/{hash}", multiContent);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
