@@ -24,6 +24,7 @@ namespace sc2dsstats.lib.Db
         public DbSet<DSReplay> DSReplays { get; set; }
         public DbSet<DbBreakpoint> Breakpoints { get; set; }
         public DbSet<DbMiddle> Middle { get; set; }
+        public virtual DbSet<DbStatsResult> DbStatsResults { get; set; }
         //public DbSet<DbUnit> Units { get; set; }
         //public DbSet<DbRefinery> Refineries { get; set; }
         //public DbSet<DbUpgrade> Upgrades { get; set; }
@@ -54,6 +55,14 @@ namespace sc2dsstats.lib.Db
             modelBuilder
                 .HasDbFunction(typeof(DBFunctions).GetMethod(nameof(DBFunctions.GetPl)))
                 .HasTranslation(args => SqlFunctionExpression.Create("GetPl", args, typeof(int), null));
+
+            modelBuilder.Entity<DbStatsResult>(entity =>
+            {
+                entity.HasKey(k => k.DbStatsResultId);
+                entity.HasIndex(p => new { p.GameTime, p.Player });
+                entity.HasIndex(p => new { p.GameTime, p.Player, p.Race });
+                entity.HasIndex(p => new { p.GameTime, p.Player, p.Race, p.OppRace });
+            });
 
             modelBuilder.Entity<DSReplay>(entity =>
             {

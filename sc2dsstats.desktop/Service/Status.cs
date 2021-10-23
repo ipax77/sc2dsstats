@@ -106,21 +106,13 @@ namespace sc2dsstats.desktop.Service
         {
             args.UploadStatus = UploadStatus.Uploading;
             OnDataLoaded(args);
-            bool result = await Task.Run(() =>
-            {
-                try
-                {
-                    lock (DSdata.DesktopStatus)
-                    {
-                        return _rest.AutoUpload();
-                    }
-                }
-                catch
-                {
-                    return false;
-                }
-            });
-            if (result)
+
+            bool success = false;
+            try {
+                success = await _rest.AutoUpload();
+            } catch {}
+
+            if (success)
                 args.UploadStatus = UploadStatus.UploadSuccess;
             else
                 args.UploadStatus = UploadStatus.UploadFailed;

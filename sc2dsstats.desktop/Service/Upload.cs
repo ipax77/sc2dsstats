@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Net.Http;
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RestSharp;
+// using RestSharp;
 using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
@@ -12,6 +14,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace sc2dsstats.desktop.Service
 {
@@ -23,10 +27,11 @@ namespace sc2dsstats.desktop.Service
         public DSrest(DBService db, ILogger<DSrest> logger)
         {
             _db = db;
+            
             _logger = logger;
         }
 
-        public bool AutoUpload()
+        public async Task<bool> AutoUpload()
         {
             string hash = "UndEsWarSommer";
             string hash2 = "UndEsWarWinter";
@@ -36,20 +41,27 @@ namespace sc2dsstats.desktop.Service
                 hash = GetHash(sha256Hash, names);
                 hash2 = GetHash(sha256Hash, Program.myJson_file);
             }
-            var client = new RestClient("https://www.pax77.org:9126");
+            // var client = new RestClient("https://www.pax77.org:9126");
 
             // DEBUG
             //var client = new RestClient("https://192.168.178.28:9001");
             //var client = new RestClient("http://192.168.178.28:9000");
             //var client = new RestClient("https://localhost:44315");
-            //var client = new RestClient("http://localhost:5000");
+            // var client = new RestClient("https://localhost:5001");
+
+            HttpClient _http = new HttpClient();
+            // _http.BaseAddress = new Uri("https://localhost:5001");
+            _http.BaseAddress = new Uri("https://www.pax77.org:9126");
+            _http.DefaultRequestHeaders.Accept.Clear();
+            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));            
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("DSupload77");
 
             List<DSReplay> UploadReplays = new List<DSReplay>();
             List<dsreplay> UploadReplaysMaped = new List<dsreplay>();
             string lastrep = "";
             string exp_csv = "";
-            RestRequest restRequest = null;
-            IRestResponse response = null;
+            // RestRequest restRequest = null;
+            // IRestResponse response = null;
 
             if (DSdata.Status.Count > 0)
             {
@@ -68,17 +80,22 @@ namespace sc2dsstats.desktop.Service
             info.Version = DSdata.DesktopVersion.ToString();
 
             _logger.LogInformation("Upload: AutoInfo");
-            restRequest = new RestRequest("/secure/data/autoinfo", Method.POST);
-            restRequest.RequestFormat = DataFormat.Json;
-            restRequest.AddHeader("Authorization", "DSupload77");
-            restRequest.AddJsonBody(info);
-            response = client.Execute(restRequest);
+            // restRequest = new RestRequest("/secure/data/autoinfo", Method.POST);
+            // // restRequest = new RestRequest("api/upload/info", Method.POST);
+            // restRequest.RequestFormat = DataFormat.Json;
+            // restRequest.AddHeader("Authorization", "DSupload77");
+            // restRequest.AddJsonBody(info);
+            // response = client.Execute(restRequest);
 
-            _logger.LogInformation($"Upload: autoinfo response: {response.Content}");
+
+            var response = await _http.PostAsJsonAsync("secure/data/autoinfo", info);
+
+            _logger.LogInformation($"Upload: autoinfo response: {response.Content} {response.StatusCode}");
             if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                if (response.Content.Contains("UpToDate")) return true;
-                else lastrep = response.Content;
+                var content = await response.Content.ReadFromJsonAsync<string>();
+                if (content.Contains("UpToDate")) return true;
+                else lastrep = content;
             }
             else return false;
 
@@ -150,16 +167,24 @@ namespace sc2dsstats.desktop.Service
                     }
                 }
             }
-            if (DSdata.Config.FullSend == true)
-                restRequest = new RestRequest("/secure/data/dbfullsend/" + hash);
-            else
-                restRequest = new RestRequest("/secure/data/dbupload/" + hash);
-            restRequest.RequestFormat = DataFormat.Json;
-            restRequest.Method = Method.POST;
-            restRequest.AddHeader("Authorization", "DSupload77");
-            restRequest.AddFile("content", exp_csv_gz);
+            // if (DSdata.Config.FullSend == true)
+            //     restRequest = new RestRequest("/secure/data/dbfullsend/" + hash);
+            // else
+            //     restRequest = new RestRequest("/secure/data/dbupload/" + hash);
+            // // restRequest = new RestRequest("api/upload/replays/" + hash);
+            // restRequest.RequestFormat = DataFormat.Json;
+            // restRequest.Method = Method.POST;
+            // restRequest.AddHeader("Authorization", "DSupload77");
+            // restRequest.AddFile("content", exp_csv_gz);
 
-            response = client.Execute(restRequest);
+            // response = client.Execute(restRequest);
+
+            HttpResponseMessage rresponse;
+            if (DSdata.Config.FullSend)
+                rresponse = await _http.PostAsJsonAsync($"secure/data/dbfullsend/{hash}", exp_csv_gz);
+            else
+                rresponse = await _http.PostAsJsonAsync($"secure/data/dbupload/{hash}", exp_csv_gz);
+
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 if (DSdata.Config.FullSend == true)

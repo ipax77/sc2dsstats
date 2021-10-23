@@ -128,6 +128,7 @@ namespace sc2dsstats.lib.Db
             lock (stlockobject)
             {
                 stcontext.DSReplays.Add(rep);
+                // TODO: Add DbStatsResult
                 if (bulk == false)
                     stcontext.SaveChanges();
             }
