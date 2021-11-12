@@ -7,13 +7,20 @@
   "author": "",
   "singleInstance": false,
   "build": {
-    "appId": "com.sc2dsstats.desktop.app",
+    "appId": "com.electron.sc2dsstats.desktop.app",
     "productName": "sc2dsstats.desktop",
     "copyright": "Copyright © 2020",
-    "buildVersion": "2.0.15",
+    "buildVersion": "2.0.30",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop"
+    },
+    "win": {
+      "icon": "./bin/wwwroot/_content/sc2dsstats.shared/images/icon-512x512.png",
+      "publish": [{
+        "provider": "github",
+        "url": "https://github.com/ipax77/sc2dsstats.git"
+      }]      
     },
     "extraResources": [
       {

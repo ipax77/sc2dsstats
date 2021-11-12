@@ -50,7 +50,9 @@ namespace sc2dsstats.desktop.Service
             // var client = new RestClient("https://localhost:5001");
 
             HttpClient _http = new HttpClient();
-            _http.BaseAddress = new Uri("https://www.pax77.org:9126");
+            // _http.BaseAddress = new Uri("https://localhost:5003");
+            // _http.BaseAddress = new Uri("https://www.pax77.org:9126");
+            _http.BaseAddress = new Uri("https://sc2dsstats.pax77.org");
             _http.DefaultRequestHeaders.Accept.Clear();
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));            
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("DSupload77");

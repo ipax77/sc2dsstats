@@ -24,6 +24,13 @@
 else
 {
     <br />
+    @if (UpdateAvailable)
+    {
+        <div>
+            <h4 class="text-info"><b>New Version @ElectronService.AvailableVersion.ToString() available!</b></h4>
+            @* <button type="button" class="btn btn-danger">Download and Install New Version</button> *@
+        </div>
+    }
     <div class="row">
         <div class="col">
             <Scan />
@@ -36,17 +43,49 @@ else
 }
 <br />
 <div>
-    <h4>Latest Game <button type="button" class="btn btn-sm btn-inline-dark" @onclick="@(() => _options.Replay = _db.GetLatestReplay())">Refresh</button></h4>
+    <h4>Latest Game <button type="button" class="btn btn-sm btn-inline-dark"
+            @onclick="@(() => _options.Replay = _db.GetLatestReplay())">Refresh</button></h4>
     <Game />
 </div>
 @code {
     bool oldDataExists = false;
+    bool UpdateAvailable = false;
+
     protected override void OnInitialized()
     {
-        if (Status.isFirstRun && File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web\\data.json"))
+        if (Status.isFirstRun && File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) +
+        "\\sc2dsstats_web\\data.json"))
         {
             oldDataExists = true;
 
         }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            CheckUpdates();
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task CheckUpdates()
+    {
+        if (ElectronService.CurrentVersion == new Version(2, 0, 0))
+        {
+            await Task.Delay(10000);
+            ElectronService.CheckForUpdate();
+        }
+        else
+        {
+            UpdateAvailable = ElectronService.AvailableVersion > ElectronService.CurrentVersion;
+        }
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async Task Update()
+    {
+        await ElectronService.DownloadNewVersion(true);
     }
 }
