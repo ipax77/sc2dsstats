@@ -1,0 +1,25 @@
+﻿@using sc2dsstats._2022.Shared
+
+<div class="form-group" style="max-width: 250px;">
+    <label for="cmdrselect" class="form-label">
+        Commander
+    </label>
+    <select class="form-select" id="cmdrselect" @onchange="CmdrSelected">
+        <option value="ALL">ALL</option>
+        @foreach (var cmdr in DSData.cmdrs)
+        {
+            <option value="@cmdr">@cmdr</option>    
+        }
+    </select>
+</div>
+
+@code {
+
+    [Parameter]
+    public EventCallback<string> onCmdrSelected { get; set; }
+
+    void CmdrSelected(ChangeEventArgs e)
+    {
+        onCmdrSelected.InvokeAsync(e.Value.ToString());
+    }
+}

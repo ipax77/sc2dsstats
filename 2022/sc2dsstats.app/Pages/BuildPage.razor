@@ -1,0 +1,9 @@
+﻿@page "/builds"
+@using sc2dsstats.app.Services
+@inject ReplayService replayService
+
+<sc2dsstats.rlib.BuildComponent PlayerNames="replayService.AppConfig.Config.PlayersNames"></sc2dsstats.rlib.BuildComponent>
+
+@code {
+
+}

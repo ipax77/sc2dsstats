@@ -1,0 +1,16 @@
+﻿@page "/database"
+@page "/database/{hash}"
+@inject NavigationManager _nav
+
+<sc2dsstats.rlib.DatabaseComponent hash="@hash" onReplaySelected="ReplaySet"></sc2dsstats.rlib.DatabaseComponent>
+
+@code {
+    [Parameter]
+    public string hash { get; set; } = String.Empty;
+
+    void ReplaySet(string rHash)
+    {
+        hash = rHash;
+        _nav.NavigateTo($"/database/{hash}");
+    }
+}

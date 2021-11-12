@@ -1,0 +1,53 @@
+﻿@inject IJSRuntime _js
+
+<!-- Modal -->
+<div class="modal fade" id="failedreplaysModal" tabindex="-1" aria-labelledby="replayModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-xxl-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Failed Replays</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        @if (failedReplays != null && failedReplays.Any())
+        {
+            <table class="table table-sm table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>Replay Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var replay in failedReplays)
+                {
+                    <tr>
+                        <td>@replay</td>
+                    </tr>                        
+                }
+                </tbody>
+            </table>
+        }
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+@code {
+    List<string> failedReplays = new List<string>();
+    
+    private async void Close()
+    {
+        await _js.InvokeVoidAsync("ReplayModalClose");
+    }
+
+    public void Show(List<string> replays)
+    {
+        failedReplays = replays;
+        StateHasChanged();
+        _js.InvokeVoidAsync("ReplayModalOpen", "failedreplaysModal");
+    }
+}

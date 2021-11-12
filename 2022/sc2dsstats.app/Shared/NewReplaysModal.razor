@@ -1,0 +1,67 @@
+﻿@using sc2dsstats.app.Services
+@inject IJSRuntime _js
+@inject ReplayService replayService
+@inject IToastService toastService
+
+<!-- Modal -->
+<div class="modal fade" id="newreplaysModal" tabindex="-1" aria-labelledby="newreplayModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-xxl-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">New Replays</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        @if (newReplays != null && newReplays.Any())
+        {
+            <div>
+                <button type="button" class="btn btn-primary" @onclick="Decode">Start decoding</button>
+            </div>
+            <div>
+            <table class="table table-sm table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>Replay Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var replay in newReplays)
+                {
+                    <tr>
+                        <td>@replay</td>
+                    </tr>                        
+                }
+                </tbody>
+            </table>
+            </div>
+        }
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+@code {
+    List<string> newReplays = new List<string>();
+
+    private async void Close()
+    {
+        await _js.InvokeVoidAsync("ReplayModalClose");
+    }
+
+    private void Decode()
+    {
+        replayService.DecodeReplays();
+        Close();
+    }
+
+    public void Show()
+    {
+        newReplays = replayService.NewReplays;
+        StateHasChanged();
+        _js.InvokeVoidAsync("ReplayModalOpen", "newreplaysModal");
+    }
+}

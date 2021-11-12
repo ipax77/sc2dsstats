@@ -1,0 +1,115 @@
+﻿@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.LineChart
+@using ChartJs.Blazor.RadarChart
+@using sc2dsstats.rlib.Services
+@using sc2dsstats._2022.Shared
+@using ChartJs.Blazor.BarChart
+@using ChartJs.Blazor.Common.Axes
+
+@if (_config != null)
+{
+    if (ChartToggle)
+    {
+        <Chart @ref="_chart1" Config="_config1"></Chart>
+    }
+    else
+    {
+        <Chart @ref="_chart2" Config="_config2"></Chart>
+    }
+}
+
+@code {
+
+    [Parameter]
+    public bool playerStats { get; set; } = false;
+
+    public TimelineResponse response;
+
+    private ConfigBase _config = null;
+    private ConfigBase _config1 = null;
+    private ConfigBase _config2 = null;
+    private Chart _chart1;
+    private Chart _chart2;
+    private bool ChartToggle = true;
+
+    public ConfigBase SetChart(DsRequest request, DsResponse response)
+    {
+        _config = ChartService.GetChartConfig(request, response, playerStats);
+
+        if ((ChartToggle && _config1 == null) || (!ChartToggle && _config2 == null))
+        {
+            if (ChartToggle)
+                _config1 = _config;
+            else
+                _config2 = _config;
+        } else if ((ChartToggle && _config1.Type == _config.Type) || (!ChartToggle && _config2.Type == _config.Type))
+        {
+            if (ChartToggle)
+            {
+                string id1 = _config1.CanvasId;
+                _config1 = _config;
+                _config1.CanvasId = id1;
+            } else
+            {
+                string id2 = _config2.CanvasId;
+                _config2 = _config;
+                _config2.CanvasId = id2;
+            }
+        } else
+        {
+            ChartToggle = !ChartToggle;
+            if (ChartToggle)
+            {
+                _config1 = _config;
+                _config2 = null;
+            }
+            else
+            {
+                _config2 = _config;
+                _config1 = null;
+            }
+        }
+        InvokeAsync(() => StateHasChanged());
+        return _config;
+    }
+
+    public void Update()
+    {
+        UpdateChart();
+    }
+
+    public void BeginAtZero(bool value, string charttype)
+    {
+        if (charttype == "Bar")
+        {
+            BarConfig barconfig = _config as BarConfig;
+            LinearCartesianAxis axis = barconfig.Options.Scales.YAxes.First() as LinearCartesianAxis;
+            axis.Ticks.BeginAtZero = value;
+        }
+        else if (charttype == "Line")
+        {
+            LineConfig lineconfig = _config as LineConfig;
+            LinearCartesianAxis axis = lineconfig.Options.Scales.YAxes.First() as LinearCartesianAxis;
+            axis.Ticks.BeginAtZero = value;
+        }
+        else if (charttype == "Radar")
+        {
+            RadarConfig radarconfig = _config as RadarConfig;
+            radarconfig.Options.Scale.Ticks.BeginAtZero = value;
+        }
+        UpdateChart();
+    }
+
+    void UpdateChart()
+    {
+        if (ChartToggle)
+        {
+            _chart1.Update();
+        }
+        else
+        {
+            _chart2.Update();
+        }
+
+    }
+}

@@ -1,0 +1,45 @@
+﻿@using sc2dsstats._2022.Shared
+@inject IJSRuntime _js
+@inject IDataService dataService
+
+<!-- Modal -->
+<div class="modal fade" id="playerModal" tabindex="-1" aria-labelledby="playerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-xxl-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Dataset Details - @(Name.Length > 12 ? $"{Name.Substring(0, 10)}.." : Name)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (playerStats != null)
+                {
+                    <PlayerComponent @ref="playerComponent" playerStats="playerStats" Playername="@Name"></PlayerComponent>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    DsPlayerStats playerStats;
+    PlayerComponent playerComponent;
+    string Name = String.Empty;
+
+    private async void Close()
+    {
+        playerStats = null;
+        await _js.InvokeVoidAsync("ReplayModalClose");
+    }
+
+    public async void Show(string name)
+    {
+        Name = name;
+        playerStats = await dataService.GetPlayerStats(new List<string>() { name });
+        _js.InvokeVoidAsync("ReplayModalOpen", "playerModal");
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,345 @@
+﻿@using sc2dsstats._2022.Shared
+@inject IDataService dataService
+
+<style>
+    .m-fadeOut {
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s linear 300ms, opacity 300ms;
+    }
+    .m-fadeIn {
+      visibility: visible;
+      opacity: 1;
+      transition: visibility 0s linear 0s, opacity 300ms;
+    }
+    .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;
+        background: #3641bd;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+    }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+    .btn-group-xs > .btn, .btn-xs {
+        padding: .25rem .4rem;
+        font-size: .875rem;
+        line-height: .5;
+        border-radius: .2rem;
+    }
+</style>
+
+<div class="d-flex flex-column">
+@if (!String.IsNullOrEmpty(hash) && replay != null)
+{
+    @if (Loading)
+    {
+        @if (notFound)
+        {
+            <p>Not found.</p>
+        }
+        else
+        {
+            <p>Loading ...</p>
+        }
+    }
+    else
+    {
+        <div class="row">
+            <h4 class="col-auto mb-0"><span class="badge bg-secondary">@replay.GameTime.ToString("yyyy-MM-dd")</span></h4>
+            <h4 class="col-auto mb-0"><span class="badge bg-secondary">@(TimeSpan.FromSeconds(replay.Duration).ToString(@"mm\:ss")) min</span></h4>
+            <h4 class="col-auto mb-0"><span class="badge bg-secondary">MVP #@(replay.Players.First(f => f.Kills == replay.MaxKills).Pos)</span></h4>
+            <h4 class="col-auto mb-0"><span class="badge bg-secondary">@replay.GameMode</span></h4>
+            <button type="button" class="btn btn-sm btn-outline-info col-auto mb-0" @onclick="@(() => ShowPlayerNames = !ShowPlayerNames)">@(ShowPlayerNames ? "Hide Names" : "Show Names")</button>
+            <h4 class="col-auto mb-0"><span class="oi oi-x text-danger pointer" @onclick="@(() => onClose.InvokeAsync())"></span></h4>
+        </div>
+        <div class="w-75 position-relative @(showMiddle ? "m-fadeIn" : "m-fadeOut d-none")" style="min-width: 450px; max-width: 900px;">
+            <div class="position-absolut d-flex justify-content-end">
+                <span class="oi oi-x text-danger pointer" @onclick="@(() => showMiddle = false)"></span>
+            </div>
+            @if (showMiddle)
+            {
+                <MiddleComponent Replay="replay"></MiddleComponent>
+            }
+        </div>
+        <div class="row mt-1">
+            @for (int i = 0; i < 2; i++)
+            {
+                <div class="col-auto">
+                    <div class="row justify-content-between">
+                        <div class="col-auto">
+                        <h4>
+                            <span class="badge @(replay.Winner == i ? "bg-success" : "bg-danger")">
+                                 @($"Team{i+1} {(replay.Winner == i ? "- Winner" : "")}")
+                            </span>
+                        </h4>
+                        </div>
+                        <div class="col-auto">
+                        <button type="button" class="btn btn-sm btn-outline-light" @onclick="() => showMiddle = !showMiddle">
+                            Middle @(i == 0 ? replay.Mid1.ToString("00.00") : replay.Mid2.ToString("00.00"))%
+                        </button>
+                        </div>
+                    </div>
+                    <table class="table table-dark">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                @if (ShowPlayerNames) {
+                                    <th>Player</th>
+                                }
+                                <th>Commander</th>
+                                <th>Build</th>
+                                <th>Cash</th>
+                                <th>Army</th>
+                                <th>Kills</th>
+                                <th data-bs-toggle="tooltip" data-bs-placement="top" title="Damage per Value (Kills/Army)">DPV</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var pl in replay.Players.Where(x => i == 0 ? x.Pos <= 3 : x.Pos > 3).OrderBy(o => o.Pos))
+                        {
+                            <tr class="@(pl.Leaver ? "table-danger" : pl.Uploader ? "table-primary" : pl.Kills == replay.MaxKills ? "table-success" : "")"  @onclick="@(() => BuildCheck[pl.Pos] = !BuildCheck[pl.Pos])">
+                                <td>@pl.Pos</td>
+                                @if (ShowPlayerNames) 
+                                {
+                                    <td><span class="d-inline-block text-truncate" style="max-width: 80px;">@pl.Name</span></td>
+                                }
+                                <td>
+                                    <img src="@($"_content/sc2dsstats.rlib/images/btn-unit-hero-{pl.Cmdr.ToLower()}.png")"
+                                        alt="@pl.Cmdr"
+                                        title="@pl.Cmdr"
+                                        width="30"
+                                        height="30" />
+                                        <small class="text-muted">@pl.Cmdr</small>
+                                </td>
+                                <td><input id="build_@pl.Cmdr\_@pl.Pos" name="build_@pl.Cmdr" type="checkbox" checked="@BuildCheck[pl.Pos]" /></td>
+                                <td>@((pl.Cash / 1000).ToString("N2"))k</td>
+                                <td>@((pl.Army / 1000).ToString("N2"))k</td>
+                                <td>@((pl.Kills / 1000).ToString("N2"))k</td>
+                                <td>@((pl.Kills / pl.Army).ToString("N2"))</td>
+                            </tr>                                
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    @if (bpvalue >= 0 && BuildCheck.Where(x => x == true).Any())
+    {
+    <div class="row">
+        <div class="col-auto">
+            <input type="range" min="0" max="@(BpMap.Count - 1)" value="@bpvalue" class="slider" id="myBRange" @onchange="BPSlider">
+        </div>
+        <div class="col-auto">
+            <span class="badge bg-info ml-1">Breakpoint @GetUpgradeTime(BpMap[breakpoint])</span>
+        </div>
+    </div>
+    }
+    <div class="row">
+        @for (int i = 0; i < BuildCheck.Count; i++)
+        {
+            int j = i;
+            if (BuildCheck[j])
+            {
+                var pl = replay.Players.FirstOrDefault(f => f.Pos == j);
+                if (pl != null)
+                {
+                    var bp = pl.Breakpoints.FirstOrDefault(f => f.Breakpoint == BpMap[breakpoint]);
+                    if (bp != null)
+                    {
+                    <div class="col-auto mt-2">
+                        <div class="d-flex justify-content-between">
+                            <div class="">
+                                <h5>
+                                    <span class="d-inline-block text-truncate badge @(replay.Winner == pl.Team ? "bg-success" : "bg-danger")" style="max-width: 165px;">
+                                        #@j Build @(ShowPlayerNames ? pl.Name : "")
+                                    </span>
+                                </h5>
+                            </div>
+                            <div class="">
+                                <button type="button" class="btn btn-sm btn-outline-light" @onclick="() => MapCheck[j] = !MapCheck[j]">Map</button>
+                            </div>
+                        </div>
+                        @if (MapCheck[j])
+                        {
+                            <div class="position-relative">
+                                <div class="position-absolut d-flex justify-content-end">
+                                    <span class="oi oi-x text-danger pointer" @onclick="@(() => MapCheck[j] = false)"></span>
+                                </div>
+                                <MapComponent Replay="replay" Breakpoint="bp" Pos="pl.Pos"></MapComponent>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between">
+                            <img src="@($"_content/sc2dsstats.rlib/images/btn-unit-hero-{pl.Cmdr.ToLower()}.png")"
+                                alt="@pl.Cmdr"
+                                title="@pl.Cmdr"
+                                width="30"
+                                height="30" />
+                            <div class="">
+                            <span class="badge bg-info">Gas @bp.GasCount</span>
+                            </div>
+                            <div class="">
+                            <button type="button" class="btn btn-sm btn-outline-light" @onclick="() => UpgradesCheck[j] = !UpgradesCheck[j]">Upgrades @bp.UpgradesSpending</button>
+                            </div>
+                        </div>
+                        @if (UpgradesCheck[j])
+                        {
+                            <table class="table table-sm table-dark table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Upgrades</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var upgradeent in GetUpgrades(pl))
+                                    {
+                                        foreach (var upgrade in upgradeent.Value)
+                                        {
+                                        <tr>
+                                            <td>@upgradeent.Key</td>
+                                            <td>@upgrade</td>
+                                        </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Unit</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var unit in bp.Units.OrderByDescending(o => o.Count))
+                                {
+                                    <tr>
+                                        <td>@unit.Name</td>
+                                        <td>@unit.Count</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    }
+                }
+            }
+        }
+        </div>
+    }
+}
+</div>
+@code {
+    [Parameter]
+    public string hash { get; set; }
+
+    [Parameter]
+    public EventCallback onClose { get; set; }
+
+    [Parameter]
+    public bool ShowPlayerNames { get; set; } = false;
+
+    DsGameResponse replay = null;
+    bool notFound = false;
+    bool showMiddle = false;
+    List<bool> BuildCheck;
+    List<bool> UpgradesCheck;
+    List<bool> MapCheck;
+    List<string> BpMap;
+    bool Loading = true;
+    int bpvalue = 1;
+    int breakpoint;
+
+    protected override void OnInitialized()
+    {
+        if (!String.IsNullOrEmpty(hash))
+            LoadReplay(hash);
+        base.OnInitialized();
+    }
+
+    public async Task LoadReplay(string rHash)
+    {
+        hash = rHash;
+        Loading = true;
+        notFound = false;
+        await InvokeAsync(() => StateHasChanged());
+        replay = await dataService.GetReplay(hash);
+        if (replay == null)
+            notFound = true;
+        else
+        {
+            BuildCheck = new List<bool>();
+            UpgradesCheck = new List<bool>();
+            MapCheck = new List<bool>();
+            for (int i = 0; i <= 7; i++)
+            {
+                BuildCheck.Add(false);
+                UpgradesCheck.Add(false);
+                MapCheck.Add(false);
+            }
+            
+            BpMap = replay.Duration switch
+            {
+                > 0 and < 300    => new List<string>() { "ALL" },
+                >= 300 and < 600 => new List<string>() { "MIN5", "ALL" },
+                >= 600 and < 900 => new List<string>() { "MIN5", "MIN10", "ALL" },
+                >= 900           => new List<string>() { "MIN5", "MIN10", "MIN15", "ALL" },
+                _ => new List<string>()
+            };
+            // breakpoint = BpMap.Count > 1 ? 1 : 0;
+            breakpoint = BpMap.Count - 1;
+            bpvalue = breakpoint;
+        }
+        Loading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    string GetUpgradeTime(string bp)
+    {
+        return bp switch { "MIN5" => " 5min", "MIN10" => "10min", "MIN15" => "15min", "ALL" => $"{TimeSpan.FromSeconds(replay.Duration).ToString("mm")}min", _ => ""};
+    }
+
+    List<KeyValuePair<string, List<string>>> GetUpgrades(DsPlayerResponse pl) {
+        return pl.Breakpoints
+            .Where(x => BpMap.GetRange(0, breakpoint + 1).Contains(x.Breakpoint))
+            .OrderBy(o =>
+                o.Breakpoint == "MIN5" ? 1 :
+                o.Breakpoint == "MIN10" ? 2 :
+                o.Breakpoint == "MIN15" ? 3 :
+                4)
+            .Select(s => new KeyValuePair<string, List<string>>(GetUpgradeTime(s.Breakpoint), s.Upgrades))
+            .ToList();
+    }
+
+    void BPSlider(ChangeEventArgs e)
+    {
+        string bp = (string)e.Value;
+        breakpoint = int.Parse(bp);
+        if (breakpoint >= BpMap.Count)
+            breakpoint = BpMap.Count - 1;
+        StateHasChanged();
+    }
+}

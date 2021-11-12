@@ -1,0 +1,3057 @@
+[
+  {
+    "ID": 1,
+    "Name": "BroodMutaliskSunderingGlave",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 2,
+    "Name": "BroodMutaliskViciousGlave",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 3,
+    "Name": "DevourerCorrosiveSpray",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 4,
+    "Name": "GlialReconstitution",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 5,
+    "Name": "GuardianProlongedDispersion",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 6,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 7,
+    "Name": "MutaliskRapidRegeneration",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 8,
+    "Name": "overlordspeed",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 9,
+    "Name": "RavagerBloatedBileDucts",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 10,
+    "Name": "RavagerPotentBile",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 11,
+    "Name": "SwarmHostPressurizedGlands",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 12,
+    "Name": "SwarmQueenBioMechanicalTransfusion",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 13,
+    "Name": "TunnelingClaws",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 14,
+    "Name": "VanadiumPlatingController",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 15,
+    "Name": "VileRoachAdaptivePlating",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 16,
+    "Name": "VileRoachHydriodicBile",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 17,
+    "Name": "ViperVirulentMicrobes",
+    "Race": "Abathur"
+  },
+  {
+    "ID": 18,
+    "Name": "AlarakImposingPresence",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 19,
+    "Name": "AlarakTelekinesis",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 20,
+    "Name": "AscendantChaoticAttunement",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 21,
+    "Name": "AscendantMindBlast",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 22,
+    "Name": "AscendantPowerOverwhelming",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 23,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 24,
+    "Name": "DehakaHeroStage2",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 25,
+    "Name": "HavocBloodshardResonance",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 26,
+    "Name": "HavocCloakingModule",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 27,
+    "Name": "HavocDetectWeakness",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 28,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 29,
+    "Name": "SlayerPhasingArmor",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 30,
+    "Name": "SupplicantBloodShields",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 31,
+    "Name": "SupplicantSoulAugmentation",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 32,
+    "Name": "VanadiumPlatingController",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 33,
+    "Name": "VanguardFusionMortars",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 34,
+    "Name": "VanguardMatterDispersion",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 35,
+    "Name": "WrathwalkerAerialTracking",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 36,
+    "Name": "WrathwalkerPowerCycling",
+    "Race": "Alarak"
+  },
+  {
+    "ID": 37,
+    "Name": "Charge",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 38,
+    "Name": "DragoonSingularityCharge",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 39,
+    "Name": "DragoonTrillicCompressionMesh",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 40,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 41,
+    "Name": "HighTemplarKhaydarinAmulet",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 42,
+    "Name": "HighTemplarPlasmaSurge",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 43,
+    "Name": "ImmortalImprovedBarrier",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 44,
+    "Name": "ObserverGraviticBooster",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 45,
+    "Name": "PhoenixDoubleGravitonBeam",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 46,
+    "Name": "PhoenixRangeUpgrade",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 47,
+    "Name": "PsiStormTech",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 48,
+    "Name": "PurifierTempestDisintegration",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 49,
+    "Name": "ReaverScarabHousing",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 50,
+    "Name": "ReaverSolaritePayload",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 51,
+    "Name": "VanadiumPlatingController",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 52,
+    "Name": "ZealotWhirlwind",
+    "Race": "Artanis"
+  },
+  {
+    "ID": 53,
+    "Name": "DehakaArmorLevel1",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 54,
+    "Name": "DehakaArmorLevel2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 55,
+    "Name": "DehakaArmorLevel3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 56,
+    "Name": "DehakaAttacksLevel1",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 57,
+    "Name": "DehakaAttacksLevel2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 58,
+    "Name": "DehakaAttacksLevel3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 59,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 60,
+    "Name": "DehakaCreeperHostAerialBurstSacs",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 61,
+    "Name": "DehakaDeadlyReach",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 62,
+    "Name": "DehakaEatLevel1",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 63,
+    "Name": "DehakaEatLevel2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 64,
+    "Name": "DehakaEatLevel3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 65,
+    "Name": "DehakaHeroStage2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 66,
+    "Name": "DehakaHeroStage3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 67,
+    "Name": "DehakaImpalerTenderizeStarlight",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 68,
+    "Name": "DehakaJumpLevel1",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 69,
+    "Name": "DehakaJumpLevel2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 70,
+    "Name": "DehakaJumpLevel3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 71,
+    "Name": "DehakaKeenSenses",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 72,
+    "Name": "DehakaPrimalGuardianExplosiveSpores",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 73,
+    "Name": "DehakaPrimalGuardianPrimordialFury",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 74,
+    "Name": "DehakaPrimalHydraliskMuscularAugments",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 75,
+    "Name": "DehakaPrimalIgniterConcentratedFire",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 76,
+    "Name": "DehakaPrimalMutaliskPrimalReconstitution",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 77,
+    "Name": "DehakaPrimalMutaliskShiftingCarapace",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 78,
+    "Name": "DehakaPrimalMutaliskSlicingGlave",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 79,
+    "Name": "DehakaPrimalRavasaurDissolvingAcid",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 80,
+    "Name": "DehakaPrimalRavasaurEnlargedParotidGlands",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 81,
+    "Name": "DehakaPrimalRegenerationLevel1",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 82,
+    "Name": "DehakaPrimalRegenerationLevel2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 83,
+    "Name": "DehakaPrimalRegenerationLevel3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 84,
+    "Name": "DehakaPrimalRoachGlialReconstitution",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 85,
+    "Name": "DehakaPrimalUltraliskBrutalCharge",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 86,
+    "Name": "DehakaPrimalUltraliskHealingAdaptation",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 87,
+    "Name": "DehakaPrimalUltraliskImpalingStrike",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 88,
+    "Name": "DehakaPrimalWurm",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 89,
+    "Name": "DehakaRoarLevel1",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 90,
+    "Name": "DehakaRoarLevel2",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 91,
+    "Name": "DehakaRoarLevel3",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 92,
+    "Name": "DehakaScorchingBreath",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 93,
+    "Name": "DehakaTyrannozorBarrageofSpikes",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 94,
+    "Name": "DehakaTyrannozorTyrantsProtection",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 95,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 96,
+    "Name": "VanadiumPlatingController",
+    "Race": "Dehaka"
+  },
+  {
+    "ID": 97,
+    "Name": "AdeptPsionicProjection",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 98,
+    "Name": "AdvancedRepairSystems",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 99,
+    "Name": "CarrierLaunchSpeedUpgrade",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 100,
+    "Name": "Charge",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 101,
+    "Name": "ClolarionInterdictors",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 102,
+    "Name": "ConservatorOptimizedEmitters",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 103,
+    "Name": "DisruptorCloakingModule",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 104,
+    "Name": "DisruptorPurificationEcho",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 105,
+    "Name": "EnergizerRapidRecharging",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 106,
+    "Name": "FenixExperienceAwarded",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 107,
+    "Name": "FenixExtendedThermalLance",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 108,
+    "Name": "FenixObservationProtocol",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 109,
+    "Name": "FenixPurifierArmaments",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 110,
+    "Name": "FenixUnlock",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 111,
+    "Name": "FortificationBarrier",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 112,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 113,
+    "Name": "ImmortalShadowCannon",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 114,
+    "Name": "KaldalisEmpoweredBlades",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 115,
+    "Name": "KaldalisEmpoweredBladesBonus",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 116,
+    "Name": "KaraxReconstructionBeamTargetBonus",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 117,
+    "Name": "LegionnaireCharge",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 118,
+    "Name": "MojoSuppressionProcedure",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 119,
+    "Name": "MojoSuppressionProcedureBonus",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 120,
+    "Name": "ObserverGraviticBooster",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 121,
+    "Name": "OptimizedOrdnance",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 122,
+    "Name": "ScoutCombatSensorArray",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 123,
+    "Name": "SentinelReconstruction",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 124,
+    "Name": "TaldarinGravimetricOverload",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 125,
+    "Name": "TaldarinGravimetricOverloadBonus",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 126,
+    "Name": "TalisDebilitationSystem",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 127,
+    "Name": "TalisRicochetGlaiveBonus",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 128,
+    "Name": "VanadiumPlatingController",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 129,
+    "Name": "WarbringerPurificationBlast",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 130,
+    "Name": "WarbringerPurificationBlastBonus",
+    "Race": "Fenix"
+  },
+  {
+    "ID": 131,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Horner"
+  },
+  {
+    "ID": 132,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Horner"
+  },
+  {
+    "ID": 133,
+    "Name": "HornerArmorLevel1",
+    "Race": "Horner"
+  },
+  {
+    "ID": 134,
+    "Name": "HornerArmorLevel2",
+    "Race": "Horner"
+  },
+  {
+    "ID": 135,
+    "Name": "HornerArmorLevel3",
+    "Race": "Horner"
+  },
+  {
+    "ID": 136,
+    "Name": "HornerAsteriaWraithTriggerOverride",
+    "Race": "Horner"
+  },
+  {
+    "ID": 137,
+    "Name": "HornerAsteriaWraithUnregisteredCloakingSystem",
+    "Race": "Horner"
+  },
+  {
+    "ID": 138,
+    "Name": "HornerDeimosVikingShredderRounds",
+    "Race": "Horner"
+  },
+  {
+    "ID": 139,
+    "Name": "HornerDeimosVikingWILDMissiles",
+    "Race": "Horner"
+  },
+  {
+    "ID": 140,
+    "Name": "HornerHellbatImmolationFluid",
+    "Race": "Horner"
+  },
+  {
+    "ID": 141,
+    "Name": "HornerHellbatWildfireExplosives",
+    "Race": "Horner"
+  },
+  {
+    "ID": 142,
+    "Name": "HornerHellionAerosolStimEmitters",
+    "Race": "Horner"
+  },
+  {
+    "ID": 143,
+    "Name": "HornerHellionTarBombs",
+    "Race": "Horner"
+  },
+  {
+    "ID": 144,
+    "Name": "HornerReaperJetPackOverdrive",
+    "Race": "Horner"
+  },
+  {
+    "ID": 145,
+    "Name": "HornerReaperLD9ClusterCharges",
+    "Race": "Horner"
+  },
+  {
+    "ID": 146,
+    "Name": "HornerSovereignBattlecruiserOverchargedReactor",
+    "Race": "Horner"
+  },
+  {
+    "ID": 147,
+    "Name": "HornerStrikeFighterNapalmPayload",
+    "Race": "Horner"
+  },
+  {
+    "ID": 148,
+    "Name": "HornerTacticalJump",
+    "Race": "Horner"
+  },
+  {
+    "ID": 149,
+    "Name": "HornerTheiaRavenMultiThreadedSensors",
+    "Race": "Horner"
+  },
+  {
+    "ID": 150,
+    "Name": "HornerWeaponsLevel1",
+    "Race": "Horner"
+  },
+  {
+    "ID": 151,
+    "Name": "HornerWeaponsLevel2",
+    "Race": "Horner"
+  },
+  {
+    "ID": 152,
+    "Name": "HornerWeaponsLevel3",
+    "Race": "Horner"
+  },
+  {
+    "ID": 153,
+    "Name": "HornerWidowMineBlackMarketLaunchers",
+    "Race": "Horner"
+  },
+  {
+    "ID": 154,
+    "Name": "HornerWidowMineExecutionerMissiles",
+    "Race": "Horner"
+  },
+  {
+    "ID": 155,
+    "Name": "VanadiumPlatingController",
+    "Race": "Horner"
+  },
+  {
+    "ID": 156,
+    "Name": "AdvancedRepairSystems",
+    "Race": "Karax"
+  },
+  {
+    "ID": 157,
+    "Name": "AiurCarrierRepairDrones",
+    "Race": "Karax"
+  },
+  {
+    "ID": 158,
+    "Name": "Charge",
+    "Race": "Karax"
+  },
+  {
+    "ID": 159,
+    "Name": "EnergizerRapidRecharging",
+    "Race": "Karax"
+  },
+  {
+    "ID": 160,
+    "Name": "EnergizerReclamationStarlight",
+    "Race": "Karax"
+  },
+  {
+    "ID": 161,
+    "Name": "EnhancedTargeting",
+    "Race": "Karax"
+  },
+  {
+    "ID": 162,
+    "Name": "ExtendedThermalLance",
+    "Race": "Karax"
+  },
+  {
+    "ID": 163,
+    "Name": "FortificationBarrier",
+    "Race": "Karax"
+  },
+  {
+    "ID": 164,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Karax"
+  },
+  {
+    "ID": 165,
+    "Name": "ImmortalShadowCannon",
+    "Race": "Karax"
+  },
+  {
+    "ID": 166,
+    "Name": "KaraxReconstructionBeamTargetBonus",
+    "Race": "Karax"
+  },
+  {
+    "ID": 167,
+    "Name": "MiragePhasingArmor",
+    "Race": "Karax"
+  },
+  {
+    "ID": 168,
+    "Name": "ObserverGraviticBooster",
+    "Race": "Karax"
+  },
+  {
+    "ID": 169,
+    "Name": "OptimizedOrdnance",
+    "Race": "Karax"
+  },
+  {
+    "ID": 170,
+    "Name": "PhoenixRangeUpgrade",
+    "Race": "Karax"
+  },
+  {
+    "ID": 171,
+    "Name": "PurifierColossusFireBeam",
+    "Race": "Karax"
+  },
+  {
+    "ID": 172,
+    "Name": "SentinelReconstruction",
+    "Race": "Karax"
+  },
+  {
+    "ID": 173,
+    "Name": "VanadiumPlatingController",
+    "Race": "Karax"
+  },
+  {
+    "ID": 174,
+    "Name": "BroodLordPorousCartilage",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 175,
+    "Name": "BroodMutaliskSeveringGlave",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 176,
+    "Name": "BroodMutaliskViciousGlave",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 177,
+    "Name": "ChitinousPlating",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 178,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 179,
+    "Name": "HydraliskAncillaryCarapace",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 180,
+    "Name": "HydraliskFrenzyKerrigan",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 181,
+    "Name": "KerriganAbilityEfficiency",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 182,
+    "Name": "KerriganChainReaction",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 183,
+    "Name": "KerriganFury",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 184,
+    "Name": "KerriganHeroicFortitude",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 185,
+    "Name": "KerriganMutatingCarapaceBonus",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 186,
+    "Name": "LurkerSeismicSpines",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 187,
+    "Name": "MuscularAugmentsKerrigan",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 188,
+    "Name": "MutaliskRapidRegeneration",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 189,
+    "Name": "UltraliskBurrowCharge",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 190,
+    "Name": "UltraliskTissueAssimilation",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 191,
+    "Name": "VanadiumPlatingController",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 192,
+    "Name": "zerglingattackspeed",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 193,
+    "Name": "ZerglingHardenedCarapace",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 194,
+    "Name": "zerglingmovementspeed",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 195,
+    "Name": "ZerglingShreddingClaws",
+    "Race": "Kerrigan"
+  },
+  {
+    "ID": 196,
+    "Name": "ArtilleryMengskRange",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 197,
+    "Name": "BattlecruiserMengskRangeAura",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 198,
+    "Name": "BunkerDepotMengskRange",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 199,
+    "Name": "MarauderMengskSlow",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 200,
+    "Name": "MechTransformationSpeedMengsk",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 201,
+    "Name": "MedivacMengskDoubleHealBeam",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 202,
+    "Name": "MedivacMengskPermanentCloak",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 203,
+    "Name": "MedivacMengskSiegeTankAirlift",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 204,
+    "Name": "MengskStructureArmor",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 205,
+    "Name": "MengskTrooperArmorsLevel1",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 206,
+    "Name": "MengskTrooperArmorsLevel2",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 207,
+    "Name": "MengskTrooperArmorsLevel3",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 208,
+    "Name": "MengskTrooperWeaponsLevel1",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 209,
+    "Name": "MengskTrooperWeaponsLevel2",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 210,
+    "Name": "MengskTrooperWeaponsLevel3",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 211,
+    "Name": "ThorMengskArmorAura",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 212,
+    "Name": "VikingMengskSpeed",
+    "Race": "Mengsk"
+  },
+  {
+    "ID": 213,
+    "Name": "CovertBansheeAdvancedCloakingField",
+    "Race": "Nova"
+  },
+  {
+    "ID": 214,
+    "Name": "DehakaKeenSenses",
+    "Race": "Nova"
+  },
+  {
+    "ID": 215,
+    "Name": "EliteMarineLaserTargetingSystem",
+    "Race": "Nova"
+  },
+  {
+    "ID": 216,
+    "Name": "EliteMarineSuperStimpack",
+    "Race": "Nova"
+  },
+  {
+    "ID": 217,
+    "Name": "HeavySiegeTankGraduatingRange",
+    "Race": "Nova"
+  },
+  {
+    "ID": 218,
+    "Name": "HellbatRangerJumpJetAssault",
+    "Race": "Nova"
+  },
+  {
+    "ID": 219,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Nova"
+  },
+  {
+    "ID": 220,
+    "Name": "HighCapacityBarrels",
+    "Race": "Nova"
+  },
+  {
+    "ID": 221,
+    "Name": "MarauderCommandoMagrailMunitions",
+    "Race": "Nova"
+  },
+  {
+    "ID": 222,
+    "Name": "MarauderCommandoSuppressionShells",
+    "Race": "Nova"
+  },
+  {
+    "ID": 223,
+    "Name": "NovaCaduceusReactor",
+    "Race": "Nova"
+  },
+  {
+    "ID": 224,
+    "Name": "NovaGhostVisor",
+    "Race": "Nova"
+  },
+  {
+    "ID": 225,
+    "Name": "NovaPhaseReactorSuit",
+    "Race": "Nova"
+  },
+  {
+    "ID": 226,
+    "Name": "NovaRifle",
+    "Race": "Nova"
+  },
+  {
+    "ID": 227,
+    "Name": "NovaShotgun",
+    "Race": "Nova"
+  },
+  {
+    "ID": 228,
+    "Name": "NovaTacticalStealthSuit",
+    "Race": "Nova"
+  },
+  {
+    "ID": 229,
+    "Name": "RaidLiberatorSmartServos",
+    "Race": "Nova"
+  },
+  {
+    "ID": 230,
+    "Name": "SpecOpsGhostEMPRound",
+    "Race": "Nova"
+  },
+  {
+    "ID": 231,
+    "Name": "SpecOpsGhostTripleTap",
+    "Race": "Nova"
+  },
+  {
+    "ID": 232,
+    "Name": "StrikeGoliathAresClassTargetingSystem",
+    "Race": "Nova"
+  },
+  {
+    "ID": 233,
+    "Name": "StrikeGoliathLockdownMissiles",
+    "Race": "Nova"
+  },
+  {
+    "ID": 234,
+    "Name": "VanadiumPlatingController",
+    "Race": "Nova"
+  },
+  {
+    "ID": 235,
+    "Name": "AdeptPiercingAttack",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 236,
+    "Name": "BlinkTech",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 237,
+    "Name": "Charge",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 238,
+    "Name": "CorsairDisruptionWebStarlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 239,
+    "Name": "CorsairStealthDrive",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 240,
+    "Name": "DarkTemplarBlinkUpgrade",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 241,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 242,
+    "Name": "DehakaHeroStage2",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 243,
+    "Name": "DehakaKeenSenses",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 244,
+    "Name": "DehakaScorchingBreath",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 245,
+    "Name": "DiggingClaws",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 246,
+    "Name": "DrillClaws",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 247,
+    "Name": "ExtendedThermalLance",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 248,
+    "Name": "InfestorEnergyUpgrade",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 249,
+    "Name": "LiberatorAGRangeUpgrade",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 250,
+    "Name": "NeuralParasite",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 251,
+    "Name": "ObserverGraviticBooster",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 252,
+    "Name": "PhoenixRangeUpgrade",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 253,
+    "Name": "ProtossAirArmorLevel1Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 254,
+    "Name": "ProtossAirArmorLevel1Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 255,
+    "Name": "ProtossAirArmorLevel2Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 256,
+    "Name": "ProtossAirArmorLevel2Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 257,
+    "Name": "ProtossAirArmorLevel3Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 258,
+    "Name": "ProtossAirArmorLevel3Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 259,
+    "Name": "ProtossAirArmorsLevel1",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 260,
+    "Name": "ProtossAirArmorsLevel2",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 611,
+    "Name": "ProtossAirArmorsLevel3",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 261,
+    "Name": "ProtossAirWeaponsLevel1",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 262,
+    "Name": "ProtossAirWeaponsLevel1Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 263,
+    "Name": "ProtossAirWeaponsLevel1Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 264,
+    "Name": "ProtossAirWeaponsLevel2",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 265,
+    "Name": "ProtossAirWeaponsLevel2Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 266,
+    "Name": "ProtossAirWeaponsLevel2Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 267,
+    "Name": "ProtossAirWeaponsLevel3",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 268,
+    "Name": "ProtossAirWeaponsLevel3Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 269,
+    "Name": "ProtossAirWeaponsLevel3Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 270,
+    "Name": "ProtossGroundArmorLevel1Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 271,
+    "Name": "ProtossGroundArmorLevel1Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 272,
+    "Name": "ProtossGroundArmorLevel2Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 273,
+    "Name": "ProtossGroundArmorLevel2Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 274,
+    "Name": "ProtossGroundArmorLevel3Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 275,
+    "Name": "ProtossGroundArmorLevel3Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 276,
+    "Name": "ProtossGroundArmorsLevel1",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 277,
+    "Name": "ProtossGroundArmorsLevel2",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 278,
+    "Name": "ProtossGroundArmorsLevel3",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 279,
+    "Name": "ProtossGroundWeaponsLevel1",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 280,
+    "Name": "ProtossGroundWeaponsLevel1Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 281,
+    "Name": "ProtossGroundWeaponsLevel1Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 282,
+    "Name": "ProtossGroundWeaponsLevel2",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 283,
+    "Name": "ProtossGroundWeaponsLevel2Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 284,
+    "Name": "ProtossGroundWeaponsLevel2Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 285,
+    "Name": "ProtossGroundWeaponsLevel3",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 286,
+    "Name": "ProtossGroundWeaponsLevel3Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 287,
+    "Name": "ProtossGroundWeaponsLevel3Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 288,
+    "Name": "ProtossShieldsLevel1",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 289,
+    "Name": "ProtossShieldsLevel1Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 290,
+    "Name": "ProtossShieldsLevel1Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 291,
+    "Name": "ProtossShieldsLevel2",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 292,
+    "Name": "ProtossShieldsLevel2Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 293,
+    "Name": "ProtossShieldsLevel2Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 294,
+    "Name": "ProtossShieldsLevel3",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 295,
+    "Name": "ProtossShieldsLevel3Multi",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 296,
+    "Name": "ProtossShieldsLevel3Starlight",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 297,
+    "Name": "PsiStormTech",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 298,
+    "Name": "StalkerPhaseReactor",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 299,
+    "Name": "VoidRaySpeedUpgrade",
+    "Race": "Protoss"
+  },
+  {
+    "ID": 300,
+    "Name": "BansheeCloak",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 301,
+    "Name": "BansheeShockwaveMissileBattery",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 302,
+    "Name": "BattlecruiserEnableSpecializations",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 303,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 304,
+    "Name": "FirebatIncineratorGauntlets",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 305,
+    "Name": "FirebatJuggernautPlatingStarlight",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 306,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 307,
+    "Name": "MedicStabilizerMedpacks",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 308,
+    "Name": "NeosteelFrame",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 309,
+    "Name": "PunisherGrenades",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 310,
+    "Name": "RaynorAfterburners",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 311,
+    "Name": "ShieldWall",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 312,
+    "Name": "ShrikeTurret",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 313,
+    "Name": "SiegeTankAdvancedSiegeTech",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 314,
+    "Name": "Stimpack",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 315,
+    "Name": "VanadiumPlatingController",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 316,
+    "Name": "VanadiumPlatingInfantry",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 317,
+    "Name": "VanadiumPlatingVehicles",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 318,
+    "Name": "VehicleAdvancedOptics",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 319,
+    "Name": "VikingPhobosWeaponsSystem",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 320,
+    "Name": "VikingRipwaveMissiles",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 321,
+    "Name": "VultureCerberusMine",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 322,
+    "Name": "VultureReplenishableMagazine",
+    "Race": "Raynor"
+  },
+  {
+    "ID": 323,
+    "Name": "BanelingStetmannExtraDamage",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 324,
+    "Name": "BanelingStetmannManaShieldBonus",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 325,
+    "Name": "BanelingStetmannMovementSpeed",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 326,
+    "Name": "BroodLordStetmannBombers",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 327,
+    "Name": "BroodLordStetmannYamato",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 328,
+    "Name": "CommanderStetmann",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 329,
+    "Name": "CorruptorStetmannBiggerAoE",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 330,
+    "Name": "CorruptorStetmannCausticSpray",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 331,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 332,
+    "Name": "DehakaHeroStage2",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 333,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 334,
+    "Name": "HydraliskStetmannDamage",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 335,
+    "Name": "HydraliskStetmannMovementSpeed",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 336,
+    "Name": "HydraliskStetmannRange",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 337,
+    "Name": "InfestorStetmannBonusRavager",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 338,
+    "Name": "InfestorStetmannRecharge",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 339,
+    "Name": "LurkerStetmannChannelingSpines",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 340,
+    "Name": "LurkerStetmannTunnelingBurstRange",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 341,
+    "Name": "StetmannAirArmorsLevel1",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 342,
+    "Name": "StetmannAirArmorsLevel2",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 343,
+    "Name": "StetmannAirArmorsLevel3",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 344,
+    "Name": "StetmannAirWeaponsLevel1",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 345,
+    "Name": "StetmannAirWeaponsLevel2",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 346,
+    "Name": "StetmannAirWeaponsLevel3",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 347,
+    "Name": "StetmannGroundArmorsLevel1",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 348,
+    "Name": "StetmannGroundArmorsLevel2",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 349,
+    "Name": "StetmannGroundArmorsLevel3",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 350,
+    "Name": "StetmannMeleeWeaponsLevel1",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 351,
+    "Name": "StetmannMeleeWeaponsLevel2",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 352,
+    "Name": "StetmannMeleeWeaponsLevel3",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 353,
+    "Name": "StetmannMissileWeaponsLevel1",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 354,
+    "Name": "StetmannMissileWeaponsLevel2",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 355,
+    "Name": "StetmannMissileWeaponsLevel3",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 356,
+    "Name": "UltraliskBurrowChargeMechanicalStun",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 357,
+    "Name": "UltraliskStetmannArmor",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 358,
+    "Name": "UltraliskStetmannMechanicalLifeLeech",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 359,
+    "Name": "ZerglingStetmannAttackSpeed",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 360,
+    "Name": "ZerglingStetmannHardenedShield",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 361,
+    "Name": "ZerglingStetmannMovementSpeed",
+    "Race": "Stetmann"
+  },
+  {
+    "ID": 362,
+    "Name": "BroodQueenEnhancedMitochondria",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 363,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 364,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 365,
+    "Name": "InfestedBansheeBracedExoskeleton",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 366,
+    "Name": "InfestedBansheeRapidHibernation",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 367,
+    "Name": "InfestedBunkerCalcifiedArmor",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 368,
+    "Name": "InfestedCivilianAnaerobicEnhancement",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 369,
+    "Name": "InfestedCivilianBroodlingGestation",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 370,
+    "Name": "InfestedDiamondbackSaturatedCultures",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 371,
+    "Name": "InfestedLiberatorViralContamination",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 372,
+    "Name": "InfestedMarinePlaguedMunitions",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 373,
+    "Name": "InfestedMarineRetinalAugmentation",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 374,
+    "Name": "InfestedSiegeTankAcidicEnzymes",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 375,
+    "Name": "InfestStructureAggressiveIncubation",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 376,
+    "Name": "overlordspeed",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 377,
+    "Name": "VanadiumPlatingController",
+    "Race": "Stukov"
+  },
+  {
+    "ID": 378,
+    "Name": "AresClassWeaponsSystem",
+    "Race": "Swann"
+  },
+  {
+    "ID": 379,
+    "Name": "CloakDistortionField",
+    "Race": "Swann"
+  },
+  {
+    "ID": 380,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Swann"
+  },
+  {
+    "ID": 381,
+    "Name": "HellbatInfernalPlating",
+    "Race": "Swann"
+  },
+  {
+    "ID": 382,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Swann"
+  },
+  {
+    "ID": 383,
+    "Name": "HighCapacityBarrels",
+    "Race": "Swann"
+  },
+  {
+    "ID": 384,
+    "Name": "MaelstromRounds",
+    "Race": "Swann"
+  },
+  {
+    "ID": 385,
+    "Name": "MultilockTargetingSystems",
+    "Race": "Swann"
+  },
+  {
+    "ID": 386,
+    "Name": "ScienceVesselDefensiveMatrix",
+    "Race": "Swann"
+  },
+  {
+    "ID": 387,
+    "Name": "ScienceVesselImprovedNanoRepair",
+    "Race": "Swann"
+  },
+  {
+    "ID": 388,
+    "Name": "SwannCycloneMagFieldAccelerator",
+    "Race": "Swann"
+  },
+  {
+    "ID": 389,
+    "Name": "SwannCycloneTargetingOptics",
+    "Race": "Swann"
+  },
+  {
+    "ID": 390,
+    "Name": "SwannRegenerativeBioSteel",
+    "Race": "Swann"
+  },
+  {
+    "ID": 391,
+    "Name": "Thor330mmBarrageCannon",
+    "Race": "Swann"
+  },
+  {
+    "ID": 392,
+    "Name": "VanadiumPlatingController",
+    "Race": "Swann"
+  },
+  {
+    "ID": 393,
+    "Name": "VehicleAdvancedOptics",
+    "Race": "Swann"
+  },
+  {
+    "ID": 394,
+    "Name": "WraithPulseAmplifier",
+    "Race": "Swann"
+  },
+  {
+    "ID": 395,
+    "Name": "BansheeCloak",
+    "Race": "Terran"
+  },
+  {
+    "ID": 396,
+    "Name": "BansheeSpeed",
+    "Race": "Terran"
+  },
+  {
+    "ID": 397,
+    "Name": "BattlecruiserEnableSpecializations",
+    "Race": "Terran"
+  },
+  {
+    "ID": 398,
+    "Name": "BlinkTech",
+    "Race": "Terran"
+  },
+  {
+    "ID": 399,
+    "Name": "CycloneLockOnDamageUpgrade",
+    "Race": "Terran"
+  },
+  {
+    "ID": 400,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Terran"
+  },
+  {
+    "ID": 401,
+    "Name": "DehakaHeroStage2",
+    "Race": "Terran"
+  },
+  {
+    "ID": 402,
+    "Name": "DehakaKeenSenses",
+    "Race": "Terran"
+  },
+  {
+    "ID": 403,
+    "Name": "DehakaScorchingBreath",
+    "Race": "Terran"
+  },
+  {
+    "ID": 404,
+    "Name": "DiggingClaws",
+    "Race": "Terran"
+  },
+  {
+    "ID": 405,
+    "Name": "DrillClaws",
+    "Race": "Terran"
+  },
+  {
+    "ID": 406,
+    "Name": "EliteMarineLaserTargetingSystem",
+    "Race": "Terran"
+  },
+  {
+    "ID": 407,
+    "Name": "EliteMarineSuperStimpack",
+    "Race": "Terran"
+  },
+  {
+    "ID": 408,
+    "Name": "EnhancedShockwaves",
+    "Race": "Terran"
+  },
+  {
+    "ID": 409,
+    "Name": "ExtendedThermalLance",
+    "Race": "Terran"
+  },
+  {
+    "ID": 410,
+    "Name": "HeavySiegeTankGraduatingRange",
+    "Race": "Terran"
+  },
+  {
+    "ID": 411,
+    "Name": "HellbatRangerJumpJetAssault",
+    "Race": "Terran"
+  },
+  {
+    "ID": 412,
+    "Name": "HighCapacityBarrels",
+    "Race": "Terran"
+  },
+  {
+    "ID": 413,
+    "Name": "HiSecAutoTracking",
+    "Race": "Terran"
+  },
+  {
+    "ID": 414,
+    "Name": "InfestorEnergyUpgrade",
+    "Race": "Terran"
+  },
+  {
+    "ID": 415,
+    "Name": "LiberatorAGRangeUpgrade",
+    "Race": "Terran"
+  },
+  {
+    "ID": 416,
+    "Name": "MarauderCommandoMagrailMunitions",
+    "Race": "Terran"
+  },
+  {
+    "ID": 417,
+    "Name": "MarauderCommandoSuppressionShells",
+    "Race": "Terran"
+  },
+  {
+    "ID": 418,
+    "Name": "MedivacCaduceusReactor",
+    "Race": "Terran"
+  },
+  {
+    "ID": 419,
+    "Name": "MedivacIncreaseSpeedBoost",
+    "Race": "Terran"
+  },
+  {
+    "ID": 420,
+    "Name": "NovaCaduceusReactor",
+    "Race": "Terran"
+  },
+  {
+    "ID": 421,
+    "Name": "NovaGhostVisor",
+    "Race": "Terran"
+  },
+  {
+    "ID": 422,
+    "Name": "NovaPhaseReactorSuit",
+    "Race": "Terran"
+  },
+  {
+    "ID": 423,
+    "Name": "NovaRifle",
+    "Race": "Terran"
+  },
+  {
+    "ID": 424,
+    "Name": "NovaShotgun",
+    "Race": "Terran"
+  },
+  {
+    "ID": 425,
+    "Name": "NovaTacticalStealthSuit",
+    "Race": "Terran"
+  },
+  {
+    "ID": 426,
+    "Name": "PersonalCloaking",
+    "Race": "Terran"
+  },
+  {
+    "ID": 427,
+    "Name": "PsiStormTech",
+    "Race": "Terran"
+  },
+  {
+    "ID": 428,
+    "Name": "PunisherGrenades",
+    "Race": "Terran"
+  },
+  {
+    "ID": 429,
+    "Name": "RaidLiberatorSmartServos",
+    "Race": "Terran"
+  },
+  {
+    "ID": 430,
+    "Name": "RavenCorvidReactor",
+    "Race": "Terran"
+  },
+  {
+    "ID": 431,
+    "Name": "ShieldWall",
+    "Race": "Terran"
+  },
+  {
+    "ID": 432,
+    "Name": "Stimpack",
+    "Race": "Terran"
+  },
+  {
+    "ID": 433,
+    "Name": "StrikeGoliathAresClassTargetingSystem",
+    "Race": "Terran"
+  },
+  {
+    "ID": 434,
+    "Name": "StrikeGoliathLockdownMissiles",
+    "Race": "Terran"
+  },
+  {
+    "ID": 435,
+    "Name": "TerranBuildingArmor",
+    "Race": "Terran"
+  },
+  {
+    "ID": 436,
+    "Name": "TerranInfantryArmorLevel1Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 437,
+    "Name": "TerranInfantryArmorLevel1Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 438,
+    "Name": "TerranInfantryArmorLevel2Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 439,
+    "Name": "TerranInfantryArmorLevel2Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 440,
+    "Name": "TerranInfantryArmorLevel3Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 441,
+    "Name": "TerranInfantryArmorLevel3Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 442,
+    "Name": "TerranInfantryArmorsLevel1",
+    "Race": "Terran"
+  },
+  {
+    "ID": 443,
+    "Name": "TerranInfantryArmorsLevel2",
+    "Race": "Terran"
+  },
+  {
+    "ID": 444,
+    "Name": "TerranInfantryArmorsLevel3",
+    "Race": "Terran"
+  },
+  {
+    "ID": 445,
+    "Name": "TerranInfantryWeaponsLevel1",
+    "Race": "Terran"
+  },
+  {
+    "ID": 446,
+    "Name": "TerranInfantryWeaponsLevel1Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 447,
+    "Name": "TerranInfantryWeaponsLevel1Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 448,
+    "Name": "TerranInfantryWeaponsLevel2",
+    "Race": "Terran"
+  },
+  {
+    "ID": 449,
+    "Name": "TerranInfantryWeaponsLevel2Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 450,
+    "Name": "TerranInfantryWeaponsLevel2Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 451,
+    "Name": "TerranInfantryWeaponsLevel3",
+    "Race": "Terran"
+  },
+  {
+    "ID": 452,
+    "Name": "TerranInfantryWeaponsLevel3Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 453,
+    "Name": "TerranInfantryWeaponsLevel3Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 454,
+    "Name": "TerranShipWeaponsLevel1",
+    "Race": "Terran"
+  },
+  {
+    "ID": 455,
+    "Name": "TerranShipWeaponsLevel1Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 456,
+    "Name": "TerranShipWeaponsLevel1Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 457,
+    "Name": "TerranShipWeaponsLevel2",
+    "Race": "Terran"
+  },
+  {
+    "ID": 458,
+    "Name": "TerranShipWeaponsLevel2Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 459,
+    "Name": "TerranShipWeaponsLevel2Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 460,
+    "Name": "TerranShipWeaponsLevel3",
+    "Race": "Terran"
+  },
+  {
+    "ID": 461,
+    "Name": "TerranShipWeaponsLevel3Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 462,
+    "Name": "TerranShipWeaponsLevel3Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 463,
+    "Name": "TerranVehicleAndShipArmorsLevel1",
+    "Race": "Terran"
+  },
+  {
+    "ID": 464,
+    "Name": "TerranVehicleAndShipArmorsLevel2",
+    "Race": "Terran"
+  },
+  {
+    "ID": 465,
+    "Name": "TerranVehicleAndShipArmorsLevel3",
+    "Race": "Terran"
+  },
+  {
+    "ID": 466,
+    "Name": "TerranVehicleAndShipPlatingLevel1Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 467,
+    "Name": "TerranVehicleandShipPlatingLevel1Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 468,
+    "Name": "TerranVehicleAndShipPlatingLevel2Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 469,
+    "Name": "TerranVehicleandShipPlatingLevel2Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 470,
+    "Name": "TerranVehicleAndShipPlatingLevel3Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 471,
+    "Name": "TerranVehicleandShipPlatingLevel3Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 472,
+    "Name": "TerranVehicleWeaponsLevel1",
+    "Race": "Terran"
+  },
+  {
+    "ID": 473,
+    "Name": "TerranVehicleWeaponsLevel1Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 474,
+    "Name": "TerranVehicleWeaponsLevel1Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 475,
+    "Name": "TerranVehicleWeaponsLevel2",
+    "Race": "Terran"
+  },
+  {
+    "ID": 476,
+    "Name": "TerranVehicleWeaponsLevel2Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 477,
+    "Name": "TerranVehicleWeaponsLevel2Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 478,
+    "Name": "TerranVehicleWeaponsLevel3",
+    "Race": "Terran"
+  },
+  {
+    "ID": 479,
+    "Name": "TerranVehicleWeaponsLevel3Multi",
+    "Race": "Terran"
+  },
+  {
+    "ID": 480,
+    "Name": "TerranVehicleWeaponsLevel3Starlight",
+    "Race": "Terran"
+  },
+  {
+    "ID": 481,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 482,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 483,
+    "Name": "TychusArmorLevel1",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 484,
+    "Name": "TychusArmorLevel2",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 485,
+    "Name": "TychusArmorLevel3",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 486,
+    "Name": "TychusArmorLevel4",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 487,
+    "Name": "TychusArmorLevel5",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 488,
+    "Name": "TychusAttacksLevel1",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 489,
+    "Name": "TychusAttacksLevel2",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 490,
+    "Name": "TychusAttacksLevel3",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 491,
+    "Name": "TychusAttacksLevel4",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 492,
+    "Name": "TychusAttacksLevel5",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 493,
+    "Name": "TychusEnduranceSupplements",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 494,
+    "Name": "TychusFlashforceGDMVisor",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 495,
+    "Name": "TychusITCETriggers",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 496,
+    "Name": "VanadiumPlatingController",
+    "Race": "Tychus"
+  },
+  {
+    "ID": 497,
+    "Name": "BlinkTech",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 498,
+    "Name": "CenturionDarkcoil",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 499,
+    "Name": "CenturionShadowCharge",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 500,
+    "Name": "CorsairDisruptionWebStarlight",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 501,
+    "Name": "CorsairStealthDrive",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 502,
+    "Name": "DarkArchonArgusCrystal",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 503,
+    "Name": "DarkArchonMindControlStarlight",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 504,
+    "Name": "DarkTemplarBlinkUpgrade",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 505,
+    "Name": "DarkTemplarShadowFury",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 506,
+    "Name": "DarkTemplarVoidStasis",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 507,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 508,
+    "Name": "OracleStasisCalibration",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 509,
+    "Name": "StalkerPhaseReactor",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 510,
+    "Name": "VanadiumPlatingController",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 511,
+    "Name": "VoidRayPrismaticRangeStarlight",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 512,
+    "Name": "VorazunStrikefromtheShadows",
+    "Race": "Vorazun"
+  },
+  {
+    "ID": 513,
+    "Name": "AberrationProtectiveCover",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 514,
+    "Name": "BileLauncherArtilleryDucts",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 515,
+    "Name": "CentrificalHooks",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 516,
+    "Name": "HideWorkerCommandCard",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 517,
+    "Name": "ScourgeVirulentSpores",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 518,
+    "Name": "SplitterlingCorrosiveAcid",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 519,
+    "Name": "SplitterlingRupture",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 520,
+    "Name": "VanadiumPlatingController",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 521,
+    "Name": "ZagaraHeroicFortitude",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 522,
+    "Name": "ZagaraMedusaBlades",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 523,
+    "Name": "zerglingattackspeed",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 524,
+    "Name": "ZerglingHardenedCarapace",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 525,
+    "Name": "zerglingmovementspeed",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 526,
+    "Name": "ZerglingShreddingClaws",
+    "Race": "Zagara"
+  },
+  {
+    "ID": 527,
+    "Name": "AnabolicSynthesis",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 528,
+    "Name": "CentrificalHooks",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 529,
+    "Name": "ChitinousPlating",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 530,
+    "Name": "DehakaChitinousPlating",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 531,
+    "Name": "DehakaHeroStage2",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 532,
+    "Name": "DehakaKeenSenses",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 533,
+    "Name": "DevourerCorrosiveSpray",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 534,
+    "Name": "DiggingClaws",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 535,
+    "Name": "DrillClaws",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 536,
+    "Name": "EvolveGroovedSpines",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 537,
+    "Name": "EvolveMuscularAugments",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 538,
+    "Name": "GlialReconstitution",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 539,
+    "Name": "GuardianProlongedDispersion",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 540,
+    "Name": "InfestorEnergyUpgrade",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 541,
+    "Name": "LiberatorAGRangeUpgrade",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 542,
+    "Name": "LurkerRange",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 543,
+    "Name": "MicrobialShroud",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 544,
+    "Name": "NeuralParasite",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 545,
+    "Name": "overlordspeed",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 546,
+    "Name": "PsiStormTech",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 547,
+    "Name": "SwarmQueenBioMechanicalTransfusion",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 548,
+    "Name": "TunnelingClaws",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 549,
+    "Name": "VileRoachAdaptivePlating",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 550,
+    "Name": "VileRoachHydriodicBile",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 551,
+    "Name": "ViperVirulentMicrobes",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 552,
+    "Name": "ZergFlyerArmorsLevel1",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 553,
+    "Name": "ZergFlyerArmorsLevel2",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 554,
+    "Name": "ZergFlyerArmorsLevel3",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 555,
+    "Name": "ZergFlyerAttacksLevel1Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 556,
+    "Name": "ZergFlyerAttacksLevel1Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 557,
+    "Name": "ZergFlyerAttacksLevel2Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 558,
+    "Name": "ZergFlyerAttacksLevel2Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 559,
+    "Name": "ZergFlyerAttacksLevel3Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 560,
+    "Name": "ZergFlyerAttacksLevel3Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 561,
+    "Name": "ZergFlyerCarapaceLevel1Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 562,
+    "Name": "ZergFlyerCarapaceLevel1Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 563,
+    "Name": "ZergFlyerCarapaceLevel2Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 564,
+    "Name": "ZergFlyerCarapaceLevel2Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 565,
+    "Name": "ZergFlyerCarapaceLevel3Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 566,
+    "Name": "ZergFlyerCarapaceLevel3Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 567,
+    "Name": "ZergFlyerWeaponsLevel1",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 568,
+    "Name": "ZergFlyerWeaponsLevel2",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 569,
+    "Name": "ZergFlyerWeaponsLevel3",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 570,
+    "Name": "ZergGroundArmorsLevel1",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 571,
+    "Name": "ZergGroundArmorsLevel2",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 572,
+    "Name": "ZergGroundArmorsLevel3",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 573,
+    "Name": "ZergGroundCarapaceLevel1Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 574,
+    "Name": "ZergGroundCarapaceLevel1Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 575,
+    "Name": "ZergGroundCarapaceLevel2Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 576,
+    "Name": "ZergGroundCarapaceLevel2Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 577,
+    "Name": "ZergGroundCarapaceLevel3Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 578,
+    "Name": "ZergGroundCarapaceLevel3Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 579,
+    "Name": "zerglingattackspeed",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 580,
+    "Name": "zerglingmovementspeed",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 581,
+    "Name": "ZergMeleeAttacksLevel1Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 582,
+    "Name": "ZergMeleeAttacksLevel1Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 583,
+    "Name": "ZergMeleeAttacksLevel2Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 584,
+    "Name": "ZergMeleeAttacksLevel2Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 585,
+    "Name": "ZergMeleeAttacksLevel3Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 586,
+    "Name": "ZergMeleeAttacksLevel3Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 587,
+    "Name": "ZergMeleeWeaponsLevel1",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 588,
+    "Name": "ZergMeleeWeaponsLevel2",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 589,
+    "Name": "ZergMeleeWeaponsLevel3",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 590,
+    "Name": "ZergMissileAttacksLevel1Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 591,
+    "Name": "ZergMissileAttacksLevel1Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 592,
+    "Name": "ZergMissileAttacksLevel2Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 593,
+    "Name": "ZergMissileAttacksLevel2Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 594,
+    "Name": "ZergMissileAttacksLevel3Multi",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 595,
+    "Name": "ZergMissileAttacksLevel3Starlight",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 596,
+    "Name": "ZergMissileWeaponsLevel1",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 597,
+    "Name": "ZergMissileWeaponsLevel2",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 598,
+    "Name": "ZergMissileWeaponsLevel3",
+    "Race": "Zerg"
+  },
+  {
+    "ID": 599,
+    "Name": "Tier4WeaponUpgradeLevel1",
+    "Race": ""
+  },
+  {
+    "ID": 600,
+    "Name": "Tier4WeaponUpgradeLevel2",
+    "Race": ""
+  },
+  {
+    "ID": 601,
+    "Name": "Tier4WeaponUpgradeLevel3",
+    "Race": ""
+  },
+  {
+    "ID": 602,
+    "Name": "Tier4WeaponUpgradeLevel4",
+    "Race": ""
+  },
+  {
+    "ID": 603,
+    "Name": "Tier4WeaponUpgradeLevel5",
+    "Race": ""
+  },
+  {
+    "ID": 604,
+    "Name": "Tier4WeaponUpgradeLevel6",
+    "Race": ""
+  },
+  {
+    "ID": 605,
+    "Name": "Tier4WeaponUpgradeLevel7",
+    "Race": ""
+  },
+  {
+    "ID": 606,
+    "Name": "Tier4WeaponUpgradeLevel8",
+    "Race": ""
+  },
+  {
+    "ID": 607,
+    "Name": "Tier4WeaponUpgradeLevel9",
+    "Race": ""
+  },
+  {
+    "ID": 608,
+    "Name": "Tier4WeaponUpgradeLevel10",
+    "Race": ""
+  },
+  {
+    "ID": 609,
+    "Name": "Tier4WeaponUpgradeLevel11",
+    "Race": ""
+  },
+  {
+    "ID": 610,
+    "Name": "Tier4WeaponUpgradeLevel12",
+    "Race": ""
+  }
+]

@@ -1,0 +1,74 @@
+﻿@using ElectronNET.API
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand ms-4" href="">sc2dsstats.app</a>
+    <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="stats">
+                <span class="oi oi-bar-chart" aria-hidden="true"></span> Charts
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="builds">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="database">
+                <span class="oi oi-list" aria-hidden="true"></span> Database
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="config">
+                <span class="oi oi-wrench" aria-hidden="true"></span> Config
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" style="cursor: pointer;" data-target="#Winrate" @onclick="@(async => { Electron.Shell.OpenExternalAsync("https://sc2dsstats.pax77.org/stats");})">
+                <span class="oi oi-external-link" aria-hidden="true"></span> World Charts
+            </NavLink>
+            <div style="margin-top: -19px !important; margin-left: 60px !important;"><font size="1">external link</font></div>
+        </div>
+        <div class="nav-item px-3">
+            <br />
+            <br />
+            <div class="d-flex">
+                <a class="ms-2" href="https://github.com/ipax77/sc2dsstats" title="GitHub fan project: Create charts from your own DS replays">
+                    <img alt="sc2dsstats" height="32" longdesc="https://github.com/ipax77/sc2dsstats" src="_content/sc2dsstats.rlib/images/GitHub-Mark-Light-64px47.png" width="32" />
+                </a>
+                <a class="ms-2" href="https://www.twitch.tv/ipax77">
+                    <img alt="Twitch" class="auto-style6" height="32" longdesc="https://www.twitch.tv/ipax77" src="_content/sc2dsstats.rlib/images/GlitchBadge_White_64px.png" width="32" />
+                </a>
+                <a class="ms-2" href="https://www.youtube.com/channel/UCMwOnIzcuoSHGFYqVA6wJbQ">
+                    <img alt="YouTube" class="auto-style6" height="30" longdesc="https://www.youtube.com/channel/UCMwOnIzcuoSHGFYqVA6wJbQ" src="_content/sc2dsstats.rlib/images/yt_icon_mono_dark.png" width="51" />
+                </a>
+            </div>
+        </div>
+    </nav>
+</div>
+<div class="ms-3">
+    <br />
+    <br />
+    <span class="badge badge-dark">@($"v{Program.Version}")</span>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

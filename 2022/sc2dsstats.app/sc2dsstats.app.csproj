@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <Compile Remove="wwwroot\json\**" />
+    <Content Remove="wwwroot\json\**" />
+    <EmbeddedResource Remove="wwwroot\json\**" />
+    <None Remove="wwwroot\json\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Blazored.Toast" Version="3.2.2" />
+    <PackageReference Include="ElectronNET.API" Version="13.5.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Update="electron.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\git\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj" />
+    <ProjectReference Include="..\sc2dsstats.decode\sc2dsstats.decode.csproj" />
+    <ProjectReference Include="..\sc2dsstats.rlib\sc2dsstats.rlib.csproj" />
+    <ProjectReference Include="..\Shared\sc2dsstats.2022.Shared.csproj" />
+    <ProjectReference Include="..\sc2dsstats.db\sc2dsstats.db.csproj" />
+  </ItemGroup>
+</Project>

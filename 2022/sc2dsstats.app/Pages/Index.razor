@@ -1,0 +1,150 @@
+﻿@page "/"
+@using System.Threading
+@using sc2dsstats._2022.Shared
+@using sc2dsstats.db.Services
+@using sc2dsstats.app.Services
+@using sc2dsstats.rlib
+@inject Services.ReplayService replayService
+@inject IToastService toastService
+
+<PageTitle>sc2dsstats</PageTitle>
+
+<div class="btn-group border border-3 rounded-2 border-light p-2">
+	<button type="button" class="btn btn-outline-success" @onclick="Scan" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Scan Directories for new DS-Replays">Scan</button>
+
+	@if (replayService.decodeService.isRunning)
+	{
+		<button type="button" class="btn btn-outline-warning" @onclick="Cancel" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Stop decoding replays">Cancel</button>
+	}
+	else
+	{
+		<button type="button" class="btn btn-outline-danger" @onclick="Decode" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Decode new Replays and update Stats">Decode</button>
+	}
+	<button type="button" class="btn btn-outline-info" @onclick="UploadReplays" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Upload anonymized Replay-Data to sc2dsstats for global Stats">Upload</button>
+	@if (replayService.AppConfig.Config.OnTheFlyScan)
+	{
+		<button type="button" class="btn btn-outline-light" @onclick="e => StartStopWatching(!replayService.isWatching)"  data-bs-toggle="tooltip" data-bs-placement="bottom" title="Start/Stop Watching for new DS-Replays and Auto-Decode">
+			@(replayService.isWatching ? "Stop Watching" : "Start Watching")
+		</button>
+	}
+</div>
+
+@if (replayService.isFirstRun && File.Exists(Path.Combine(Program.workdir, "data_v3_0.db")))
+{
+	<div class="my-5">
+		<div>
+			<button type="button" class="btn btn-danger" @onclick="ImportOldDb">Import Replays from old Database</button>
+		</div>
+		<small>This might take some time. Alternative you can redecode your replays which should take even longer.</small>
+	</div>
+}
+
+<div class="row mt-5 mb-5">
+	<div class="col-auto">
+		<h4 class="fw-bold text-primary">Latest Replay</h4>
+		<sc2dsstats.rlib.ReplayComponent @ref="replayComponent" ShowPlayerNames="true"></sc2dsstats.rlib.ReplayComponent>
+	</div>
+	<div class="col-auto">
+		@if (replayService.playerStats != null)
+		{
+			<PlayerComponent playerStats="replayService.playerStats"></PlayerComponent>
+		}
+	</div>
+</div>
+
+<CredentialModal @ref="credentialModel"></CredentialModal>
+
+@code {
+	CredentialModal credentialModel;
+	ReplayComponent replayComponent;
+
+	protected override void OnInitialized()
+	{
+		replayService.CollectReplayStats += DecodingFinished;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			if (!replayService.AppConfig.Config.Uploadcredential)
+			{
+				if (replayService.AppConfig.Config.CredentialAsking > 10 || replayService.isFirstRun)
+				{
+					credentialModel.Show();
+					replayService.AppConfig.Config.CredentialAsking = 0;
+					replayService.SaveConfig();
+				}
+				else
+				{
+					replayService.AppConfig.Config.CredentialAsking++;
+					replayService.SaveConfig();
+				}
+			}
+			await replayComponent.LoadReplay(replayService.latestReplay);
+			if (replayService.playerStats == null)
+			{
+				await replayService.LoadPlayerStats();
+				await InvokeAsync(() => StateHasChanged());
+			}
+		}
+	}
+
+	private void UploadReplays()
+	{
+		if (replayService.AppConfig.Config.Uploadcredential)
+		{
+			_ = replayService.UploadReplays();
+		} else
+		{
+			credentialModel.Show();
+		}
+	}
+
+	private void DecodingFinished(object sender, CollectEventArgs e)
+	{
+		_ = replayComponent.LoadReplay(replayService.latestReplay);
+		InvokeAsync(() => StateHasChanged());
+	}
+
+	private void Scan()
+	{
+		_ = replayService.ScanReplayFolders(true);
+	}
+
+	private void ImportOldDb()
+	{
+		if (replayService.decodeService.isRunning)
+		{
+			toastService.ShowError("Import process already running.");
+		} else
+		{
+			toastService.ShowWarning("Start Importing ...");
+		}
+		replayService.ImportOldDb();
+	}
+
+	private void Decode()
+	{
+		replayService.DecodeReplays(toastService);
+	}
+
+	private void Cancel()
+	{
+		toastService.ShowWarning("The decoding process is canceled");
+		replayService.DecodeCancel();
+	}
+
+	private void StartStopWatching(bool doit)
+	{
+		if (doit)
+		{
+			replayService.StartWatching();
+		}
+		else
+		{
+			replayService.StopWatching();
+		}
+		StateHasChanged();
+	}
+}

@@ -1,0 +1,87 @@
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">sc2dsstats.2022</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="stats">
+                <span class="oi oi-bar-chart" aria-hidden="true"></span> Charts
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="builds">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="crosstable">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> CrossTable
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="ranking">
+                <span class="oi oi-list" aria-hidden="true"></span> Ranking
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="database">
+                <span class="oi oi-list" aria-hidden="true"></span> Database
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="pickban">
+                <span class="oi oi-list" aria-hidden="true"></span> PickBan
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="random">
+                <span class="oi oi-list" aria-hidden="true"></span> Random
+            </NavLink>
+        </li>
+@*        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="replay">
+                <span class="oi oi-plus" aria-hidden="true"></span> ReplayTest
+            </NavLink>
+        </li>*@
+        <li class="nav-item px-3">
+            <br />
+            <br />
+            <div class="d-flex justify-content-between">
+                <a class="mr-2" href="https://github.com/ipax77/sc2dsstats" title="GitHub fan project: Create charts from your own DS replays">
+                    <img alt="sc2dsstats" height="32" longdesc="https://github.com/ipax77/sc2dsstats" src="_content/sc2dsstats.rlib/images/GitHub-Mark-Light-64px47.png" width="32" />
+                </a>
+                <a class="mr-2" href="https://www.twitch.tv/ipax77">
+                    <img alt="Twitch" class="auto-style6" height="32" longdesc="https://www.twitch.tv/ipax77" src="_content/sc2dsstats.rlib/images/GlitchBadge_White_64px.png" width="32" />
+                </a>
+                <a href="https://www.youtube.com/channel/UCMwOnIzcuoSHGFYqVA6wJbQ">
+                    <img alt="YouTube" class="auto-style6" height="30" longdesc="https://www.youtube.com/channel/UCMwOnIzcuoSHGFYqVA6wJbQ" src="_content/sc2dsstats.rlib/images/yt_icon_mono_dark.png" width="51" />
+                </a>
+            </div>
+        </li>
+        <li>
+            <a href="optout" target="_blank">
+                <span class="nav-link">Opt out</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

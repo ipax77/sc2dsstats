@@ -1,0 +1,246 @@
+﻿@using Microsoft.Extensions.Logging
+@using System.Globalization
+@using System.Text
+@using sc2dsstats._2022.Shared
+@inject IJSRuntime _js
+
+<style>
+
+    .dial.spinning {
+	    animation-duration: @(animationDuration.ToString(CultureInfo.InvariantCulture))s;
+	    animation-timing-function: cubic-bezier(0.44, -0.205, 0, 1.13);
+	    animation-name: spinning;
+    }
+
+    @@keyframes rotating {
+	from {
+		transform: rotate(0);
+       }
+	    to {
+		    transform: rotate(@(to)deg);
+       }
+    }
+    @@keyframes spinning {
+	from {
+		transform: rotate(0);
+       }
+	    to {
+		    transform: rotate(@(to)deg);
+       }
+    }
+
+    @Slices
+
+</style>
+
+<div class="btn-block">
+<button type="button" class="btn btn-primary" @onclick="e => Spinn()">Spinn</button>
+<button type="button" class="btn btn-primary" @onclick="Matchup">Team</button>
+<button type="button" class="btn btn-primary" @onclick="Matchups">Matchups</button>
+</div>
+
+<div class="container">
+    <div class="board">
+        <div class="spinner-table">
+            <div id="spinn" class="dial">
+                @foreach (var cmdr in DSData.stds) {
+                <div class="slice">
+                    <div class="label">
+                        <div class="d-flex justify-content-around">
+                        <div class="ms-4">@cmdr</div>
+                        <div><img class="mb-3" alt="@cmdr" src="@DSData.GetImageSource(cmdr)" width="40" height="40" /></div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        <div class="arrow">
+            <span class="pointer"></span>
+        </div>
+    </div>
+</div>
+
+@if (String.IsNullOrEmpty(Cmdr))
+{
+    
+} else {
+<h4>Commander pick <span class="badge bg-info">@Cmdr</span></h4>
+}
+
+@if (Cmdrs.Any()) {
+    <div class="d-flex">
+    <div>
+    <table class="table table-dark">
+    <thead>
+        <tr>
+            <th>Pos</th>
+            <th>Commander</th>
+		</tr>
+	</thead>
+    <tbody>
+    @for (int i = 0; i < Math.Min(3, Cmdrs.Count); i++) {
+        <tr>
+            <td>@(i+1)</td>
+            <td class="nowrap">
+                <img class="mb-3" alt="@Cmdrs[i]" src="@DSData.GetImageSource(Cmdrs[i])" width="40" height="40" />
+                @Cmdrs[i]
+            </td>
+		</tr>
+    }
+    </tbody>
+    </table>
+    </div>
+        @if (Cmdrs.Count > 3)
+        {
+    <div>
+        <table class="table table-dark">
+        <thead>
+            <tr>
+                <th>Pos</th>
+                <th>Commander</th>
+		    </tr>
+	    </thead>
+        <tbody>
+        @for (int j = 3; j < Cmdrs.Count; j++) {
+            <tr>
+                <td>@(j+1)</td>
+                <td class="nowrap">
+                    <img class="mb-3" alt="@Cmdrs[j]" src="@DSData.GetImageSource(Cmdrs[j])" width="40" height="40" />
+                    @Cmdrs[j]
+                </td>
+		    </tr>
+        }
+        </tbody>
+        </table>
+        </div>
+        }
+    </div>
+}
+@code {
+
+    [Parameter]
+    public EventCallback<string> CmdrSelected { get; set; }
+
+    bool spinning = false;
+    int to;
+    Random random = new Random();
+    double step = 360.0 / (double)DSData.stds.Length;
+    String Cmdr = String.Empty;
+    List<string> Cmdrs = new List<string>();
+    double animationDuration = 5;
+    string Slices = String.Empty;
+    bool Unique = false;
+
+    protected override void OnInitialized()
+    {
+        SetSlices();
+        base.OnInitialized();
+    }
+
+    public async Task<string> Spinn(bool matchup = false)
+    {
+        if (spinning)
+            await Reset();
+        spinning = true;
+        Cmdr = String.Empty;
+        string cmdr = String.Empty;
+
+        double index = 0;
+
+        if (matchup && Unique) {
+            index = random_except_list(DSData.stds.Length - 1, Cmdrs.Select(s => Array.IndexOf(DSData.stds, s)).ToArray());
+        }
+        else
+            index = random.Next(DSData.stds.Length);
+        cmdr = DSData.stds[(int)index];
+        int mod = Convert.ToInt32(random.NextDouble() * (11 - -8) + -8);
+        to = Convert.ToInt32(360.0 + (step * (16.0 - index))) + mod;
+
+        if (matchup)
+            animationDuration = 2.5;
+        else
+            animationDuration = 5;
+
+        await InvokeAsync(() => StateHasChanged());
+        await _js.InvokeVoidAsync("ToggleClass", "spinn", "spinning");
+        if (!matchup)
+            ShowCmdr(cmdr, matchup);
+        else
+        {
+            return cmdr;
+        }
+        
+        return Cmdr;
+    }
+
+    public async Task Reset()
+    {
+        await _js.InvokeVoidAsync("ToggleClass", "spinn", "spinning");
+        spinning = false;
+        await Task.Delay(250);
+    }
+
+    async void ShowCmdr(string cmdr, bool matchup)
+    {
+        await Task.Delay(5000);
+        Cmdr = cmdr;
+        await InvokeAsync(() => StateHasChanged());
+        await CmdrSelected.InvokeAsync(Cmdr);
+    }
+
+    async void Matchup()
+    {
+        Cmdrs = new List<string>();
+        if (spinning)
+            await Reset();
+
+        for (int i = 0; i < 3; i++) {
+            string cmdr = await Spinn(true);
+            await Task.Delay(2500);
+            Cmdrs.Add(cmdr);
+            await InvokeAsync(() => StateHasChanged());
+            await Task.Delay(250);
+            if (i < 2)
+                await Reset();
+        }
+    }
+
+    async void Matchups()
+    {
+        Cmdrs = new List<string>();
+        if (spinning)
+            await Reset();
+
+        for (int i = 0; i < 6; i++) {
+            string cmdr = await Spinn(true);
+            await Task.Delay(2500);
+            Cmdrs.Add(cmdr);
+            await InvokeAsync(() => StateHasChanged());
+            await Task.Delay(250);
+            if (i < 2)
+                await Reset();
+        }
+    }
+
+    void SetSlices()
+    {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < DSData.stds.Length; i++)
+        {
+            string deg = Math.Round(i * step, 5).ToString(CultureInfo.InvariantCulture);
+            sb.Append($".dial .slice:nth-child({i}) {{");
+            sb.Append($"transform: rotate({deg}deg);}}");
+            sb.Append(Environment.NewLine);
+        }
+        Slices = sb.ToString();
+
+    }
+
+    public int random_except_list(int n, int[] x) 
+    {
+        var range = Enumerable.Range(0, n).Where(i => !x.Contains(i));
+        int index = random.Next(0, n - x.Length);
+        return range.ElementAt(index);
+    }
+}

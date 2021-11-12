@@ -1,0 +1,114 @@
+﻿@using sc2dsstats._2022.Shared
+
+@if (playerStats.Winrate != null && playerStats.Winrate.Items.Any())
+{
+    <div class="d-flex">
+        <h4><span class="badge bg-primary">Player stats</span></h4>
+        <button type="button" class="btn btn-sm btn-outline-info ms-2 align-self-start" @onclick="ShowDetails">Details</button>
+    </div>
+    <div>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Cmdr</th>
+                    <th>%</th>
+                    <th>&empty;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>@Name most played cmdr is</b></td>
+                    <td><h5><span class="badge bg-secondary">@playerStats.mpItem.Label</span></h5></td>
+                    <td><h5><span class="badge bg-primary">@((playerStats.mpItem.Count * 100 / (double)playerStats.Winrate.Count).ToString("N2"))</span></h5></td>
+                    <td>@playerStats.mpItem.Count</td>
+                </tr>
+                <tr>
+                    <td><b>@Name least played cmdr is</b></td>
+                    <td><h5><span class="badge bg-secondary">@playerStats.lpItem.Label</span></h5></td>
+                    <td><h5><span class="badge bg-primary">@((playerStats.lpItem.Count * 100 / (double)playerStats.Winrate.Count).ToString("N2"))</span></h5></td>
+                    <td>@playerStats.lpItem.Count</td>
+                </tr>
+                <tr>
+                    <td><b>@Name best cmdr is</b></td>
+                    <td><h5><span class="badge bg-secondary">@playerStats.bItem.Label</span></h5></td>
+                    <td><h5><span class="badge bg-primary">@(playerStats.bItem.Winrate.ToString("N2"))</span></h5></td>
+                    <td>@playerStats.bItem.Count</td>
+                </tr>
+                <tr>
+                    <td><b>@Name worst cmdr is</b></td>
+                    <td><h5><span class="badge bg-secondary">@playerStats.wItem.Label</span></h5></td>
+                    <td><h5><span class="badge bg-primary">@(playerStats.wItem.Winrate.ToString("N2"))</span></h5></td>
+                    <td>@playerStats.wItem.Count</td>
+                </tr>
+                <tr>
+                    <td><b>@Name best Matchup is</b></td>
+                    <td><h5><span class="badge bg-secondary">@playerStats.bmItem.Label</span></h5></td>
+                    <td><h5><span class="badge bg-primary">@(playerStats.bmItem.Winrate.ToString("N2"))</span></h5></td>
+                    <td>@playerStats.bmItem.Count</td>
+                </tr>
+                <tr>
+                    <td><b>@Name worst Matchup is</b></td>
+                    <td><h5><span class="badge bg-secondary">@playerStats.wmItem.Label</span></h5></td>
+                    <td><h5><span class="badge bg-primary">@(playerStats.wmItem.Winrate.ToString("N2"))</span></h5></td>
+                    <td>@playerStats.wmItem.Count</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="visibility: @(showDetails ? "visible" : "hidden")">
+        <ChartComponent @ref="chart1"></ChartComponent>
+    </div>
+
+}
+
+@code {
+    [Parameter]
+    public DsPlayerStats playerStats { get; set; }
+
+    [Parameter]
+    public string Playername { get; set; } = String.Empty;
+
+    private string Name = "Your";
+
+    public void Update()
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    ChartComponent chart1;
+    bool showDetails = false;
+
+    protected override void OnInitialized()
+    {
+        if (!String.IsNullOrEmpty(Playername))
+        {
+            Name = Playername.Length > 8 ? Playername.Substring(0, 8) + ".." : Playername;
+            Name += "'s";
+        } else
+        {
+            Name = "Your";
+        }
+        base.OnInitialized();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    void ShowDetails()
+    {
+        showDetails = !showDetails;
+        if (showDetails)
+        {
+            chart1.SetChart(new DsRequest("Playerstats", "This Year", true, "Commanders played"), playerStats.Winrate);
+        }
+        StateHasChanged();
+    }
+
+}

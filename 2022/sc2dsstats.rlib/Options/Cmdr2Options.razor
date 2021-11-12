@@ -1,0 +1,85 @@
+﻿@using sc2dsstats._2022.Shared
+@implements IDisposable
+
+<style>
+    .custom-control-input {
+    background-color: #E6E6E6;
+}
+</style>
+
+<div class="d-flex flex-row bg-dark">
+    <div class="flex-column radiobar">
+        <fieldset class="form-group">
+            <EditForm EditContext="editContext" OnValidSubmit="onValidSubmit">
+                <legend>@Label</legend>
+                <div class="form-check">
+                    <label class="col-form-label btn btn-block text-left p-0">
+                        <!--<input type="checkbox" id="cmdr2select" class="form-check-input" name="@Label" value="ALL" @bind-value="Selections[AllString]" @onchange="e => CmdrSelected(e, AllString)" />-->
+                        @if (Request.ChartType == "Bar")
+                        {
+                            <InputCheckbox @bind-Value="Request.CmdrsSelected.Find(f => f.Name == AllString).Selected"></InputCheckbox>
+                        } else
+                        {
+                            <InputCheckbox disabled="True" @bind-Value="Request.CmdrsSelected.Find(f => f.Name == AllString).Selected"></InputCheckbox>
+                        }
+                        <img src="@($"_content/sc2dsstats.rlib/images/dummy.png")" width="30" height="30" />
+                        All
+                    </label>
+                </div>
+                @foreach (var cmdr in DSData.cmdrs)
+                {
+                    <div class="form-check">
+
+                        <label class="col-form-label btn btn-block text-left p-0 @($"{(Request.CmdrsSelected.Find(f => f.Name == cmdr).Selected ? "" : "text-white-50")}")">
+                            @*<input type="checkbox" id="cmdr2select" class="form-check-input" name="@Label" value="@cmdr" @bind-value="Selections[cmdr]" @onchange="e => CmdrSelected(e, cmdr)" />*@
+                            <InputCheckbox @bind-Value="Request.CmdrsSelected.Find(f => f.Name == cmdr).Selected"></InputCheckbox>
+                            <img src="@($"_content/sc2dsstats.rlib/images/btn-unit-hero-{cmdr.ToLower()}.png")" width="30" height="30" />
+                            @cmdr
+                        </label>
+                    </div>
+                }
+            </EditForm>
+        </fieldset>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Commander";
+
+    [Parameter]
+    public EventCallback<KeyValuePair<bool, string>> onCmdrSelected { get; set; }
+
+    [CascadingParameter]
+    public DsRequest Request { get; set; }
+
+    const string AllString = "ALL";
+    string Commander = "ALL";
+
+
+    EditContext editContext;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(Request.CmdrsSelected);
+        editContext.OnFieldChanged += HandleFieldChanged;
+        base.OnInitialized();
+    }
+
+    private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        var helper = e.FieldIdentifier.Model as SelectHelper;
+        onCmdrSelected.InvokeAsync(new KeyValuePair<bool, string>(helper.Selected, helper.Name));
+    }
+
+    void onValidSubmit()
+    {
+
+    }
+
+    public void Dispose()
+    {
+        editContext.OnFieldChanged -= HandleFieldChanged;
+    }
+
+}

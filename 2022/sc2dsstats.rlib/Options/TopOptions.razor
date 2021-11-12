@@ -1,0 +1,215 @@
+﻿@using sc2dsstats._2022.Shared
+@using static sc2dsstats._2022.Shared.DSData
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary py-2 py-md-2">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="stats">ChartModes</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav me-auto">
+                @foreach (var mode in DSData.modes)
+                {
+                    <li class="nav-item">
+                        @if (Request.Mode == mode)
+                        {
+                            <NavLink class="nav-link active" href="@($"stats/{mode}/{Request.Timespan}/{Request.Interest}/{Request.Player}/{Request.Versus}")" Match="@NavLinkMatch.Prefix" @onclick="e => ModeChange(mode)">
+                                @mode
+                            </NavLink>
+                        } else
+                        {
+                            <NavLink class="nav-link" href="@($"stats/{mode}/{Request.Timespan}/{Request.Interest}/{Request.Player}/{Request.Versus}")" Match="@NavLinkMatch.Prefix" @onclick="e => ModeChange(mode)">
+                                @mode
+                            </NavLink>
+                        }
+                    </li>
+
+                }
+                @*<li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Timespan</a>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="">Action</a>
+                <a class="dropdown-item" href="">Another action</a>
+                <a class="dropdown-item" href="">Something else here</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="">Separated link</a>
+            </div>
+        </li>*@
+@*                <li>
+                    <form>
+                        <fieldset>
+                            <div class="form-group">
+                                <select class="form-select" id="timespanSelect" @onchange="TimespanChange">
+                                    @foreach (var timespan in DSData.timespans)
+                                    {
+                                        if (Request.Timespan == timespan)
+                                        {
+                                            <option selected="selected" value="@timespan">@timespan</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@timespan">@timespan</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </fieldset>
+                    </form>
+                </li>*@
+                <li class="d-flex align-items-center ms-3">
+                    <div class="btn-group">
+@*                        <button class="btn btn-sm btn-outline-light @(Request.Player ? "border border-warning" : "")" @onclick="PlayerChange">@(playerStats ? "Player" : "Uploaders")</button>
+                        <button class="btn btn-sm btn-outline-light ms-1 @(Request.BeginAtZero ? "border border-warning": "")" @onclick="ZeroChange">BeginAtZero</button>
+*@                        
+                        <button class="btn btn-sm @(Request.Player ? "btn-outline-warning" : "btn-outline-light")" @onclick="PlayerChange">@(playerStats ? "Player" : "Uploaders")</button>
+                        <button class="btn btn-sm ms-1 @(Request.BeginAtZero ? "btn-outline-warning": "btn-outline-light")" @onclick="ZeroChange">BeginAtZero</button>
+                    </div>
+                </li>
+                @*<li>
+            <form>
+                <fieldset>
+                    <div class="form-group">
+                        <select class="form-select" id="playerSelect" @onchange="PlayerChange">
+                            @if (Request.Player)
+                            {
+                                <option value="False">Global</option>
+                                <option selected="selected" value="">Uploaders</option>
+                            }
+                            else
+                            {
+                                <option selected="selected" value="False">Global</option>
+                                <option value="True">Uploaders</option>
+                            }
+                        </select>
+                    </div>
+                </fieldset>
+            </form>
+        </li>*@
+            </ul>
+            @*<form class="d-flex">
+                <input class="form-control me-sm-2" type="text" placeholder="Search">
+                <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
+            </form>*@
+        </div>
+    </div>
+</nav>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-2 py-md-2">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="stats">TimeSpans</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav me-auto">
+                @*<li class="nav-item">
+            <a class="nav-link active" href="stats">
+                Reset
+                <span class="visually-hidden">(current)</span>
+            </a>
+        </li>*@
+                @foreach (var timespan in DSData.timespans)
+                {
+                    <li class="nav-item">
+                        @if (Request.Timespan == timespan)
+                        {
+                            <NavLink class="nav-link active" href="@($"stats/{Request.Mode}/{timespan}/{Request.Interest}/{Request.Player}/{Request.Versus}")" Match="@NavLinkMatch.Prefix" @onclick="e => TimespanChange(timespan)">
+                                @timespan
+                            </NavLink>
+                        } else
+                        {
+                            <NavLink class="nav-link" href="@($"stats/{Request.Mode}/{timespan}/{Request.Interest}/{Request.Player}/{Request.Versus}")" Match="@NavLinkMatch.Prefix" @onclick="e => TimespanChange(timespan)">
+                                @timespan
+                            </NavLink>
+                        }
+
+                    </li>
+                }
+                @if (Request.ChartType != "Radar")
+                {
+                    <li class="d-flex align-items-center ms-3">
+                        <button class="btn btn-sm btn-outline-light" @onclick="ShowFilterModal">Filter</button>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<FilterModal @ref="filterModal" OnFilterSet="FilterSet"></FilterModal>
+
+@code {
+
+    [CascadingParameter]
+    public DsRequest Request { get; set; }
+
+    [Parameter]
+    public bool playerStats { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OptionsChanged { get; set; }
+
+    [Parameter]
+    public EventCallback onZeroChanged { get; set; }
+
+    FilterModal filterModal;
+
+    void TimespanChange(ChangeEventArgs e)
+    {
+        var timespan = e.Value.ToString();
+        TimespanChange(timespan);
+    }
+
+    void TimespanChange(string timespan)
+    {
+        Request.SetTime(timespan);
+        OptionsChanged.InvokeAsync();
+    }
+
+    void PlayerChange()
+    {
+        Request.SetPlayer(!Request.Player);
+        OptionsChanged.InvokeAsync();
+    }
+
+    void ZeroChange()
+    {
+        Request.BeginAtZero = !Request.BeginAtZero;
+        onZeroChanged.InvokeAsync();
+    }
+
+    void ModeChange(string mode)
+    {
+        Request.SetMode(mode);
+        OptionsChanged.InvokeAsync();
+    }
+
+    void FilterSet()
+    {
+        OptionsChanged.InvokeAsync();    
+    }
+
+    async void ShowFilterModal()
+    {
+        if (Request.Filter == null)
+        {
+            Request.Filter = new DsFilter();
+
+            Request.Filter.PlayerEnts = new List<EditEnt>();
+            // var names = await dataService.GetPlayernames();
+            // Request.Filter.PlayerEnts = names.Select(s => new EditEnt() { ent = s, selected = false }).ToList();
+            
+            Request.Filter.GameEnts = DSData.gamemodes.Select(s => new EditEnt() { ent = s, selected = false }).ToList();
+            Request.Filter.GameEnts.First(f => f.ent == "GameModeCommanders").selected = true;
+            Request.Filter.GameEnts.First(f => f.ent == "GameModeCommandersHeroic").selected = true;
+            Request.Filter.GameModes = new List<int>() { (int)Gamemode.Commanders, (int)Gamemode.CommandersHeroic };
+            Request.Filter.GameModes = Request.Filter.GameEnts.Where(x => x.selected).Select(s => (int)DSData.GetGameMode(s.ent)).ToList();
+            Request.Filter.Players = new List<string>();
+            Request.Filter.StartTime = Request.StartTime;
+            Request.Filter.EndTime = Request.EndTime;
+        }
+        filterModal.Show(Request);
+    }
+}

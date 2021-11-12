@@ -1,0 +1,156 @@
+﻿@using sc2dsstats._2022.Shared
+
+@inject IJSRuntime _js
+
+<!-- Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="replayModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-xxl-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Replays Filter</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        @if (Request != null && Request.Filter != null)
+        {
+            <EditForm EditContext="editContext" OnValidSubmit="onValidSubmit">
+            <div class="modal-body">
+        
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="row justify-content-center mt-2">
+                <div class="col-auto">
+                    <sc2dsstats.rlib.Helper.SearchCheckboxComponent Options="Request.Filter.PlayerEnts"></sc2dsstats.rlib.Helper.SearchCheckboxComponent>
+                </div>
+                <div class="form-group col-auto">
+                    <label class="form-label" for="starttime">StartTime</label>
+                    <InputDate class="form-control" id="starttime" @bind-Value="Request.Filter.StartTime"></InputDate>
+                </div>
+                <div class="form-group col-auto">
+                    <label class="form-label" for="endtime">EndTime</label>
+                    <InputDate class="form-control" id="endtime" @bind-Value="Request.Filter.EndTime"></InputDate>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-2">
+                <div class="form-group col-auto">
+                    <label class="form-label" for="mindur">MinDuration in sec</label>
+                    <InputNumber class="form-control" id="mindur" @bind-Value="Request.Filter.MinDuration"></InputNumber>
+                    <ValidationMessage For="() => Request.Filter.MinDuration" />
+                </div>
+                <div class="form-group col-auto">
+                    <label class="form-label" for="maxdur">MaxDuration in sec</label>
+                    <InputNumber class="form-control" id="maxdur" @bind-Value="Request.Filter.MaxDuration"></InputNumber>
+                    <ValidationMessage For="() => Request.Filter.MaxDuration" />
+                </div>
+                <div class="form-group col-auto">
+                    <label class="form-label" for="maxleaver">MaxLeaver</label>
+                    <InputNumber class="form-control" id="maxleaver" @bind-Value="Request.Filter.MaxLeaver"></InputNumber>
+                    <ValidationMessage For="() => Request.Filter.MaxLeaver" />
+                </div>
+            </div>
+            <div class="row justify-content-center mt-2">
+                <div class="form-group col-auto">
+                    <label class="form-label" for="mininc">MinIncome</label>
+                    <InputNumber class="form-control" id="mininc" @bind-Value="Request.Filter.MinIncome"></InputNumber>
+                    <ValidationMessage For="() => Request.Filter.MinIncome" />
+                </div>
+                <div class="form-group col-auto">
+                    <label class="form-label" for="minarmy">MinArmy</label>
+                    <InputNumber class="form-control" id="minarmy" @bind-Value="Request.Filter.MinArmy"></InputNumber>
+                    <ValidationMessage For="() => Request.Filter.MinArmy" />
+                </div>
+                <div class="form-group col-auto">
+                    <label class="form-label" for="minkills">MinKills</label>
+                    <InputNumber class="form-control" id="minkills" @bind-Value="Request.Filter.MinKills"></InputNumber>
+                    <ValidationMessage For="() => Request.Filter.MinKills" />
+                </div>
+            </div>
+            <div class="row justify-content-center mt-2">
+                <div class="form-group col-auto">
+                    <label class="form-label" for="mid">Middle 40-60%</label>
+                    <InputCheckbox class="form-check" id="mid" @bind-Value="Request.Filter.Mid"></InputCheckbox>
+                    <ValidationMessage For="() => Request.Filter.Mid" />
+                </div>
+                <div class="col-auto">
+                    <div class="form-group">
+                        <label class="form-label" for="plcount">PlayerCount</label>
+                        <InputNumber class="form-control" id="plcount" @bind-Value="Request.Filter.PlayerCount"></InputNumber>
+                        <ValidationMessage For="() => Request.Filter.PlayerCount" />
+                    </div>
+
+                </div>
+                <div class="col-auto">
+                    @foreach (var ent in Request.Filter.GameEnts)
+                    {
+                        <div class="form-check p-0">
+                            <label class="col-form-label">
+                                <InputCheckbox @bind-Value="ent.selected"></InputCheckbox>
+                                @ent.ent
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <div class="btn-group">
+            <button type="button" class="btn btn-danger" @onclick="SetOff">Off</button>
+            @if (!Request.Filter.isDefault) {
+                <button type="button" class="btn btn-warning" @onclick="SetDefault">Default</button>
+            }
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+        </EditForm>
+        }
+    </div>
+  </div>
+</div>
+
+
+
+@code {
+    [Parameter]
+    public EventCallback OnFilterSet { get; set; }
+
+    DsRequest Request;
+
+    EditContext editContext;
+
+    void onValidSubmit()
+    {
+        Request.Filter.SetLists();
+        Request.SetTimeString();
+        OnFilterSet.InvokeAsync();
+        Close();
+    }
+
+    private async void Close()
+    {
+        await _js.InvokeVoidAsync("ReplayModalClose");
+    }
+
+    public void Show(DsRequest request)
+    {
+        Request = request;
+        editContext = new EditContext(Request);
+        StateHasChanged();
+        _js.InvokeVoidAsync("ReplayModalOpen", "filterModal");
+    }
+
+    void SetDefault()
+    {
+        Request.Filter.SetDefault();
+        Request.SetTime("This Year");
+        OnFilterSet.InvokeAsync();
+        Close();
+    }
+
+    void SetOff()
+    {
+        Request.Filter.SetOff();
+        Request.SetTime("ALL");
+        OnFilterSet.InvokeAsync();
+        Close();
+    }
+}

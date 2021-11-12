@@ -1,0 +1,484 @@
+﻿@using System.Threading
+@using sc2dsstats._2022.Shared
+@using static sc2dsstats._2022.Shared.DSData
+@inject IDataService dataService
+@implements IDisposable
+
+<style>
+    .tableFixHead {
+        overflow-y: auto;
+        height: 750px;
+    }
+
+        .tableFixHead thead th {
+            position: sticky;
+            top: 0;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+        white-space: nowrap;
+    }
+
+    th {
+        background: purple;
+    }
+
+    .tablebackground {
+        position: absolute;
+        z-index: -1;
+        opacity: 0.15;
+    }
+</style>
+
+<div>
+    <EditForm EditContext="editContext">
+        <div class="row">
+            <div class="col-auto">
+                <label>Commanders <span class="oi oi-x text-danger pointer" @onclick="ClearCommanders"></span></label>
+                <div class="form-group" style="max-width: 250px;">
+                    <InputSelect class="form-select" id="race1Select" @bind-Value="request.Race1">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="form-group" style="max-width: 250px;">
+                    <InputSelect class="form-select" id="race2Select" @bind-Value="request.Race2">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="form-group" style="max-width: 250px;">
+                    <InputSelect class="form-select" id="race3Select" @bind-Value="request.Race3">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+            </div>
+            <div class="col-auto">
+                <label>Opponents <span class="oi oi-x text-danger pointer" @onclick="ClearOpponents"></span></label>
+                <div class="form-group" style="max-width: 250px;">
+                    <InputSelect disabled="@(String.IsNullOrEmpty(request.Race1))" class="form-select" id="race4Select" @bind-Value="request.Opp1">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="form-group" style="max-width: 250px;">
+                    <InputSelect disabled="@(String.IsNullOrEmpty(request.Race2))" class="form-select" id="race5Select" @bind-Value="request.Opp2">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="form-group" style="max-width: 250px;">
+                    <InputSelect disabled="@(String.IsNullOrEmpty(request.Race3))" class="form-select" id="race6Select" @bind-Value="request.Opp3">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+            </div>
+            <div class="col-auto mr-auto">
+@*                <div class="form-group" style="max-width: 450px;">
+                    <InputText @bind-Value="request.Playername" @oninput="SearchPlayerName" placeholder="Name"></InputText>
+                </div>*@
+                <sc2dsstats.rlib.Helper.SearchComponent onSelected="SelectPlayer" Options="playerNames"></sc2dsstats.rlib.Helper.SearchComponent>
+                <div class="form-group" style="max-width: 450px;">
+                    <InputSelect disabled="@(String.IsNullOrEmpty(request.Playername))" class="form-select" id="plraceSelect" @bind-Value="request.PlayerRace">
+                        <option value="">Any</option>
+                        @foreach (var cmdr in DSData.cmdrs)
+                        {
+                            <option value="@cmdr">@cmdr</option>
+                        }
+                    </InputSelect>
+                </div>
+@*                <div class="form-check">
+                    <label class="col-form-label btn btn-block text-left p-0">
+                        <InputCheckbox @bind-Value="request.DefaultFilter"></InputCheckbox>
+                        DefaultFilter
+                    </label>
+                </div>*@
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-light mt-4" @onclick="ShowFilterModal">Filter</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+<div class="d-flex justify-content-end">
+# @replaysCount
+</div>
+<div class="tableFixHead">
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <!--<th>Id</th>-->
+                <th class="pointer" @onclick="@(e => Sort(e, "GameTime"))">
+                    <div class="d-flex justify-content-start">
+                    Gametime
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="GameTime" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+                <th>Commanders</th>
+                <th>Winner</th>
+                <th>Players</th>
+                <th class="pointer" @onclick="@(e => Sort(e, "PlayerCount"))">
+                    <div class="d-flex justify-content-start">
+                    PlayerCount
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="PlayerCount" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+                <th class="pointer" @onclick="@(e => Sort(e, "Duration"))">
+                    <div class="d-flex justify-content-start">
+                    Duration
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="Duration" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+                <th class="pointer" @onclick="@(e => Sort(e, "GameMode"))">
+                    <div class="d-flex justify-content-start">
+                    GameMode
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="GameMode" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+                <th class="pointer" @onclick="@(e => Sort(e, "MaxLeaver"))">
+                    <div class="d-flex justify-content-start">
+                    MaxLeaver
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="MaxLeaver" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+                <th class="pointer" @onclick="@(e => Sort(e, "MaxKillsum"))">
+                    <div class="d-flex justify-content-start">
+                    MaxKillsum
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="MaxKillsum" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+                <th class="pointer" @onclick="@(e => Sort(e, "DefaultFilter"))">
+                    <div class="d-flex justify-content-start">
+                    DefaultFilter
+                    <sc2dsstats.rlib.Helper.ArrowListComponent Interest="DefaultFilter" SortOrders="request.sortOrders"></sc2dsstats.rlib.Helper.ArrowListComponent>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (replaysCount > 0)
+            {
+                <Virtualize @ref="virtualTable" Context="replay" ItemsProvider="LoadEnt" ItemSize="47" OverscanCount="10">
+                    <ItemContent>
+                        <tr class="pointer" @onclick="@(() => SetHash(replay.Hash))">
+                            @*<td>@replay.Id</td>*@
+                            <td>@replay.Gametime.ToString("yyyyMMdd")</td>
+                            <td>
+                                <div class="d-flex">
+                                    @for (int i = 0; i < @replay.Races.Count; i++)
+                                {
+                                    <img src="@($"_content/sc2dsstats.rlib/images/btn-unit-hero-{replay.Races[i].ToLower()}.png")"
+                                     alt="@replay.Races[i]"
+                                     title="@replay.Races[i]"
+                                     width="30"
+                                     height="30" />
+                                    @if (i + 1 == replay.Races.Count / 2)
+                                    {
+                                        <span> vs </span>
+                                    }
+                                }
+                                </div>
+                            </td>
+                            <td>
+                                @(replay.Winner switch {
+                                0 => "Team1",
+                                1 => "Team2",
+                                _ => ""
+                                })
+                            </td>
+                            <td></td>
+                            <td>@replay.PlayerCount</td>
+                            <td>@TimeSpan.FromSeconds(replay.Duration).ToString(@"hh\:mm\:ss")</td>
+                            <td>@replay.GameMode</td>
+                            <td>@replay.MaxLeaver</td>
+                            <td>@replay.MaxKillsum</td>
+                            <td>@replay.DefaultFilter</td>
+                        </tr>
+                    </ItemContent>
+                    <Placeholder>
+                        <tr><td style="height: 47px;">Loading ...</td></tr>
+                    </Placeholder>
+                </Virtualize>
+            }
+            else
+            {
+                <tr>
+                    <td colspan="100%">No data available</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@if (!String.IsNullOrEmpty(hash))
+{
+    @*    <div class="position-relative bg-secondary mt-2">
+        <div class="position-absolut d-flex justify-content-end">
+        <span class="oi oi-x text-danger pointer" @onclick="@(() => SetHash())"></span>
+        </div>
+        <ReplayComponent @ref="replayComponent" hash="@hash" onClose="SetHash"></ReplayComponent>
+        </div>*@
+}
+
+<ReplayModal @ref="replayModal"></ReplayModal>
+<FilterModal @ref="filterModal" OnFilterSet="Filter"></FilterModal>
+
+@code {
+
+    [Parameter]
+    public string hash { get; set; }
+
+    [Parameter]
+    public EventCallback<string> onReplaySelected { get; set; }
+
+    DsReplayRequest request;
+    DsRequest Request = new DsRequest();
+    int replaysCount = 0;
+    List<DsReplayResponse> Replays = new List<DsReplayResponse>();
+    Virtualize<DsReplayResponse> virtualTable;
+    EditContext editContext;
+    ReplayComponent replayComponent;
+    ReplayModal replayModal;
+    FilterModal filterModal;
+    List<string> playerNames = new List<string>()
+    {
+        "PAX",
+        "Duracel",
+        "Pingu"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        request = new DsReplayRequest()
+        {
+            Skip = 0,
+            Take = 100,
+            DefaultFilter = true,
+            sortOrders = new List<SortOrder>() { new SortOrder()
+            {
+                Sort = "GameTime",
+                Order = false
+            }}
+        };
+        editContext = new EditContext(request);
+        editContext.OnFieldChanged += FieldChanged;
+        playerNames = await dataService.GetPlayernames();
+        await GetCount();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (!String.IsNullOrEmpty(hash))
+                SetHash(hash);
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    public void FieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        request.Races.Clear();
+        if (!String.IsNullOrEmpty(request.Race1))
+            request.Races.Add(request.Race1);
+        if (!String.IsNullOrEmpty(request.Race2))
+            request.Races.Add(request.Race2);
+        if (!String.IsNullOrEmpty(request.Race3))
+            request.Races.Add(request.Race3);
+        request.Opponents.Clear();
+        if (!String.IsNullOrEmpty(request.Opp1))
+            request.Opponents.Add(request.Opp1);
+        if (!String.IsNullOrEmpty(request.Opp2))
+            request.Opponents.Add(request.Opp2);
+        if (!String.IsNullOrEmpty(request.Opp3))
+            request.Opponents.Add(request.Opp3);
+
+        Reload();
+    }
+
+    void Filter()
+    {
+        request.Filter = Request.Filter;
+        Reload();
+    }
+
+    void SelectPlayer(string playername)
+    {
+        request.Playername = playername;
+        if (String.IsNullOrEmpty(playername))
+            request.PlayerRace = String.Empty;
+        Reload();
+    }
+
+    void SearchPlayerName()
+    {
+        //if (request.Playername.Length >= 3)
+        //    Reload();
+    }
+
+    void ClearCommanders()
+    {
+        request.Race1 = "";
+        request.Race2 = "";
+        request.Race3 = "";
+        request.Opp1 = "";
+        request.Opp2 = "";
+        request.Opp3 = "";
+        request.Races.Clear();
+        request.Opponents.Clear();
+        Reload();
+    }
+
+    void ClearOpponents()
+    {
+        request.Opp1 = "";
+        request.Opp2 = "";
+        request.Opp3 = "";
+        request.Opponents.Clear();
+        Reload();
+    }
+
+    void ClearPlayername()
+    {
+        request.Playername = String.Empty;
+        request.PlayerRace = String.Empty;
+        Reload();
+    }
+
+    void SetHash(string rHash)
+    {
+        // hash = rHash;
+        onReplaySelected.InvokeAsync(rHash);
+        replayModal.Show(rHash);
+        // StateHasChanged();
+    }
+
+    public void Sort(MouseEventArgs e, string sort)
+    {
+        var sortOrder = request.sortOrders.FirstOrDefault(f => f.Sort == sort);
+
+        if (sortOrder != null)
+        {
+            if (e.ShiftKey)
+            {
+                if (sortOrder.Order)
+                    sortOrder.Order = !sortOrder.Order;
+                else
+                    request.sortOrders.Remove(sortOrder);
+            }
+            else
+            {
+                request.sortOrders = new List<SortOrder>() { new SortOrder()
+                    {
+                        Sort = sort,
+                        Order = !sortOrder.Order
+                    }};
+            }
+        } else
+        {
+            if (e.ShiftKey)
+            {
+                request.sortOrders.Add(new SortOrder()
+                {
+                    Sort = sort,
+                    Order = true
+                });
+            } else
+            {
+                request.sortOrders = new List<SortOrder>() { new SortOrder()
+                {
+                    Sort = sort,
+                    Order = true
+                }};
+            }      
+        }
+        Reload();
+    }
+
+    private async Task Reload()
+    {
+        await GetCount();
+        await virtualTable.RefreshDataAsync();
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    async Task GetCount()
+    {
+        replaysCount = await dataService.GetReplaysCount(request);
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async ValueTask<ItemsProviderResult<DsReplayResponse>> LoadEnt(ItemsProviderRequest prRequest)
+    {
+        request.Skip = prRequest.StartIndex;
+        request.Take = Math.Min(prRequest.Count, replaysCount - prRequest.StartIndex);
+
+        if (request.Take == 0)
+            Replays = new List<DsReplayResponse>();
+        else
+        {
+            if (!prRequest.CancellationToken.IsCancellationRequested)
+                Replays = await GetReplays(prRequest.CancellationToken);
+        }
+        return new ItemsProviderResult<DsReplayResponse>(Replays, replaysCount);
+    }
+
+    private async Task<List<DsReplayResponse>> GetReplays(CancellationToken cancellationToken)
+    {
+        return await dataService.GetReplays(request, cancellationToken);
+    }
+
+    async void ShowFilterModal()
+    {
+        Request.SetTime("ALL");
+        if (Request.Filter == null)
+        {
+            Request.Filter = new DsFilter();
+
+            Request.Filter.PlayerEnts = new List<EditEnt>();
+            // var names = await dataService.GetPlayernames();
+            // Request.Filter.PlayerEnts = names.Select(s => new EditEnt() { ent = s, selected = false }).ToList();
+            
+            Request.Filter.GameEnts = DSData.gamemodes.Select(s => new EditEnt() { ent = s, selected = false }).ToList();
+            Request.Filter.GameEnts.First(f => f.ent == "GameModeCommanders").selected = true;
+            Request.Filter.GameEnts.First(f => f.ent == "GameModeCommandersHeroic").selected = true;
+            Request.Filter.GameModes = new List<int>() { (int)Gamemode.Commanders, (int)Gamemode.CommandersHeroic };
+            Request.Filter.GameModes = Request.Filter.GameEnts.Where(x => x.selected).Select(s => (int)DSData.GetGameMode(s.ent)).ToList();
+            Request.Filter.Players = new List<string>();
+            Request.Filter.StartTime = Request.StartTime;
+            Request.Filter.EndTime = Request.EndTime;
+        }
+        filterModal.Show(Request);
+    }
+
+    public void Dispose()
+    {
+        editContext.OnFieldChanged -= FieldChanged;
+    }
+
+}
