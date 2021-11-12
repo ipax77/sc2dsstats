@@ -2,7 +2,7 @@
 
 sc2dsstats is a dotnet core – blazor - electron app for analyzing your Starcraft 2 Direct Strike Replays. It generates some Graphs showing the win rate, synergy, mvp and damage output of each commander.
 
-Website: https://sc2sstats.pax77.org
+Website: https://sc2dsstats.pax77.org
 Desktop App: https://github.com/ipax77/sc2dsstats/releases/latest
 
 ![sample graph](/images/dsweb_desktop.png)
