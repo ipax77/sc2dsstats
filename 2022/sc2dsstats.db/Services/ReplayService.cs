@@ -208,7 +208,7 @@ namespace sc2dsstats.db.Services
             return response;
         }
 
-        private static List<string> GetUpgrades(string upgradeString)
+        public static List<string> GetUpgrades(string upgradeString)
         {
             if (String.IsNullOrEmpty(upgradeString))
                 return new List<string>();
@@ -230,7 +230,7 @@ namespace sc2dsstats.db.Services
             return upgrades;
         }
 
-        private static List<DsPlayerBreakpointUnitResponse> GetUnits(string unitCountString, string unitPosString)
+        public static List<DsPlayerBreakpointUnitResponse> GetUnits(string unitCountString, string unitPosString)
         {
             if (unitCountString == null)
                 return new List<DsPlayerBreakpointUnitResponse>();

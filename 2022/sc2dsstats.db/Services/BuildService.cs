@@ -27,13 +27,18 @@ namespace sc2dsstats.db.Services
                 string Playername = request.Playername;
                 if (!String.IsNullOrEmpty(Playername))
                 {
-                    Playername = request.Playername switch
+                    var player = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.Name == request.Playername);
+                    if (player != null)
                     {
-                        "PAX" => "b2432d6c-d8e3-4263-92b6-6e49e2c036a0",
-                        "Feralan" => "e2dfd75fcad1c454cfb2526fae4f3feb5e901039f7d366f69094c0d16a12e338",
-                        "Panzerfaust" => "bd78339bb80c299a6c82812d9d4547d09cf15b0e8bb99b38090dc3bc4a5af8b5",
-                        _ => "b33aef3fcc740b0d67eda3faa12c0f94cef5213fe70921d72fc2bfa8125a5889"
-                    };
+                        Playername = player.DbId.ToString();
+                    }
+                    //Playername = request.Playername switch
+                    //{
+                    //    "PAX" => await context.DsPlayerNames.FirstOrDefaultAsync(f => f.Name ==),
+                    //    "Feralan" => "e2dfd75fcad1c454cfb2526fae4f3feb5e901039f7d366f69094c0d16a12e338",
+                    //    "Panzerfaust" => "bd78339bb80c299a6c82812d9d4547d09cf15b0e8bb99b38090dc3bc4a5af8b5",
+                    //    _ => "b33aef3fcc740b0d67eda3faa12c0f94cef5213fe70921d72fc2bfa8125a5889"
+                    //};
                 }
 
                 buildResults = GetBuildResultQuery(replays, request, new List<string>() { Playername });
@@ -68,6 +73,7 @@ namespace sc2dsstats.db.Services
             foreach (var bp in breakpoints)
             {
                 var bpReplays = builds.Where(x => x.Breakpoint == bp).ToList();
+
                 response.Breakpoints.Add(new DsBuildResponseBreakpoint()
                 {
                     Breakpoint = bp,
@@ -172,11 +178,7 @@ namespace sc2dsstats.db.Services
                         string name = entents[0];
                         if (int.TryParse(entents[0], out id))
                         {
-                            var jsonUnit = DSData.Units.FirstOrDefault(f => f.ID == id);
-                            if (jsonUnit != null)
-                            {
-                                name = jsonUnit.Name;
-                            }
+                            name = NameService.GetUnitName(id);
                         }
                         int.TryParse(entents[1], out count);
                         units.Add(new DsPlayerBreakpointUnitResponse()

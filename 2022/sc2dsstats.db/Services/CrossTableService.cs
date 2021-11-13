@@ -82,7 +82,7 @@ namespace sc2dsstats.db.Services
                     else
                     {
                         var vsResults = cmdrResults.Where(x => x.OppRace == (byte)vs).ToArray();
-                        var oldVsResults = vsResults.Where(x => x.GameTime < request.EndTime.AddDays(-30)).ToArray();
+                        var oldVsResults = vsResults.Where(x => x.GameTime < request.EndTime.AddDays(DateTime.Today.Day < 16  ? -60 : -30)).ToArray();
                         response.Items.Add(new CrosstableResponseItem()
                         {
                             Label = $"{cmdr} vs {vs}",

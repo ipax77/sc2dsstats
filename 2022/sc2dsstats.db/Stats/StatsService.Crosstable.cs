@@ -41,8 +41,8 @@ namespace sc2dsstats.db.Stats
                 Label = $"{(DSData.Commander)s.Key.cmdr} vs {(DSData.Commander)s.Key.opp}",
                 Count = s.Sum(s => s.count),
                 Wins = s.Sum(s => s.wins),
-                OldCount = lastitems.FirstOrDefault(f => f.Label == $"{s.Key.cmdr} vs {s.Key.opp}") != null ? lastitems.FirstOrDefault(f => f.Label == $"{s.Key.cmdr} vs {s.Key.opp}").Count : 0,
-                OldWins = lastitems.FirstOrDefault(f => f.Label == $"{s.Key.cmdr} vs {s.Key.opp}") != null ? lastitems.FirstOrDefault(f => f.Label == $"{s.Key.cmdr} vs {s.Key.opp}").Wins : 0,
+                OldCount = lastitems.FirstOrDefault(f => f.Label == $"{(DSData.Commander)s.Key.cmdr} vs {(DSData.Commander)s.Key.opp}") != null ? lastitems.FirstOrDefault(f => f.Label == $"{(DSData.Commander)s.Key.cmdr} vs {(DSData.Commander)s.Key.opp}").Count : 0,
+                OldWins = lastitems.FirstOrDefault(f => f.Label == $"{(DSData.Commander)s.Key.cmdr} vs {(DSData.Commander)s.Key.opp}") != null ? lastitems.FirstOrDefault(f => f.Label == $"{(DSData.Commander)s.Key.cmdr} vs {(DSData.Commander)s.Key.opp}").Wins : 0,
             }).OrderBy(o => o.Label).ToList();
 
             return new CrosstableResponse()
