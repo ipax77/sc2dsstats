@@ -15,7 +15,7 @@ namespace sc2dsstats.app.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.0-rc.2.21480.5");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
 
             modelBuilder.Entity("sc2dsstats.db.Breakpoint", b =>
                 {
@@ -302,7 +302,8 @@ namespace sc2dsstats.app.Migrations
 
                     b.HasIndex("Hash");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("DsPlayerNames");
                 });

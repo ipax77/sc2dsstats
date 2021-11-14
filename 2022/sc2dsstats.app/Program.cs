@@ -11,7 +11,7 @@ namespace sc2dsstats.app
     {
         public static string workdir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_desktop";
         public static string myConfig = workdir + "\\config2.json";
-        public static Version Version = new Version(0, 2, 0);
+        public static Version Version = new Version(3, 0, 0);
 
         public static void Main(string[] args)
         {

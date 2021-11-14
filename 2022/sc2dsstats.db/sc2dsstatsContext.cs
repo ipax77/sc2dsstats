@@ -385,6 +385,8 @@ namespace sc2dsstats.db
                 .HasMaxLength(64);
                 entity.Property(p => p.AppVersion)
                 .HasMaxLength(32);
+                entity.HasIndex(p => p.Name)
+                .IsUnique();
             });
 
             modelBuilder.Entity<DsInfo>().HasData(new db.DsInfo()

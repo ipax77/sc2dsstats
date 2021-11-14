@@ -94,6 +94,7 @@ namespace sc2dsstats.app.Services
                     "Synergy" => await StatsService.GetSynergy(context, request),
                     "AntiSynergy" => await StatsService.GetAntiSynergy(context, request),
                     "Duration" => await StatsService.GetDuration(context, request),
+                    "Standard" => await StatsService.GetStandardTeamWinrate(request, context),
                     _ => StatsService.GetWinrate(request, await GetStats(request.Player))
                 };
             }
@@ -108,6 +109,7 @@ namespace sc2dsstats.app.Services
                     "Synergy" => await StatsService.GetSynergy(context, request),
                     "AntiSynergy" => await StatsService.GetAntiSynergy(context, request),
                     "Duration" => await StatsService.GetDuration(context, request),
+                    "Standard" => await StatsService.GetStandardTeamWinrate(request, context),
                     _ => await StatsService.GetCustomWinrate(request, context),
                 };
             }

@@ -320,7 +320,6 @@ namespace sc2dsstats.app.Services
                     EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
                     InsertService.InsertReplays(replays.Select(s => s.GetDto()).ToList(), AppConfig.Config.PlayersNames, ewh);
                     ewh.WaitOne();
-                    // TODO fix multiple calls
                     UploadService_ReplaysInserted();
                 }
                 else

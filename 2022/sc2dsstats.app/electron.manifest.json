@@ -22,7 +22,7 @@
     "appId": "com.sc2dsstats.app.app",
     "productName": "sc2dsstats.app",
     "copyright": "Copyright © 2022",
-    "buildVersion": "0.2.0",
+    "buildVersion": "3.0.0",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop"
@@ -49,6 +49,6 @@
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ipax77/electronupdatetest.git"
+    "url": "https://github.com/ipax77/sc2dsstats.git"
   }
 }

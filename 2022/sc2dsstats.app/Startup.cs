@@ -77,7 +77,7 @@ namespace sc2dsstats.app
             {
                 // client.BaseAddress = new Uri("https://localhost:5003");
                 // client.BaseAddress = new Uri("https://sc2dsstats.pax77.org:9777");
-                client.BaseAddress = new Uri("https://sc2dsstats.pax77.org:9877");
+                client.BaseAddress = new Uri("https://sc2dsstats.pax77.org");
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("DSupload77");
             });
@@ -107,12 +107,8 @@ namespace sc2dsstats.app
             var path =  ElectronService.GetPath().GetAwaiter().GetResult();
             
             DSData.Init(path);
-            // NameService.Init(path);
             NameService.Init(context, path).GetAwaiter().GetResult();
 
-            // TODO reset old db:
-            //DbService.SetIsPlayer(context, new List<string>() { "PAX", "Xpax" });
-            //DbService.SetDefaultFilter(context);
 
             app.UseResponseCompression();
 
