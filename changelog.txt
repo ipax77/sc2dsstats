@@ -1,3 +1,7 @@
+3.0.0
+
+- update to dotnet 6 / electron 13.1.5
+
 2.0.30
 
 - upload changed to sc2dsstats.pax77.org
