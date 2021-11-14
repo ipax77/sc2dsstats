@@ -67,6 +67,7 @@ namespace sc2dsstats.app.Services
                 isFirstRun = false;
             }
             decodeService = new DecodeService();
+            decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
             _ = ScanReplayFolders();
             _ = electronService.CheckForUpdate();
             if (AppConfig.Config.OnTheFlyScan)
@@ -82,6 +83,11 @@ namespace sc2dsstats.app.Services
                 var dataService = scope.ServiceProvider.GetRequiredService<IDataService>();
                 playerStats = await dataService.GetPlayerStats(AppConfig.Config.PlayersNames);
             }
+        }
+
+        public void TestNewReplay()
+        {
+            
         }
 
         private void WatchService_NewFileDetected(object sender, FileSystemEventArgs e)
@@ -275,7 +281,7 @@ namespace sc2dsstats.app.Services
 
             if (NewReplays.Any() && !decodeService.isRunning)
             {
-                decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
+                
                 source = new CancellationTokenSource();
                 _ = decodeService.DecodeReplays(ElectronService.AppPath, NewReplays, AppConfig.Config.CPUCores, source.Token);
             } else if (toastService != null)
@@ -317,6 +323,7 @@ namespace sc2dsstats.app.Services
             {
                 if (isDone)
                 {
+                    logger.LogInformation($"Decoding Replays done.");
                     EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
                     InsertService.InsertReplays(replays.Select(s => s.GetDto()).ToList(), AppConfig.Config.PlayersNames, ewh);
                     ewh.WaitOne();

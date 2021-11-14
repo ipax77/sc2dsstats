@@ -165,6 +165,7 @@ namespace sc2dsstats.app.Services
         {
             await UpdateNames();
             var Http = clientFactory.CreateClient("sc2dsstats.app");
+
             using (var scope = scopeFactory.CreateScope())
             {
                 var uploadContext = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
@@ -177,6 +178,24 @@ namespace sc2dsstats.app.Services
                 return success;
             }
         }
+
+        public async Task<bool> TestUpload(UserConfig config)
+        {
+            var Http = clientFactory.CreateClient("sc2dsstats.app");
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var uploadContext = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
+                var replayService = scope.ServiceProvider.GetRequiredService<ReplayService>();
+                var success = await UploadService.Upload(Http, uploadContext, config, logger);
+                if (success)
+                {
+                    replayService.SaveConfig();
+                }
+                return success;
+            }
+        }
+
+        
 
         public async Task<List<DsReplayResponse>> GetReplays(DsReplayRequest request, CancellationToken cancellationToken)
         {

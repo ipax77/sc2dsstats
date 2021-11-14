@@ -56,8 +56,8 @@ namespace sc2dsstats._2022.Server
                         p.MigrationsAssembly("sc2dsstats.2022.Server");
                         p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
                     })
-                //.EnableSensitiveDataLogging() // <-- These two calls are optional but help
-                //.EnableDetailedErrors()       // <-- with debugging (remove for production).
+                // .EnableSensitiveDataLogging() // <-- These two calls are optional but help
+                // .EnableDetailedErrors()       // <-- with debugging (remove for production).
             );
 
             // oldcontexts - to be deleted ----------------------------------------------

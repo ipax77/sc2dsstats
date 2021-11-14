@@ -60,6 +60,7 @@ namespace sc2dsstats.app.Services
             if (!replays.Any())
                 return true;
             replays.SelectMany(s => s.Dsplayers).ToList().ForEach(f => f.Name = config.PlayersNames.Contains(f.Name) ? "player" : $"player{f.Realpos}");
+
             replays.ForEach(f => f.Replaypath = String.Empty);
 
             var json = System.Text.Json.JsonSerializer.Serialize(replays.Select(s => s.GetDto()).ToList());

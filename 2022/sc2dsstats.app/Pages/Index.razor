@@ -28,6 +28,9 @@
 		</button>
 	}
 </div>
+@*<div>
+	<button type="button" class="btn btn-primary" @onclick="replayService.TestNewReplay">Test Upload</button>
+</div>*@
 
 @if (replayService.isFirstRun && File.Exists(Path.Combine(Program.workdir, "data_v3_0.db")))
 {

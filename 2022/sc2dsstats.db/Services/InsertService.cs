@@ -125,6 +125,7 @@ namespace sc2dsstats.db.Services
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
+                    logger.LogInformation($"Context scope: {context.ContextId}");
                     int i = 0;
                     Dsreplay replay;
                     while (Replays.TryTake(out replay))
@@ -133,7 +134,9 @@ namespace sc2dsstats.db.Services
 
                         foreach (var pl in replay.Dsplayers.Where(x => x.PlayerName != null))
                         {
-                            await context.Entry(pl.PlayerName).ReloadAsync();
+                            // await context.Entry(pl.PlayerName).ReloadAsync();
+                            var player = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.DbId == pl.PlayerName.DbId);
+                            pl.PlayerName = player;
                         }
 
                         if (!CheckDuplicate(context, replay, checkDuplicates))
@@ -172,8 +175,8 @@ namespace sc2dsstats.db.Services
             {
                 logger.LogError($"Failed inserting relays: {ex.Message}");
             }
-            finally
-            {
+             finally
+             {
                 semaphoreSlim.Release();
             }
             logger.LogInformation($"Replays inserted: {replayCount}, duplicates: {dupCount}");
@@ -202,7 +205,7 @@ namespace sc2dsstats.db.Services
                             foreach (var pl in pls)
                             {
                                 var lpl = lDupReplay.Dsplayers.FirstOrDefault(f => f.Realpos == pl.Realpos);
-                                if (lpl != null && (lpl.Name.Length != 64 || lpl.Name.Length != 36))
+                                if (lpl != null)
                                 {
                                     lpl.Name = pl.Name;
                                     lpl.isPlayer = true;
@@ -222,11 +225,11 @@ namespace sc2dsstats.db.Services
                     }
                     if (dbDupReplay != null)
                     {
-                        var dbpls = context.Dsplayers.Where(x => x.DsreplayId == dbDupReplay.Id);
+                        var dbpls = context.Dsplayers.Include(i => i.PlayerName).Where(x => x.DsreplayId == dbDupReplay.Id);
                         foreach (var pl in pls)
                         {
                             var dbpl = dbpls.FirstOrDefault(f => f.Realpos == pl.Realpos);
-                            if (dbpl != null && (dbpl.Name.Length != 64 || dbpl.Name.Length != 36))
+                            if (dbpl != null)
                             {
                                 dbpl.Name = pl.Name;
                                 dbpl.isPlayer = true;
