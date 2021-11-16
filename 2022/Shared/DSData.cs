@@ -342,6 +342,16 @@ namespace sc2dsstats._2022.Shared
                 "GameModeSabotage" => Gamemode.Sabotage,
                 "GameModeStandard" => Gamemode.Standard,
                 "GameModeSwitch" => Gamemode.Switch,
+
+                "BrawlCommanders" => Gamemode.BrawlCommanders,
+                "BrawlStandard" => Gamemode.BrawlStandard,
+                "Commanders" => Gamemode.Commanders,
+                "CommandersHeroic" => Gamemode.CommandersHeroic,
+                "Gear" => Gamemode.Gear,
+                "Sabotage" => Gamemode.Sabotage,
+                "Standard" => Gamemode.Standard,
+                "Switch" => Gamemode.Switch,
+
                 _ => Gamemode.Commanders
             };
         }
