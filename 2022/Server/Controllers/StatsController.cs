@@ -52,7 +52,7 @@ namespace sc2dsstats._2022.Server.Controllers
             if (!memoryCache.TryGetValue(memKey, out leaver))
             {
                 leaver = await StatsService.GetLeaver(context, request);
-                memoryCache.Set(memKey, leaver, CacheService.RankingCacheOptions);
+                memoryCache.Set(memKey, leaver, CacheService.BuildCacheOptions);
             }
             return leaver;
         }
@@ -64,7 +64,7 @@ namespace sc2dsstats._2022.Server.Controllers
             if (!memoryCache.TryGetValue(memKey, out leaver))
             {
                 leaver = await StatsService.GetQuits(context, request);
-                memoryCache.Set(memKey, leaver, CacheService.RankingCacheOptions);
+                memoryCache.Set(memKey, leaver, CacheService.BuildCacheOptions);
             }
             return leaver;
         }
@@ -89,7 +89,13 @@ namespace sc2dsstats._2022.Server.Controllers
 
         private async Task SetLeaverQuit(DsRequest request, DsResponse response)
         {
-            response.CountResponse = await GetCountResponse(request);
+            // response.CountResponse = await GetCountResponse(request);
+            response.CountResponse = new DsCountResponse()
+            {
+                FilteredCount = response.Count,
+                Leaver = await GetLeaver(request),
+                Quits = await GetQuits(request)
+            };
         }
 
         [HttpGet]

@@ -69,12 +69,18 @@
                 {
                     <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">&empty; Duration<br/>@TimeSpan.FromSeconds(response.AvgDuration).ToString(@"mm\:ss")</span>
                 }
-                <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Games where at least one player quits 90 seconds before the end of the game.">
-                    Leaver<br/>@response.CountResponse.Leaver.ToString("N2") %
-                </span>
-                <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Games with no result available (game crash, (rage) quit or replay error)">
-                    Quit<br/>@response.CountResponse.Quits.ToString("N2") %
-                </span>
+                @if (response.CountResponse.Leaver > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Games where at least one player quits 90 seconds before the end of the game.">
+                        Leaver<br/>@response.CountResponse.Leaver.ToString("N2") %
+                    </span>
+                }
+                @if (response.CountResponse.Quits > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Games with no result available (game crash, (rage) quit or replay error)">
+                        Quit<br/>@response.CountResponse.Quits.ToString("N2") %
+                    </span>
+                }
             </div>
             }
         </div>
