@@ -31,9 +31,9 @@ namespace sc2dsstats._2022.Server.Services
 
         public Task StartAsync(CancellationToken stoppingToken)
         {
+            _timer = new Timer(DoWork, null, new TimeSpan(0, 1, 1), new TimeSpan(0, 1, 0));
+            // _timer = new Timer(DoWork, null, new TimeSpan(0, 0, 4), new TimeSpan(1, 0, 0));
 
-            _timer = new Timer(DoWork, null, new TimeSpan(0, 0, 4), new TimeSpan(1, 0, 0));
-            // _timer = new Timer(DoWork, null, TimeSpan.Zero, new TimeSpan(24, 0, 0));
             return Task.CompletedTask;
         }
 
@@ -46,27 +46,34 @@ namespace sc2dsstats._2022.Server.Services
             using (var scope = _sp.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
-                var oldcontext = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
-                var restcontext = scope.ServiceProvider.GetRequiredService<DSRestContext>();
-                var insertService = scope.ServiceProvider.GetRequiredService<InsertService>();
                 try
                 {
-                    // int repCount = OldContextsService.UpdateFromOldDb(context, oldcontext, insertService);
-                    int repCount = 0;
                     var cacheService = scope.ServiceProvider.GetRequiredService<CacheService>();
-                    if (repCount > 0)
+                    var memoryCache = scope.ServiceProvider.GetRequiredService<IMemoryCache>();
+                    if (cacheService.Updatesavailable)
                     {
-                        insertService.NewReplaysCount = 0;
-                        var memoryCache = scope.ServiceProvider.GetRequiredService<IMemoryCache>();
-                        
-                        cacheService.ResetCache(true);
                         var stats = await StatsService.GetStats(context, false);
                         memoryCache.Set("cmdrstats", stats, CacheService.RankingCacheOptions);
                         var plstats = await StatsService.GetStats(context, true);
                         memoryCache.Set("cmdrstatsplayer", plstats, CacheService.RankingCacheOptions);
-                    } else
+                        cacheService.Updatesavailable = false;
+                        _logger.LogInformation("stats cache rebuild");
+                    }
+                    else
                     {
-                        cacheService.ResetCache();
+                        if (!memoryCache.TryGetValue("cmdrstats", out _))
+                        {
+                            var stats = await StatsService.GetStats(context, false);
+                            memoryCache.Set("cmdrstats", stats, CacheService.RankingCacheOptions);
+                            _logger.LogInformation("cmdrstats cache refilled");
+                        }
+                        if (!memoryCache.TryGetValue("cmdrstatsplayer", out _))
+                        {
+                            var plstats = await StatsService.GetStats(context, true);
+                            memoryCache.Set("cmdrstatsplayer", plstats, CacheService.RankingCacheOptions);
+                            _logger.LogInformation("cmdrstatspl cache refilled");
+                        }
+
                     }
                 }
                 catch (Exception e)
