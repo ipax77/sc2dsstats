@@ -103,7 +103,7 @@
 @*                <div class="form-group" style="max-width: 450px;">
                     <InputText @bind-Value="request.Playername" @oninput="SearchPlayerName" placeholder="Name"></InputText>
                 </div>*@
-                <sc2dsstats.rlib.Helper.SearchComponent onSelected="SelectPlayer" Options="playerNames"></sc2dsstats.rlib.Helper.SearchComponent>
+                <sc2dsstats.rlib.Helper.SearchComponent onSelected="SelectPlayer" Options="playerNames" SearchTerm="@request.Playername"></sc2dsstats.rlib.Helper.SearchComponent>
                 <div class="form-group" style="max-width: 450px;">
                     <InputSelect disabled="@(String.IsNullOrEmpty(request.Playername))" class="form-select" id="plraceSelect" @bind-Value="request.PlayerRace">
                         <option value="">Any</option>
@@ -256,6 +256,9 @@
     [Parameter]
     public EventCallback<string> onReplaySelected { get; set; }
 
+    [Parameter]
+    public string PlayerName { get; set; } = String.Empty;
+
     DsReplayRequest request;
     DsRequest Request = new DsRequest();
     int replaysCount = 0;
@@ -285,6 +288,13 @@
                 Order = false
             }}
         };
+        if (!String.IsNullOrEmpty(PlayerName))
+        {
+            request.Playername = PlayerName;
+            request.DefaultFilter = false;
+            request.Filter = new DsFilter();
+            request.Filter.SetOff();
+        }
         editContext = new EditContext(request);
         editContext.OnFieldChanged += FieldChanged;
         playerNames = await dataService.GetPlayernames();

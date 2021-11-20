@@ -1,5 +1,6 @@
 ﻿@using sc2dsstats._2022.Shared
 @inject IDataService dataService
+@inject NavigationManager _nav
 
 <div class="row justify-content-between">
     <h3 class="text-primary col-auto">
@@ -53,6 +54,7 @@
                     <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Games with the player winning in the opponent team">
                         OppWins
                     </th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -76,6 +78,7 @@
                                 <td></td>
                                 <td></td>
                             }
+                            <td><span class="badge bg-info pointer" @onclick:stopPropagation @onclick="e => ShowReplays(context.Name)">Replays</span></td>
                     </tr>
                     </ItemContent>
                 </Virtualize>
@@ -105,6 +108,13 @@
         rankings = await dataService.GetPlayerNameStats();
         modRankings = rankings.OrderByDescending(o => o.Games).ToList();
         await InvokeAsync(() => StateHasChanged());
+    }
+
+    void ShowReplays(string name)
+    {
+        var bab = _nav.GetUriWithQueryParameter("playername", name);
+        bab = bab.Replace("players", "database");
+        _nav.NavigateTo(bab);
     }
 
     void Sort(string interest)

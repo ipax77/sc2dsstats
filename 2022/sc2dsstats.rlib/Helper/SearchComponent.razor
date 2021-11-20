@@ -36,10 +36,13 @@
     [Parameter]
     public EventCallback<string> onSelected { get; set; }
 
+    [Parameter]
+    public string SearchTerm { get; set; } = String.Empty;
+
     bool showSelect = false;
     string selectClass => showSelect ? "" : "d-none";
 
-    private string SearchTerm = String.Empty;
+    
     private int FocusIndex = 0;
     private bool tableClick = false;
     public ElementReference inputRef;
