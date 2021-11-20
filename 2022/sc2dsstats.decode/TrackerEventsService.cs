@@ -404,9 +404,10 @@ namespace sc2dsstats.decode
                 // Gamemodes
                 else if (isBrawl_set == false && pydic.ContainsKey("_gameloop") && (int)pydic["_gameloop"] == 0 && pydic.ContainsKey("m_upgradeTypeName")) // 56863
                 {
-                    if (DecodeService.GetString(pydic, "m_upgradeTypeName").StartsWith("Mutation"))
+                    var upgradeString = DecodeService.GetString(pydic, "m_upgradeTypeName");
+                    if (upgradeString.StartsWith("Mutation") || upgradeString.StartsWith("GameMode"))
                     {
-                        Mutation.Add(DecodeService.GetString(pydic, "m_upgradeTypeName"));
+                        Mutation.Add(upgradeString);
                     }
                 }
                 // Spawn
@@ -501,6 +502,10 @@ namespace sc2dsstats.decode
                         continue;
                     if (upgrade.EndsWith("Starlight"))
                         continue;
+                    if (upgrade == "SpookySkeletonNerf")
+                        continue;
+                    if (upgrade == "UsingVespeneIncapableWorker")
+                        continue;
 
                     DSPlayer pl = replay.DSPlayer.SingleOrDefault(s => s.POS == playerid);
                     if (pl == null) continue;
@@ -573,7 +578,24 @@ namespace sc2dsstats.decode
 
             }
             // Gamemode
-            if (Mutation.Contains("MutationCovenant"))
+            if (Mutation.Contains("GameModeTutorial"))
+                replay.GAMEMODE = "GameModeTutorial";
+            else if (Mutation.Contains("GameModeBrawl"))
+            {
+                if (Mutation.Contains("GameModeCommanders"))
+                    replay.GAMEMODE = "GameModeBrawlCommanders";
+                else
+                    replay.GAMEMODE = "GameModeBrawl";
+            }
+            else if (Mutation.Contains("GameModeGear"))
+                replay.GAMEMODE = "GameModeGear";
+            else if (Mutation.Contains("GameModeHeroicCommanders"))
+                replay.GAMEMODE = "GameModeHeroicCommanders";
+            else if (Mutation.Contains("GameModeSabotage"))
+                replay.GAMEMODE = "GameModeSabotage";
+            else if (Mutation.Contains("GameModeSwitch"))
+                replay.GAMEMODE = "GameModeSwitch";
+            else if (Mutation.Contains("MutationCovenant"))
                 replay.GAMEMODE = "GameModeSwitch";
             else if (Mutation.Contains("MutationEquipment"))
                 replay.GAMEMODE = "GameModeGear";
@@ -584,9 +606,10 @@ namespace sc2dsstats.decode
             else if (Mutation.Contains("MutationCommanders"))
             {
                 replay.GAMEMODE = "GameModeCommanders"; // fail safe
-                if (Mutation.Count() == 3 && Mutation.Contains("MutationExpansion") && Mutation.Contains("MutationOvertime")) replay.GAMEMODE = "GameModeCommandersHeroic";
-                else if (Mutation.Count() == 2 && Mutation.Contains("MutationOvertime")) replay.GAMEMODE = "GameModeCommanders";
-                else if (Mutation.Count() >= 3) replay.GAMEMODE = "GameModeBrawlCommanders";
+                if (Mutation.Count == 3 && Mutation.Contains("MutationExpansion") && Mutation.Contains("MutationOvertime")) replay.GAMEMODE = "GameModeCommandersHeroic";
+                else if (Mutation.Count == 2 && Mutation.Contains("MutationOvertime")) replay.GAMEMODE = "GameModeCommanders";
+                else if (Mutation.Count >= 3) replay.GAMEMODE = "GameModeBrawlCommanders";
+                else if (Mutation.Contains("MutationAura")) replay.GAMEMODE = "GameModeBrawlCommanders";
             }
             else
             {

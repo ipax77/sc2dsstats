@@ -315,7 +315,8 @@ namespace sc2dsstats._2022.Shared
             "GameModeGear",
             "GameModeSabotage",
             "GameModeStandard",
-            "GameModeSwitch"
+            "GameModeSwitch",
+            "GameModeTutorial"
         };
 
         public enum Gamemode
@@ -327,7 +328,8 @@ namespace sc2dsstats._2022.Shared
             Gear,
             Sabotage,
             Standard,
-            Switch
+            Switch,
+            Tutorial
         }
 
         public static Gamemode GetGameMode(string mode)
@@ -342,6 +344,7 @@ namespace sc2dsstats._2022.Shared
                 "GameModeSabotage" => Gamemode.Sabotage,
                 "GameModeStandard" => Gamemode.Standard,
                 "GameModeSwitch" => Gamemode.Switch,
+                "GameModeTutorial" => Gamemode.Tutorial,
 
                 "BrawlCommanders" => Gamemode.BrawlCommanders,
                 "BrawlStandard" => Gamemode.BrawlStandard,
@@ -351,6 +354,7 @@ namespace sc2dsstats._2022.Shared
                 "Sabotage" => Gamemode.Sabotage,
                 "Standard" => Gamemode.Standard,
                 "Switch" => Gamemode.Switch,
+                "Tutorial" => Gamemode.Tutorial,
 
                 _ => Gamemode.Commanders
             };
