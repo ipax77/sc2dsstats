@@ -74,6 +74,15 @@
 
     public void Update()
     {
+        if (!String.IsNullOrEmpty(Playername))
+        {
+            Name = Playername.Length > 8 ? Playername.Substring(0, 8) + ".." : Playername;
+            Name += "'s";
+        }
+        else
+        {
+            Name = "Your";
+        }
         InvokeAsync(() => StateHasChanged());
     }
 
@@ -86,19 +95,12 @@
         {
             Name = Playername.Length > 8 ? Playername.Substring(0, 8) + ".." : Playername;
             Name += "'s";
-        } else
+        }
+        else
         {
             Name = "Your";
         }
         base.OnInitialized();
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-        }
-        base.OnAfterRender(firstRender);
     }
 
     void ShowDetails()

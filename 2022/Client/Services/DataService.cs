@@ -183,5 +183,15 @@ namespace sc2dsstats._2022.Client.Services
                 return null;
             }
         }
+
+        public async Task<List<PlayerNameResponse>> GetPlayerNameStats()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<PlayerNameStatsResponse> GetPlayerNameStatsResponse(string name)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

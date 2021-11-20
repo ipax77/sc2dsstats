@@ -257,5 +257,20 @@ namespace sc2dsstats.app.Services
 
             return lleaver[0].Count == 0 ? "0" : (lleaver[1].Count / (double)lleaver[0].Count * 100).ToString("00.00");
         }
+
+        public async Task<List<PlayerNameResponse>> GetPlayerNameStats()
+        {
+            var stats = await PlayerNameService.GetPlayers(context);
+            for (int i = 1; i < Math.Min(stats.Count, 20) - 1; i++)
+            {
+                stats[i].Stats = await PlayerNameService.GetPlayerStats(context, stats[i].Name);
+            }
+            return stats;
+        }
+
+        public async Task<PlayerNameStatsResponse> GetPlayerNameStatsResponse(string name)
+        {
+            return await PlayerNameService.GetPlayerStats(context, name);
+        }
     }
 }

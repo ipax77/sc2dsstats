@@ -39,7 +39,11 @@
     {
         Name = name;
         playerStats = await dataService.GetPlayerStats(new List<string>() { name });
-        _js.InvokeVoidAsync("ReplayModalOpen", "playerModal");
-        StateHasChanged();
+        await InvokeAsync(() => StateHasChanged());
+        await _js.InvokeVoidAsync("ReplayModalOpen", "playerModal");
+        if (playerComponent != null)
+        {
+            playerComponent.Update();
+        }
     }
 }

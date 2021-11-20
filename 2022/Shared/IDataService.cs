@@ -15,5 +15,7 @@ namespace sc2dsstats._2022.Shared
         Task<List<DsRankingResponse>> GetRankings();
         Task<List<string>> GetPlayernames();
         Task<DsPlayerStats> GetPlayerStats(List<string> playerNames);
+        Task<List<PlayerNameResponse>> GetPlayerNameStats();
+        Task<PlayerNameStatsResponse> GetPlayerNameStatsResponse(string name);
     }
 }
