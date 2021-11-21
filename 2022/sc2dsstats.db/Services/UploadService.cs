@@ -2,15 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.db.Services
 {

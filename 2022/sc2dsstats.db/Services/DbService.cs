@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.EntityFrameworkCore;
+using sc2dsstats._2022.Shared;
+using sc2dsstats.lib.Db;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
-using sc2dsstats._2022.Shared;
 using static sc2dsstats._2022.Shared.DSData;
 
 namespace sc2dsstats.db.Services
@@ -122,7 +120,7 @@ namespace sc2dsstats.db.Services
 
             int count1 = lleaver[0].Count;
             int count2 = lleaver[1].Count;
-            
+
         }
 
         public static async Task<List<CmdrStats>> GetStats(sc2dsstatsContext context, bool player)
@@ -168,6 +166,36 @@ namespace sc2dsstats.db.Services
             cmdrstats = cmdrstats.Where(x => DSData.GetCommanders.Select(s => (byte)s).Contains(x.RACE)).ToList();
             cmdrstats = cmdrstats.Where(x => DSData.GetCommanders.Select(s => (byte)s).Contains(x.OPPRACE)).ToList();
             return cmdrstats;
+        }
+
+        public static void FixGamemode(sc2dsstatsContext context, DSReplayContext oldcontext)
+        {
+            var oldreps = oldcontext.DSReplays.OrderBy(o => o.ID).Select(s => new { hash = s.HASH, gamemode = s.GAMEMODE });
+            int skip = 0;
+            int take = 1000;
+            var loldreps = oldreps.AsNoTracking().Skip(skip).Take(take).ToList();
+            int j = 0;
+            while (loldreps.Any())
+            {
+                for (int i = 0; i < loldreps.Count; i++)
+                {
+                    var newrep = context.Dsreplays.FirstOrDefault(f => f.Hash == loldreps[i].hash);
+                    if (newrep != null)
+                    {
+                        var gameMode = (byte)DSData.GetGameMode(loldreps[i].gamemode);
+                        if (newrep.Gamemode != gameMode)
+                        {
+                            newrep.Gamemode = gameMode;
+                            j++;
+                        }
+                    }
+                }
+                context.SaveChanges();
+                Console.WriteLine($"fixed gamemodes: {j}");
+                skip += take;
+                loldreps = oldreps.AsNoTracking().Skip(skip).Take(take).ToList();
+            }
+
         }
 
         public static string GetReplayHash(Dsreplay replay)

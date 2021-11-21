@@ -1,13 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Client.Shared;
 using sc2dsstats._2022.Server.Models;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace sc2dsstats._2022.Server.Hubs
 {

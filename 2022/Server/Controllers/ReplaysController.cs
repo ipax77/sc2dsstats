@@ -1,13 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
-using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace sc2dsstats._2022.Server.Controllers
 {
@@ -30,7 +24,8 @@ namespace sc2dsstats._2022.Server.Controllers
             if (!cancellationToken.IsCancellationRequested)
             {
                 return await ReplayService.GetReplays(context, request, cancellationToken);
-            } else
+            }
+            else
             {
                 return Ok();
             }
@@ -43,7 +38,7 @@ namespace sc2dsstats._2022.Server.Controllers
         }
 
         [HttpGet("{hash}")]
-        public async Task <ActionResult<DsGameResponse>> GetReplay(string hash)
+        public async Task<ActionResult<DsGameResponse>> GetReplay(string hash)
         {
             var replay = await ReplayService.GetReplay(context, hash);
             if (replay == null)

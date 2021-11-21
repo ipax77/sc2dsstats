@@ -2,8 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
-using System;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.db.Services
 {
@@ -35,7 +33,7 @@ namespace sc2dsstats.db.Services
 
         public void AddHashKey(string key)
         {
-            lock(lockobject)
+            lock (lockobject)
             {
                 HashKeys.Add(key);
             }
@@ -43,7 +41,7 @@ namespace sc2dsstats.db.Services
 
         public void ResetCache(bool force = false)
         {
-            lock(lockobject)
+            lock (lockobject)
             {
                 if (Updatesavailable || force)
                 {

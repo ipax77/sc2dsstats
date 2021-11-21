@@ -3,26 +3,37 @@
 
 <!-- Modal -->
 <div class="modal fade" id="replayModal" tabindex="-1" aria-labelledby="replayModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-xxl-down">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Replay Details <a href="@($"{_nav.BaseUri}database/{Hash}")">Link</a></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <ReplayComponent @ref="replayComponent" onClose="Close" hash="@Hash" ShowPlayerNames="true"></ReplayComponent>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-xxl-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    Replay Details
+                    @if (String.IsNullOrEmpty(replayPath))
+                    {
+                        <a href="@($"{_nav.BaseUri}database/{Hash}")">Link</a>
+                    }
+                    else
+                    {
+                        <a href="@replayPath">FileLink</a>
+                    }
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ReplayComponent @ref="replayComponent" onClose="Close" hash="@Hash" ShowPlayerNames="true"></ReplayComponent>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 
 @code {
 
     private string Hash = String.Empty;
+    private string replayPath = String.Empty;
     ReplayComponent replayComponent;
 
     private async void Close()
@@ -30,11 +41,11 @@
         await _js.InvokeVoidAsync("ReplayModalClose");
     }
 
-    public void Show(string hash)
+    public async void Show(string hash)
     {
         Hash = hash;
-        replayComponent.LoadReplay(hash);
-        _js.InvokeVoidAsync("ReplayModalOpen", "replayModal");
+        await _js.InvokeVoidAsync("ReplayModalOpen", "replayModal");
+        replayPath = await replayComponent.LoadReplay(hash);
         StateHasChanged();
     }
 }

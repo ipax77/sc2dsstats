@@ -1,18 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
 using sc2dsstats.db.Stats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace sc2dsstats.app.Services
 {
@@ -23,6 +15,7 @@ namespace sc2dsstats.app.Services
         private readonly IHttpClientFactory clientFactory;
         private readonly IServiceScopeFactory scopeFactory;
         private readonly ILogger<DataService> logger;
+        private static ConcurrentDictionary<string, PlayerNameStatsResponse> PlayerStats = new ConcurrentDictionary<string, PlayerNameStatsResponse>();
 
         public DataService(sc2dsstatsContext context, IMemoryCache memoryCache, IHttpClientFactory clientFactory, IServiceScopeFactory scopeFactory, ILogger<DataService> logger)
         {
@@ -55,7 +48,7 @@ namespace sc2dsstats.app.Services
             //    leaver = await StatsService.GetLeaver(context, request);
             //    memoryCache.Set(memKey, leaver, CacheService.RankingCacheOptions);
             //}
-            
+
             leaver = await StatsService.GetLeaver(context, request);
             return leaver;
         }
@@ -69,15 +62,15 @@ namespace sc2dsstats.app.Services
             //    leaver = await StatsService.GetQuits(context, request);
             //    memoryCache.Set(memKey, leaver, CacheService.RankingCacheOptions);
             //}
-            
+
             leaver = await StatsService.GetQuits(context, request);
             return leaver;
         }
 
         private async Task<DsCountResponse> GetCountResponse(DsRequest request)
-		{
+        {
             return await StatsService.GetCount(context, request);
-		}
+        }
 
         public async Task<DsResponse> LoadData(DsRequest request)
         {
@@ -89,7 +82,7 @@ namespace sc2dsstats.app.Services
                     "Winrate" => StatsService.GetWinrate(request, await GetStats(request.Player)),
                     "Timeline" => StatsService.GetTimeline(new TimelineRequest(request.Mode, request.Timespan, request.Player, request.Interest, request.Versus)
                     , await GetStats(request.Player)),
-                    "MVP" => StatsService.GetMvp(request, await GetStats(request.Player)),
+                    "MVP" => request.Player ? await StatsService.GetCustomMvp(request, context) : StatsService.GetMvp(request, await GetStats(request.Player)),
                     "DPS" => StatsService.GetDps(request, await GetStats(request.Player)),
                     "Synergy" => await StatsService.GetSynergy(context, request),
                     "AntiSynergy" => await StatsService.GetAntiSynergy(context, request),
@@ -155,7 +148,8 @@ namespace sc2dsstats.app.Services
                         await context.SaveChangesAsync();
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 logger.LogError($"name update failed: {ex.Message}");
             }
@@ -195,7 +189,7 @@ namespace sc2dsstats.app.Services
             }
         }
 
-        
+
 
         public async Task<List<DsReplayResponse>> GetReplays(DsReplayRequest request, CancellationToken cancellationToken)
         {
@@ -261,16 +255,40 @@ namespace sc2dsstats.app.Services
         public async Task<List<PlayerNameResponse>> GetPlayerNameStats()
         {
             var stats = await PlayerNameService.GetPlayers(context);
-            for (int i = 1; i < Math.Min(stats.Count, 20) - 1; i++)
-            {
-                stats[i].Stats = await PlayerNameService.GetPlayerStats(context, stats[i].Name);
-            }
+            //for (int i = 1; i < Math.Min(stats.Count, 20) - 1; i++)
+            //{
+            //    stats[i].Stats = await PlayerNameService.GetPlayerStats(context, stats[i].Name);
+            //}
             return stats;
         }
 
-        public async Task<PlayerNameStatsResponse> GetPlayerNameStatsResponse(string name)
+        public async Task<PlayerNameStatsResponse?> GetPlayerNameStatsResponse(string name, CancellationToken token)
         {
-            return await PlayerNameService.GetPlayerStats(context, name);
+            try
+            {
+                PlayerNameStatsResponse? stats;
+                if (PlayerStats.TryGetValue(name, out stats))
+                {
+                    return stats;
+                }
+                else
+                {
+                    stats = await PlayerNameService.GetPlayerStats(context, name, token);
+                    if (stats != null)
+                    {
+                        PlayerStats.TryAdd(name, stats);
+                    }
+                }
+            }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (Exception) { }
+            return null;
+        }
+
+        public void ClearPlayerStats()
+        {
+            PlayerStats.Clear();
         }
     }
 }

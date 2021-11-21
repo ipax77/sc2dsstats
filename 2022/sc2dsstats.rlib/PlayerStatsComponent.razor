@@ -1,6 +1,14 @@
 ﻿@using sc2dsstats._2022.Shared
 @inject IDataService dataService
 @inject NavigationManager _nav
+@implements IDisposable
+
+<style>
+    .header{
+        position:sticky;
+        top: 0 ;
+    }
+</style>
 
 <div class="row justify-content-between">
     <h3 class="text-primary col-auto">
@@ -20,32 +28,32 @@
 } else
 {
     <div>
-        <table class="table table-dark table-striped table-hover">
-            <thead>
+        <table class="table table-dark table-striped table-hover w-100">
+            <thead class="header">
                 <tr>
                     <th>#</th>
-                    <th class="pointer" @onclick="@(() => Sort("Name"))">
+                    <th class="pointer header" scope="col" @onclick="@(() => Sort("Name"))" style="width: 250px;">
                         <div class="d-flex justify-content-start">
                             Name
                             <sc2dsstats.rlib.Helper.ArrowHelper Interest="Name" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
                         </div>
                     </th>
-                    <th class="pointer" @onclick="@(() => Sort("Games"))">
+                    <th class="pointer header" scope="col" @onclick="@(() => Sort("Games"))">
                         <div class="d-flex justify-content-start">
                             Games
                             <sc2dsstats.rlib.Helper.ArrowHelper Interest="Games" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
                         </div>
                     </th>
-                    <th class="pointer" @onclick="@(() => Sort("Wins"))">
+                    <th class="pointer header" scope="col" @onclick="@(() => Sort("Wins"))">
                         <div class="d-flex justify-content-start">
                             Wins
                             <sc2dsstats.rlib.Helper.ArrowHelper Interest="Wins" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
                         </div>
                     </th>
-                    <th>
+                    <th class="header" scope="col">
                         TeamGames
                     </th>
-                    <th>
+                    <th class="header" scope="col">
                         TeamWins
                     </th>
                     <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Games with the player in the opponent team">
@@ -54,33 +62,34 @@
                     <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Games with the player winning in the opponent team">
                         OppWins
                     </th>
-                    <th></th>
+                    <th class="header" scope="col"></th>
                 </tr>
             </thead>
             <tbody>
-                <Virtualize @ref="virtualTable" Items="modRankings" ItemSize="41">
+                <Virtualize @ref="virtualTable" Items="modRankings" ItemSize="41" OverscanCount="5">
                     <ItemContent>
                         <tr class="pointer" @onclick="e => ShowPlayerDetails(context.Name)">
                             <td>@(modRankings.IndexOf(context) + 1)</td>
                             <td>@(context.Name.Length > 14 ? context.Name.Substring(0, 14) : context.Name)</td>
                             <td>@context.Games</td>
                             <td>@(Math.Round(context.Wins * 100.0 / (double)context.Games, 2))% (@context.Wins)</td>
-                            @if (context.Stats != null)
+                            @if (context.Games > 3)
                             {
-                                <td>@context.Stats.TeamGames</td>
-                                <td>@Math.Round(context.Stats.TeamWins * 100.0 / (double)context.Stats.TeamGames, 2)% (@context.Stats.TeamWins)</td>
-                                <td>@context.Stats.OppGames</td>
-                                <td>@Math.Round(context.Stats.OppWins * 100.0 / (double)context.Stats.OppGames, 2)% (@context.Stats.OppWins)</td>
+                                <PlayerStatsItemComponent @key="context.Name" Name="@context.Name"></PlayerStatsItemComponent>
                             } else
                             {
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td colspan="4"></td>
                             }
-                            <td><span class="badge bg-info pointer" @onclick:stopPropagation @onclick="e => ShowReplays(context.Name)">Replays</span></td>
+                        <td><span class="badge bg-info pointer" @onclick:stopPropagation @onclick="e => ShowReplays(context.Name)">Replays</span></td>
                     </tr>
                     </ItemContent>
+                    <Placeholder>
+                        <tr>
+                            <td>0</td>
+                            <td>Loading ...</td>
+                            <td colspan="8"></td>
+                        </tr>
+                    </Placeholder>
                 </Virtualize>
             </tbody>
         </table>
@@ -160,16 +169,21 @@
     async void ShowPlayerDetails(string name)
     {
         var pl = rankings.FirstOrDefault(f => f.Name == name);
-        if (pl != null && pl.Stats == null)
-        {
-            pl.Stats = await dataService.GetPlayerNameStatsResponse(name);
-            var mpl = modRankings.FirstOrDefault(f => f.Name == name);
-            if (mpl != null)
-            {
-                mpl.Stats = pl.Stats;                
-            }
-            await InvokeAsync(() => StateHasChanged());
-        }
+        //if (pl != null && pl.Stats == null)
+        //{
+        //    pl.Stats = await dataService.GetPlayerNameStatsResponse(name);
+        //    var mpl = modRankings.FirstOrDefault(f => f.Name == name);
+        //    if (mpl != null)
+        //    {
+        //        mpl.Stats = pl.Stats;                
+        //    }
+        //    await InvokeAsync(() => StateHasChanged());
+        //}
         playerModal.Show(name);
+    }
+
+    public void Dispose()
+    {
+        dataService.ClearPlayerStats();
     }
 }

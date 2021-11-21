@@ -36,7 +36,7 @@
     public async void Show(string name)
     {
         Name = name;
-        playerStats = await dataService.GetPlayerNameStatsResponse(name);
+        // playerStats = await dataService.GetPlayerNameStatsResponse(name);
         await InvokeAsync(() => StateHasChanged());
         await _js.InvokeVoidAsync("ReplayModalOpen", "playerstatsModal");
     }

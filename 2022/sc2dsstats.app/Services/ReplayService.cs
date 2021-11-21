@@ -1,23 +1,14 @@
 ﻿using Blazored.Toast.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
 using sc2dsstats.db.Stats;
 using sc2dsstats.decode;
 using sc2dsstats.lib.Db;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.app.Services
 {
@@ -87,7 +78,7 @@ namespace sc2dsstats.app.Services
 
         public void TestNewReplay()
         {
-            
+
         }
 
         private void WatchService_NewFileDetected(object sender, FileSystemEventArgs e)
@@ -227,7 +218,7 @@ namespace sc2dsstats.app.Services
 
                     while (oldReplays.Any() && !source.IsCancellationRequested)
                     {
-                        
+
 
                         decodeService.OnDecodeStateChanged(new DecodeStateEvent()
                         {
@@ -265,9 +256,9 @@ namespace sc2dsstats.app.Services
         public async void DecodeReplays(IToastService toastService = null)
         {
             logger.LogInformation("DecodeReplays");
-            
+
             if (toastService != null)
-                    toastService.ShowWarning("Start decoding ...");
+                toastService.ShowWarning("Start decoding ...");
 
             if (String.IsNullOrEmpty(ElectronService.AppPath))
             {
@@ -281,10 +272,11 @@ namespace sc2dsstats.app.Services
 
             if (NewReplays.Any() && !decodeService.isRunning)
             {
-                
+
                 source = new CancellationTokenSource();
                 _ = decodeService.DecodeReplays(ElectronService.AppPath, NewReplays, AppConfig.Config.CPUCores, source.Token);
-            } else if (toastService != null)
+            }
+            else if (toastService != null)
             {
                 if (decodeService.isRunning)
                 {

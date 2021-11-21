@@ -1,32 +1,16 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using sc2dsstats._2022.Server.Attributes;
+using sc2dsstats._2022.Server.Hubs;
+using sc2dsstats._2022.Server.Services;
+using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
-using sc2dsstats._2022.Shared;
-using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.IO.Compression;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Db;
-using sc2dsstats._2022.Server.Services;
-using sc2dsstats._2022.Server.Hubs;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace sc2dsstats._2022.Server
 {
@@ -46,12 +30,13 @@ namespace sc2dsstats._2022.Server
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration["ServerConfig:WSLConnectionString2"];
-            // var connectionString = Configuration["ServerConfig:RemoteConnectionString"];
+            // var connectionString = Configuration["ServerConfig:ProdConnectionString"];
 
-            var serverVersion = new MySqlServerVersion(new System.Version(5, 0, 34));
+            var serverVersion = new MySqlServerVersion(new System.Version(5, 0, 36));
             services.AddDbContext<sc2dsstatsContext>(
                 dbContextOptions => dbContextOptions
-                    .UseMySql(connectionString, serverVersion, p => {
+                    .UseMySql(connectionString, serverVersion, p =>
+                    {
                         p.EnableRetryOnFailure();
                         p.MigrationsAssembly("sc2dsstats.2022.Server");
                         p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
@@ -63,11 +48,13 @@ namespace sc2dsstats._2022.Server
             // oldcontexts - to be deleted ----------------------------------------------
             services.AddDbContext<DSReplayContext>(options =>
                 options.UseMySql(Configuration["ServerConfig:DBConnectionStringOld"], serverVersion,
+                    // options.UseMySql(Configuration["ServerConfig:RemoteConnectionString"], serverVersion,
                     p =>
                     {
                         p.EnableRetryOnFailure();
                     }
                 ));
+
             services.AddDbContext<DSRestContext>(options =>
                 options.UseMySql(Configuration["ServerConfig:DBRestConnectionString"], serverVersion)
             );
@@ -103,7 +90,8 @@ namespace sc2dsstats._2022.Server
                     new[] { "application/octet-stream" });
             });
 
-            services.AddW3CLogging(options => {
+            services.AddW3CLogging(options =>
+            {
                 options.LogDirectory = "/data/logs";
                 options.LoggingFields = W3CLoggingFields.Request | W3CLoggingFields.ConnectionInfoFields;
             });
@@ -118,19 +106,27 @@ namespace sc2dsstats._2022.Server
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, sc2dsstatsContext context, CacheService cacheService, DSReplayContext oldcontext, DSRestContext restcontext, InsertService insertService, ILogger<Startup> _logger)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, sc2dsstatsContext context, ILogger<Startup> _logger)
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-            
+
             DSData.Init();
 
             context.Database.SetCommandTimeout(TimeSpan.FromMinutes(10));
             context.Database.Migrate();
 
             NameService.Init(context, "").GetAwaiter().GetResult();
-            
-            cacheService.SetBuildCache();
+
+
+            //var oldreps = oldcontext.DSReplays.Count();
+            //_logger.LogInformation($"oldreps: {oldreps}");
+            //var newreps = context.Dsreplays.Count();
+            //_logger.LogInformation($"newreps: {newreps}");
+
+            //DbService.FixGamemode(context, oldcontext);
+
+            // cacheService.SetBuildCache();
 
             // OldContextsService.CopyRestPlayerData(context, restcontext);
             // OldContextsService.UpdateFromOldDb(context, oldcontext, insertService, fullCopy: true);

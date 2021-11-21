@@ -16,6 +16,7 @@ namespace sc2dsstats._2022.Shared
         Task<List<string>> GetPlayernames();
         Task<DsPlayerStats> GetPlayerStats(List<string> playerNames);
         Task<List<PlayerNameResponse>> GetPlayerNameStats();
-        Task<PlayerNameStatsResponse> GetPlayerNameStatsResponse(string name);
+        Task<PlayerNameStatsResponse?> GetPlayerNameStatsResponse(string name, CancellationToken cancellationToken);
+        void ClearPlayerStats();
     }
 }

@@ -3,12 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db.Services;
-using sc2dsstats.db.Stats;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -93,9 +88,9 @@ namespace sc2dsstats.db
                 );
 
             string interest = "ZergZergZerg";
-            string[] iSplit =  Regex.Split(interest, @"(?<!^)(?=[A-Z])");
+            string[] iSplit = Regex.Split(interest, @"(?<!^)(?=[A-Z])");
             byte[] races = iSplit.Select(s => (byte)DSData.GetCommander(s)).ToArray();
-            
+
             // replays = replays.Where(x =>
             //              (x.Dsplayers.Where(s => s.Realpos == 1 && s.Race == races[0]).Any()
             //              && x.Dsplayers.Where(s => s.Realpos == 2 && s.Race == races[1]).Any()
@@ -135,7 +130,7 @@ namespace sc2dsstats.db
 
                         var team1Results = from r in team1Replays
                                            group r by r.Winner into g
-                                           select new 
+                                           select new
                                            {
                                                Winner = g.Key,
                                                Count = g.Count(),
@@ -143,7 +138,7 @@ namespace sc2dsstats.db
                                            };
                         var team2Results = from r in team2Replays
                                            group r by r.Winner into g
-                                           select new 
+                                           select new
                                            {
                                                Winner = g.Key,
                                                Count = g.Select(s => s.Id).Distinct().Count(),
@@ -154,13 +149,13 @@ namespace sc2dsstats.db
                         var t2 = team2Results.AsNoTracking().ToList();
                         int count = t1.Sum(s => s.Count) + t2.Sum(s => s.Count);
                         teamResponses.Add(new DsResponseItem()
-                             {
-                                 Label = ((DSData.Commander)p1).ToString() + ((DSData.Commander)p2).ToString() + ((DSData.Commander)p3).ToString(),
-                                 Count = count,
-                                 Wins = t1.Where(x => x.Winner == 0).Sum(s => s.Count) + t2.Where(x => x.Winner == 1).Sum(s => s.Count),
-                                 duration = t1.Sum(s => s.duration) + t2.Sum(s => s.duration),
-                                 Replays = count,
-                             });
+                        {
+                            Label = ((DSData.Commander)p1).ToString() + ((DSData.Commander)p2).ToString() + ((DSData.Commander)p3).ToString(),
+                            Count = count,
+                            Wins = t1.Where(x => x.Winner == 0).Sum(s => s.Count) + t2.Where(x => x.Winner == 1).Sum(s => s.Count),
+                            duration = t1.Sum(s => s.duration) + t2.Sum(s => s.duration),
+                            Replays = count,
+                        });
 
                     }
                 }

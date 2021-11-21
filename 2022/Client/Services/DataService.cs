@@ -1,13 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using sc2dsstats._2022.Shared;
 using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace sc2dsstats._2022.Client.Services
 {
@@ -186,11 +178,19 @@ namespace sc2dsstats._2022.Client.Services
 
         public async Task<List<PlayerNameResponse>> GetPlayerNameStats()
         {
+            // app only
             throw new NotImplementedException();
         }
 
-        public async Task<PlayerNameStatsResponse> GetPlayerNameStatsResponse(string name)
+        public async Task<PlayerNameStatsResponse?> GetPlayerNameStatsResponse(string name, CancellationToken token)
         {
+            // app only
+            throw new NotImplementedException();
+        }
+
+        public void ClearPlayerStats()
+        {
+            // app only
             throw new NotImplementedException();
         }
     }

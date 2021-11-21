@@ -18,6 +18,7 @@ namespace sc2dsstats._2022.Shared
         public int Cannon { get; set; }
         public decimal Mid1 { get; set; }
         public decimal Mid2 { get; set; }
+        public string ReplayPath { get; set; }
         public List<DsPlayerResponse> Players { get; set; }
 
         public int GetMiddle(int gameloop, int team)

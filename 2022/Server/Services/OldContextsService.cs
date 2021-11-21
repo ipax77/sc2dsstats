@@ -1,15 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
 using sc2dsstats.lib.Db;
-using sc2dsstats.lib.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Text.Json;
-using System.Threading;
-using sc2dsstats._2022.Shared;
 
 namespace sc2dsstats._2022.Server.Services
 {
@@ -39,7 +33,8 @@ namespace sc2dsstats._2022.Server.Services
                         Version = restPlayer.Version
                     };
                     context.DSRestPlayers.Add(newPlayer);
-                } else
+                }
+                else
                 {
                     if (newPlayer.LastRep < restPlayer.LastRep)
                     {
@@ -110,7 +105,7 @@ namespace sc2dsstats._2022.Server.Services
                 }
                 var json = JsonSerializer.Serialize(oldReplays);
                 var newReplays = JsonSerializer.Deserialize<List<DsReplayDto>>(json, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                newReplays.SelectMany(s => s.DSPlayer).Where(x => x.NAME.Length == 64).ToList().ForEach(f => f.isPlayer = true );
+                newReplays.SelectMany(s => s.DSPlayer).Where(x => x.NAME.Length == 64).ToList().ForEach(f => f.isPlayer = true);
                 Console.WriteLine($"Inserting {newReplays.Count} replays from olddb");
                 EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
                 insertService.InsertReplays(newReplays, "olddb", ewh, !fullCopy);

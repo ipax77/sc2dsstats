@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace sc2dsstats.db.Services
+﻿namespace sc2dsstats.db.Services
 {
     public class SimpleMovingAverage
     {

@@ -1,0 +1,50 @@
+﻿@using sc2dsstats._2022.Shared
+@implements IDisposable
+@inject IDataService dataService
+
+@if (playerStats == null)
+{
+    <td>Loading ...</td>
+    <td colspan="3"></td>
+} else
+{
+    <td>@playerStats.TeamGames</td>
+    <td>@Math.Round(playerStats.TeamWins * 100.0 / (double)playerStats.TeamGames, 2)% (@playerStats.TeamWins)</td>
+    <td>@playerStats.OppGames</td>
+    <td>@Math.Round(playerStats.OppWins * 100.0 / (double)playerStats.OppGames, 2)% (@playerStats.OppWins)</td>
+}
+
+@code {
+    PlayerNameStatsResponse? playerStats = null;
+    CancellationTokenSource source;
+
+    [Parameter]
+    public string Name { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        source = new CancellationTokenSource();
+    }
+
+    async Task LoadData()
+    {
+        playerStats = await dataService.GetPlayerNameStatsResponse(Name, source.Token);
+        if (playerStats != null)
+            await InvokeAsync(() => StateHasChanged());
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _ = LoadData();
+        }
+    }
+
+    public void Dispose()
+    {
+        source.Cancel();
+        source.Dispose();
+    }
+}

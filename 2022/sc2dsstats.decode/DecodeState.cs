@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace sc2dsstats.decode
+﻿namespace sc2dsstats.decode
 {
     public class DecodeStateEvent : EventArgs
     {

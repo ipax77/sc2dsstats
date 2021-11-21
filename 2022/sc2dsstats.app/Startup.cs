@@ -1,24 +1,15 @@
-using System.Reflection;
 using Blazored.Toast;
 using ElectronNET.API;
 using ElectronNET.API.Entities;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
+using sc2dsstats.app.Services;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
-using sc2dsstats.app.Services;
-using System;
+using sc2dsstats.lib.Db;
 using System.Globalization;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.ResponseCompression;
-using sc2dsstats.lib.Db;
 
 namespace sc2dsstats.app
 {
@@ -104,8 +95,8 @@ namespace sc2dsstats.app
 
             context.Database.Migrate();
 
-            var path =  ElectronService.GetPath().GetAwaiter().GetResult();
-            
+            var path = ElectronService.GetPath().GetAwaiter().GetResult();
+
             DSData.Init(path);
             NameService.Init(context, path).GetAwaiter().GetResult();
 

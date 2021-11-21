@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace sc2dsstats.db
 {
@@ -35,7 +34,7 @@ namespace sc2dsstats.db
         public virtual DbSet<UpgradeName> UpgradeNames { get; set; }
         public virtual DbSet<DsInfo> DsInfo { get; set; }
         public virtual DbSet<DsPlayerName> DsPlayerNames { get; set; }
-        
+
         // public virtual DbSet<CmdrStats> CmdrStats { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

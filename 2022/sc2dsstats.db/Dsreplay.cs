@@ -1,6 +1,4 @@
 ﻿using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using static sc2dsstats._2022.Shared.DSData;
 

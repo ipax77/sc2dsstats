@@ -5,10 +5,6 @@ using ChartJs.Blazor.Common.Axes;
 using ChartJs.Blazor.Common.Axes.Ticks;
 using ChartJs.Blazor.LineChart;
 using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace sc2dsstats._2022.Client.Services
 {

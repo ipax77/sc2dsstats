@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace sc2dsstats._2022.Shared
+﻿namespace sc2dsstats._2022.Shared
 {
     public class DsCountResponse
     {
-        public int TotalCount { get; set; } 
+        public int TotalCount { get; set; }
         public int CmdrCount { get; set; }
         public int StdCount { get; set; }
         public int FilteredCount { get; set; }

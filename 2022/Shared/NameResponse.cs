@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace sc2dsstats._2022.Shared
+﻿namespace sc2dsstats._2022.Shared
 {
     public class NameResponse
     {

@@ -1,11 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace sc2dsstats.app.Services
+﻿namespace sc2dsstats.app.Services
 {
     public class WatchService : IDisposable
     {

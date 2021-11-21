@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using static sc2dsstats._2022.Shared.DSData;
 
 namespace sc2dsstats.db.Services
@@ -174,6 +169,7 @@ namespace sc2dsstats.db.Services
                 Objective = replay.Objective,
                 Winner = replay.Winner,
                 MaxKills = replay.Maxkillsum,
+                ReplayPath = replay.Replaypath,
                 Middle = replay.Middles == null ? null : replay.Middles.Select(s => new MiddleResponse()
                 {
                     Gameloop = s.Gameloop,
@@ -262,7 +258,7 @@ namespace sc2dsstats.db.Services
             if (!String.IsNullOrEmpty(unitPosString))
             {
                 var pents = unitPosString.Split("|");
-                for (int i = 0; i <pents.Length; i++)
+                for (int i = 0; i < pents.Length; i++)
                 {
                     var pentents = pents[i].Split(",");
                     if (pentents.Length == 3)

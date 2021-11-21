@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\sc2dsstats.lib\sc2dsstats.lib.csproj" />
     <ProjectReference Include="..\Shared\sc2dsstats.2022.Shared.csproj" />
   </ItemGroup>
 

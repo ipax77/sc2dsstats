@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.rlib.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.rlib
 {
@@ -99,7 +95,8 @@ namespace sc2dsstats.rlib
                     Info = "Failed loading data :(";
                 }
 
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 logger.LogError($"failed loading data: {e.Message}");
             }

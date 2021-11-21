@@ -1,6 +1,5 @@
 ﻿
 using sc2dsstats._2022.Shared;
-using System.Collections.Concurrent;
 
 namespace sc2dsstats._2022.Server.Models;
 public class HubModel

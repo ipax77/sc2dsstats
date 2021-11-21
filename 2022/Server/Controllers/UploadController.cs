@@ -1,19 +1,10 @@
-﻿using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Server.Attributes;
+using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
-using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace sc2dsstats._2022.Server.Controllers
 {
@@ -92,7 +83,7 @@ namespace sc2dsstats._2022.Server.Controllers
                 return BadRequest();
 
             var player = await PlayerService.GetPlayerName(context, info);
-                return player.LatestReplay;
+            return player.LatestReplay;
         }
 
         [HttpPost]

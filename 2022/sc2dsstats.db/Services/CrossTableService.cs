@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.db.Services
 {
@@ -82,7 +78,7 @@ namespace sc2dsstats.db.Services
                     else
                     {
                         var vsResults = cmdrResults.Where(x => x.OppRace == (byte)vs).ToArray();
-                        var oldVsResults = vsResults.Where(x => x.GameTime < request.EndTime.AddDays(DateTime.Today.Day < 16  ? -60 : -30)).ToArray();
+                        var oldVsResults = vsResults.Where(x => x.GameTime < request.EndTime.AddDays(DateTime.Today.Day < 16 ? -60 : -30)).ToArray();
                         response.Items.Add(new CrosstableResponseItem()
                         {
                             Label = $"{cmdr} vs {vs}",

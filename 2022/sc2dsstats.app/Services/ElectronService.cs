@@ -1,9 +1,6 @@
 ﻿using ElectronNET.API;
 using ElectronNET.API.Entities;
-using System;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.app.Services
 {
@@ -32,7 +29,8 @@ namespace sc2dsstats.app.Services
                 if (!String.IsNullOrEmpty(AppPath) && AppPath.EndsWith("app.asar"))
                     AppPath = AppPath.Substring(0, AppPath.Length - 9);
                 AppPath = Path.Combine(AppPath, "bin");
-            } else
+            }
+            else
             {
                 Assembly assembly = Assembly.GetExecutingAssembly();
                 AppPath = Path.GetDirectoryName(assembly.Location);

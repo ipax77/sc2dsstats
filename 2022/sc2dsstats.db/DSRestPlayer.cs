@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace sc2dsstats.db
+﻿namespace sc2dsstats.db
 {
     public class DSRestPlayer
     {

@@ -3,16 +3,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Scripting.Hosting;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using static sc2dsstats.decode.Program;
 
 namespace sc2dsstats.decode
@@ -236,7 +230,8 @@ namespace sc2dsstats.decode
                 result = engine.ExecuteFile(LibraryPath + "/pylib/site-packages/mpyq.py", scope);
                 result = engine.Execute("import s2protocol", scope);
                 result = engine.Execute("from s2protocol import versions", scope);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 logger.LogError(e.Message);
             }

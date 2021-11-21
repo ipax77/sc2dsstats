@@ -1,9 +1,6 @@
 ﻿using IronPython.Runtime;
 using sc2dsstats.lib.Models;
 using sc2dsstats.lib.Service;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 

@@ -1,12 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using sc2dsstats._2022.Client.Shared;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace sc2dsstats._2022.Server.Hubs
 {
@@ -21,7 +15,7 @@ namespace sc2dsstats._2022.Server.Hubs
             Context.Items.Add("guid", guid);
             await Groups.AddToGroupAsync(Context.ConnectionId, guid.ToString());
             GroupCounts.AddOrUpdate(guid, 1, (key, value) => value = 1);
-            GroupStates.AddOrUpdate(guid, new PickBanModel() { Guid = guid, Pos = -1 }, (key, value) => { value = new PickBanModel() { Guid = guid }; return value; } );
+            GroupStates.AddOrUpdate(guid, new PickBanModel() { Guid = guid, Pos = -1 }, (key, value) => { value = new PickBanModel() { Guid = guid }; return value; });
             await Clients.Group(guid.ToString()).SendAsync("VisitorJoined", GroupCounts[guid]);
         }
 
@@ -47,7 +41,7 @@ namespace sc2dsstats._2022.Server.Hubs
 
         public async Task CmdrPicked(PickBanLockModel cmdrLock)
         {
-            
+
             await Clients.OthersInGroup(cmdrLock.Guid.ToString()).SendAsync("CmdrPicked", cmdrLock);
             GroupStates.AddOrUpdate(cmdrLock.Guid, new PickBanModel() { Guid = cmdrLock.Guid }, (key, oldvalue) => { oldvalue.Picks[cmdrLock.i] = cmdrLock.cmdr; oldvalue.Pos = cmdrLock.i; return oldvalue; });
         }

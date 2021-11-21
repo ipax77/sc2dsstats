@@ -1,18 +1,8 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using System.Globalization;
+﻿using Microsoft.Extensions.Caching.Memory;
 using sc2dsstats.db;
-using sc2dsstats.lib.Db;
 using sc2dsstats.db.Services;
-using Microsoft.Extensions.Caching.Memory;
 using sc2dsstats.db.Stats;
+using System.Diagnostics;
 
 namespace sc2dsstats._2022.Server.Services
 {

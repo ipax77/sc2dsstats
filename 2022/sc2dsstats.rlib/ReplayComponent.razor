@@ -280,7 +280,7 @@
         base.OnInitialized();
     }
 
-    public async Task LoadReplay(string rHash)
+    public async Task<string> LoadReplay(string rHash)
     {
         hash = rHash;
         Loading = true;
@@ -288,7 +288,10 @@
         await InvokeAsync(() => StateHasChanged());
         replay = await dataService.GetReplay(hash);
         if (replay == null)
+        {
             notFound = true;
+            return String.Empty;
+        }
         else
         {
             BuildCheck = new List<bool>();
@@ -300,13 +303,13 @@
                 UpgradesCheck.Add(false);
                 MapCheck.Add(false);
             }
-            
+
             BpMap = replay.Duration switch
             {
-                > 0 and < 300    => new List<string>() { "ALL" },
+                > 0 and < 300 => new List<string>() { "ALL" },
                 >= 300 and < 600 => new List<string>() { "MIN5", "ALL" },
                 >= 600 and < 900 => new List<string>() { "MIN5", "MIN10", "ALL" },
-                >= 900           => new List<string>() { "MIN5", "MIN10", "MIN15", "ALL" },
+                >= 900 => new List<string>() { "MIN5", "MIN10", "MIN15", "ALL" },
                 _ => new List<string>()
             };
             // breakpoint = BpMap.Count > 1 ? 1 : 0;
@@ -315,6 +318,7 @@
         }
         Loading = false;
         await InvokeAsync(() => StateHasChanged());
+        return replay.ReplayPath;
     }
 
     string GetUpgradeTime(string bp)

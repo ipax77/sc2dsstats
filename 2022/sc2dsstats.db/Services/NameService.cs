@@ -1,8 +1,7 @@
-using System.Text;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using sc2dsstats._2022.Shared;
-using System.IO;
+using System.Text;
+using System.Text.Json;
 
 namespace sc2dsstats.db.Services
 {
@@ -44,7 +43,7 @@ namespace sc2dsstats.db.Services
                     sId++;
                 }
                 context.SaveChanges();
-            }            
+            }
             CommanderNames = await context.CommanderNames.OrderBy(o => o.sId).ToListAsync();
             UnitNames = await context.UnitNames.OrderBy(o => o.sId).ToListAsync();
             UpgradeNames = await context.UpgradeNames.OrderBy(o => o.sId).ToListAsync();
@@ -127,7 +126,7 @@ namespace sc2dsstats.db.Services
             return upgrade.sId;
         }
 
-        public static void ConvertNameStrings(sc2dsstatsContext context, Dsreplay replay) 
+        public static void ConvertNameStrings(sc2dsstatsContext context, Dsreplay replay)
         {
             foreach (var player in replay.Dsplayers)
             {

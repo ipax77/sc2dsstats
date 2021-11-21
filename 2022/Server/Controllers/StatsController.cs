@@ -1,17 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
+using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
-using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using sc2dsstats.db.Stats;
+using System.Diagnostics;
 
 namespace sc2dsstats._2022.Server.Controllers
 {
@@ -137,11 +131,11 @@ namespace sc2dsstats._2022.Server.Controllers
             }
             else
                 response = await StatsService.GetCustomTimeline(context, request);
-            
+
             await SetLeaverQuit(request, response);
             sw.Stop();
             logger.LogInformation($"Get Timeline in {sw.ElapsedMilliseconds} ms");
-            
+
             return response;
         }
 
@@ -166,7 +160,7 @@ namespace sc2dsstats._2022.Server.Controllers
             }
             else
                 response = await StatsService.GetDuration(context, request);
-            
+
             await SetLeaverQuit(request, response);
             sw.Stop();
             logger.LogInformation($"Get Timeline in {sw.ElapsedMilliseconds} ms");
@@ -400,7 +394,8 @@ namespace sc2dsstats._2022.Server.Controllers
                     return NotFound();
                 else
                     return playerStats;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 logger.LogError($"failed getting player stats {name}: {e.Message}");
                 return StatusCode(500);

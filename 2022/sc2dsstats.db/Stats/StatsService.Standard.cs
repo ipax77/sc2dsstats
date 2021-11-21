@@ -1,12 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using sc2dsstats._2022.Shared;
-using sc2dsstats.db.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.db.Stats
 {

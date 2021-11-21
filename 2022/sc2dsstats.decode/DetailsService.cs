@@ -1,6 +1,4 @@
 ﻿using sc2dsstats.lib.Models;
-using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace sc2dsstats.decode
