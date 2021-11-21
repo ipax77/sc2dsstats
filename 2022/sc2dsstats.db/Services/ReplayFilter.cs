@@ -110,6 +110,7 @@ namespace sc2dsstats.db.Services
                 .Where(x => x.Minincome > 1500)
                 .Where(x => x.Minkillsum > 1500)
                 .Where(x => x.Playercount == 6)
+                .Where(x => x.Winner >= 0)
                 .Where(x => Gamemodes.Contains(x.Gamemode))
                 .ToList()
                 .ForEach(f => f.DefaultFilter = true);
