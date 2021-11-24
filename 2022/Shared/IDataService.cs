@@ -18,5 +18,6 @@ namespace sc2dsstats._2022.Shared
         Task<List<PlayerNameResponse>> GetPlayerNameStats();
         Task<PlayerNameStatsResponse?> GetPlayerNameStatsResponse(string name, CancellationToken cancellationToken);
         void ClearPlayerStats();
+        Task DeleteReplay(int replayId);
     }
 }

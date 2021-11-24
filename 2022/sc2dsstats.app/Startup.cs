@@ -26,7 +26,7 @@ namespace sc2dsstats.app
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            string dbFile = Path.Combine(Program.workdir, "data_v4_0.db");
+            string dbFile = Path.Combine(Program.workdir, "data_v4_1.db");
             string olddbFile = Path.Combine(Program.workdir, "data_v3_0.db");
 
             services.AddRazorPages();

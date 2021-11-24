@@ -193,5 +193,11 @@ namespace sc2dsstats._2022.Client.Services
             // app only
             throw new NotImplementedException();
         }
+
+        public async Task DeleteReplay(int replayId)
+        {
+            // app only
+            throw new NotImplementedException();
+        }
     }
 }

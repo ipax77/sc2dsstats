@@ -61,6 +61,10 @@
             <div class="col">
                 <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">Replays<br/>@response.CountResponse.FilteredCount</span>
                 @*<span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">Filtered<br/>@(response.CountResponse.TotalCount - response.CountResponse.FilteredCount)</span>*@
+                @if (response.CountResponse.TotalCount > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">Filtered<br/>@(response.CountResponse.TotalCount - response.CountResponse.FilteredCount)/@response.CountResponse.TotalCount</span>
+                }
                 @if (response.Count > 0)
                 {
                     <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">&empty; @Request.Mode<br/>@((response.Items.Sum(s => s.Wins) * 100 / (double)response.Items.Sum(s => s.Count)).ToString("N2")) %</span>

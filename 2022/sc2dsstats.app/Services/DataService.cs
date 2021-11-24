@@ -290,5 +290,20 @@ namespace sc2dsstats.app.Services
         {
             PlayerStats.Clear();
         }
+
+        public async Task DeleteReplay(int replayId)
+        {
+            var replay = await context.Dsreplays
+                .Include(i => i.Middles)
+                .Include(i => i.Dsplayers)
+                    .ThenInclude(j => j.Breakpoints)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(f => f.Id == replayId);
+            if (replay != null)
+            {
+                context.Dsreplays.Remove(replay);
+                await context.SaveChangesAsync();
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@
 @inject ReplayService replayService
 @inject IToastService toastService
 @inject ILogger<TopRowComponent> logger
+@inject NavigationManager _nav
 @implements IDisposable
 
 <style>
@@ -24,10 +25,11 @@
 </style>
 
 <div class="top-row bg-secondary px-4">
-    <span class="pointer badge @(NewReplayCount == 0 ? "bg-success" : "bg-warning") px-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" @onclick="ShowReplaysInfo">New Replays: @NewReplayCount</span>
+    <span class="pointer badge bg-info px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" @onclick="@(() => { _nav.NavigateTo("database"); })">Replays: @replayService.DbReplayPaths.Count()</span>
+    <span class="pointer badge @(NewReplayCount == 0 ? "bg-success" : "bg-warning") px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" @onclick="ShowReplaysInfo">New Replays: @NewReplayCount</span>
     @if (ReplaysDecoded > 0 && NewReplayCount > 0)
     {
-        <div class="position-relative" style="width: 300px; height: 70% !important; font-size: 1em; padding-top: 0.2rem; padding-bottom: 1rem;">
+        <div class="position-relative me-1" style="width: 300px; height: 70% !important; font-size: 1em; padding-top: 0.2rem; padding-bottom: 1rem;">
             <div class="text-success" style="font-size: 1em;">Replays decoded: @ReplaysDecoded</div>
             <div class="position-absolute w-100" style="height: 1rem;">
                 <div class="progress">
@@ -39,15 +41,15 @@
     }
     else if (ReplaysDecoded > 0)
     {
-        <span class="badge bg-success px-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Replays Decoded: @ReplaysDecoded</span>
+        <span class="badge bg-success px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Replays Decoded: @ReplaysDecoded</span>
     }
     else if (isDecoding)
     {
-        <span class="badge bg-success px-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Decoding replays ...</span>
+        <span class="badge bg-success px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Decoding replays ...</span>
     }
     @if (ReplayDecodeFailed > 0)
     {
-        <span class="badge bg-danger px-1 pointer" @onclick="ShowFailedReplays" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Replays failed: @ReplayDecodeFailed</span>
+        <span class="badge bg-danger px-1 me-1 pointer" @onclick="ShowFailedReplays" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Replays failed: @ReplayDecodeFailed</span>
     }
     @if (elapsed != TimeSpan.Zero)
     {
@@ -67,7 +69,7 @@
     }
     @if (uploadStatus != UploadStatus.None)
     {
-        <div class="text-black-50 px-1">
+        <div class="text-white-50 px-1">
             @if (uploadStatus == UploadStatus.Uploading)
             {
                 <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Uploading")
@@ -83,10 +85,14 @@
         </div>
     }
 
+    <div class="ms-auto">
+        
+        
+    </div>
 
     @if (ElectronService.CurrentVersion != null && ElectronService.CurrentVersion < ElectronService.AvailableVersion)
     {
-        <div class="ms-auto">
+        <div class="ms-2">
         @if (DownloadInfo != null)
         {
             <div class="position-relative" style="width: 300px; height: 70% !important; font-size: 1em; padding-top: 0.2rem; padding-bottom: 1rem;">

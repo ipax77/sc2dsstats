@@ -14,7 +14,7 @@ namespace sc2dsstats.app.Services
 {
     public class ReplayService
     {
-        private List<string> DbReplayPaths = new List<string>();
+        public List<string> DbReplayPaths = new List<string>();
         private CancellationTokenSource source;
         public AppConfig AppConfig;
 
@@ -92,6 +92,7 @@ namespace sc2dsstats.app.Services
             if (watchService != null)
             {
                 watchService.Stop();
+                watchService.NewFileDetected -= WatchService_NewFileDetected;
             }
             else
             {
@@ -105,7 +106,10 @@ namespace sc2dsstats.app.Services
         {
             isWatching = false;
             if (watchService != null)
+            {
                 watchService.Stop();
+                watchService.NewFileDetected -= WatchService_NewFileDetected;
+            }
         }
 
         public void SaveConfig()
@@ -126,7 +130,7 @@ namespace sc2dsstats.app.Services
                     var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
                     if (String.IsNullOrEmpty(latestReplay))
                     {
-                        var latestRep = context.Dsreplays.OrderByDescending(o => o.Gametime).FirstOrDefault();
+                        var latestRep = context.Dsreplays.AsNoTracking().OrderByDescending(o => o.Gametime).FirstOrDefault();
                         if (latestRep != null)
                             latestReplay = latestRep.Hash;
                     }

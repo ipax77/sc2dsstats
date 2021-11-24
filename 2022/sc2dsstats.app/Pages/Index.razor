@@ -45,7 +45,7 @@
 <div class="row mt-5 mb-5">
 	<div class="col-auto">
 		<h4 class="fw-bold text-primary">Latest Replay</h4>
-		<sc2dsstats.rlib.ReplayComponent @ref="replayComponent" ShowPlayerNames="true"></sc2dsstats.rlib.ReplayComponent>
+		<sc2dsstats.rlib.ReplayComponent @ref="replayComponent" ShowPlayerNames="true" onDelete="Deleted"></sc2dsstats.rlib.ReplayComponent>
 	</div>
 	<div class="col-auto">
 		@if (replayService.playerStats != null)
@@ -91,6 +91,14 @@
 				await InvokeAsync(() => StateHasChanged());
 			}
 		}
+	}
+
+	private async void Deleted() 
+	{
+		toastService.ShowSuccess("Replay deleted");
+		replayService.latestReplay = String.Empty;
+		await replayService.ScanReplayFolders(true);
+		await replayComponent.LoadReplay(replayService.latestReplay);
 	}
 
 	private void UploadReplays()

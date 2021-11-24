@@ -99,7 +99,6 @@ namespace sc2dsstats.db.Stats
         public static async Task<DsCountResponse> GetCount(sc2dsstatsContext context, DsRequest request, bool details = false)
         {
             var replays = GetCountReplays(context, request);
-            var filteredReplays = replays.Where(x => x.DefaultFilter);
 
             var count = from r in replays
                         group r by r.DefaultFilter into g
@@ -119,6 +118,13 @@ namespace sc2dsstats.db.Stats
                     Quits = await GetQuits(context, request),
                     FilteredCount = lcount.FirstOrDefault(f => f.DefaultFilter) != null ? lcount.First(f => f.DefaultFilter == true).Count : 0
                 };
+
+                if (response.FilteredCount == 0 && response.TotalCount > 0)
+                {
+                    response.FilteredCount = response.TotalCount;
+                    response.TotalCount = 0;
+                }
+
                 if (details)
                 {
                     response.StdCount = await replays.Where(x => x.Gamemode == (int)Gamemode.Standard).CountAsync();
@@ -140,7 +146,7 @@ namespace sc2dsstats.db.Stats
             {
                 replays = replays.Where(x => new List<int>() { (int)Gamemode.Commanders, (int)Gamemode.CommandersHeroic }.Contains(x.Gamemode));
             }
-            else
+            else if (request.Filter.GameModes.Any())
             {
                 replays = replays.Where(x => request.Filter.GameModes.Contains(x.Gamemode));
             }
