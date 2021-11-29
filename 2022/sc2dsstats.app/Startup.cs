@@ -59,11 +59,9 @@ namespace sc2dsstats.app
             services.AddBlazoredToast();
 
             services.AddScoped<IDataService, DataService>();
-            // services.AddSingleton<UploadService>();
-            services.AddSingleton<InsertService>();
             services.AddSingleton<CacheService>();
             services.AddSingleton<Services.ReplayService>();
-            services.AddSingleton<IInsertService, InsertService2>();
+            services.AddSingleton<IInsertService, InsertService>();
             services.AddSingleton<ProducerService>();
 
             services.AddHttpClient("sc2dsstats.app", client =>

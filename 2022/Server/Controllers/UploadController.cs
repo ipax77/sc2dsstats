@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sc2dsstats._2022.Server.Attributes;
+using sc2dsstats._2022.Server.Services;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
@@ -15,14 +16,14 @@ namespace sc2dsstats._2022.Server.Controllers
         Regex r = new Regex("[^A-Za-z0-9]$");
 
         private readonly sc2dsstatsContext context;
-        private readonly InsertService insertService;
+        private readonly ProducerService producerService;
         private readonly CacheService cacheService;
         private readonly ILogger<UploadController> logger;
 
-        public UploadController(sc2dsstatsContext context, InsertService insertService, CacheService cacheService, ILogger<UploadController> logger)
+        public UploadController(sc2dsstatsContext context, ProducerService producerService, CacheService cacheService, ILogger<UploadController> logger)
         {
             this.context = context;
-            this.insertService = insertService;
+            this.producerService = producerService;
             this.cacheService = cacheService;
             this.logger = logger;
         }
@@ -46,27 +47,13 @@ namespace sc2dsstats._2022.Server.Controllers
                 return NotFound();
             }
 
-            List<DsReplayDto> replays;
-            try
+            DateTime? lastReplay = await producerService.Produce(gzipBase646Replays, guid);
+            if (lastReplay != null)
             {
-                var json = DSData.Unzip(gzipBase646Replays);
-                replays = System.Text.Json.JsonSerializer.Deserialize<List<DsReplayDto>>(json);
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"Failed handling upload body from {guid}: {e.Message}");
-                return BadRequest();
-            }
-
-            logger.LogInformation($"Got replays from {guid}: {replays.Count}");
-
-            if (replays.Any())
-            {
-                player.LatestReplay = replays.OrderByDescending(o => o.GAMETIME).First().GAMETIME;
+                player.LatestReplay = (DateTime)lastReplay;
                 await context.SaveChangesAsync();
-                insertService.InsertReplays(replays, player);
-                cacheService.Updatesavailable = true;
             }
+
             return new DsUploadResponse()
             {
                 DbId = player.DbId
@@ -107,25 +94,12 @@ namespace sc2dsstats._2022.Server.Controllers
             if (file.Length > 104857600 || file.Length == 0)
                 return BadRequest("File Size.");
 
-            List<DsReplayDto> replays;
-
-            using (var stream = new MemoryStream((int)file.Length))
+            DateTime? lastReplay = await producerService.Produce(file, id);
+            if (lastReplay != null)
             {
-                await file.CopyToAsync(stream);
-                replays = await insertService.Decompress(stream);
+                info.LatestReplay = (DateTime)lastReplay;
+                await context.SaveChangesAsync();
             }
-
-            if (replays == null || !replays.Any())
-            {
-                return NotFound();
-            }
-
-            info.LatestReplay = replays.First().GAMETIME;
-            info.TotlaReplays += replays.Count();
-            info.LatestUpload = DateTime.UtcNow;
-            await context.SaveChangesAsync();
-
-            insertService.InsertReplays(replays, id);
 
             return Ok();
         }
@@ -141,28 +115,11 @@ namespace sc2dsstats._2022.Server.Controllers
                 return NotFound();
             }
 
-            List<DsReplayDto> replays;
-            try
+            DateTime? lastReplay = await producerService.Produce(gzipBase646Replays, id);
+            if (lastReplay != null)
             {
-                var json = DSData.Unzip(gzipBase646Replays);
-                replays = System.Text.Json.JsonSerializer.Deserialize<List<DsReplayDto>>(json);
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"Failed handling upload body from {id}: {e.Message}");
-                return BadRequest();
-            }
-
-            logger.LogInformation($"Got replays from {id}: {replays.Count}");
-
-            if (replays.Any())
-            {
-                info.LatestReplay = replays.OrderByDescending(o => o.GAMETIME).First().GAMETIME;
-                info.TotlaReplays += replays.Count;
-                info.LatestUpload = DateTime.UtcNow;
+                info.LatestReplay = (DateTime)lastReplay;
                 await context.SaveChangesAsync();
-                insertService.InsertReplays(replays, info);
-                cacheService.Updatesavailable = true;
             }
 
             return Ok();

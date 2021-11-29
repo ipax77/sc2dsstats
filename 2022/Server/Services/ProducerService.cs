@@ -1,4 +1,6 @@
 ﻿using sc2dsstats._2022.Shared;
+using sc2dsstats.db;
+using sc2dsstats.db.Services;
 using System.IO.Compression;
 using System.Text.Json;
 
@@ -16,7 +18,82 @@ public class ProducerService
         this.logger = logger;
     }
 
-    public async Task<List<DsReplayDto>> Decompress(MemoryStream stream)
+    public async Task<DateTime?> Produce(string gzipbase64String, Guid appid)
+    {
+        try
+        {
+            var replays = JsonSerializer.Deserialize<List<DsReplayDto>>(await DSData.UnzipAsync(gzipbase64String)).OrderByDescending(o => o.GAMETIME);
+
+            if (replays.Any())
+            {
+                var dsreplays = replays.Select(s => new Dsreplay(s)).ToList();
+                dsreplays.SelectMany(s => s.Dsplayers).Where(x => x.Name == "player").ToList().ForEach(f => { f.Name = appid.ToString(); f.isPlayer = true; });
+                ReplayFilter.SetDefaultFilter(dsreplays);
+                Produce(dsreplays);
+                return dsreplays.First().Gametime;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"failed producing data: {ex.Message}");
+        }
+        return null;
+    }
+
+    public async Task<DateTime?> Produce(string gzipbase64String, string nameHash)
+    {
+        try
+        {
+            var replays = JsonSerializer.Deserialize<List<DsReplayDto>>(await DSData.UnzipAsync(gzipbase64String)).OrderByDescending(o => o.GAMETIME);
+
+            if (replays.Any())
+            {
+                var dsreplays = replays.Select(s => new Dsreplay(s)).ToList();
+                dsreplays.SelectMany(s => s.Dsplayers).Where(x => x.Name == "player").ToList().ForEach(f => { f.Name = nameHash; f.isPlayer = true; });
+                ReplayFilter.SetDefaultFilter(dsreplays);
+                Produce(dsreplays);
+                return dsreplays.First().Gametime;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"failed producing data: {ex.Message}");
+        }
+        return null;
+    }
+
+    public async Task<DateTime?> Produce(IFormFile file, string nameHash)
+    {
+        List<DsReplayDto> replays;
+        using (var stream = new MemoryStream((int)file.Length))
+        {
+            await file.CopyToAsync(stream);
+            replays = await Decompress(stream);
+        }
+
+        if (replays.Any())
+        {
+            var dsreplays = replays.Select(s => new Dsreplay(s)).ToList();
+            dsreplays.SelectMany(s => s.Dsplayers).Where(x => x.Name == "player").ToList().ForEach(f => { f.Name = nameHash; f.isPlayer = true; });
+            ReplayFilter.SetDefaultFilter(dsreplays);
+            Produce(dsreplays);
+            return dsreplays.First().Gametime;
+        }
+        return null;
+    }
+
+    private void Produce(List<Dsreplay> replays)
+    {
+        using (var scope = scopeFactory.CreateScope())
+        {
+            var insertService = scope.ServiceProvider.GetRequiredService<IInsertService>();
+            var cacheService = scope.ServiceProvider.GetRequiredService<CacheService>();
+            cacheService.Updatesavailable = true;
+            insertService.AddReplays(replays);
+        }
+    }
+
+    private async Task<List<DsReplayDto>> Decompress(MemoryStream stream)
     {
         List<DsReplayDto> replays = new List<DsReplayDto>();
         try
@@ -44,21 +121,4 @@ public class ProducerService
         }
         return replays.OrderByDescending(o => o.GAMETIME).ToList();
     }
-
-    public void AddReplay(DsReplayDto replay)
-    {
-        CheckDuplicate(replay);
-        PrepareReplay(replay);
-    }
-
-    private void PrepareReplay(DsReplayDto replay)
-    {
-
-    }
-
-    private void CheckDuplicate(DsReplayDto replay)
-    {
-
-    }
-
 }

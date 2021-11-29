@@ -82,7 +82,9 @@ namespace sc2dsstats._2022.Server
 
             services.AddSingleton<AuthenticationFilterAttribute>();
             // services.AddSingleton<UploadService>();
-            services.AddSingleton<InsertService>();
+            // services.AddSingleton<InsertService>();
+            services.AddSingleton<IInsertService, Services.InsertService>();
+            services.AddSingleton<ProducerService>();
             services.AddSingleton<CacheService>();
 
             services.AddResponseCompression(opts =>

@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace sc2dsstats._2022.Shared
 {
@@ -402,6 +403,19 @@ namespace sc2dsstats._2022.Shared
             }
         }
 
+        public static async Task<string> UnzipAsync(string base64string)
+        {
+            var bytes = Convert.FromBase64String(base64string);
+            using (var msi = new MemoryStream(bytes))
+            using (var mso = new MemoryStream())
+            {
+                using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+                {
+                    await gs.CopyToAsync(mso);
+                }
+                return Encoding.UTF8.GetString(mso.ToArray());
+            }
+        }
 
 
     }

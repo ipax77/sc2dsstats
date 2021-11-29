@@ -103,7 +103,7 @@ namespace sc2dsstats.db.Services
 
             var matchups = from r in replays
                            from p in r.Dsplayers
-                           where playerNames.Contains(p.Name) && p.Opprace != null
+                           where playerNames.Contains(p.Name)
                            group p by new { cmdr = p.Race, opp = p.Opprace } into g
                            select new
                            {
@@ -122,7 +122,7 @@ namespace sc2dsstats.db.Services
 
             var poss = from r in replays
                        from p in r.Dsplayers
-                       where playerNames.Contains(p.Name) && p.Opprace != null
+                       where playerNames.Contains(p.Name)
                        group p by p.Pos into g
                        select new
                        {

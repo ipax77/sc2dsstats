@@ -47,89 +47,90 @@ namespace sc2dsstats._2022.Server.Services
 
         public static int UpdateFromOldDb(sc2dsstatsContext context, DSReplayContext oldcontext, InsertService insertService, bool fullCopy = false)
         {
-            lock (lockobject)
-            {
-                if (isRunning)
-                {
-                    return 0;
-                }
-                isRunning = true;
-            }
-            var restPlayer = context.DSRestPlayers.FirstOrDefault(f => f.Name == "olddb");
-            if (restPlayer == null)
-            {
-                restPlayer = new db.DSRestPlayer()
-                {
-                    Name = "olddb",
-                    LastUpload = new DateTime(2021, 11, 09, 00, 00, 00)
-                };
-                context.DSRestPlayers.Add(restPlayer);
-            }
+            throw new NotImplementedException();
+            //lock (lockobject)
+            //{
+            //    if (isRunning)
+            //    {
+            //        return 0;
+            //    }
+            //    isRunning = true;
+            //}
+            //var restPlayer = context.DSRestPlayers.FirstOrDefault(f => f.Name == "olddb");
+            //if (restPlayer == null)
+            //{
+            //    restPlayer = new db.DSRestPlayer()
+            //    {
+            //        Name = "olddb",
+            //        LastUpload = new DateTime(2021, 11, 09, 00, 00, 00)
+            //    };
+            //    context.DSRestPlayers.Add(restPlayer);
+            //}
 
-            if (fullCopy)
-            {
-                restPlayer = new db.DSRestPlayer()
-                {
-                    LastUpload = DateTime.MinValue
-                };
-            }
+            //if (fullCopy)
+            //{
+            //    restPlayer = new db.DSRestPlayer()
+            //    {
+            //        LastUpload = DateTime.MinValue
+            //    };
+            //}
 
-            int skip = 0;
-            int take = 1000;
+            //int skip = 0;
+            //int take = 1000;
 
-            var oldReplays = oldcontext.DSReplays
-                .Include(i => i.Middle)
-                .Include(i => i.DSPlayer)
-                    .ThenInclude(j => j.Breakpoints)
-                .AsNoTracking()
-                .Where(x => x.Upload > restPlayer.LastUpload)
-                .OrderBy(o => o.ID)
-                .AsSplitQuery()
-                .Take(take)
-                .ToList();
+            //var oldReplays = oldcontext.DSReplays
+            //    .Include(i => i.Middle)
+            //    .Include(i => i.DSPlayer)
+            //        .ThenInclude(j => j.Breakpoints)
+            //    .AsNoTracking()
+            //    .Where(x => x.Upload > restPlayer.LastUpload)
+            //    .OrderBy(o => o.ID)
+            //    .AsSplitQuery()
+            //    .Take(take)
+            //    .ToList();
 
-            if (!oldReplays.Any())
-            {
-                isRunning = false;
-                return 0;
-            }
-            DateTime latestReplay = DateTime.MinValue;
+            //if (!oldReplays.Any())
+            //{
+            //    isRunning = false;
+            //    return 0;
+            //}
+            //DateTime latestReplay = DateTime.MinValue;
 
-            while (oldReplays.Any())
-            {
-                if (!fullCopy)
-                {
-                    var l = oldReplays.OrderByDescending(o => o.Upload).First().Upload;
-                    if (l > latestReplay)
-                        latestReplay = l;
-                }
-                var json = JsonSerializer.Serialize(oldReplays);
-                var newReplays = JsonSerializer.Deserialize<List<DsReplayDto>>(json, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                newReplays.SelectMany(s => s.DSPlayer).Where(x => x.NAME.Length == 64).ToList().ForEach(f => f.isPlayer = true);
-                Console.WriteLine($"Inserting {newReplays.Count} replays from olddb");
-                EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
-                insertService.InsertReplays(newReplays, "olddb", ewh, !fullCopy);
-                ewh.WaitOne();
-                skip += take;
-                oldReplays = oldcontext.DSReplays
-                .Include(i => i.Middle)
-                .Include(i => i.DSPlayer)
-                    .ThenInclude(j => j.Breakpoints)
-                .AsNoTracking()
-                .Where(x => x.Upload > restPlayer.LastUpload)
-                .OrderBy(o => o.ID)
-                .AsSplitQuery()
-                .Skip(skip)
-                .Take(take)
-                .ToList();
-            }
-            if (!fullCopy)
-            {
-                restPlayer.LastUpload = latestReplay;
-                context.SaveChanges();
-            }
-            isRunning = false;
-            return insertService.NewReplaysCount;
+            //while (oldReplays.Any())
+            //{
+            //    if (!fullCopy)
+            //    {
+            //        var l = oldReplays.OrderByDescending(o => o.Upload).First().Upload;
+            //        if (l > latestReplay)
+            //            latestReplay = l;
+            //    }
+            //    var json = JsonSerializer.Serialize(oldReplays);
+            //    var newReplays = JsonSerializer.Deserialize<List<DsReplayDto>>(json, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            //    newReplays.SelectMany(s => s.DSPlayer).Where(x => x.NAME.Length == 64).ToList().ForEach(f => f.isPlayer = true);
+            //    Console.WriteLine($"Inserting {newReplays.Count} replays from olddb");
+            //    EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
+            //    insertService.InsertReplays(newReplays, "olddb", ewh, !fullCopy);
+            //    ewh.WaitOne();
+            //    skip += take;
+            //    oldReplays = oldcontext.DSReplays
+            //    .Include(i => i.Middle)
+            //    .Include(i => i.DSPlayer)
+            //        .ThenInclude(j => j.Breakpoints)
+            //    .AsNoTracking()
+            //    .Where(x => x.Upload > restPlayer.LastUpload)
+            //    .OrderBy(o => o.ID)
+            //    .AsSplitQuery()
+            //    .Skip(skip)
+            //    .Take(take)
+            //    .ToList();
+            //}
+            //if (!fullCopy)
+            //{
+            //    restPlayer.LastUpload = latestReplay;
+            //    context.SaveChanges();
+            //}
+            //isRunning = false;
+            //return insertService.NewReplaysCount;
         }
     }
 }

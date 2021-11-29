@@ -5,14 +5,14 @@ using System.Threading.Channels;
 
 namespace sc2dsstats.app.Services
 {
-    public class InsertService2 : IInsertService
+    public class InsertService : IInsertService
     {
 
         private bool jobRunning = false;
         private object lockobject = new object();
 
         private readonly IServiceScopeFactory scopeFactory;
-        private readonly ILogger<InsertService2> logger;
+        private readonly ILogger<InsertService> logger;
         private Channel<Dsreplay> ReplayChannel;
         private CancellationTokenSource tokenSource;
         public event EventHandler<EventArgs> ReplaysInserted;
@@ -26,7 +26,7 @@ namespace sc2dsstats.app.Services
             }
         }
 
-        public InsertService2(IServiceScopeFactory scopeFactory, ILogger<InsertService2> logger)
+        public InsertService(IServiceScopeFactory scopeFactory, ILogger<InsertService> logger)
         {
             this.scopeFactory = scopeFactory;
             this.logger = logger;
