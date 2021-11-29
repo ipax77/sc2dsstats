@@ -4,6 +4,7 @@
 @using sc2dsstats.app.Services
 @using Microsoft.Extensions.Logging
 @inject ReplayService replayService
+@inject ProducerService producerService
 @inject IToastService toastService
 @inject ILogger<TopRowComponent> logger
 @inject NavigationManager _nav
@@ -150,7 +151,7 @@
     {
         NewReplayCount = replayService.NewReplays.Count;
         replayService.ReplayFoldersScanned += c_ReplayFoldersScanned;
-        replayService.decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
+        producerService.ReplayChannelChanged += DecodeService_DecodeStateChanged;
         replayService.ReplaysUploaded += c_ReplaysUploading;
         replayService.CollectReplayStats += c_CollectReplayStats;
         replayService.electronService.DownloadProgress += c_DownloadProgress;
@@ -164,11 +165,11 @@
         toastService.ShowInfo($"{NewReplayCount} new replays detected");
     }
 
-    private void DecodeService_DecodeStateChanged(object sender, DecodeStateEvent e)
+    private void DecodeService_DecodeStateChanged(object sender, ReplayChannelEventArgs e)
     {
-        ReplaysDecoded = e.Done;
-        ReplayDecodeFailed = e.Failed;
-        isDecoding = e.Running;
+        ReplaysDecoded = e.decodeCount;
+        ReplayDecodeFailed = e.failedCount;
+        isDecoding = !e.Done;
         elapsed = DateTime.UtcNow - e.StartTime;
         Threads = e.Threads;
         if (ReplaysDecoded < 10)
@@ -212,7 +213,7 @@
 
     void ShowFailedReplays()
     {
-        failedReplaysModal.Show(replayService.decodeService.FailedReplays);
+        failedReplaysModal.Show(producerService.FailedReplays.ToList());
     }
 
     void ShowDownloadModal() {
@@ -227,7 +228,7 @@
     public void Dispose()
     {
         replayService.ReplayFoldersScanned -= c_ReplayFoldersScanned;
-        replayService.decodeService.DecodeStateChanged -= DecodeService_DecodeStateChanged;
+        producerService.ReplayChannelChanged -= DecodeService_DecodeStateChanged;
         replayService.ReplaysUploaded -= c_ReplaysUploading;
         replayService.CollectReplayStats -= c_CollectReplayStats;
         replayService.electronService.DownloadProgress -= c_DownloadProgress;

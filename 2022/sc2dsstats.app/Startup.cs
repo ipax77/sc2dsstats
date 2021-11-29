@@ -63,6 +63,8 @@ namespace sc2dsstats.app
             services.AddSingleton<InsertService>();
             services.AddSingleton<CacheService>();
             services.AddSingleton<Services.ReplayService>();
+            services.AddSingleton<IInsertService, InsertService2>();
+            services.AddSingleton<ProducerService>();
 
             services.AddHttpClient("sc2dsstats.app", client =>
             {
@@ -99,7 +101,6 @@ namespace sc2dsstats.app
 
             DSData.Init(path);
             NameService.Init(context, path).GetAwaiter().GetResult();
-
 
             app.UseResponseCompression();
 

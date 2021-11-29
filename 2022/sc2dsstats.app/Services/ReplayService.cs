@@ -26,20 +26,19 @@ namespace sc2dsstats.app.Services
         public event EventHandler<ScanEventArgs> ReplayFoldersScanned;
         public event EventHandler<UploadEventArgs> ReplaysUploaded;
         public event EventHandler<CollectEventArgs> CollectReplayStats;
-        public DecodeService decodeService;
         private object lockobject = new object();
         public WatchService watchService;
         public string latestReplay = String.Empty;
         public DsPlayerStats playerStats;
         public ElectronService electronService = new ElectronService();
-        private InsertService InsertService;
+        private ProducerService producerService;
         public bool isWatching { get; private set; }
 
-        public ReplayService(IServiceScopeFactory scopeFactory, ILogger<ReplayService> logger, InsertService insertService)
+        public ReplayService(IServiceScopeFactory scopeFactory, ILogger<ReplayService> logger, ProducerService producerService)
         {
             this.scopeFactory = scopeFactory;
             this.logger = logger;
-            InsertService = insertService;
+            this.producerService = producerService;
             if (!File.Exists(Program.myConfig))
             {
                 isFirstRun = true;
@@ -57,13 +56,20 @@ namespace sc2dsstats.app.Services
                 }
                 isFirstRun = false;
             }
-            decodeService = new DecodeService();
-            decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
             _ = ScanReplayFolders();
             _ = electronService.CheckForUpdate();
             if (AppConfig.Config.OnTheFlyScan)
             {
                 StartWatching();
+            }
+            producerService.ReplayChannelChanged += ProducerService_ReplayChannelChanged;
+        }
+
+        private void ProducerService_ReplayChannelChanged(object sender, ReplayChannelEventArgs e)
+        {
+            if (e.Done)
+            {
+                _ = InsertJobDone();
             }
         }
 
@@ -182,11 +188,10 @@ namespace sc2dsstats.app.Services
         {
             lock (lockobject)
             {
-                if (decodeService.isRunning)
+                if (producerService.Producing)
                 {
                     return;
                 }
-                decodeService.isRunning = true;
             }
             if (File.Exists(Path.Combine(Program.workdir, "data_v3_0.db")))
             {
@@ -194,65 +199,9 @@ namespace sc2dsstats.app.Services
                 {
                     var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
                     var oldcontext = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
-
-                    int skip = 0;
-                    int take = 100;
-                    DateTime start = DateTime.UtcNow;
-
-                    decodeService.OnDecodeStateChanged(new DecodeStateEvent()
-                    {
-                        Threads = 1,
-                        Done = 0,
-                        Failed = 0,
-                        Running = true,
-                        StartTime = start
-                    });
-
-                    var oldReplays = await oldcontext.DSReplays
-                    .Include(i => i.Middle)
-                    .Include(i => i.DSPlayer)
-                        .ThenInclude(j => j.Breakpoints)
-                    .AsNoTracking()
-                    .OrderBy(o => o.GAMETIME)
-                    .AsSplitQuery()
-                    .Take(take)
-                    .ToListAsync();
-
                     source = new CancellationTokenSource();
-
-                    while (oldReplays.Any() && !source.IsCancellationRequested)
-                    {
-
-
-                        decodeService.OnDecodeStateChanged(new DecodeStateEvent()
-                        {
-                            Threads = 1,
-                            Done = skip + take,
-                            Failed = 0,
-                            Running = true,
-                            StartTime = start
-                        });
-
-                        var json = JsonSerializer.Serialize(oldReplays);
-                        var newReplays = JsonSerializer.Deserialize<List<DsReplayDto>>(json, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                        EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
-                        InsertService.InsertReplays(newReplays, AppConfig.Config.PlayersNames, ewh);
-                        await Task.Run(() => { ewh.WaitOne(); });
-                        skip += take;
-                        oldReplays = await oldcontext.DSReplays
-                                            .Include(i => i.Middle)
-                                            .Include(i => i.DSPlayer)
-                                                .ThenInclude(j => j.Breakpoints)
-                                            .AsNoTracking()
-                                            .OrderBy(o => o.GAMETIME)
-                                            .AsSplitQuery()
-                                            .Skip(skip)
-                                            .Take(take)
-                                            .ToListAsync();
-                    }
-                    decodeService.isRunning = false;
+                    await producerService.ProduceFromOldDb(context, oldcontext, AppConfig.Config.PlayersNames, source.Token);
                     isFirstRun = false;
-                    UploadService_ReplaysInserted();
                 }
             }
         }
@@ -274,15 +223,15 @@ namespace sc2dsstats.app.Services
                 await ScanReplayFolders();
             }
 
-            if (NewReplays.Any() && !decodeService.isRunning)
+            if (NewReplays.Any() && !producerService.Producing)
             {
 
                 source = new CancellationTokenSource();
-                _ = decodeService.DecodeReplays(ElectronService.AppPath, NewReplays, AppConfig.Config.CPUCores, source.Token);
+                producerService.Produce(ElectronService.AppPath, AppConfig.Config.PlayersNames, NewReplays, source.Token, AppConfig.Config.CPUCores);
             }
             else if (toastService != null)
             {
-                if (decodeService.isRunning)
+                if (producerService.Producing)
                 {
                     toastService.ShowError("The decoding process is already running");
                 }
@@ -296,40 +245,6 @@ namespace sc2dsstats.app.Services
         public void DecodeCancel()
         {
             source.Cancel();
-        }
-
-        private void DecodeService_DecodeStateChanged(object sender, DecodeStateEvent e)
-        {
-            logger.LogInformation($"Decoding Replays: {e.Done} on {e.Threads} threads.");
-
-            if (e.Running == false)
-                InsertReplays(true);
-            else
-                InsertReplays();
-        }
-
-        private void InsertReplays(bool isDone = false)
-        {
-            List<Dsreplay> replays = new List<Dsreplay>();
-            Dsreplay replay;
-            while (decodeService.Replays.TryTake(out replay))
-                replays.Add(replay);
-
-            if (replays.Any() || isDone)
-            {
-                if (isDone)
-                {
-                    logger.LogInformation($"Decoding Replays done.");
-                    EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
-                    InsertService.InsertReplays(replays.Select(s => s.GetDto()).ToList(), AppConfig.Config.PlayersNames, ewh);
-                    ewh.WaitOne();
-                    UploadService_ReplaysInserted();
-                }
-                else
-                {
-                    InsertService.InsertReplays(replays.Select(s => s.GetDto()).ToList(), AppConfig.Config.PlayersNames);
-                }
-            }
         }
 
         public async Task UploadReplays()
@@ -353,7 +268,7 @@ namespace sc2dsstats.app.Services
             }
         }
 
-        private async void UploadService_ReplaysInserted()
+        private async Task InsertJobDone()
         {
             logger.LogInformation("UploadService_ReplaysInserted");
             await UploadReplays();
@@ -369,7 +284,6 @@ namespace sc2dsstats.app.Services
             {
                 var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
                 var memoryCache = scope.ServiceProvider.GetRequiredService<IMemoryCache>();
-                await UpdatePlayers(context);
 
                 var stats = await StatsService.GetStats(context, false);
                 memoryCache.Set("cmdrstats", stats);
@@ -381,73 +295,6 @@ namespace sc2dsstats.app.Services
 
             }
         }
-
-        private async Task UpdatePlayers(sc2dsstatsContext context)
-        {
-            var playernames = await context.DsPlayerNames.ToListAsync();
-            var player = playernames.FirstOrDefault(f => f.AppId == AppConfig.Config.AppId);
-            if (player == null)
-            {
-                player = new DsPlayerName()
-                {
-                    AppId = AppConfig.Config.AppId,
-                    DbId = AppConfig.Config.DbId,
-                    Name = AppConfig.Config.PlayersNames.FirstOrDefault()
-                };
-                context.DsPlayerNames.Add(player);
-                await context.SaveChangesAsync();
-            }
-            var dsplayers = await context.Dsplayers.Where(x => x.PlayerName == null).ToListAsync();
-            foreach (var dsplayer in dsplayers)
-            {
-                if (dsplayer.isPlayer)
-                {
-                    dsplayer.PlayerName = player;
-                }
-                else
-                {
-                    var playername = playernames.FirstOrDefault(f => f.Name == dsplayer.Name);
-                    if (playername == null)
-                    {
-                        playername = new DsPlayerName()
-                        {
-                            Name = dsplayer.Name
-                        };
-                        context.DsPlayerNames.Add(playername);
-                        playernames.Add(playername);
-                    }
-                    dsplayer.PlayerName = playername;
-                }
-
-            }
-            await context.SaveChangesAsync();
-        }
-
-        //private void CollectStats()
-        //{
-        //    logger.LogInformation("CollectStats");
-        //    lock (lockobject)
-        //    {
-        //        using (var scope = scopeFactory.CreateScope())
-        //        {
-        //            var uploadService = scope.ServiceProvider.GetRequiredService<UploadService>();
-        //            var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
-        //            var latestRep = context.Dsreplays.OrderByDescending(o => o.Gametime).FirstOrDefault();
-        //            if (latestRep != null)
-        //                latestReplay = latestRep.Hash;
-        //            OnCollectingStats(new CollectEventArgs()
-        //            {
-        //                Collecting = true
-        //            });
-        //            UploadService.CollectTimeResults2(context, logger);
-        //        }
-        //    }
-        //    OnCollectingStats(new CollectEventArgs()
-        //    {
-        //        Collecting = false
-        //    });
-
-        //}
     }
 
     public class ScanEventArgs : EventArgs

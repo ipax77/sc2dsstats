@@ -5,6 +5,7 @@
 @using sc2dsstats.app.Services
 @using sc2dsstats.rlib
 @inject Services.ReplayService replayService
+@inject ProducerService producerService
 @inject IToastService toastService
 
 <PageTitle>sc2dsstats</PageTitle>
@@ -12,7 +13,7 @@
 <div class="btn-group border border-3 rounded-2 border-light p-2">
 	<button type="button" class="btn btn-outline-success" @onclick="Scan" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Scan Directories for new DS-Replays">Scan</button>
 
-	@if (replayService.decodeService.isRunning)
+	@if (producerService.Producing)
 	{
 		<button type="button" class="btn btn-outline-warning" @onclick="Cancel" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Stop decoding replays">Cancel</button>
 	}
@@ -125,7 +126,7 @@
 
 	private void ImportOldDb()
 	{
-		if (replayService.decodeService.isRunning)
+		if (producerService.Producing)
 		{
 			toastService.ShowError("Import process already running.");
 		} else

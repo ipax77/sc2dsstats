@@ -9,6 +9,7 @@ using sc2dsstats._2022.Server.Services;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
+using sc2dsstats.db.Stats;
 using sc2dsstats.lib.Db;
 using System.Globalization;
 
@@ -106,7 +107,7 @@ namespace sc2dsstats._2022.Server
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, sc2dsstatsContext context, ILogger<Startup> _logger)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, sc2dsstatsContext context, ILogger<Startup> _logger, CacheService cacheService)
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -118,6 +119,10 @@ namespace sc2dsstats._2022.Server
 
             NameService.Init(context, "").GetAwaiter().GetResult();
 
+            // _ = cacheService.SetBuildCache();
+
+
+            StatsService.TeamStats(context);
 
             //var oldreps = oldcontext.DSReplays.Count();
             //_logger.LogInformation($"oldreps: {oldreps}");
@@ -126,7 +131,7 @@ namespace sc2dsstats._2022.Server
 
             //DbService.FixGamemode(context, oldcontext);
 
-            // cacheService.SetBuildCache();
+            //cacheService.SetBuildCache();
 
             // OldContextsService.CopyRestPlayerData(context, restcontext);
             // OldContextsService.UpdateFromOldDb(context, oldcontext, insertService, fullCopy: true);
