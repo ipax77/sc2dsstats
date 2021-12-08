@@ -1,0 +1,228 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using sc2dsstats._2022.Shared
+
+@inject IJSRuntime _js
+@inject NavigationManager _nav
+@implements IAsyncDisposable
+
+<h3>PickBanPage (Visitors: @Visitors)</h3>
+
+
+<div>
+    Copy the Url and send it to the opponents Team-Captain<br />
+    <input id="input" type="text" value="@_nav.Uri" style="min-width: 550px;" /><span class="oi oi-clipboard pointer ms-2" @onclick="CopyClipboard"></span><br />
+    <small>This Page will be available until the next Server reboot.</small>
+</div>
+
+<div class="d-flex justify-content-start mt-3">
+    <div>
+        <h4>Team 1</h4>
+        @for (int i = 0; i < 3; i++)
+        {
+            int j = i;
+            <div class="d-flex justify-content-start">
+                <div class="form-group" style="max-width: 250px;">
+                    <label for="@(j + "select")" class="form-label">
+                        Position @(j + 1)
+                    </label>
+                    @if (Locks[j] || Visitors < 2)
+                    {
+                        <h4><span class="badge bg-info">@pbModel.Picks[j]</span></h4>
+                    }
+                    else
+                    {
+                        <select disabled="@Locks[j]" class="form-select" id="@(j + "select")" @onchange="e => Selected(e, j)">
+                            <option selected value="">Select ...</option>
+                            @foreach (var cmdr in AvailableCmdrs)
+                            {
+                                <option value="@cmdr">@cmdr</option>
+                            }
+                        </select>
+                    }
+                </div>
+                @if (!Locks[j] || Visitors < 2)
+                {
+                    <div class="align-self-end ms-1">
+                        <button type="button" disabled="@Locks[j]" class="btn bg-danger" @onclick="e => LockCommander(j)">Lock</button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    <div>
+        <p style="width: 100px;"></p>
+    </div>
+    <div>
+        <h4>Team 2</h4>
+        @for (int k = 3; k < 6; k++)
+        {
+            int l = k;
+            <div class="d-flex justify-content-start">
+                <div class="form-group" style="max-width: 250px;">
+                    <label for="@(l + "select")" class="form-label">
+                        Position @(l + 1)
+                    </label>
+                    @if (Locks[l])
+                    {
+                        <h4><span class="badge bg-info">@pbModel.Picks[l]</span></h4>
+                    }
+                    else
+                    {
+                        <select class="form-select" id="@(l + "select")" @onchange="e => Selected(e, l)">
+                            <option selected value="">Select ...</option>
+                            @foreach (var cmdr in AvailableCmdrs)
+                            {
+                                <option value="@cmdr">@cmdr</option>
+                            }
+                        </select>
+                    }
+                </div>
+                @if (!Locks[l])
+                {
+                    <div class="align-self-end ms-1">
+                        <button type="button" disabled="@Locks[l]" class="btn bg-danger" @onclick="e => LockCommander(l)">Lock</button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string guid { get; set; }
+
+    [Parameter]
+    public string mode { get; set; }
+
+    private HubConnection hubConnection;
+    private Guid Guid;
+    private int Visitors;
+    private PickBanModel pbModel = new PickBanModel();
+    private List<string> AvailableCmdrs = new List<string>(DSData.cmdrs);
+    private bool[] Locks = new bool[6] { false, true, true, true, true, true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(_nav.ToAbsoluteUri("/pickbanhub"))
+            .Build();
+
+        hubConnection.On<int>("VisitorJoined", (count) =>
+        {
+            Visitors = count;
+            StateHasChanged();
+        });
+
+        hubConnection.On<int>("VisitorLeft", (count) =>
+        {
+            Visitors = count;
+            StateHasChanged();
+        });
+
+        hubConnection.On<PickBanLockModel>("CmdrPicked", (pb) =>
+        {
+            pbModel.Picks[pb.i] = pb.cmdr;
+            SetLocks(pb.i);
+            AvailableCmdrs.Remove(pb.cmdr);
+            StateHasChanged();
+        });
+
+        hubConnection.On<PickBanModel>("PickState", (pb) =>
+        {
+            pbModel = pb;
+            if (pbModel.Pos >= 0)
+            {
+                SetLocks(pb);
+                SetLocks(pbModel.Pos);
+            }
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+
+        if (!Guid.TryParse(guid, out Guid))
+        {
+            Guid = Guid.NewGuid();
+            _nav.NavigateTo($"pickban/{mode}/{Guid}");
+            await hubConnection.SendAsync("CreateNewPage", Guid);
+        }
+        else
+        {
+            await hubConnection.SendAsync("VisitPage", Guid);
+        }
+    }
+
+    public void Selected(ChangeEventArgs e, int pos)
+    {
+        string cmdr = e.Value.ToString();
+        pbModel.Picks[pos] = cmdr;
+        StateHasChanged();
+    }
+
+    public async void LockCommander(int pos)
+    {
+        if (String.IsNullOrEmpty(pbModel.Picks[pos]))
+            return;
+
+        SetLocks(pos);
+        AvailableCmdrs.Remove(pbModel.Picks[pos]);
+        await hubConnection.SendAsync("CmdrPicked", new PickBanLockModel()
+        {
+            Guid = Guid,
+            cmdr = pbModel.Picks[pos],
+            i = pos
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("LeavePage");
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    void SetLocks(int pos)
+    {
+        Locks[pos] = true;
+        if (pos == 0)
+        {
+            Locks[3] = false;
+            Locks[4] = false;
+        }
+        else if (pos == 4)
+        {
+            Locks[1] = false;
+            Locks[2] = false;
+        }
+        else if (pos == 2)
+        {
+            Locks[5] = false;
+        }
+        else if (pos == 1)
+        {
+            Locks[2] = false;
+        }
+        else if (pos == 3)
+        {
+            Locks[4] = false;
+        }
+    }
+
+    void SetLocks(PickBanModel pb)
+    {
+        for (int i = 0; i < pb.Picks.Length; i++)
+        {
+            if (!String.IsNullOrEmpty(pb.Picks[i]))
+                Locks[i] = true;
+        }
+    }
+
+    async void CopyClipboard()
+    {
+        await _js.InvokeVoidAsync("copyClipboard");
+    }
+}

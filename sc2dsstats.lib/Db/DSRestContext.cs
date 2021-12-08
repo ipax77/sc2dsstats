@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using sc2dsstats.lib.Models;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace sc2dsstats.lib.Db
 {

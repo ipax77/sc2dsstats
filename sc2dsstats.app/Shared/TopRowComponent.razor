@@ -1,0 +1,244 @@
+﻿@using Blazored.Toast.Configuration
+@using ElectronNET.API.Entities
+@using sc2dsstats.decode
+@using sc2dsstats.app.Services
+@using Microsoft.Extensions.Logging
+@inject ReplayService replayService
+@inject ProducerService producerService
+@inject IToastService toastService
+@inject ILogger<TopRowComponent> logger
+@inject NavigationManager _nav
+@implements IDisposable
+
+<style>
+    .top-row {
+        justify-content: flex-start;
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .top-row ::deep a, .top-row .btn-link {
+            white-space: nowrap;
+            margin-left: 1.5rem;
+        }
+
+</style>
+
+<div class="top-row bg-secondary px-4">
+    <span class="pointer badge bg-info px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" @onclick="@(() => { _nav.NavigateTo("database"); })">Replays: @replayService.DbReplayPaths.Count()</span>
+    <span class="pointer badge @(NewReplayCount == 0 ? "bg-success" : "bg-warning") px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" @onclick="ShowReplaysInfo">New Replays: @NewReplayCount</span>
+    @if (ReplaysDecoded > 0 && NewReplayCount > 0)
+    {
+        <div class="position-relative me-1" style="width: 300px; height: 70% !important; font-size: 1em; padding-top: 0.2rem; padding-bottom: 1rem;">
+            <div class="text-success" style="font-size: 1em;">
+                Replays decoded: @ReplaysDecoded
+                @if (ReplaysInserted > 0)
+                {
+                    <span><small class="text-warning"> Saved: @ReplaysInserted</small></span>
+                }
+            </div>
+            <div class="position-absolute w-100" style="height: 1rem;">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-animated bg-success" role="progressbar" style="width: @(Math.Round((double)ReplaysDecoded * 100 / (double)replayService.NewReplays.Count, 2))%;" aria-valuenow="@(ReplaysDecoded * 100 / replayService.NewReplays.Count)" aria-valuemin="0" aria-valuemax="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (ReplaysDecoded > 0)
+    {
+        <span class="badge bg-success px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Replays Decoded: @ReplaysDecoded</span>
+    }
+    else if (isDecoding)
+    {
+        <span class="badge bg-success px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Decoding replays ...</span>
+    }
+    @if (ReplayDecodeFailed > 0)
+    {
+        <span class="badge bg-danger px-1 me-1 pointer" @onclick="ShowFailedReplays" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">Replays failed: @ReplayDecodeFailed</span>
+    }
+    @if (elapsed != TimeSpan.Zero)
+    {
+        <span class="badge bg-info px-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">
+            Elapsed: @elapsed.ToString(@"hh\:mm\:ss")
+            @if (isDecoding)
+            {
+                @($" ETA: {eta.ToString(@"hh\:mm\:ss")} (Threads: {Threads})")
+            }
+        </span>
+    }
+    @if (isCollecting)
+    {
+        <div class="text-black-50 px-1">
+            <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Recalculating Database stats ...")
+        </div>
+    }
+    @if (uploadStatus != UploadStatus.None)
+    {
+        <div class="text-white-50 px-1">
+            @if (uploadStatus == UploadStatus.Uploading)
+            {
+                <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Uploading")
+            }
+            else if (uploadStatus == UploadStatus.Success)
+            {
+                <span class="oi oi-circle-check text-success">&nbsp;</span> @("Upload successful")
+            }
+            else if (uploadStatus == UploadStatus.Failed)
+            {
+                <span class="oi oi-circle-x text-danger">&nbsp;</span> @("Upload failed. Please try again later.")
+            }
+        </div>
+    }
+
+    <div class="ms-auto">
+        
+        
+    </div>
+
+    @if (ElectronService.CurrentVersion != null && ElectronService.CurrentVersion < ElectronService.AvailableVersion)
+    {
+        <div class="ms-2">
+        @if (DownloadInfo != null)
+        {
+            <div class="position-relative" style="width: 300px; height: 70% !important; font-size: 1em; padding-top: 0.2rem; padding-bottom: 1rem;">
+                <div class="text-success" style="font-size: 1em;">Download @DownloadInfo.BytesPerSecond</div>
+                <div class="position-absolute w-100" style="height: 1rem;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-animated bg-success" role="progressbar" style="width: @(DownloadInfo.Percent)%;" aria-valuenow="@(DownloadInfo.Transferred)" aria-valuemin="0" aria-valuemax="0">
+                        </div>
+                    </div>
+                </div>
+            </div>     
+        }
+        else
+        {
+            @if (isDownloaded)
+            {
+                <span class="badge badge-success">New Version downloaded</span>
+            }
+            else
+            {
+                <button type="button" class="btn btn-warning" @onclick="ShowDownloadModal">New Version available!</button>
+            }
+        }
+        </div> 
+    }
+
+
+</div>
+
+<DownloadModal @ref="downloadModal"></DownloadModal>
+<FailedReplaysModal @ref="failedReplaysModal"></FailedReplaysModal>
+<NewReplaysModal @ref="newReplaysModal"></NewReplaysModal>
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="5" />
+
+@code {
+    int NewReplayCount = 0;
+    int ReplaysDecoded = 0;
+    int ReplaysInserted = 0;
+    int ReplayDecodeFailed = 0;
+    int Threads = 0;
+    bool isDecoding = false;
+    bool isCollecting = false;
+    TimeSpan elapsed = TimeSpan.Zero;
+    TimeSpan eta = TimeSpan.Zero;
+    ProgressInfo DownloadInfo;
+    bool isDownloaded = false;
+
+    List<string> failedReplays = new List<string>();
+    UploadStatus uploadStatus = UploadStatus.None;
+    FailedReplaysModal failedReplaysModal;
+    DownloadModal downloadModal;
+    NewReplaysModal newReplaysModal;
+
+    protected override void OnInitialized()
+    {
+        NewReplayCount = replayService.NewReplays.Count;
+        replayService.ReplayFoldersScanned += c_ReplayFoldersScanned;
+        producerService.ReplayChannelChanged += DecodeService_DecodeStateChanged;
+        replayService.ReplaysUploaded += c_ReplaysUploading;
+        replayService.CollectReplayStats += c_CollectReplayStats;
+        replayService.electronService.DownloadProgress += c_DownloadProgress;
+        base.OnInitialized();
+    }
+
+    void c_ReplayFoldersScanned(object sender, ScanEventArgs e)
+    {
+        NewReplayCount = e.Count;
+        InvokeAsync(() => StateHasChanged());
+        toastService.ShowInfo($"{NewReplayCount} new replays detected");
+    }
+
+    private void DecodeService_DecodeStateChanged(object sender, ReplayChannelEventArgs e)
+    {
+        ReplaysDecoded = e.decodeCount;
+        ReplaysInserted = e.insertCount;
+        ReplayDecodeFailed = e.failedCount;
+        isDecoding = !e.Done;
+        elapsed = DateTime.UtcNow - e.StartTime;
+        Threads = e.Threads;
+        if (ReplaysDecoded < 10)
+        {
+            if (Threads > 0)
+                eta = TimeSpan.FromSeconds(NewReplayCount * 6 / Threads) - elapsed;
+            else 
+                eta = TimeSpan.FromSeconds(NewReplayCount * 6) - elapsed;
+        } else
+        {
+            double one = elapsed.TotalSeconds / (double)ReplaysDecoded;
+            eta = TimeSpan.FromSeconds(one * (replayService.NewReplays.Count - ReplaysDecoded));
+        }
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private void c_ReplaysUploading(object sender, UploadEventArgs e)
+    {
+        uploadStatus = e.uploadStatus;
+        InvokeAsync(() => StateHasChanged());
+        if (uploadStatus == UploadStatus.Success)
+            toastService.ShowSuccess("Replays uploaded");
+        else if (uploadStatus == UploadStatus.Failed)
+            toastService.ShowError("Replay upload failed");
+    }
+
+    private void c_CollectReplayStats(object sender, CollectEventArgs e)
+    {
+        isCollecting = e.Collecting;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private void c_DownloadProgress(object sender, DownloadEventArgs e)
+    {
+        DownloadInfo = e.Info;
+        isDownloaded = e.Done;
+        if (DownloadInfo != null)
+            logger.LogInformation($"b{DownloadInfo.BytesPerSecond} p{DownloadInfo.Percent} t{DownloadInfo.Transferred} T{DownloadInfo.Total} P{DownloadInfo.Progress}");
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    void ShowFailedReplays()
+    {
+        failedReplaysModal.Show(producerService.FailedReplays.ToList());
+    }
+
+    void ShowDownloadModal() {
+        downloadModal.Show();
+    }
+
+    void ShowReplaysInfo()
+    {
+        newReplaysModal.Show();
+    }
+
+    public void Dispose()
+    {
+        replayService.ReplayFoldersScanned -= c_ReplayFoldersScanned;
+        producerService.ReplayChannelChanged -= DecodeService_DecodeStateChanged;
+        replayService.ReplaysUploaded -= c_ReplaysUploading;
+        replayService.CollectReplayStats -= c_CollectReplayStats;
+        replayService.electronService.DownloadProgress -= c_DownloadProgress;
+    }
+}

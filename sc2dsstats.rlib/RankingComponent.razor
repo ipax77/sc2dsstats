@@ -1,0 +1,160 @@
+﻿@using sc2dsstats._2022.Shared
+@inject IDataService dataService
+
+<div class="row justify-content-between">
+    <h3 class="text-primary col-auto">
+        Ranking
+        <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+            title=
+"First replay: 2018-01-01
+Last replay: today
+Game modes: Commanders, CommandersHeroic
+Game players: 3 vs 3
+Game duration: at least five minutes
+Game leaver: no leaver 1.5 minutes before the end of the game
+Player army: worst players army values has to be at least 1500 at the end of the game">
+            default filter
+        </small>
+    </h3>
+    <div class="col-auto">
+        <div class="d-flex">
+            <input class="form-control me-sm-2" type="text" placeholder="Search" @bind="searchString" @oninput="Search">
+            <span class="oi oi-x text-danger pointer align-self-center" @onclick="e => Reset()"></span>
+        </div>
+    </div>
+</div>
+
+@if (rankings == null)
+{
+    <p>Loading ...</p>
+} else
+{
+    <div>
+        <table class="table table-dark table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th class="pointer" @onclick="@(() => Sort("Playername"))">
+                        <div class="d-flex justify-content-start">
+                            Dataset
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Playername" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th class="pointer" @onclick="@(() => Sort("Winrate"))">
+                        <div class="d-flex justify-content-start">
+                            Winrate
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Winrate" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Percetage of games with the most damage done (based on killed army-value)"
+                        class="pointer" @onclick="@(() => Sort("Mvp"))">
+                        <div class="d-flex justify-content-start">
+                            MVP
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Mvp" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Most played commander"
+                        class="pointer" @onclick="@(() => Sort("Main"))">
+                        <div class="d-flex justify-content-start">
+                            Main
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Main" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th class="pointer" @onclick="@(() => Sort("Games"))">
+                        <div class="d-flex justify-content-start">
+                            Games
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Games" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Percetage of games with at least one other Uploader in the same team"
+                        class="pointer" @onclick="@(() => Sort("Team"))">
+                        <div class="d-flex justify-content-start">
+                            ~TeamGames
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Team" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <Virtualize @ref="virtualTable" Items="modRankings" ItemSize="41">
+                    <ItemContent>
+                        <tr class="pointer" @onclick="e => ShowPlayerDetails(context.Playername)">
+                            <td>@(modRankings.IndexOf(context) + 1)</td>
+                            <td>@(context.Playername.Length > 8 ? context.Playername.Substring(0, 8) : context.Playername)</td>
+                            @*<td>@context.Playername</td>*@
+                            <td>@(context.Winrate)%</td>
+                            <td>@(context.Mvp)%</td>
+                            <td>@context.MainCommander (@(context.Main)%)</td>
+                            <td>@context.Games</td>
+                            <td>@(context.Team)%</td>
+                        </tr>
+                    </ItemContent>
+                </Virtualize>
+            </tbody>
+        </table>
+    </div>
+}
+
+<PlayerModal @ref="playerModal"></PlayerModal>
+
+@code {
+    List<DsRankingResponse> rankings;
+    List<DsRankingResponse> modRankings;
+    string sortString = "Winrate";
+    bool sortOrder = false;
+    Virtualize<DsRankingResponse> virtualTable;
+    string searchString = String.Empty;
+    PlayerModal playerModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        rankings = await dataService.GetRankings();
+        modRankings = rankings.OrderByDescending(o => o.Winrate).ToList();
+    }
+
+    void Sort(string interest)
+    {
+        var prop = typeof(DsRankingResponse).GetProperty(interest);
+        if (prop != null)
+        {
+            if (interest == sortString)
+                sortOrder = !sortOrder;
+            sortString = interest;
+            if (sortOrder)
+            {
+                modRankings = modRankings.OrderBy(o => prop.GetValue(o, null)).ToList();
+            } else
+            {
+                modRankings = modRankings.OrderByDescending(o => prop.GetValue(o, null)).ToList();
+            }
+        }
+    }
+
+    void Reset()
+    {
+        searchString = String.Empty;
+        modRankings = rankings.OrderByDescending(o => o.Winrate).ToList();
+    }
+
+    void Search(ChangeEventArgs e)
+    {
+        string mysearchString = e.Value.ToString();
+        if (!String.IsNullOrEmpty(mysearchString))
+        {
+            var prop = typeof(DsRankingResponse).GetProperty(sortString);
+            modRankings = rankings.Where(x =>
+                x.Playername.ToUpper().Contains(mysearchString.ToUpper())
+                || x.MainCommander.ToUpper().Contains(mysearchString.ToUpper()))
+            .ToList();
+            if (sortOrder)
+                modRankings = modRankings.OrderBy(o => prop.GetValue(o, null)).ToList();
+            else 
+                modRankings = modRankings.OrderByDescending(o => prop.GetValue(o, null)).ToList();
+        }
+    }
+
+    void ShowPlayerDetails(string name)
+    {
+        playerModal.Show(name);
+    }
+}

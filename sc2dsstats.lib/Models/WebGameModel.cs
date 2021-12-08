@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 
 namespace sc2dsstats.lib.Models
 {
@@ -46,7 +45,7 @@ namespace sc2dsstats.lib.Models
             MVP = "MVP #" + replay.DSPlayer.Where(x => x.KILLSUM == replay.MAXKILLSUM).First().REALPOS;
             Mode = "Mode: " + replay.GAMEMODE.Substring(8);
 
-            
+
 
             BreakpointMid = new Dictionary<string, double>(DSdata.BreakpointMid);
             BreakpointMid["ALL"] = replay.DURATION * 22.4;
@@ -93,21 +92,23 @@ namespace sc2dsstats.lib.Models
                     if (bp != null)
                         Mid[1] = Math.Round(bp.Mid * 100 / bpgameloop, 2).ToString("00.00") + "%";
                 }
-            } else
+            }
+            else
             {
                 int midt1 = replay.GetMiddle((int)bpgameloop, 0);
                 int midt2 = replay.GetMiddle((int)bpgameloop, 1);
-                Mid[0] = Math.Round( midt1 * 100 / bpgameloop, 2).ToString("00.00") + "%";
+                Mid[0] = Math.Round(midt1 * 100 / bpgameloop, 2).ToString("00.00") + "%";
                 Mid[1] = Math.Round(midt2 * 100 / bpgameloop, 2).ToString("00.00") + "%";
             }
         }
 
-        public Dictionary<string, int> GetUnits(DbBreakpoint bp)  {
+        public Dictionary<string, int> GetUnits(DbBreakpoint bp)
+        {
 
             Dictionary<string, int> units = new Dictionary<string, int>();
             if (bp == null || String.IsNullOrEmpty(bp.dsUnitsString))
                 return units;
-            foreach(string unitstring in bp.dsUnitsString.Split("|"))
+            foreach (string unitstring in bp.dsUnitsString.Split("|"))
             {
                 var ent = unitstring.Split(",");
                 if (!units.ContainsKey(ent[0]))
@@ -137,14 +138,16 @@ namespace sc2dsstats.lib.Models
             if (bp == null || String.IsNullOrEmpty(bp.dbUnitsString))
                 return Units;
 
-            foreach (string unitstring in bp.dbUnitsString.Split("|")) {
+            foreach (string unitstring in bp.dbUnitsString.Split("|"))
+            {
                 var ent = unitstring.Split(",");
                 UnitModel unit = new UnitModel();
                 unit.Name = ent[0];
                 unit.Race = pl.RACE;
                 unit.Pos = new Vector2(int.Parse(ent[1]), int.Parse(ent[2]));
                 int id = 0;
-                if (int.TryParse(ent[0], out id)) {
+                if (int.TryParse(ent[0], out id))
+                {
                     UnitModelBase bunit = DSdata.Units.FirstOrDefault(f => f.ID == id);
                     if (bunit != null)
                         unit.Name = bunit.Name;

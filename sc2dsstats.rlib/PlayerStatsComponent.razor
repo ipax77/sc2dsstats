@@ -1,0 +1,189 @@
+﻿@using sc2dsstats._2022.Shared
+@inject IDataService dataService
+@inject NavigationManager _nav
+@implements IDisposable
+
+<style>
+    .header{
+        position:sticky;
+        top: 0 ;
+    }
+</style>
+
+<div class="row justify-content-between">
+    <h3 class="text-primary col-auto">
+        PlayerList
+    </h3>
+    <div class="col-auto">
+        <div class="d-flex">
+            <input class="form-control me-sm-2" type="text" placeholder="Search" @bind="searchString" @oninput="Search">
+            <span class="oi oi-x text-danger pointer align-self-center" @onclick="e => Reset()"></span>
+        </div>
+    </div>
+</div>
+
+@if (rankings == null)
+{
+    <p>Loading ...</p>
+} else
+{
+    <div>
+        <table class="table table-dark table-striped table-hover w-100">
+            <thead class="header">
+                <tr>
+                    <th>#</th>
+                    <th class="pointer header" scope="col" @onclick="@(() => Sort("Name"))" style="width: 250px;">
+                        <div class="d-flex justify-content-start">
+                            Name
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Name" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th class="pointer header" scope="col" @onclick="@(() => Sort("Games"))">
+                        <div class="d-flex justify-content-start">
+                            Games
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Games" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th class="pointer header" scope="col" @onclick="@(() => Sort("Wins"))">
+                        <div class="d-flex justify-content-start">
+                            Wins
+                            <sc2dsstats.rlib.Helper.ArrowHelper Interest="Wins" SortOrder="sortOrder" SortString="@sortString"></sc2dsstats.rlib.Helper.ArrowHelper>
+                        </div>
+                    </th>
+                    <th class="header" scope="col">
+                        TeamGames
+                    </th>
+                    <th class="header" scope="col">
+                        TeamWins
+                    </th>
+                    <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Games with the player in the opponent team">
+                        OppGames
+                    </th>
+                    <th data-bs-toggle="tooltip" data-bs-placement="bottom" title="Games with the player winning in the opponent team">
+                        OppWins
+                    </th>
+                    <th class="header" scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <Virtualize @ref="virtualTable" Items="modRankings" ItemSize="41" OverscanCount="5">
+                    <ItemContent>
+                        <tr class="pointer" @onclick="e => ShowPlayerDetails(context.Name)">
+                            <td>@(modRankings.IndexOf(context) + 1)</td>
+                            <td>@(context.Name.Length > 14 ? context.Name.Substring(0, 14) : context.Name)</td>
+                            <td>@context.Games</td>
+                            <td>@(Math.Round(context.Wins * 100.0 / (double)context.Games, 2))% (@context.Wins)</td>
+                            @if (context.Games > 3)
+                            {
+                                <PlayerStatsItemComponent @key="context.Name" Name="@context.Name"></PlayerStatsItemComponent>
+                            } else
+                            {
+                                <td colspan="4"></td>
+                            }
+                        <td><span class="badge bg-info pointer" @onclick:stopPropagation @onclick="e => ShowReplays(context.Name)">Replays</span></td>
+                    </tr>
+                    </ItemContent>
+                    <Placeholder>
+                        <tr>
+                            <td>0</td>
+                            <td>Loading ...</td>
+                            <td colspan="8"></td>
+                        </tr>
+                    </Placeholder>
+                </Virtualize>
+            </tbody>
+        </table>
+    </div>
+}
+
+<PlayerModal @ref="playerModal"></PlayerModal>
+
+@code {
+    List<PlayerNameResponse> rankings;
+    List<PlayerNameResponse> modRankings;
+    string sortString = "Games";
+    bool sortOrder = false;
+    Virtualize<PlayerNameResponse> virtualTable;
+    string searchString = String.Empty;
+    PlayerModal playerModal;
+
+    protected override void OnInitialized()
+    {
+        _ = LoadData();
+    }
+
+    async Task LoadData()
+    {
+        rankings = await dataService.GetPlayerNameStats();
+        modRankings = rankings.OrderByDescending(o => o.Games).ToList();
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    void ShowReplays(string name)
+    {
+        var bab = _nav.GetUriWithQueryParameter("playername", name);
+        bab = bab.Replace("players", "database");
+        _nav.NavigateTo(bab);
+    }
+
+    void Sort(string interest)
+    {
+        var prop = typeof(PlayerNameResponse).GetProperty(interest);
+        if (prop != null)
+        {
+            if (interest == sortString)
+                sortOrder = !sortOrder;
+            sortString = interest;
+            if (sortOrder)
+            {
+                modRankings = modRankings.OrderBy(o => prop.GetValue(o, null)).ToList();
+            } else
+            {
+                modRankings = modRankings.OrderByDescending(o => prop.GetValue(o, null)).ToList();
+            }
+        }
+    }
+
+    void Reset()
+    {
+        searchString = String.Empty;
+        modRankings = rankings.OrderByDescending(o => o.Games).ToList();
+    }
+
+    void Search(ChangeEventArgs e)
+    {
+        string mysearchString = e.Value.ToString();
+        if (!String.IsNullOrEmpty(mysearchString))
+        {
+            var prop = typeof(PlayerNameResponse).GetProperty(sortString);
+            modRankings = rankings.Where(x =>
+                x.Name.ToUpper().Contains(mysearchString.ToUpper()))
+            .ToList();
+            if (sortOrder)
+                modRankings = modRankings.OrderBy(o => prop.GetValue(o, null)).ToList();
+            else 
+                modRankings = modRankings.OrderByDescending(o => prop.GetValue(o, null)).ToList();
+        }
+    }
+
+    async void ShowPlayerDetails(string name)
+    {
+        var pl = rankings.FirstOrDefault(f => f.Name == name);
+        //if (pl != null && pl.Stats == null)
+        //{
+        //    pl.Stats = await dataService.GetPlayerNameStatsResponse(name);
+        //    var mpl = modRankings.FirstOrDefault(f => f.Name == name);
+        //    if (mpl != null)
+        //    {
+        //        mpl.Stats = pl.Stats;                
+        //    }
+        //    await InvokeAsync(() => StateHasChanged());
+        //}
+        playerModal.Show(name);
+    }
+
+    public void Dispose()
+    {
+        dataService.ClearPlayerStats();
+    }
+}

@@ -1,0 +1,23 @@
+﻿@using System.Net.Http.Json
+@inject HttpClient Http
+
+<h3>CountComponent</h3>
+
+<div>
+@if(Counts != null)
+{
+    @foreach (var count in Counts.OrderByDescending(o => o.Value)) {
+        <p>
+            @count.Key => @count.Value %
+        </p>
+    }
+}
+</div>
+
+@code {
+    Dictionary<string, double> Counts;
+    protected override async Task OnInitializedAsync()
+    {
+        Counts = await Http.GetFromJsonAsync<Dictionary<string, double>>("api/Stats");
+    }
+}

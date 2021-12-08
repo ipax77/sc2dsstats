@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.Extensions.Logging;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using Pomelo.EntityFrameworkCore.MySql.Storage;
-using sc2dsstats.lib.Data;
 using sc2dsstats.lib.Models;
 using System;
 
@@ -48,13 +43,6 @@ namespace sc2dsstats.lib.Db
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder
-                .HasDbFunction(typeof(DBFunctions).GetMethod(nameof(DBFunctions.GetOpp)))
-                .HasTranslation(args => SqlFunctionExpression.Create("GetOpp", args, typeof(int), null));
-            modelBuilder
-                .HasDbFunction(typeof(DBFunctions).GetMethod(nameof(DBFunctions.GetPl)))
-                .HasTranslation(args => SqlFunctionExpression.Create("GetPl", args, typeof(int), null));
 
             modelBuilder.Entity<DbStatsResult>(entity =>
             {

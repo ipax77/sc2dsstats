@@ -1,0 +1,69 @@
+﻿@using sc2dsstats._2022.Shared
+
+<style>
+    .custom-control-input {
+    background-color: #E6E6E6;
+}
+</style>
+
+<div class="d-flex flex-row bg-dark">
+    <div class="flex-column radiobar">
+        <fieldset class="form-group">
+            <legend>@Label</legend>
+            <div class="form-check" style="margin-left: 20px;">
+
+                <label class="col-form-label btn btn-block text-left p-0 @($"{(isSelected == "ALL" ? "" : "text-white-50")}")">
+                    @if (isSelected == "ALL")
+                    {
+                        <input type="radio" id="@("ALLcmdr")" checked="checked" class="custom-control-input form-check-input" name="@Label" value="ALL" @onchange="CmdrSelected" />
+                    }
+                    else
+                    {
+                        <input type="radio" id="@("ALLcmdr")" class="custom-control-input form-check-input" name="@Label" value="ALL" @onchange="CmdrSelected" />
+                    }
+                    <img src="@($"_content/sc2dsstats.rlib/images/dummy.png")" width="30" height="30" />
+                    All
+                </label>
+            </div>
+            @foreach (var cmdr in DSData.cmdrs)
+            {
+                <div class="form-check" style="margin-left: 20px;">
+
+                    <label class="col-form-label btn btn-block text-left p-0 @($"{(isSelected == cmdr ? "" : "text-white-50")}")">
+                        @if (isSelected == cmdr)
+                        {
+                            <input type="radio" id="@(cmdr + "cmdr")" checked="checked" class="custom-control-input form-check-input" name="@Label" value="@cmdr" @onchange="CmdrSelected" />
+                        }
+                        else
+                        {
+                        <input type="radio" id="@(cmdr + "cmdr")" class="custom-control-input form-check-input" name="@Label" value="@cmdr" @onchange="CmdrSelected" />
+                        }
+                        <img src="@($"_content/sc2dsstats.rlib/images/btn-unit-hero-{cmdr.ToLower()}.png")" width="30" height="30" />
+                        @cmdr
+                    </label>
+                </div>
+            }
+        </fieldset>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Commander";
+
+    [Parameter]
+    public string isSelected { get; set; } = "ALL";
+
+    [Parameter]
+    public EventCallback<string> onCmdrSelected { get; set; }
+
+
+    string Commander = "ALL";
+
+    void CmdrSelected(ChangeEventArgs e)
+    {
+        var cmdr = e.Value.ToString();
+        isSelected = cmdr;
+        onCmdrSelected.InvokeAsync(cmdr);
+    }
+}

@@ -1,0 +1,172 @@
+﻿
+@inject IJSRuntime _js
+@implements IDisposable
+
+<label>Player <span class="oi oi-x text-danger pointer" @onclick="Clear"></span></label>
+<div @ref="inputRef" tabindex="0" class="position-relative" style="height: 2.5rem; width: 210px;" @onfocusout="FocusOut">
+    <div class="position-absolute">
+        @*<input class="form-control mr-sm-2" type="text" placeholder="Name" @onfocusin="FocusIn" @onfocusout="FocusOut" @onkeypress="DoEnter" @bind-value="SearchTerm" @bind-value:event="oninput">*@
+        <input class="form-control mr-sm-2" type="text" placeholder="Playername" @onfocusin:stopPropagation @onfocusin:preventDefault @onfocusin="FocusIn" @bind-value="SearchTerm" @onchange="DoEnter" @bind-value:event="oninput">
+    </div>
+        
+    <div class="position-absolute bg-dark @selectClass" style="z-index: 99; min-width: 250px; max-height: 600px; overflow: auto; margin-top: 2.5rem;">
+        <table class="table table-sm">
+            <tbody>
+@*                @foreach (var option in filteredOptions)
+                {
+                    <tr class="p-0">
+                        <td class="pointer" @onclick="@(() => Selected(option))">@option</td>
+                    </tr>
+                }*@
+                <Virtualize Items="filteredOptions">
+                    <ItemContent>
+                        <tr><td tabindex="0" class="pointer @(context == GetFocusTerm() ? "table-primary" : "")" @onfocusin="TableFocusin"  @onclick="@(() => Selected(context))">@context</td></tr>
+                    </ItemContent>
+                </Virtualize>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public List<string> Options { get; set; }
+
+    [Parameter]
+    public EventCallback<string> onSelected { get; set; }
+
+    [Parameter]
+    public string SearchTerm { get; set; } = String.Empty;
+
+    bool showSelect = false;
+    string selectClass => showSelect ? "" : "d-none";
+
+    
+    private int FocusIndex = 0;
+    private bool tableClick = false;
+    public ElementReference inputRef;
+    DotNetObjectReference<SearchComponent> componentRef;
+
+    List<string> filteredOptions => String.IsNullOrEmpty(SearchTerm) ? new List<string>(Options) : Options.Where(x => x.ToUpper().Contains(SearchTerm.ToUpper())).OrderBy(o => o).ToList();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            componentRef = DotNetObjectReference.Create(this);
+            await _js.InvokeAsync<object>("HandleInputNavKeys", new object[] { componentRef, inputRef });
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    void Clear()
+    {
+        FocusIndex = 0;
+        SearchTerm = String.Empty;
+        showSelect = false;
+        onSelected.InvokeAsync("");
+        StateHasChanged();
+    }
+
+    void FocusIn()
+    {
+        FocusIndex = 0;
+        showSelect = true;
+        StateHasChanged();
+    }
+
+    void TableFocusin()
+    {
+        tableClick = true;
+    }
+
+    async void FocusOut()
+    {
+        await Task.Delay(2);
+        if (tableClick)
+            return;
+        showSelect = false;
+        StateHasChanged();
+    }
+
+    void DoEnter()
+    {
+        if (FocusIndex == 0)
+        {
+            showSelect = false;
+            if (filteredOptions.Any())
+                onSelected.InvokeAsync(filteredOptions.First());
+            else
+                onSelected.InvokeAsync(SearchTerm);
+            StateHasChanged();
+        }
+    }
+
+    void Selected(string selection)
+    {
+        
+        showSelect = false;
+        SearchTerm = selection;
+        onSelected.InvokeAsync(selection);
+        tableClick = false;
+        StateHasChanged();
+    }
+
+    string GetFocusTerm()
+    {
+        if (FocusIndex == 0 && filteredOptions.Any())
+            return filteredOptions.First();
+        if (FocusIndex < filteredOptions.Count)
+            return filteredOptions[FocusIndex];
+        return "";
+    }
+
+    void KeyPressed(KeyboardEventArgs e)
+    {
+        Console.WriteLine(e.Code);
+        Console.WriteLine(e.Key);
+    }
+
+    [JSInvokable("KeyPressed")]
+    public void ArrowPressed(int keycode)
+    {
+        if (keycode == 38)
+        {
+            if (FocusIndex > 0)
+            {
+                FocusIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (keycode == 40)
+        {
+            if (FocusIndex < filteredOptions.Count - 1)
+            {
+                FocusIndex++;
+                StateHasChanged();
+            }
+        } else if (keycode == 13)
+        {
+            if (FocusIndex > 0)
+            {
+                SearchTerm = filteredOptions[FocusIndex];
+                onSelected.InvokeAsync(SearchTerm);
+                tableClick = false;
+                showSelect = false;
+                FocusIndex = 0;
+                StateHasChanged();
+            }
+        } else if (!showSelect)
+        {
+            showSelect = true;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        componentRef?.Dispose();
+    }
+
+}

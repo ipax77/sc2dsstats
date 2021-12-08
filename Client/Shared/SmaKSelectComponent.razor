@@ -1,0 +1,23 @@
+﻿@using sc2dsstats._2022.Shared
+
+<div class="form-group" style="max-width: 250px;">
+    <label for="smakselect" class="form-label">
+        Moving Average K
+    </label>
+    <select class="form-select" id="smakselect" @onchange="SmaKSelected">
+        @for (int i = 3; i < 10; i++) {
+            <option value="@i.ToString()">@i</option>    
+        }
+    </select>
+</div>
+
+@code {
+
+    [Parameter]
+    public EventCallback<string> onSmaKSelected { get; set; }
+
+    void SmaKSelected(ChangeEventArgs e)
+    {
+        onSmaKSelected.InvokeAsync(e.Value.ToString());
+    }
+}

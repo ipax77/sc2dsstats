@@ -1,0 +1,103 @@
+﻿@using sc2dsstats._2022.Shared
+
+
+<div class="ismobile">
+    <div class="row">
+        <SelectComponent Label="Mode" onSelected="ModeSelected" Options="DSData.modes.ToList()" isSelected="@Request.Mode"></SelectComponent>
+        <SelectComponent Label="Timespan" onSelected="TimespanSelected" Options="DSData.timespans.ToList()" isSelected="@Request.Timespan"></SelectComponent>
+        <SelectComponent Label="Commander" onSelected="CmdrSelected" Options="cmdrList" isSelected="@Request.Interest"></SelectComponent>
+        <SelectComponent Label="Player" onSelected="PlayerSelected" Options="playerList" isSelected=""></SelectComponent>
+        @if (Request.Mode == "Standard")
+        {
+            <SelectComponent Label="Versus" onSelected="CmdrSelected" Options="DSData.StdTeams()" isSelected=""></SelectComponent>
+        }
+    </div>
+</div>
+<div class="isdesktop">
+    <CascadingValue Value="Request">
+        <sc2dsstats.rlib.Options.TopOptions playerStats="playerStats" OptionsChanged="OptionsSelected" onZeroChanged="ZeroChanged"></sc2dsstats.rlib.Options.TopOptions>
+    </CascadingValue>
+</div>
+<div class="d-flex flex-row">
+    @if (Request.Mode == "Standard")
+    {
+        <div class="col-auto mt-1 isdesktop" style="width: 150px;">
+            <SelectComponent Label="Versus" onSelected="CmdrSelected" Options="DSData.StdTeams()" isSelected=""></SelectComponent>
+        </div>
+    }
+    else
+    {
+        @if (Request.ChartType == "Bar" || Request.ChartType == "Pie")
+        {
+            <div class="col-auto isdesktop" style="width: 150px;">
+                <sc2dsstats.rlib.Options.CmdrOptions Label="" onCmdrSelected="CmdrSelected" isSelected="@Request.Interest"></sc2dsstats.rlib.Options.CmdrOptions>
+            </div>
+        } else
+        {
+        <div class="col-auto isdesktop"  style="width: 150px;">
+            <CascadingValue Value="Request">
+                <sc2dsstats.rlib.Options.Cmdr2Options Label="" onCmdrSelected="Cmdr2Selected"></sc2dsstats.rlib.Options.Cmdr2Options>
+            </CascadingValue>
+        </div>
+        }
+    }
+    <div class="col">
+        <div class="row mt-3 ms-3">
+            <div class="col-2">
+                @if (isLoading)
+                {
+                    <button class="btn btn-primary" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Stats Loading...
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" type="button" disabled>
+                        <span class="d-inline-block ms-1" role="status" aria-hidden="true"></span>
+                        Stats - @(Request.Player ? "Uploaders" : "All")
+                    </button>
+                }
+                
+            </div>
+            @if (response != null)
+            {
+            <div class="col">
+                <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">Replays<br/>@response.CountResponse.FilteredCount</span>
+                @*<span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">Filtered<br/>@(response.CountResponse.TotalCount - response.CountResponse.FilteredCount)</span>*@
+                @if (response.CountResponse.TotalCount > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">Filtered<br/>@(response.CountResponse.TotalCount - response.CountResponse.FilteredCount)/@response.CountResponse.TotalCount</span>
+                }
+                @if (response.Count > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">&empty; @Request.Mode<br/>@((response.Items.Sum(s => s.Wins) * 100 / (double)response.Items.Sum(s => s.Count)).ToString("N2")) %</span>
+                }
+                @if (response.AvgDuration > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1">&empty; Duration<br/>@TimeSpan.FromSeconds(response.AvgDuration).ToString(@"mm\:ss")</span>
+                }
+                @if (response.CountResponse.Leaver > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Games where at least one player quits 90 seconds before the end of the game.">
+                        Leaver<br/>@response.CountResponse.Leaver.ToString("N2") %
+                    </span>
+                }
+                @if (response.CountResponse.Quits > 0)
+                {
+                    <span class="badge rounded-pill bg-primary text-warning fs-6 mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Games with no result available (game crash, (rage) quit or replay error)">
+                        Quit<br/>@response.CountResponse.Quits.ToString("N2") %
+                    </span>
+                }
+            </div>
+            }
+        </div>
+        <div style="width: 80%; min-width: 600px; min-height: 400px;">
+            <ChartComponent playerStats="playerStats" @ref="chartComponent"></ChartComponent>
+        </div>
+        <div class="ms-2 mt-2 p-2 w-50 text-white-50 small rounded">
+            @DSData.ChartInfo(Request.Mode)
+        </div>
+    </div>
+</div>
+

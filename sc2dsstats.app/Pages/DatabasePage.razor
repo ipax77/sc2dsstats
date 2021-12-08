@@ -1,0 +1,10 @@
+﻿@page "/database"
+
+<sc2dsstats.rlib.DatabaseComponent PlayerName="@PlayerName"></sc2dsstats.rlib.DatabaseComponent>
+
+@code 
+{
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "playername")]
+    public string PlayerName { get; set; }
+}

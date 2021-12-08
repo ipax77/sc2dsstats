@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using sc2dsstats.lib.Db;
 using sc2dsstats.lib.Models;
@@ -42,7 +40,7 @@ namespace sc2dsstats.lib.Data
 
             int i = 1;
 
-            
+
             using (var scope = scopeFactory.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
@@ -51,7 +49,7 @@ namespace sc2dsstats.lib.Data
                 if (db.Database.IsMySql())
                     DSdata.IsMySQL = true;
             }
-            
+
 
             DSdata.Status.Count = i;
             lock (args)

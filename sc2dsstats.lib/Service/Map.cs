@@ -6,8 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using sc2dsstats.lib.Db.Models;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace sc2dsstats.lib.Service
 {
@@ -85,7 +83,7 @@ namespace sc2dsstats.lib.Service
                     DbBreakpoint dbbp = new DbBreakpoint();
                     dbbp.Breakpoint = bp;
                     dbbp.dsUnitsString = "";
-                    
+
                     foreach (var name in pl.UNITS[bp].Keys)
                     {
                         if (name == "Gas")
@@ -115,119 +113,8 @@ namespace sc2dsstats.lib.Service
             return dbrep;
         }
 
-        public static DSReplay Rep(Dsreplays rep)
-        {
-            DSReplay dbrep = new DSReplay();
-            dbrep.REPLAY = rep.Replay;
-            dbrep.REPLAYPATH = String.Empty;
-            dbrep.GAMETIME = rep.Gametime;
-            dbrep.WINNER = (sbyte)rep.Winner;
-            dbrep.DURATION = (int)rep.Duration;
-            dbrep.MINKILLSUM = rep.Minkillsum;
-            dbrep.MAXKILLSUM = rep.Maxkillsum;
-            dbrep.MINARMY = rep.Minarmy;
-            dbrep.MININCOME = (int)rep.Minincome;
-            dbrep.PLAYERCOUNT = (byte)rep.Playercount;
-            dbrep.REPORTED = (byte)rep.Reported;
-            dbrep.ISBRAWL = rep.Isbrawl;
-            dbrep.GAMEMODE = rep.Gamemode;
-            dbrep.VERSION = rep.Version;
-            dbrep.MAXLEAVER = 0;
 
-            List<DSPlayer> pls = new List<DSPlayer>();
-            foreach (Dsplayers pl in rep.Dsplayers)
-            {
-                DSPlayer dbpl = new DSPlayer();
-                dbpl.POS = (byte)pl.Pos;
-                dbpl.REALPOS = (byte)pl.Realpos;
-                dbpl.NAME = pl.Name;
-                dbpl.RACE = pl.Race;
-                if (pl.Team == rep.Winner)
-                    dbpl.WIN = true;
-                dbpl.TEAM = (byte)pl.Team;
-                dbpl.KILLSUM = pl.Killsum;
-                dbpl.INCOME = (int)pl.Income;
-                dbpl.PDURATION = (int)pl.Pduration;
-                dbpl.ARMY = pl.Army;
-                dbpl.GAS = (byte)pl.Gas;
-                Dsplayers opp = GetOpp(pl.Realpos, rep);
-                if (opp != null)
-                    dbpl.OPPRACE = opp.Race;
-                int diff = dbrep.DURATION - (int)pl.Pduration;
-                if (diff > dbrep.MAXLEAVER)
-                    dbrep.MAXLEAVER = diff;
-
-                dbpl.DSReplay = dbrep;
-                pls.Add(dbpl);
-
-                List<DbBreakpoint> bps = new List<DbBreakpoint>();
-                foreach (var bp in DSdata.s_breakpoints)
-                {
-                    DbBreakpoint dbbp = new DbBreakpoint();
-                    dbbp.Breakpoint = bp;
-                    dbbp.dsUnitsString = "";
-                    foreach (var runit in pl.Dsunits.Where(x => x.Bp == bp))
-                    {
-                        if (runit.Name == "Gas")
-                            dbbp.Gas = runit.Count;
-                        else if (runit.Name == "Upgrades")
-                            dbbp.Upgrades = runit.Count;
-                        else if (runit.Name == "Mid")
-                            dbbp.Mid = runit.Count;
-                        else
-                        {
-                            UnitModelBase unit = DSdata.Units.FirstOrDefault(f => f.Race == pl.Race && f.Name == Fix.UnitName(runit.Name));
-                            if (unit != null)
-                                dbbp.dsUnitsString += unit.ID + "," + runit.Count + "|";
-                            else
-                                dbbp.dsUnitsString += runit.Name + "," + runit.Count + "|";
-                        }
-                    }
-                    if (!String.IsNullOrEmpty(dbbp.dsUnitsString))
-                        dbbp.dsUnitsString = dbbp.dsUnitsString.Remove(dbbp.dsUnitsString.Length - 1);
-                    bps.Add(dbbp);
-                }
-                dbpl.Breakpoints = bps;
-            }
-            dbrep.DSPlayer = pls as ICollection<DSPlayer>;
-            dbrep.HASH = dbrep.GenHash();
-            dbrep.Upload = DateTime.UtcNow;
-
-
-            return dbrep;
-        }
-
-        public static Dsplayers GetOpp(int pos, Dsreplays rep)
-        {
-            Dsplayers plopp = new Dsplayers();
-            if (rep.Playercount == 6)
-            {
-
-                if (pos == 1) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 4);
-                if (pos == 2) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 5);
-                if (pos == 3) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 6);
-                if (pos == 4) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 1);
-                if (pos == 5) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 2);
-                if (pos == 6) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 3);
-                //opp = plopp.RACE;
-            }
-            else if (rep.Playercount == 4)
-            {
-                if (pos == 1) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 4);
-                if (pos == 2) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 5);
-                if (pos == 4) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 1);
-                if (pos == 5) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 2);
-            }
-            else if (rep.Playercount == 2)
-            {
-                if (pos == 1) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 4);
-                if (pos == 4) plopp = rep.Dsplayers.FirstOrDefault(x => x.Realpos == 1);
-            }
-
-            return plopp;
-        }
     }
-
 
 }
 

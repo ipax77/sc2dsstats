@@ -1,0 +1,153 @@
+﻿@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Common.Enums
+@using ChartJs.Blazor.LineChart
+@using sc2dsstats._2022.Shared
+
+<Chart Config="_config"></Chart>
+
+
+@code {
+    [Parameter]
+    public DsGameResponse Replay { get; set; }
+
+    private LineConfig _config;
+
+    protected override void OnInitialized()
+    {
+        _config = new LineConfig
+        {
+            Options = new LineOptions
+            {
+                Responsive = true,
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = "Middle"
+                }
+            }
+        };
+        _config.Options.Plugins["datalabels"] = new ChartJsPluginDatalabelOptions()
+        { 
+            display = false
+        };
+        if (Replay.Middle != null)
+            AddDatasets();
+        base.OnInitialized();
+    }
+
+    void AddDatasets()
+    {
+            float gt = 0;
+            List<float> MidTeam1 = new List<float>();
+            List<float> MidTeam2 = new List<float>();
+            List<float> Bunker = new List<float>();
+            List<float> Cannon = new List<float>();
+            bool BunkerSet = false;
+            bool CannonSet = false;
+            bool SkipNext = false;
+            if (Replay.Cannon == 0)
+                CannonSet = true;
+            if (Replay.Bunker == 0)
+                BunkerSet = true;
+            
+            int i = 0;
+            while(gt < Replay.Duration)
+            {
+                TimeSpan t = TimeSpan.FromSeconds(gt);
+                if (SkipNext)
+                    SkipNext = false;
+                else
+                    if (i % 5 == 0)
+                        _config.Data.Labels.Add(t.ToString(@"mm\:ss"));
+                    else
+                        _config.Data.Labels.Add("");
+                MidTeam1.Add(Replay.GetMiddle((int)(gt * 22.4), 0) / 22.4f);
+                MidTeam2.Add(Replay.GetMiddle((int)(gt * 22.4), 1) / 22.4f);
+                if (!CannonSet)
+                    if (gt * 22.4 >= Replay.Cannon)
+                    {
+                        Cannon.Add(Replay.GetMiddle((int)(gt * 22.4), 0) / 22.4f);
+                        _config.Data.Labels.Add(t.ToString(@"mm\:ss") + " Cannon");
+                        CannonSet = true;
+                        SkipNext = true;
+                    }
+                    else
+                        Cannon.Add(0);
+                if (!BunkerSet)
+                    if (gt * 22.4 >= Replay.Bunker)
+                    {
+                        Bunker.Add(Replay.GetMiddle((int)(gt * 22.4), 1) / 22.4f);
+                        _config.Data.Labels.Add(t.ToString(@"mm\:ss") + " Bunker");
+                        BunkerSet = true;
+                        SkipNext = true;
+                    }
+                    else
+                        Bunker.Add(0);
+                gt += 10;
+                i++;
+            }
+
+            if (Replay.Cannon > 0 && CannonSet)
+            {
+                var pointbg = Enumerable.Repeat("transparent", Cannon.Count - 1).ToList();
+                pointbg.Add("yellow");
+                var pointbc = Enumerable.Repeat("transparent", Cannon.Count - 1).ToList();
+                pointbc.Add("green");
+                LineDataset<float> datasetCannon = new LineDataset<float>(Cannon)
+                {
+                    Label = "Cannon",
+                    Fill = FillingMode.Disabled,
+                    PointBackgroundColor = pointbg.ToArray(),
+                    PointBorderColor = pointbc.ToArray(),
+                    PointBorderWidth = 4,
+                    PointRadius = 8,
+                    ShowLine = false,
+                    PointHitRadius = 0,
+                    PointHoverRadius = 0
+
+                };
+                _config.Data.Datasets.Add(datasetCannon);
+            }
+            if (Replay.Bunker > 0 && BunkerSet)
+            {
+                var pointbg = Enumerable.Repeat("transparent", Bunker.Count - 1).ToList();
+                pointbg.Add("sliver");
+                var pointbc = Enumerable.Repeat("transparent", Bunker.Count - 1).ToList();
+                pointbc.Add("black");
+                LineDataset<float> datasetBunker = new LineDataset<float>(Bunker)
+                {
+                    Label = "Bunker",
+                    Fill = FillingMode.Disabled,
+                    PointBackgroundColor = pointbg.ToArray(),
+                    PointBorderColor = pointbc.ToArray(),
+                    PointBorderWidth = 4,
+                    PointRadius = 8,
+                    ShowLine = false,
+                    PointHitRadius = 0,
+                    PointHoverRadius = 0
+                };
+                _config.Data.Datasets.Add(datasetBunker);
+            }
+
+
+            LineDataset<float> dataset1 = new LineDataset<float>(MidTeam1)
+            {
+                Label = "Team1",
+                BackgroundColor = Replay.Winner == 0 ? "green" : "red",
+                BorderColor = Replay.Winner == 0 ? "green" : "red",
+                Fill = FillingMode.Disabled,
+                PointRadius = 0,
+            };
+            LineDataset<float> dataset2 = new LineDataset<float>(MidTeam2)
+            {
+                Label = "Team2",
+                BackgroundColor = Replay.Winner == 1 ? "green" : "red",
+                BorderColor = Replay.Winner == 1 ? "green" : "red",
+                Fill = FillingMode.Disabled,
+                PointRadius = 0,
+            };
+            _config.Data.Datasets.Add(dataset1);
+            _config.Data.Datasets.Add(dataset2);
+        }        
+    }
+}

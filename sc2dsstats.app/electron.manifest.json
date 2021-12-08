@@ -1,0 +1,54 @@
+{
+  "executable": "sc2dsstats.app",
+  "splashscreen": {
+    "imageFile": ""
+  },
+  "name": "sc2dsstats.app",
+  "singleInstance": false,
+  "environment": "Production",
+  "build": {
+    "win": {
+      "publish": [ "github" ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "./bin/wwwroot/images/icon-512x512.png"
+    },
+    "appId": "com.sc2dsstats.app.app",
+    "productName": "sc2dsstats.app",
+    "copyright": "Copyright © 2022",
+    "buildVersion": "3.0.4",
+    "compression": "maximum",
+    "directories": {
+      "output": "../../../bin/Desktop"
+    },
+    "extraResources": [
+      {
+        "from": "./bin",
+        "to": "bin",
+        "filter": [ "**/*" ]
+      }
+    ],
+    "files": [
+      {
+        "from": "./ElectronHostHook/node_modules",
+        "to": "ElectronHostHook/node_modules",
+        "filter": [ "**/*" ]
+      },
+      "**/*"
+    ]
+  },
+  "user": "Ipax77",
+  "project": "ElectronUpdateTest",
+  "author": "Ipax77",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipax77/sc2dsstats.git"
+  }
+}

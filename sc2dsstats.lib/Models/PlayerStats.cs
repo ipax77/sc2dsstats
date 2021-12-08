@@ -1,12 +1,8 @@
-﻿using sc2dsstats.lib.Db;
+﻿using sc2dsstats.lib.Data;
+using sc2dsstats.lib.Db;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using sc2dsstats.lib.Data;
-using System.Data.SqlTypes;
-using System.Threading.Tasks.Sources;
 
 namespace sc2dsstats.lib.Models
 {
@@ -90,13 +86,13 @@ namespace sc2dsstats.lib.Models
                         }
                     }
                 }
-                
+
 
                 var oppcmdrreps = reps.Where(x => x.OPPRACE == cmdr);
                 PlayerStat oppstat = new PlayerStat();
                 if (oppcmdrreps.Any())
                 {
-                    
+
                     oppstat.Race = cmdr;
                     oppstat.Count = oppcmdrreps.Count();
                     oppstat.Wins = oppcmdrreps.Where(x => x.WIN == true).Count();

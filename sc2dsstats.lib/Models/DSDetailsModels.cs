@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Text.Json.Serialization;
 
 namespace sc2dsstats.lib.Models
@@ -72,7 +71,7 @@ namespace sc2dsstats.lib.Models
 
         }
 
-        public DbRefinery(int gameloop, int index, int recycletag, DSPlayer pl) :this()
+        public DbRefinery(int gameloop, int index, int recycletag, DSPlayer pl) : this()
         {
             Gameloop = gameloop;
             Index = index;
@@ -197,7 +196,7 @@ namespace sc2dsstats.lib.Models
         public Vector2 ObjectiveBunker { get; set; } = Vector2.Zero;
         public Vector2 ObjectivePhotonCannon { get; set; } = Vector2.Zero;
         public Vector2 Center { get; set; } = Vector2.Zero;
-        
+
         public KeyValuePair<Vector2, Vector2> LineT1 { get; set; } = new KeyValuePair<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
         public KeyValuePair<Vector2, Vector2> LineT2 { get; set; } = new KeyValuePair<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
     }

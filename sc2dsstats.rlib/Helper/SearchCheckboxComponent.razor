@@ -1,0 +1,213 @@
+﻿@using sc2dsstats._2022.Shared
+
+@inject IJSRuntime _js
+@implements IDisposable
+
+<label>Players <span class="oi oi-x text-danger pointer" @onclick="Clear"></span></label>
+<div @ref="inputRef" tabindex="0" class="position-relative" style="height: 2.5rem; width: 210px;" @onfocusout="FocusOut">
+    <div class="position-absolute">
+        <input class="form-control mr-sm-2" type="text" placeholder="Search" @onfocusin:stopPropagation @onfocusin:preventDefault @onfocusin="FocusIn" @bind-value="SearchTerm" @oninput="SearchInput">
+    </div>
+        
+    <div class="position-absolute bg-dark @selectClass" style="z-index: 99; min-width: 250px; max-height: 600px; overflow: auto; margin-top: 2.5rem;">
+        <table class="table table-sm">
+            <tbody>
+                <Virtualize @ref="virtualTable" ItemsProvider="LoadEnt" ItemSize="38">
+                    <ItemContent>
+                        <tr tabindex="0" class="pointer @(context.ent == GetFocusTerm() ? "table-primary" : "")" @onfocusin="TableFocusin">
+                            <td>
+                                <div class="form-check p-0">
+                                    <label class="col-form-label">
+                                        <input type="checkbox" @bind-value="context.selected" />
+                                        @(context.ent.Length > 13 ? $"{context.ent.Substring(0, 12)}..." : context.ent)
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    </ItemContent>
+                </Virtualize>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public List<EditEnt> Options { get; set; }
+
+    bool showSelect = false;
+    string selectClass => showSelect ? "" : "d-none";
+
+    private string SearchTerm = String.Empty;
+    private int FocusIndex = 0;
+    private bool tableClick = false;
+    public ElementReference inputRef;
+    DotNetObjectReference<SearchCheckboxComponent> componentRef;
+
+    private int Skip;
+    private int Take = 12;
+    private int filteredCount;
+    private List<EditEnt> filteredOptions;
+    private Virtualize<EditEnt> virtualTable;
+
+    protected override void OnInitialized()
+    {
+        filteredCount = Options.Count;
+        filteredOptions = Options;
+    }
+
+    //List<EditEnt> filteredOptions => String.IsNullOrEmpty(SearchTerm)
+    //    ? Options.OrderBy(o => o.selected).ThenBy(p => p.ent).ToList()
+    //    : Options.Where(x => x.ent.ToUpper().Contains(SearchTerm.ToUpper())).OrderBy(o => o.selected).ThenBy(p => p.ent).ToList();
+
+
+    private async ValueTask<ItemsProviderResult<EditEnt>> LoadEnt(ItemsProviderRequest prRequest)
+    {
+        Skip = prRequest.StartIndex;
+        Take = Math.Min(prRequest.Count, filteredCount - prRequest.StartIndex);
+
+        if (Take == 0)
+            filteredOptions = new List<EditEnt>();
+        else
+        {
+            if (!prRequest.CancellationToken.IsCancellationRequested)
+                await Task.Run(() => { filteredOptions = GetOptions(); }, prRequest.CancellationToken);
+        }
+        return new ItemsProviderResult<EditEnt>(filteredOptions, filteredCount);
+    }
+
+    private List<EditEnt> GetOptions()
+    {
+        if (String.IsNullOrEmpty(SearchTerm))
+        {
+            return Options.OrderBy(o => o.selected).ThenBy(o => o.ent).Skip(Skip).Take(Take).ToList();
+        } else
+        {
+            return Options
+                .Where(x => x.ent.ToUpper().Contains(SearchTerm.ToUpper()))
+                .OrderBy(o => o.selected).ThenBy(o => o.ent).Skip(Skip).Take(Take).ToList();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            componentRef = DotNetObjectReference.Create(this);
+            await _js.InvokeAsync<object>("HandleInputNavKeys", new object[] { componentRef, inputRef });
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    async void Clear()
+    {
+        FocusIndex = 0;
+        SearchTerm = String.Empty;
+        showSelect = false;
+        filteredCount = Options.Count();
+        await virtualTable.RefreshDataAsync();
+        StateHasChanged();
+    }
+
+    async void FocusIn()
+    {
+        FocusIndex = 0;
+        showSelect = true;
+        await virtualTable.RefreshDataAsync();
+        StateHasChanged();
+    }
+
+    void TableFocusin()
+    {
+        tableClick = true;
+    }
+
+    async void FocusOut()
+    {
+        await Task.Delay(2);
+        if (tableClick)
+            return;
+        showSelect = false;
+        StateHasChanged();
+    }
+
+    async void SearchInput(ChangeEventArgs e)
+    {
+        SearchTerm = e.Value.ToString();
+        filteredCount = Options.Where(x => x.ent.ToUpper().Contains(SearchTerm.ToUpper())).Count();
+        await virtualTable.RefreshDataAsync();
+        StateHasChanged();
+    }
+
+    void DoEnter()
+    {
+        if (FocusIndex == 0)
+        {
+            showSelect = false;
+            if (filteredOptions.Any())
+                filteredOptions.First().selected = true;
+            StateHasChanged();
+        }
+    }
+
+    void Selected()
+    {
+        
+        StateHasChanged();
+    }
+
+    string GetFocusTerm()
+    {
+        if (FocusIndex == 0 && filteredOptions.Any())
+            return filteredOptions.First().ent;
+        if (FocusIndex < filteredOptions.Count())
+            return filteredOptions[FocusIndex].ent;
+        return "";
+    }
+
+    void KeyPressed(KeyboardEventArgs e)
+    {
+        Console.WriteLine(e.Code);
+        Console.WriteLine(e.Key);
+    }
+
+    [JSInvokable("KeyPressed")]
+    public void ArrowPressed(int keycode)
+    {
+        if (keycode == 38)
+        {
+            if (FocusIndex > 0)
+            {
+                FocusIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (keycode == 40)
+        {
+            if (FocusIndex < filteredOptions.Count - 1)
+            {
+                FocusIndex++;
+                StateHasChanged();
+            }
+        } else if (keycode == 13)
+        {
+            if (FocusIndex > 0)
+            {
+                filteredOptions[FocusIndex].selected = true;
+                tableClick = false;
+                StateHasChanged();
+            }
+        } else if (!showSelect)
+        {
+            showSelect = true;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        componentRef?.Dispose();
+    }
+
+}

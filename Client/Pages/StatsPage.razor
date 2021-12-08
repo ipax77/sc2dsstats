@@ -1,0 +1,79 @@
+﻿@page "/stats"
+@page "/stats/{mode}"
+@page "/stats/{mode}/{timespan}"
+@page "/stats/{mode}/{timespan}/{interest}"
+@page "/stats/{mode}/{timespan}/{interest}/{player}"
+@page "/stats/{mode}/{timespan}/{interest}/{player}/{vs}"
+
+@using sc2dsstats._2022.Shared
+@using sc2dsstats._2022.Client.Services
+@inject NavigationManager _nav
+@inject IDataService dataService
+
+<sc2dsstats.rlib.StatsComponent Request="Request" onOptionsChanged="SetOptions" dataService="idataService"></sc2dsstats.rlib.StatsComponent>
+
+@code {
+
+    [Parameter]
+    public string timespan { get; set; }
+    [Parameter]
+    public string mode { get; set; }
+    [Parameter]
+    public string interest { get; set; }
+    [Parameter]
+    public string player { get; set; }
+    [Parameter]
+    public string vs { get; set; }
+
+    DsRequest Request;
+    IDataService idataService;
+
+    protected override void OnInitialized()
+    {
+        idataService = dataService;
+        Request = new DsRequest("Winrate", "This Year", false);
+        ParseOptions();
+        base.OnInitialized();
+    }
+
+    void ParseOptions()
+    {
+        if (!String.IsNullOrEmpty(mode))
+        {
+            if (DSData.modes.Contains(mode))
+                Request.SetMode(mode);
+
+            if (!String.IsNullOrEmpty(timespan))
+            {
+                if (DSData.timespans.Contains(timespan))
+                {
+                    Request.SetTime(timespan);
+                }
+
+                if (!String.IsNullOrEmpty(interest))
+                {
+                    if (interest == "ALL" || DSData.cmdrs.Contains(interest))
+                        Request.Interest = interest;
+
+                    if (!String.IsNullOrEmpty(player))
+                    {
+                        bool isplayer = false;
+                        if (bool.TryParse(player, out isplayer))
+                            Request.SetPlayer(isplayer);
+                    }
+                    if (!String.IsNullOrEmpty(vs))
+                    {
+                        if (vs == "ALL" || DSData.cmdrs.Contains(vs))
+                            Request.Versus = vs;
+                    }
+                }
+            }
+        }
+    }
+
+    void SetOptions(DsRequest request)
+    {
+        Request = request;
+        _nav.NavigateTo($"/stats/{Request.Mode}/{Request.Timespan}/{request.Interest}/{request.Player}/{request.Versus}");
+    }
+}

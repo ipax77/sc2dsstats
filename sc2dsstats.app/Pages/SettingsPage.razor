@@ -1,0 +1,183 @@
+﻿@page "/config"
+
+@using System.IO
+@using Blazored.Toast.Configuration
+@using Microsoft.Extensions.Logging
+@using sc2dsstats.app.Services
+
+@inject ReplayService replayService
+@inject ILogger<SettingsPage> logger
+@inject IToastService toastService
+
+<h1 class="display-5 fw-bold">Settings</h1>
+
+@if (Config.DbId != new Guid())
+{
+    <p>
+        Dataset name: <strong>@Config.DbId.ToString().Substring(0, 8)</strong>@Config.DbId.ToString().Substring(8)
+    </p>
+} else
+{
+    <p>
+        Your Dataset name will be shown after the first successful upload
+    </p>
+
+}
+<EditForm EditContext="editContext" OnValidSubmit="onValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="container-fluid py-5 bg-primary">
+        <div class="row">
+            <div class="col-2">
+                <div class="form-check">
+                    <label class="col-form-label">
+                        <InputCheckbox @bind-Value="Config.Uploadcredential"></InputCheckbox>
+                        Allow Uploads
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-8 fs-4">
+                To improve this application it would be very nice if the statistics were uploaded from time to time.
+                All player names (including yours) will be anonymized before sending. By checking you agree that your anonymized DS-replay data will be used at <a class="text-warning" href="https://sc2dsstats.pax77.org">https://sc2dsstats.pax77.org</a> to generate global charts.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <div class="form-check">
+                    <label class="col-form-label">
+                        <InputCheckbox @bind-Value="Config.OnTheFlyScan"></InputCheckbox>
+                        OnTheFlyScan
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-8 fs-4">
+                Automatically detects new Direct Strike replays.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <label class="col-form-label">
+                    <InputNumber @bind-Value="Config.CPUCores" style="max-width: 150px;"></InputNumber>
+                    CPU Cores
+                </label>
+            </div>
+            <div class="col-md-8 fs-4">
+                CPU Cores used for decoding new replays (available CPUs: @EnvCpus)
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-5 bg-primary mt-3">
+    <h4 class="fw-bold">Playernames - your ingame Starcraft 2 Player name(s) e.g. shown in the loading screen of Direct Strike</h4>
+    @for (int i = 0; i < Config.PlayerEnts.Count; i++)
+    {
+        int j = i;
+        var playerEnt = Config.PlayerEnts[i];
+        <div class="col-6 m-2 p-2">
+            <label class="col-form-label d-flex w-100">
+                Player @(i + 1)
+                <InputText class="w-75 ms-2" @bind-Value="playerEnt.ent"></InputText>
+                <span class="oi oi-x pointer text-danger ms-1 align-self-center" @onclick="e => RemovePlayer(j)"></span>
+            </label> 
+        </div>
+    }
+    <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPlayer">Add Player</button>
+    </div>
+    <div class="container-fluid py-5 bg-primary mt-3">
+    <h4 class="fw-bold">Replay directories - location of the Direct Strike replays</h4>
+    <small>Somethink like: C:\Users\username\Documents\StarCraft II\Accounts\107095123\2-S2-1-226321\Replays\Multiplayer</small>
+    @for (int k = 0; k < Config.PathEnts.Count; k++)
+    {
+        int l = k;
+        var pathEnt = Config.PathEnts[k];
+        <div class="col-10 m-2 p-2">
+            <label class="col-form-label d-flex w-100">
+                Path @(k + 1)
+                <InputText class="w-75 ms-2" @bind-Value="pathEnt.ent"></InputText>
+                <span class="oi oi-x pointer text-danger" @onclick="e => RemovePath(l)"></span>
+            </label> 
+        </div>
+    }
+    <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPath">Add Path</button>
+    </div>
+    <div class="btn-group mt-3 mb-5">
+        <button type="submit" class="btn btn-primary btn-lg">Save</button>
+        <button type="button" class="btn btn-danger btn-lg" @onclick="Reset">Reset</button>
+    </div>
+</EditForm>
+
+@code {
+    EditContext editContext;
+    UserConfig Config;
+    int EnvCpus = 2;
+
+    protected override void OnInitialized()
+    {
+        Config = replayService.AppConfig.Config;
+        Init();
+        editContext = new EditContext(Config);
+        EnvCpus = Environment.ProcessorCount;
+        base.OnInitialized();
+    }
+
+    private void Init()
+    {
+        if (Config.PlayersNames == null || !Config.PlayersNames.Any())
+            Config.PlayerEnts = new List<EditEnt>() { new EditEnt() { ent = "" } };
+        else
+            Config.PlayerEnts = Config.PlayersNames.Select(s => new EditEnt() { ent = s }).ToList();
+        if (Config.ReplayPaths == null || !Config.ReplayPaths.Any())
+            Config.PathEnts = new List<EditEnt>() { new EditEnt() { ent = "" } };
+        else
+            Config.PathEnts = Config.ReplayPaths.Select(s => new EditEnt() { ent = s }).ToList();
+    }
+
+    private void onValidSubmit()
+    {
+        Config.PlayersNames = Config.PlayerEnts.Where(x => !String.IsNullOrEmpty(x.ent)).Select(s => s.ent).ToList();
+        Config.ReplayPaths = Config.PathEnts.Where(x => !String.IsNullOrEmpty(x.ent) && Directory.Exists(x.ent)).Select(s => s.ent).ToList();
+        replayService.SaveConfig();
+        Init();
+        StateHasChanged();
+        if (Config.OnTheFlyScan)
+        {
+            replayService.StopWatching();
+            replayService.StartWatching();
+        }
+        else if (!Config.OnTheFlyScan)
+            replayService.StopWatching();
+
+        _ = replayService.ScanReplayFolders();
+        toastService.ShowSuccess("Settings saved.");
+    }
+
+    void Reset()
+    {
+        replayService.AppConfig = FirstRunService.GetInitialConfig(logger);
+        Config = replayService.AppConfig.Config;
+        Init();
+        replayService.SaveConfig();
+        replayService.StopWatching();
+        toastService.ShowWarning("Settings set to default");
+    }
+
+    void AddPlayer()
+    {
+        Config.PlayerEnts.Add(new EditEnt() { ent = "" });
+    }
+
+    void RemovePlayer(int i)
+    {
+        Config.PlayerEnts.RemoveAt(i);
+    }
+
+    void AddPath()
+    {
+        Config.PathEnts.Add(new EditEnt() { ent = "" });
+    }
+
+    void RemovePath(int i)
+    {
+        Config.PathEnts.RemoveAt(i);
+    }
+}

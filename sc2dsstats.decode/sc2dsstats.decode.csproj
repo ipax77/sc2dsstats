@@ -1,21 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <ApplicationIcon />
-    <StartupObject />
+    <!--<OutputType>Exe</OutputType>-->
+    <TargetFramework>net6.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IronPython" Version="2.7.11" />
-    <PackageReference Include="IronPython.StdLib" Version="2.7.11" />
+    <PackageReference Include="IronPython" Version="3.4.0-alpha1" />
+    <PackageReference Include="IronPython.StdLib" Version="3.4.0-alpha1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\sc2dsstats.lib\sc2dsstats.lib.csproj" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Update="pylib\site-packages\mpyq.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -561,5 +559,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\sc2dsstats.db\sc2dsstats.db.csproj" />
+    <ProjectReference Include="..\sc2dsstats.lib\sc2dsstats.lib.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
-﻿using sc2dsstats.lib.Db;
-using sc2dsstats.lib.Models;
+﻿using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,7 +17,7 @@ namespace sc2dsstats.lib.Data
         private DSReplay Replay_value = null;
 
         public int ID { get; set; }
-        public int Duration { get; set; } = 5*60;
+        public int Duration { get; set; } = 5 * 60;
         public int Leaver { get; set; } = 89;
         public int Army { get; set; } = 1500;
         public int Kills { get; set; } = 1500;
@@ -31,7 +30,7 @@ namespace sc2dsstats.lib.Data
         public string Vs { get; set; } = String.Empty;
 
         public bool MengskPreviewFilter { get; set; } = true;
-        
+
         public string Build { get; set; } = String.Empty;
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -1,0 +1,134 @@
+﻿.container {
+	position: relative;
+	max-width: 600px;
+	margin: 2rem auto;
+}
+.spinner-table {
+	height: 348px;
+	width: 348px;
+	position: relative;
+	border-radius: 100%;
+	overflow: hidden;
+}
+.dial {
+	height: 100%;
+	transition: all 5s ease-out;
+	animation-fill-mode: forwards;
+	animation-timing-function: linear;
+}
+
+.dial:before {
+	content: '';
+	text-align: center;
+	display: block;
+	line-height: 60px;
+	position: absolute;
+	height: 40px;
+	width: 40px;
+	background: white;
+	box-shadow: 0 0 5px 5px rgba(0, 0, 0, .1);
+	top: 50%;
+	left: 50%;
+	margin-top: -20px;
+	margin-left: -20px;
+	border-radius: 100%;
+	z-index: 200;
+}
+.dial .slice {
+	z-index: 150;
+	position: absolute;
+	top: calc(50% - 45.8148928635px);
+	height: 91.6297857271px;
+	left: 50%;
+	width: 50%;
+	color: white;
+	text-align: right;
+	padding-right: 10px;
+	display: block;
+	transform-origin: left center;
+}
+.dial .slice:before, .dial .slice:after {
+	content: "";
+	display: block;
+	width: 0;
+	height: 0;
+	border-style: solid;
+}
+.dial .slice:before {
+	margin-bottom: -1px;
+	margin-top: -2px;
+	border-width: 0 0 50px 175px;
+	border-color: transparent transparent #095b8d transparent;
+}
+.dial .slice:after {
+	margin-top: -1px;
+	margin-bottom: -2px;
+	border-width: 0 175px 18px 0;
+	border-color: transparent #095b8d transparent transparent;
+}
+.dial .slice:nth-child(even):after {
+	border-color: transparent #063c5d transparent transparent;
+}
+.dial .slice:nth-child(even):before {
+	border-color: transparent transparent #063c5d transparent;
+}
+.dial .slice .label {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 100%;
+	line-height: 80px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	font-size: 16px;
+	text-align: right;
+	padding-left: 20px;
+}
+
+.arrow {
+	position: absolute;
+	height: 30px;
+	width: 50px;
+	left: 355px;
+	z-index: 500;
+	display: block;
+	top: 50%;
+	margin-top: -15px;
+	transform-origin: center right;
+}
+.pointer {
+	z-index: 500;
+	display: block;
+	height: 30px;
+	width: 50px;
+}
+.pointer:before {
+	content: '';
+	display: block;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 0 0 15px 50px;
+	border-color: transparent transparent #c27028 transparent;
+}
+.pointer:after {
+	content: '';
+	display: block;
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 0 50px 15px 0;
+	border-color: transparent #c27028 transparent transparent;
+}
+.board {
+	position: relative;
+	/*background: white;*/
+	padding: 10px;
+}
+

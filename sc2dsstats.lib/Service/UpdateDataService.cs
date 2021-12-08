@@ -1,8 +1,8 @@
-﻿using System.IO;
-using Newtonsoft.Json;
-using System.Collections.Concurrent;
+﻿using Newtonsoft.Json;
 using sc2dsstats.lib.Data;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 
 namespace sc2dsstats.lib.Service
 {

@@ -6,7 +6,6 @@ using sc2dsstats.lib.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace sc2dsstats.lib.Db
@@ -67,7 +66,8 @@ namespace sc2dsstats.lib.Db
                              from p in r.DSPlayer
                              where p.NAME.Length == 64 && p.RACE == dbOpt.PlayerRace
                              select r;
-                } else
+                }
+                else
                 {
                     repids = from r in repids
                              from p in r.DSPlayer
@@ -86,7 +86,8 @@ namespace sc2dsstats.lib.Db
                              from p in r.DSPlayer
                              where p.RACE == dbOpt.MatchupPlayerRace
                              select r;
-                } else
+                }
+                else
                 {
                     repids = from r in repids
                              from p in r.DSPlayer
@@ -99,19 +100,20 @@ namespace sc2dsstats.lib.Db
 
             if (dbOpt.PlayerUnits != null && dbOpt.PlayerUnits.Count > 0)
             {
-                var reps = dbOpt.OpponentUnits switch {
+                var reps = dbOpt.OpponentUnits switch
+                {
                     null => from r in repids
-                                from p in r.DSPlayer
-                                where p.RACE == dbOpt.PlayerUnits.Race
-                                from b in p.Breakpoints
-                                where b.Breakpoint == "ALL" && b.dsUnitsString.Contains(dbOpt.PlayerUnits.ID + ",")
-                                select new { r, b, p },
+                            from p in r.DSPlayer
+                            where p.RACE == dbOpt.PlayerUnits.Race
+                            from b in p.Breakpoints
+                            where b.Breakpoint == "ALL" && b.dsUnitsString.Contains(dbOpt.PlayerUnits.ID + ",")
+                            select new { r, b, p },
                     _ => from r in repids
-                             from p in r.DSPlayer
-                             where p.RACE == dbOpt.PlayerUnits.Race && p.OPPRACE == dbOpt.OpponentUnits.Race
-                             from b in p.Breakpoints
-                             where b.Breakpoint == "ALL" && b.dsUnitsString.Contains(dbOpt.PlayerUnits.ID + ",")
-                             select new { r, b, p }
+                         from p in r.DSPlayer
+                         where p.RACE == dbOpt.PlayerUnits.Race && p.OPPRACE == dbOpt.OpponentUnits.Race
+                         from b in p.Breakpoints
+                         where b.Breakpoint == "ALL" && b.dsUnitsString.Contains(dbOpt.PlayerUnits.ID + ",")
+                         select new { r, b, p }
                 };
                 var breps = await reps.ToListAsync();
 
@@ -124,12 +126,12 @@ namespace sc2dsstats.lib.Db
                     {
                         int okey = DBFunctions.GetOpp(ent.p.REALPOS);
                         var opps = from r in repids
-                                       where r.ID == ent.r.ID
-                                       from p in r.DSPlayer
-                                       where p.REALPOS == okey
-                                       from b in p.Breakpoints
-                                       where b.Breakpoint == "ALL" && b.dsUnitsString.Contains(dbOpt.OpponentUnits.ID + ",")
-                                       select new { r, b};
+                                   where r.ID == ent.r.ID
+                                   from p in r.DSPlayer
+                                   where p.REALPOS == okey
+                                   from b in p.Breakpoints
+                                   where b.Breakpoint == "ALL" && b.dsUnitsString.Contains(dbOpt.OpponentUnits.ID + ",")
+                                   select new { r, b };
                         var obreps = await opps.ToListAsync();
                         if (!obreps.Any())
                             intunit = null;
@@ -161,19 +163,20 @@ namespace sc2dsstats.lib.Db
             if (!String.IsNullOrEmpty(dbOpt.Interest))
             {
 
-                var res = String.IsNullOrEmpty(dbOpt.InterestVs) switch {
+                var res = String.IsNullOrEmpty(dbOpt.InterestVs) switch
+                {
 
                     true => from r in dbOpt.Replays
-                        from t1 in r.DSPlayer
-                        where t1.RACE == dbOpt.Interest
-                          select new WinRateHelper()
-                          {
-                              WIN = t1.WIN,
-                              RACE = t1.RACE,
-                              OPPRACE = t1.OPPRACE,
-                              DURATION = r.DURATION,
-                              ID = r.ID
-                          },
+                            from t1 in r.DSPlayer
+                            where t1.RACE == dbOpt.Interest
+                            select new WinRateHelper()
+                            {
+                                WIN = t1.WIN,
+                                RACE = t1.RACE,
+                                OPPRACE = t1.OPPRACE,
+                                DURATION = r.DURATION,
+                                ID = r.ID
+                            },
                     _ => from r in dbOpt.Replays
                          from t1 in r.DSPlayer
                          where t1.RACE == dbOpt.Interest && t1.OPPRACE == dbOpt.InterestVs
@@ -186,7 +189,7 @@ namespace sc2dsstats.lib.Db
                              ID = r.ID
                          }
                 };
-                
+
                 var result = res.Where(x => x.RACE == dbOpt.Interest);
                 float games = 1;
                 float wins = 0;
@@ -194,7 +197,8 @@ namespace sc2dsstats.lib.Db
                 {
                     games = await result.CountAsync();
                     wins = await result.Where(x => x.WIN == true).CountAsync();
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     _logger.LogError(e.Message);
                 }
@@ -243,7 +247,7 @@ namespace sc2dsstats.lib.Db
                 };
 
             }
-            
+
             return Replays;
         }
 

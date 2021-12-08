@@ -1,3 +1,7 @@
+3.0.4
+
+- update to dotnet6/ElectronNET 13.5.1
+
 2.0.30
 
 - upload changed to sc2dsstats.pax77.org

@@ -1,0 +1,181 @@
+﻿@inject HttpClient Http 
+@using sc2dsstats._2022.Shared
+
+<style>
+    .verticalTableHeader {
+        text-align: center;
+        white-space: nowrap;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+    }
+
+    .verticalTableHeader:before {
+        content: '';
+        padding-top: 110%;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .cnowrap {
+        white-space: nowrap;
+    }
+
+</style>
+
+<div class="row">
+    <SelectComponent Options="TimespanOptions" Label="Timespan" isSelected="@TimeSpanSelected" onSelected="OnTimespanSelected"></SelectComponent>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="playercheckbox" @onchange="PlayerChanged">
+        <label class="form-check-label" for="playercheckbox">
+            Player
+        </label>
+    </div>
+</div>
+<div>
+    @if (isLoading)
+    {
+        <button class="btn btn-primary" type="button" disabled>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Crosstable Loading...
+        </button>
+    }
+    else
+    {
+        <button class="btn btn-primary mt-2" type="button" disabled>
+            <span class="ml-5" role="status" aria-hidden="true"></span>
+            Crosstable Winrate Left vs Top - @TimeSpanSelected - @(request.Player ? "Uploaders only" : "All")
+        </button>
+    }
+</div>
+<div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th class="verticalTableHeader"></th>
+                @foreach (var cmdr in DSData.cmdrs)
+                {
+                    <th class="verticalTableHeader">@cmdr</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (response != null)
+            {
+                int i = 0;
+                @foreach (var cmdr in DSData.cmdrs)
+                { 
+            <tr>
+                <td>@cmdr</td>
+                @foreach (var vs in DSData.cmdrs)
+                {
+                    
+                    @if (cmdr == vs)
+                    {
+                        <td class="text-white-50"></td>
+                    }
+                    else
+                    {
+                        var ent = response.Items[i];
+                        var diff = ent.Winrate - ent.OldWinrate;
+                        if (Math.Abs(diff) >= 1)
+                        {
+                            @if (diff > 0)
+                            {
+                                <td class="cnowrap @ent.Color">@ent.Winrate.ToString("N2") <span class="badge bg-secondary text-success text-small"><span class="oi oi-arrow-top"></span>@Math.Abs(diff).ToString("N1")</span></td>
+                            }
+                            else
+                            {
+                                <td class="cnowrap @ent.Color">@ent.Winrate.ToString("N2") <span class="badge bg-secondary text-danger text-small"><span class="oi oi-arrow-bottom"></span>@Math.Abs(diff).ToString("N1")</span></td>
+                            }
+                        }
+                        else
+                        {
+                            <td class="@ent.Color">@ent.Winrate.ToString("N2")</td>
+                        }
+                    }
+                    i++;
+                }
+            </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (response != null)
+{
+    @foreach (var ent in response.Items.Where(x => x.Count > 0).OrderBy(o => o.Winrate))
+    {
+        <div class="row">
+            <div class="col-3">
+                @ent.Label
+            </div>
+            <div class="col-5">
+                @ent.Winrate % (@ent.Count)
+            </div>
+        </div>
+    }
+}
+
+
+@code {
+
+    CrosstableResponse response;
+    DsRequest request;
+    string Info = String.Empty;
+    bool isLoading = true;
+
+    List<string> TimespanOptions = new List<string>()
+    {
+        "This Year",
+        "Patch 2.60"
+    };
+    string TimeSpanSelected = "Patch 2.60";
+
+    protected override async Task OnInitializedAsync()
+    {
+        request = new DsRequest();
+        request.SetTime(TimeSpanSelected);
+        await LoadData(request);
+    }
+
+    async Task LoadData(DsRequest request)
+    {
+        if (!isLoading)
+        {
+            isLoading = true;
+            await InvokeAsync(() => StateHasChanged());
+        }
+        var httpResponse = await Http.PostAsJsonAsync("api/stats/crosstable", request);
+        if (httpResponse.IsSuccessStatusCode)
+        {
+            try
+            {
+                response = await httpResponse.Content.ReadFromJsonAsync<CrosstableResponse>();
+            }
+            catch (Exception e)
+            {
+                Info = $"Failed loading crosstable data: {e.Message}";
+            }
+        }
+        else
+        {
+            Info = $"Failed loading crosstable data: {httpResponse.StatusCode}";
+        }
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    async void OnTimespanSelected(string timespan)
+    {
+        TimeSpanSelected = timespan;
+        request.SetTime(TimeSpanSelected);
+        await LoadData(request);
+    }
+
+    async void PlayerChanged(ChangeEventArgs e)
+    {
+        request.SetPlayer(!request.Player);
+        await LoadData(request);
+    }
+}

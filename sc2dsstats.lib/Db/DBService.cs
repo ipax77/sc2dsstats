@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using sc2dsstats.lib.Models;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using sc2dsstats.lib.Models;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace sc2dsstats.lib.Db
 {
@@ -27,14 +27,14 @@ namespace sc2dsstats.lib.Db
                 lock (lockobject)
                 {
                     DbReplays = new HashSet<string>(_context.DSReplays.Select(s => s.REPLAYPATH).ToHashSet());
-                    
+
                 }
             return DbReplays;
         }
 
         public void DeleteRep(int id, bool bulk = false)
         {
-            _logger.LogInformation("Deleting rep " + id); 
+            _logger.LogInformation("Deleting rep " + id);
             lock (lockobject)
             {
                 var replay = _context.DSReplays
@@ -45,7 +45,7 @@ namespace sc2dsstats.lib.Db
 
                 if (DbReplays.Contains(replay.REPLAYPATH))
                     DbReplays.Remove(replay.REPLAYPATH);
-                
+
                 if (replay.DSPlayer != null)
                 {
                     foreach (DSPlayer pl in replay.DSPlayer)
@@ -151,7 +151,7 @@ namespace sc2dsstats.lib.Db
                 return _context.DSReplays.Select(s => s.REPLAY).ToHashSet();
             }
         }
-        
+
         public int GetReplayCount()
         {
             _logger.LogInformation("Getting replay count");
@@ -181,8 +181,10 @@ namespace sc2dsstats.lib.Db
 
         public List<DSReplay> GetReplays(int skip, int take, string order)
         {
-            lock (lockobject) {
-                var reps = (order switch { 
+            lock (lockobject)
+            {
+                var reps = (order switch
+                {
                     "GAMETIME" => _context.DSReplays.OrderByDescending(o => o.GAMETIME).Skip(skip).Take(take).ToList(),
 
                     _ => new List<DSReplay>()
@@ -199,7 +201,8 @@ namespace sc2dsstats.lib.Db
         public List<DSReplay> GetReplaysPart(IQueryable<DSReplay> replays, string id, int skip, int take, bool order)
         {
             List<DSReplay> Replays = new List<DSReplay>();
-            lock (lockobject) {
+            lock (lockobject)
+            {
                 if (order)
                 {
                     Replays = id switch

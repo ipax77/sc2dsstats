@@ -1,0 +1,43 @@
+﻿@page "/pickban"
+@page "/pickban/{mode}"
+@page "/pickban/{mode}/{guid}"
+
+@using Microsoft.AspNetCore.SignalR.Client
+@using sc2dsstats._2022.Shared
+@inject NavigationManager _nav
+@inject IJSRuntime _js
+
+@if (String.IsNullOrEmpty(mode))
+{
+	<div class="btn-block">
+		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("cmdr1"))">Commanders</button>
+		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("gdsl1"))">GDSL Fun Tournament</button>
+		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("gdsl2"))">OFFICIAL GDSL TOURNAMENT</button>
+	</div>
+}
+
+@if (mode == "cmdr1") 
+{
+	<PickBanComponent mode="@mode" guid="@guid"></PickBanComponent>
+} else if (mode == "gdsl1")
+{
+	<Gdsl1Component mode="@mode" guid="@guid"></Gdsl1Component>
+	
+} else if (mode == "gdsl2") {
+	<Gdsl2Component mode="@mode" guid="@guid"></Gdsl2Component>
+}
+
+
+@code {
+	[Parameter]
+	public string mode { get; set; } = String.Empty;
+
+	[Parameter]
+	public string guid { get; set; }
+
+	void ChangeMode(string newmode)
+	{
+		mode = newmode;
+		_nav.NavigateTo($"pickban/{mode}");
+	}
+}

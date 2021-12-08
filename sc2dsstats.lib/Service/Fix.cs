@@ -1,8 +1,6 @@
 ﻿using sc2dsstats.lib.Data;
 using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace sc2dsstats.lib.Service

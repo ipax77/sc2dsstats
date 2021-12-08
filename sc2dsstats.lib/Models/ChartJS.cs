@@ -26,7 +26,7 @@ namespace sc2dsstats.lib.Models
         public ChartJSoptionsTitle title { get; set; } = new ChartJSoptionsTitle();
         public ChartJSoptionsScales scales { get; set; } = new ChartJSoptionsScales();
         //public ChartJSoptionsScale scale { get; set; }
-        
+
     }
 
     public class ChartJSoptionsElementsPoint

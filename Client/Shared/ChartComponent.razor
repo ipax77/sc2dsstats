@@ -1,0 +1,58 @@
+﻿@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.PieChart
+@using ChartJs.Blazor.Util
+@using sc2dsstats._2022.Client.Services
+@using sc2dsstats._2022.Shared
+<h3>ChartComponent</h3>
+
+@if (_config != null)
+{
+    <Chart @ref="_chart" Config="_config"></Chart>
+}
+
+@code {
+    public TimelineResponse response;
+
+    private ConfigBase _config;
+    private Chart _chart;
+
+    public void SetChart(TimelineResponse response)
+    {
+        this.response = response;
+
+        if (_config != null)
+        {
+            _config = null;
+            InvokeAsync(() => StateHasChanged());
+        }
+
+        if (response == null)
+        {
+            _config = ChartService.GetLineConfig();
+        }
+        else
+        {
+            _config = ChartService.GetChartConfig(response);
+        }
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void SetChart(DsResponse response)
+    {
+        if (_config != null)
+        {
+            _config = null;
+            InvokeAsync(() => StateHasChanged());
+        }
+
+        if (response == null)
+        {
+            _config = ChartService.GetLineConfig();
+        }
+        else
+        {
+            _config = ChartService.GetChartConfig(response);
+        }
+        InvokeAsync(() => StateHasChanged());
+    }
+}

@@ -31,10 +31,8 @@ namespace sc2dsstats.lib.Models
         public string REPLAYPATH { get; set; }
         public int OBJECTIVE { get; set; }
         [NotMapped]
-        [JsonIgnore]
         public int Bunker { get; set; } = 0;
         [NotMapped]
-        [JsonIgnore]
         public int Cannon { get; set; } = 0;
         public DateTime Upload { get; set; }
     }
@@ -177,7 +175,7 @@ namespace sc2dsstats.lib.Models
 
     }
     [NotMapped]
-    public class DSUnit : DSUnitBase    
+    public class DSUnit : DSUnitBase
     {
         public virtual DbBreakpoint Breakpoint { get; set; }
         [JsonIgnore]
