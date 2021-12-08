@@ -57,7 +57,7 @@ namespace sc2dsstats.app.Services
                 isFirstRun = false;
             }
             _ = ScanReplayFolders();
-            _ = electronService.CheckForUpdate();
+            _ = electronService.CheckForUpdate(5000);
             if (AppConfig.Config.OnTheFlyScan)
             {
                 StartWatching();
