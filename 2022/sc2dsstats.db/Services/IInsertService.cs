@@ -2,7 +2,7 @@
 
 public interface IInsertService
 {
-    event EventHandler<EventArgs> ReplaysInserted;
+    event EventHandler<InsertEventArgs> ReplaysInserted;
 
     bool AddReplay(Dsreplay replay);
     void AddReplays(List<Dsreplay> replays);
@@ -13,4 +13,9 @@ public interface IInsertService
     void WriteStart();
 }
 
+public class InsertEventArgs : EventArgs
+{
+    public int insertCount { get; set; }
+    public bool Done { get; set; } = false;
+}
 

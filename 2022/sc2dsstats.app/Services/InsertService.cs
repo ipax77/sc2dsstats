@@ -15,11 +15,10 @@ namespace sc2dsstats.app.Services
         private readonly ILogger<InsertService> logger;
         private Channel<Dsreplay> ReplayChannel;
         private CancellationTokenSource tokenSource;
-        public event EventHandler<EventArgs> ReplaysInserted;
-
-        protected virtual void OnReplaysInserted(EventArgs e)
+        public event EventHandler<InsertEventArgs> ReplaysInserted;
+        protected virtual void OnReplaysInserted(InsertEventArgs e)
         {
-            EventHandler<EventArgs> handler = ReplaysInserted;
+            EventHandler<InsertEventArgs> handler = ReplaysInserted;
             if (handler != null)
             {
                 handler(this, e);
@@ -64,6 +63,8 @@ namespace sc2dsstats.app.Services
             logger.LogInformation($"consumer job working.");
             using (var scope = scopeFactory.CreateScope())
             {
+                int i = 0;
+                HashSet<DsPlayerName> playerCache = new HashSet<DsPlayerName>();
                 try
                 {
                     var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
@@ -74,24 +75,41 @@ namespace sc2dsstats.app.Services
                         {
                             if (!await context.Dsreplays.AnyAsync(a => a.Hash == replay.Hash))
                             {
+                                HashSet<string> names = new HashSet<string>();
                                 foreach (var pl in replay.Dsplayers)
                                 {
-                                    var player = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.Name == pl.Name);
+                                    if (names.Contains(pl.Name))
+                                        continue;
+                                    var player = playerCache.FirstOrDefault(f => f.Name == pl.Name);
+                                    if (player == null)
+                                    {
+                                        player = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.Name == pl.Name);
+                                    }
                                     if (player == null)
                                     {
                                         player = new DsPlayerName()
                                         {
                                             Name = pl.Name,
                                         };
-                                        context.DsPlayerNames.Add(player);
+                                        names.Add(pl.Name);
+                                        playerCache.Add(player);
                                     }
                                     pl.PlayerName = player;
                                 }
                                 context.Dsreplays.Add(replay);
-                                await context.SaveChangesAsync();
                             }
                         }
+                        if (i % 1000 == 0)
+                        {
+                            await context.SaveChangesAsync();
+                            OnReplaysInserted(new InsertEventArgs()
+                            {
+                                insertCount = i
+                            });
+                        }
+                        i++;
                     }
+                    await context.SaveChangesAsync();
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -100,7 +118,12 @@ namespace sc2dsstats.app.Services
                 }
                 finally
                 {
-                    OnReplaysInserted(new EventArgs());
+
+                    OnReplaysInserted(new InsertEventArgs()
+                    {
+                        insertCount = i,
+                        Done = true
+                    });
                     Reset();
                 }
             }

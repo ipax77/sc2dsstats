@@ -28,8 +28,6 @@ public class PlayerNameService
         if (token.IsCancellationRequested)
             return null;
         var player = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.Name == name, token);
-        if (token.IsCancellationRequested)
-            return null;
         var appplayer = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.AppId != Guid.Empty, token);
 
 
@@ -58,11 +56,7 @@ public class PlayerNameService
                             Games = g.Count(),
                         };
 
-        if (token.IsCancellationRequested)
-            return null;
         var teamStats = await plrepsTeam.AsNoTracking().ToListAsync(token);
-        if (token.IsCancellationRequested)
-            return null;
         var oppStats = await plrepsOpp.AsNoTracking().ToListAsync(token);
 
         return new PlayerNameStatsResponse()

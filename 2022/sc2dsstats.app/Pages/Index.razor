@@ -73,10 +73,10 @@
 		{
 			if (!replayService.AppConfig.Config.Uploadcredential)
 			{
-				if (replayService.AppConfig.Config.CredentialAsking > 10 || replayService.isFirstRun)
+				if (replayService.AppConfig.Config.CredentialAsking > 11 || (replayService.isFirstRun && replayService.AppConfig.Config.CredentialAsking == 0))
 				{
 					credentialModel.Show();
-					replayService.AppConfig.Config.CredentialAsking = 0;
+					replayService.AppConfig.Config.CredentialAsking = 1;
 					replayService.SaveConfig();
 				}
 				else

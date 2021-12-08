@@ -121,10 +121,10 @@ namespace sc2dsstats._2022.Server
 
             NameService.Init(context, "").GetAwaiter().GetResult();
 
-            // _ = cacheService.SetBuildCache();
+            _ = cacheService.SetBuildCache();
 
 
-            StatsService.TeamStats(context);
+            // StatsService.TeamStats(context);
 
             //var oldreps = oldcontext.DSReplays.Count();
             //_logger.LogInformation($"oldreps: {oldreps}");

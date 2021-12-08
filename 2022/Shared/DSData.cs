@@ -361,6 +361,21 @@ namespace sc2dsstats._2022.Shared
             };
         }
 
+        public static string ChartInfo(string mode) => mode switch
+        {
+            "Winrate" => "Winrate: Shows the winrate for each commander. When selecting a commander on the left it shows the winrate of the selected commander when matched vs the other commanders.",
+            "MVP" => "MVP: Shows the % for the most ingame damage for each commander based on mineral value killed. When selecting a commander on the left it shows the mvp of the selected commander when matched vs the other commanders.",
+            "DPS" => "DPS: Shows the damage delt for each commander based on mineral value killed / game duration (or army value, or minerals collected). When selecting a commander on the left it shows the damage of the selected commander when matched vs the other commanders.",
+            "Synergy" => "Synergy: Shows the winrate for the selected commander when played together with the other commanders",
+            "AntiSynergy" => "Antisynergy: Shows the winrate for the selected commander when played vs the other commanders (at any position)",
+            "Build" => "Builds: Shows the average unit count for the selected commander at the selected game duration. When selecting a vs commander it shows the average unit count of the selected commander when matched vs the other commanders.",
+            "Timeline" => "Timeline: Shows the winrate development for the selected commander over the given time period.",
+            "Duration" => "Duration: Shows the winrate development for the selected commander over the given game duration.",
+            "Count" => "Count: Shows the number of Matchups for each Commander.",
+            "Standard" => "Standard: Shows the winrate for each team composition in standard mode.",
+            _ => ""
+        };
+
         public static double MIN5 = 6240;
         public static double MIN10 = 13440;
         public static double MIN15 = 20640;

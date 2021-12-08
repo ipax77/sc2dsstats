@@ -7,6 +7,10 @@
         <SelectComponent Label="Timespan" onSelected="TimespanSelected" Options="DSData.timespans.ToList()" isSelected="@Request.Timespan"></SelectComponent>
         <SelectComponent Label="Commander" onSelected="CmdrSelected" Options="cmdrList" isSelected="@Request.Interest"></SelectComponent>
         <SelectComponent Label="Player" onSelected="PlayerSelected" Options="playerList" isSelected=""></SelectComponent>
+        @if (Request.Mode == "Standard")
+        {
+            <SelectComponent Label="Versus" onSelected="CmdrSelected" Options="DSData.StdTeams()" isSelected=""></SelectComponent>
+        }
     </div>
 </div>
 <div class="isdesktop">
@@ -17,7 +21,7 @@
 <div class="d-flex flex-row">
     @if (Request.Mode == "Standard")
     {
-        <div class="col-auto mt-1" style="width: 150px;">
+        <div class="col-auto mt-1 isdesktop" style="width: 150px;">
             <SelectComponent Label="Versus" onSelected="CmdrSelected" Options="DSData.StdTeams()" isSelected=""></SelectComponent>
         </div>
     }
@@ -90,6 +94,9 @@
         </div>
         <div style="width: 80%; min-width: 600px; min-height: 400px;">
             <ChartComponent playerStats="playerStats" @ref="chartComponent"></ChartComponent>
+        </div>
+        <div class="ms-2 mt-2 p-2 w-50 text-white-50 small rounded">
+            @DSData.ChartInfo(Request.Mode)
         </div>
     </div>
 </div>

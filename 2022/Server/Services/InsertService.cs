@@ -15,11 +15,11 @@ public class InsertService : IInsertService
     private readonly ILogger<InsertService> logger;
     private Channel<Dsreplay> ReplayChannel;
     private CancellationTokenSource tokenSource;
-    public event EventHandler<EventArgs> ReplaysInserted;
+    public event EventHandler<InsertEventArgs> ReplaysInserted;
 
-    protected virtual void OnReplaysInserted(EventArgs e)
+    protected virtual void OnReplaysInserted(InsertEventArgs e)
     {
-        EventHandler<EventArgs> handler = ReplaysInserted;
+        EventHandler<InsertEventArgs> handler = ReplaysInserted;
         if (handler != null)
         {
             handler(this, e);
@@ -94,7 +94,7 @@ public class InsertService : IInsertService
             }
             finally
             {
-                OnReplaysInserted(new EventArgs());
+                OnReplaysInserted(new InsertEventArgs());
                 Reset();
             }
         }

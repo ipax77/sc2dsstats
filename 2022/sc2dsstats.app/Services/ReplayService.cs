@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace sc2dsstats.app.Services
 {
-    public class ReplayService
+    public class ReplayService : IDisposable
     {
         public List<string> DbReplayPaths = new List<string>();
         private CancellationTokenSource source;
@@ -124,6 +124,29 @@ namespace sc2dsstats.app.Services
             {
                 var json = JsonSerializer.Serialize(AppConfig, new JsonSerializerOptions() { WriteIndented = true });
                 File.WriteAllText(Program.myConfig, json);
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
+                    foreach (var playerName in AppConfig.Config.PlayersNames.Where(x => !String.IsNullOrEmpty(x)))
+                    {
+                        var player = context.DsPlayerNames.FirstOrDefault(f => f.Name == playerName);
+                        if (player == null)
+                        {
+                            player = new DsPlayerName()
+                            {
+                                AppId = AppConfig.Config.AppId,
+                                Name = playerName
+                            };
+                            context.DsPlayerNames.Add(player);
+                            context.SaveChanges();
+                        }
+                        else if (player.AppId == Guid.Empty)
+                        {
+                            player.AppId = AppConfig.Config.AppId;
+                            context.SaveChanges();
+                        }
+                    }
+                }
             }
         }
 
@@ -184,7 +207,7 @@ namespace sc2dsstats.app.Services
             }
         }
 
-        public async void ImportOldDb()
+        public void ImportOldDb()
         {
             lock (lockobject)
             {
@@ -195,56 +218,62 @@ namespace sc2dsstats.app.Services
             }
             if (File.Exists(Path.Combine(Program.workdir, "data_v3_0.db")))
             {
-                using (var scope = scopeFactory.CreateScope())
+                Task.Run(async () =>
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
-                    var oldcontext = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
-                    source = new CancellationTokenSource();
-                    await producerService.ProduceFromOldDb(context, oldcontext, AppConfig.Config.PlayersNames, source.Token);
-                    isFirstRun = false;
-                }
+                    using (var scope = scopeFactory.CreateScope())
+                    {
+                        var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
+                        var oldcontext = scope.ServiceProvider.GetRequiredService<DSReplayContext>();
+                        source = new CancellationTokenSource();
+                        await producerService.ProduceFromOldDb(context, oldcontext, AppConfig.Config.PlayersNames, source.Token);
+                        isFirstRun = false;
+                    }
+                });
             }
         }
 
-        public async void DecodeReplays(IToastService toastService = null)
+        public void DecodeReplays(IToastService toastService = null)
         {
             logger.LogInformation("DecodeReplays");
 
             if (toastService != null)
                 toastService.ShowWarning("Start decoding ...");
 
-            if (String.IsNullOrEmpty(ElectronService.AppPath))
+            Task.Run(async () =>
             {
-                await ElectronService.GetPath();
-            }
-
-            if (!NewReplays.Any())
-            {
-                await ScanReplayFolders();
-            }
-
-            if (NewReplays.Any() && !producerService.Producing)
-            {
-
-                source = new CancellationTokenSource();
-                producerService.Produce(ElectronService.AppPath, AppConfig.Config.PlayersNames, NewReplays, source.Token, AppConfig.Config.CPUCores);
-            }
-            else if (toastService != null)
-            {
-                if (producerService.Producing)
+                if (String.IsNullOrEmpty(ElectronService.AppPath))
                 {
-                    toastService.ShowError("The decoding process is already running");
+                    await ElectronService.GetPath();
                 }
-                else if (!NewReplays.Any())
+
+                if (!NewReplays.Any())
                 {
-                    toastService.ShowError("No new replays to decode available");
+                    await ScanReplayFolders();
                 }
-            }
+
+                if (NewReplays.Any() && !producerService.Producing)
+                {
+
+                    source = new CancellationTokenSource();
+                    producerService.Produce(ElectronService.AppPath, AppConfig.Config.PlayersNames, NewReplays, source.Token, AppConfig.Config.CPUCores);
+                }
+                else if (toastService != null)
+                {
+                    if (producerService.Producing)
+                    {
+                        toastService.ShowError("The decoding process is already running");
+                    }
+                    else if (!NewReplays.Any())
+                    {
+                        toastService.ShowError("No new replays to decode available");
+                    }
+                }
+            });
         }
 
         public void DecodeCancel()
         {
-            source.Cancel();
+            source?.Cancel();
         }
 
         public async Task UploadReplays()
@@ -294,6 +323,12 @@ namespace sc2dsstats.app.Services
                     latestReplay = latestRep.Hash;
 
             }
+        }
+
+        public void Dispose()
+        {
+            logger.LogInformation("Disposing ReplayServcie");
+            source?.Cancel();
         }
     }
 

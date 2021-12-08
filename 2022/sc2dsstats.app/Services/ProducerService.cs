@@ -25,6 +25,7 @@ namespace sc2dsstats.app.Services
         private int Threads = 2;
         private int producerCount = 0;
         private int decodeCount = 0;
+        private int insertCount = 0;
         private DateTime StartTime = DateTime.MinValue;
 
         private object lockobject = new object();
@@ -57,11 +58,19 @@ namespace sc2dsstats.app.Services
 
         public async Task ProduceFromOldDb(sc2dsstatsContext context, DSReplayContext oldcontext, List<string> playerNames, CancellationToken token)
         {
+            if (Producing)
+                return;
+            Producing = true;
             PlayerNames = playerNames;
             int skip = 0;
-            int take = 100;
-            DateTime start = DateTime.UtcNow;
+            int take = 250;
+            Threads = 1;
+            producerCount = 1;
+            decodeCount = 0;
+            FailedReplays = new ConcurrentBag<string>();
+            StartTime = DateTime.UtcNow;
 
+            insertService.WriteStart();
             notifySource = new CancellationTokenSource();
             _ = Notify(notifySource.Token);
             insertService.ReplaysInserted += InsertService_ReplaysInserted;
@@ -73,7 +82,7 @@ namespace sc2dsstats.app.Services
                     .Include(i => i.DSPlayer)
                         .ThenInclude(j => j.Breakpoints)
                     .AsNoTracking()
-                    .OrderBy(o => o.GAMETIME)
+                    .OrderByDescending(o => o.GAMETIME)
                     .AsSplitQuery()
                     .Take(take)
                     .ToListAsync();
@@ -87,12 +96,13 @@ namespace sc2dsstats.app.Services
                     await Task.Delay(5000); // TODO
 
                     skip += take;
+                    decodeCount += take;
                     oldReplays = await oldcontext.DSReplays
                                         .Include(i => i.Middle)
                                         .Include(i => i.DSPlayer)
                                             .ThenInclude(j => j.Breakpoints)
                                         .AsNoTracking()
-                                        .OrderBy(o => o.GAMETIME)
+                                        .OrderByDescending(o => o.GAMETIME)
                                         .AsSplitQuery()
                                         .Skip(skip)
                                         .Take(take)
@@ -110,11 +120,17 @@ namespace sc2dsstats.app.Services
             }
         }
 
-        private void InsertService_ReplaysInserted(object sender, EventArgs e)
+        private void InsertService_ReplaysInserted(object sender, InsertEventArgs e)
         {
-            notifySource.Cancel();
-            Producing = false;
-            insertService.ReplaysInserted -= InsertService_ReplaysInserted;
+            if (e.Done)
+            {
+                notifySource.Cancel();
+                Producing = false;
+                insertService.ReplaysInserted -= InsertService_ReplaysInserted;
+            } else
+            {
+                insertCount = e.insertCount;
+            }
         }
 
         public event EventHandler<ReplayChannelEventArgs> ReplayChannelChanged;
@@ -134,6 +150,7 @@ namespace sc2dsstats.app.Services
                     Threads = Threads,
                     producerCount = producerCount,
                     decodeCount = decodeCount,
+                    insertCount = insertCount,
                     StartTime = StartTime,
                     failedCount = FailedReplays.Count
                 };
@@ -145,6 +162,7 @@ namespace sc2dsstats.app.Services
                 Threads = Threads,
                 producerCount = producerCount,
                 decodeCount = decodeCount,
+                insertCount = insertCount,
                 Done = true,
                 StartTime = StartTime,
                 failedCount = FailedReplays.Count
@@ -216,6 +234,9 @@ public class ReplayChannelEventArgs : EventArgs
     public int Threads { get; set; }
     public int producerCount { get; set; }
     public int decodeCount { get; set; }
+    public int insertCount { get; set; }
     public int failedCount { get; set; }
     public bool Done { get; set; } = false;
 }
+
+

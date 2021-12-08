@@ -31,7 +31,13 @@
     @if (ReplaysDecoded > 0 && NewReplayCount > 0)
     {
         <div class="position-relative me-1" style="width: 300px; height: 70% !important; font-size: 1em; padding-top: 0.2rem; padding-bottom: 1rem;">
-            <div class="text-success" style="font-size: 1em;">Replays decoded: @ReplaysDecoded</div>
+            <div class="text-success" style="font-size: 1em;">
+                Replays decoded: @ReplaysDecoded
+                @if (ReplaysInserted > 0)
+                {
+                    <span><small class="text-warning"> Saved: @ReplaysInserted</small></span>
+                }
+            </div>
             <div class="position-absolute w-100" style="height: 1rem;">
                 <div class="progress">
                     <div class="progress-bar progress-bar-animated bg-success" role="progressbar" style="width: @(Math.Round((double)ReplaysDecoded * 100 / (double)replayService.NewReplays.Count, 2))%;" aria-valuenow="@(ReplaysDecoded * 100 / replayService.NewReplays.Count)" aria-valuemin="0" aria-valuemax="0">
@@ -132,6 +138,7 @@
 @code {
     int NewReplayCount = 0;
     int ReplaysDecoded = 0;
+    int ReplaysInserted = 0;
     int ReplayDecodeFailed = 0;
     int Threads = 0;
     bool isDecoding = false;
@@ -168,6 +175,7 @@
     private void DecodeService_DecodeStateChanged(object sender, ReplayChannelEventArgs e)
     {
         ReplaysDecoded = e.decodeCount;
+        ReplaysInserted = e.insertCount;
         ReplayDecodeFailed = e.failedCount;
         isDecoding = !e.Done;
         elapsed = DateTime.UtcNow - e.StartTime;
