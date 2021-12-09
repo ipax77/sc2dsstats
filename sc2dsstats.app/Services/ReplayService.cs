@@ -53,6 +53,14 @@ namespace sc2dsstats.app.Services
                     var config = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetSection("Config");
                     var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
                     config.Bind(AppConfig.Config);
+                    if (AppConfig.Config.PlayersNames == null)
+                    {
+                        AppConfig.Config.PlayersNames = new List<string>();
+                    }
+                    if (AppConfig.Config.ReplayPaths == null)
+                    {
+                        AppConfig.Config.ReplayPaths = new List<string>();
+                    }
                 }
                 isFirstRun = false;
             }
