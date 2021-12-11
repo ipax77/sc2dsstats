@@ -1,0 +1,104 @@
+3.0.6
+
+- empty config fix
+
+3.0.4
+
+- update to dotnet6/ElectronNET 13.5.1
+
+2.0.30
+
+- upload changed to sc2dsstats.pax77.org
+
+2.0.28
+
+- upload fix
+
+2.0.27
+
+-  protocol 86383
+
+2.0.25
+
+- protocol 83830
+
+2.0.24
+
+- update dotnet core 3.1.10
+- website: order helper
+
+2.0.23
+
+- protocol 82893
+
+2.0.22
+
+- protocol 82457
+
+2.0.21
+
+- protocol 81433
+
+2.0.20
+
+- protocol 81102
+
+2.0.19
+
+- protocol 81009
+
+2.0.18
+
+- protocol 80949
+- electron 9.31.2
+
+2.0.17
+- protocol 80188 'preview'
+
+2.0.16
+- protocol 79996 'preview'
+
+2.0.15
+
+- database queries optimized
+- dotnet && electron update
+
+2.0.14
+
+- revert to ElectronNET 7.30.2
+
+2.0.13
+
+- ElectronNET.CLI Version 8.31.1
+
+2.0.12
+
+- bugfix Upload.Any() / A-Move colors 
+
+2.0.11
+
+- UserSettings -> MatBlazor
+- Electron.NET 8.31.1
+
+2.0.10
+
+- timeline bugfix
+- middle chart fix
+- rest fullsend for 2.0
+
+2.0.9
+- timeline polynomial regression
+
+2.0.8
+- On the fly Scan fix
+- PlayerStats
+
+2.0.7
+
+- DBService 
+- Decode feedback
+
+2.0.6
+
+- Game Middle Chart
+

@@ -325,7 +325,7 @@ namespace sc2dsstats.app.Services
                 var stats = await StatsService.GetStats(context, false);
                 memoryCache.Set("cmdrstats", stats);
                 var plstats = await StatsService.GetStats(context, true);
-                memoryCache.Set("cmdrstatsplayer", stats);
+                memoryCache.Set("cmdrstatsplayer", plstats);
                 var latestRep = context.Dsreplays.OrderByDescending(o => o.Gametime).FirstOrDefault();
                 if (latestRep != null)
                     latestReplay = latestRep.Hash;

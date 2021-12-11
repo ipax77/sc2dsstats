@@ -56,7 +56,7 @@ namespace sc2dsstats.rlib
             base.OnAfterRender(firstRender);
         }
 
-        async Task LoadData(DsRequest Request, bool resetChart = true)
+        public async Task LoadData(DsRequest Request, bool resetChart = true)
         {
             await semaphoreSlim.WaitAsync();
             try

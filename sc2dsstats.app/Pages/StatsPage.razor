@@ -6,10 +6,13 @@
 @page "/stats/{mode}/{timespan}/{interest}/{player}/{vs}"
 
 @using sc2dsstats._2022.Shared
+@using sc2dsstats.app.Services
 @inject IDataService dataService
 @inject NavigationManager _nav
+@inject ReplayService replayService
+@implements IDisposable
 
-<sc2dsstats.rlib.StatsComponent Request="Request" onOptionsChanged="SetOptions" dataService="dataService" playerStats="true"></sc2dsstats.rlib.StatsComponent>
+<sc2dsstats.rlib.StatsComponent @ref="statsComponent" Request="Request" onOptionsChanged="SetOptions" dataService="dataService" playerStats="true"></sc2dsstats.rlib.StatsComponent>
 
 @code {
 
@@ -26,10 +29,13 @@
 
     DsRequest Request;
 
+    sc2dsstats.rlib.StatsComponent statsComponent;
+
     protected override void OnInitialized()
     {
         Request = new DsRequest("Winrate", "This Year", true, "ALL", "ALL");
         ParseOptions();
+        replayService.CollectReplayStats += c_CollectReplayStats;
         base.OnInitialized();
     }
 
@@ -72,6 +78,16 @@
     {
         Request = request;
         // _nav.NavigateTo($"/stats/{Request.Mode}/{Request.Timespan}/{request.Interest}/{request.Player}/{request.Versus}");
+    }
+
+    private void c_CollectReplayStats(object sender, CollectEventArgs e)
+    {
+        _ = statsComponent.LoadData(Request);
+    }
+
+    public void Dispose()
+    {
+        replayService.CollectReplayStats -= c_CollectReplayStats;
     }
 
 }
