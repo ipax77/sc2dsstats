@@ -53,11 +53,19 @@ namespace sc2dsstats.app.Services
                     var config = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetSection("Config");
                     var context = scope.ServiceProvider.GetRequiredService<sc2dsstatsContext>();
                     config.Bind(AppConfig.Config);
+                    if (AppConfig.Config.PlayersNames == null)
+                    {
+                        AppConfig.Config.PlayersNames = new List<string>();
+                    }
+                    if (AppConfig.Config.ReplayPaths == null)
+                    {
+                        AppConfig.Config.ReplayPaths = new List<string>();
+                    }
                 }
                 isFirstRun = false;
             }
             _ = ScanReplayFolders();
-            _ = electronService.CheckForUpdate();
+            _ = electronService.CheckForUpdate(5000);
             if (AppConfig.Config.OnTheFlyScan)
             {
                 StartWatching();
@@ -317,7 +325,7 @@ namespace sc2dsstats.app.Services
                 var stats = await StatsService.GetStats(context, false);
                 memoryCache.Set("cmdrstats", stats);
                 var plstats = await StatsService.GetStats(context, true);
-                memoryCache.Set("cmdrstatsplayer", stats);
+                memoryCache.Set("cmdrstatsplayer", plstats);
                 var latestRep = context.Dsreplays.OrderByDescending(o => o.Gametime).FirstOrDefault();
                 if (latestRep != null)
                     latestReplay = latestRep.Hash;

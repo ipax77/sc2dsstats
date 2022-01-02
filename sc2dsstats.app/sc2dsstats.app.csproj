@@ -26,7 +26,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\git\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\git\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj" />
     <ProjectReference Include="..\sc2dsstats.decode\sc2dsstats.decode.csproj" />
     <ProjectReference Include="..\sc2dsstats.rlib\sc2dsstats.rlib.csproj" />
     <ProjectReference Include="..\Shared\sc2dsstats.2022.Shared.csproj" />

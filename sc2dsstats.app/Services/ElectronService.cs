@@ -38,10 +38,14 @@ namespace sc2dsstats.app.Services
             return AppPath;
         }
 
-        public async Task<bool> CheckForUpdate()
+        public async Task<bool> CheckForUpdate(int delay = 0)
         {
             if (HybridSupport.IsElectronActive)
             {
+                if (delay > 0)
+                {
+                    await Task.Delay(delay);
+                }
                 Electron.AutoUpdater.OnError += (message) => Electron.Dialog.ShowErrorBox("Error", message);
                 CurrentVersion = new Version(await Electron.App.GetVersionAsync());
                 Electron.AutoUpdater.AutoDownload = false;

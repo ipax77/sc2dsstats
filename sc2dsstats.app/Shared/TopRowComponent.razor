@@ -123,7 +123,10 @@
                 <button type="button" class="btn btn-warning" @onclick="ShowDownloadModal">New Version available!</button>
             }
         }
-        </div> 
+        </div>
+    } else
+    {
+        <button type="button" class="btn btn-outline-info" @onclick="CheckForUpdate">Check for Updates</button>
     }
 
 
@@ -231,6 +234,20 @@
     void ShowReplaysInfo()
     {
         newReplaysModal.Show();
+    }
+
+    async void CheckForUpdate()
+    {
+        await replayService.electronService.CheckForUpdate();
+        if (ElectronService.CurrentVersion != null && ElectronService.CurrentVersion < ElectronService.AvailableVersion)
+        {
+            toastService.ShowSuccess("New Version available!");
+        }
+        else
+        {
+            toastService.ShowInfo($"Current Version {(ElectronService.CurrentVersion != null ? ElectronService.CurrentVersion : Program.Version)} is up to date");
+        }
+        await InvokeAsync(() => StateHasChanged());
     }
 
     public void Dispose()

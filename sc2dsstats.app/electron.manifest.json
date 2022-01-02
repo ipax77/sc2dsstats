@@ -22,7 +22,7 @@
     "appId": "com.sc2dsstats.app.app",
     "productName": "sc2dsstats.app",
     "copyright": "Copyright © 2022",
-    "buildVersion": "3.0.4",
+    "buildVersion": "3.0.7",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop"
@@ -44,7 +44,7 @@
     ]
   },
   "user": "Ipax77",
-  "project": "ElectronUpdateTest",
+  "project": "sc2dsstats",
   "author": "Ipax77",
   "license": "GPL-3.0-or-later",
   "repository": {

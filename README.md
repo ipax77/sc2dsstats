@@ -7,6 +7,8 @@ Desktop App: https://github.com/ipax77/sc2dsstats/releases/latest
 
 ![sample graph](/images/dsweb_desktop.png)
 
+# Dependencies
+You need to include https://github.com/ipax77/ChartJs.Blazor using the branch chartjsGuidFix to run from source.
 # sc2dsstats.decode
 * Using IronPython + s2protocol to decode and parse replays
 

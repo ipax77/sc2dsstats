@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sc2dsstats.decode", "sc2dss
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sc2dsstats.lib", "sc2dsstats.lib\sc2dsstats.lib.csproj", "{D90EE2AE-44EB-4007-B176-1E5EAA930126}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChartJs.Blazor", "..\..\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj", "{16CA56E7-285F-44E9-B55F-5E0E23983E0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChartJs.Blazor", "..\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj", "{16CA56E7-285F-44E9-B55F-5E0E23983E0F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sc2dsstats.app", "sc2dsstats.app\sc2dsstats.app.csproj", "{E904962E-34C6-4FE2-96B3-100DDA3B54B9}"
 EndProject
