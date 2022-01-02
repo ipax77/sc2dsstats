@@ -9,7 +9,6 @@ using sc2dsstats._2022.Server.Services;
 using sc2dsstats._2022.Shared;
 using sc2dsstats.db;
 using sc2dsstats.db.Services;
-using sc2dsstats.db.Stats;
 using sc2dsstats.lib.Db;
 using System.Globalization;
 

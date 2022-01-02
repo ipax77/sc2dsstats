@@ -182,7 +182,7 @@ namespace sc2dsstats.db.Stats
             return request.Timespan switch
             {
                 "This Month" => stats.Where(x => x.year == DateTime.Today.Year && x.month == DateTime.Today.Month).ToList(),
-                "Last Month" => stats.Where(x => x.year == DateTime.Today.Year && x.month == DateTime.Today.AddMonths(-1).Month).ToList(),
+                "Last Month" => stats.Where(x => x.year == DateTime.Today.AddMonths(-1).Year && x.month == DateTime.Today.AddMonths(-1).Month).ToList(),
                 "This Year" => stats.Where(x => x.year == DateTime.Today.Year).ToList(),
                 "Last Year" => stats.Where(x => x.year == DateTime.Today.AddYears(-1).Year).ToList(),
                 "Last Two Years" => stats.Where(x => x.year == DateTime.Today.Year || x.year == DateTime.Today.AddYears(-1).Year).ToList(),

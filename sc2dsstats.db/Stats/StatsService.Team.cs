@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using static sc2dsstats._2022.Shared.DSData;
 
 namespace sc2dsstats.db.Stats
@@ -37,7 +32,7 @@ namespace sc2dsstats.db.Stats
                     //+ " and r.WINNER >= 0"
                     //+ " and r.PLAYERCOUNT = 6"
                     //+ " and r.MAXLEAVER < 90"
-                    +" and r.DefaultFilter = 1"
+                    + " and r.DefaultFilter = 1"
                     + " and p1.RACE > 3"
                     + " and p1.TEAM = 0"
                     + " group by r.Id;";

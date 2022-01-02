@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sc2dsstats.db", "sc2dsstats
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sc2dsstats.lib", "sc2dsstats.lib\sc2dsstats.lib.csproj", "{4CF2932A-D387-47E6-A4D3-B170B3FD36A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChartJs.Blazor", "..\..\..\git\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj", "{05DB314C-1FA2-4AA4-AAEA-54BE7904BCFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChartJs.Blazor", "..\..\git\ChartJs.Blazor\src\ChartJs.Blazor\ChartJs.Blazor.csproj", "{71BE32C9-10FE-4B9F-A237-50FD61481CB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +47,10 @@ Global
 		{4CF2932A-D387-47E6-A4D3-B170B3FD36A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CF2932A-D387-47E6-A4D3-B170B3FD36A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CF2932A-D387-47E6-A4D3-B170B3FD36A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05DB314C-1FA2-4AA4-AAEA-54BE7904BCFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05DB314C-1FA2-4AA4-AAEA-54BE7904BCFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05DB314C-1FA2-4AA4-AAEA-54BE7904BCFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05DB314C-1FA2-4AA4-AAEA-54BE7904BCFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71BE32C9-10FE-4B9F-A237-50FD61481CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71BE32C9-10FE-4B9F-A237-50FD61481CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71BE32C9-10FE-4B9F-A237-50FD61481CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71BE32C9-10FE-4B9F-A237-50FD61481CB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

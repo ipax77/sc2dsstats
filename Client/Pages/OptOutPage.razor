@@ -1,6 +1,6 @@
 ﻿@page "/optout"
+@inject IJSRuntime _js
 
-<div style="background: #8c6278;" class="jumbotron">
-    <iframe style="border: 0; height: 200px; width: 600px;"
-            src="https://www.danletard.de/piwik/index.php?module=CoreAdminHome&action=optOut&language=en&backgroundColor=&fontColor=&fontSize=&fontFamily="></iframe>
+<div style="mt-4">
+    <button type="button" class="btn btn-primary" @onclick="@(() => { _js.InvokeVoidAsync("gaOptout"); })">Click here to opt-out of Google Analytics</button>
 </div>
