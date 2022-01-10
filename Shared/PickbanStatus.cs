@@ -51,7 +51,7 @@ namespace sc2dsstats._2022.Shared
             Reset();
         }
 
-        public List<string> GetOptions(byte Team)
+        public virtual List<string> GetOptions(byte Team)
         {
             return Picks.Where(x => x.Team == Team && x.Locked && x.Selected == "Protoss").Count() switch
             {

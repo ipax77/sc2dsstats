@@ -189,8 +189,8 @@ namespace sc2dsstats._2022.Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapHub<PickBanHub>("/pickbanhub");
-                endpoints.MapHub<GdslHub>("/gdslhub");
+                //endpoints.MapHub<PickBanHub>("/pickbanhub");
+                //endpoints.MapHub<GdslHub>("/gdslhub");
                 endpoints.MapHub<PbHub>("/pbhub");
                 endpoints.MapFallbackToFile("index.html");
             });

@@ -1,0 +1,124 @@
+﻿<h3 class="text-white-50">DSFTWA Tournament Ban Helper</h3>
+
+<div class="card" style="width: 42rem;">
+    <div class="card-header bg-primary">
+        <h4 class="text-white-50">
+            Copy the Url and send it to the opposing team captain
+        </h4>
+    </div>
+    <div class="card-body bg-light">
+        <div class="d-flex">
+            <input class="text-black-50" id="input" type="text" value="@_nav.Uri" style="min-width: 600px;" />
+            <span class="oi oi-clipboard pointer ms-2" @onclick="CopyClipboard"></span>
+        </div>
+    </div>
+    <div class="card-footer bg-primary">
+        <small class="text-white-50">This Page will be available until the next Server reboot.</small>
+    </div>
+</div>
+
+@if (pickBanStatus != null) 
+{
+<div class="bg-light border rounded my-3 p-2" style="width: 42rem;">
+    <div class="d-flex">
+        <span class="badge bg-secondary p-2" style="font-size: 100%;">@pickBanStatus.Visitors Visitor(s)</span>
+        <div class="mx-4">
+            @if (pickBanStatus.Visitors <= 1)
+            {
+                <span class="badge bg-danger p-2" style="font-size: 100%;">Waiting for others to join</span>
+            }
+        </div>
+        <div class=ms-auto>
+            @if (pickBanStatus.Turn < 2)
+            {
+                <span class="badge bg-info p-2" style="font-size: 100%;">Turn @(pickBanStatus.Turn + 1)</span>
+            } else
+            {
+                <span class="badge bg-success p-2" style="font-size: 100%;">Finished - glhf! </span><span class="oi oi-camera-slr ms-1 text-success"></span>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-around mt-2" style="width: 42rem;">
+    @for (byte i = 1; i <= 2; i++) 
+    {
+        byte j = i;
+        <div class="card" style="width: 20rem;">
+            <div class="card-header text-warning">
+                <h5>Team @j</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                @foreach(var select in pickBanStatus.Picks.Where(x => x.Team == j).OrderBy(o => o.Pos).Take(1))
+                {
+                    @if (pickBanStatus.Visitors > 1 && pickBanStatus.CurrentSelect == select.Pos)
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex">
+                                <div>
+                                    @(select.Pos + 1)
+                                </div>
+                                <div class="form-group mx-2">
+                                  <select class="form-select" @bind="select.Selected">
+                                    <option value="">Ban Cmdr</option>
+                                    @foreach (var cmdr in pickBanStatus.GetOptions(j))
+                                    {
+                                        <option value="@cmdr">@cmdr</option>
+                                    }
+                                    </select>
+                                </div>
+                                <div>
+                                    @if (String.IsNullOrEmpty(select.Selected))
+                                    {
+                                        <button type="button" disabled class="btn btn-danger">Lock</button>
+                                    }
+                                    else 
+                                    {
+                                        <button type="button" class="btn btn-danger" @onclick="Lock">Lock</button>
+                                    }
+                                </div>
+                            </div>
+                        </li>        
+                    } else 
+                    {
+                        @if (select.Selected == null)
+                        {
+                            <li class="list-group-item">@(select.Pos + 1) <i>@(select.Locked ? "hidden" : "TBD")</i></li>
+                        } else
+                        {
+                            <li class="list-group-item">
+                                <div class="d-flex">
+                                    <div>
+                                        @(select.Pos + 1)
+                                    </div>
+                                    <div class="mx-2">
+                                        @if (!String.IsNullOrEmpty(select.Selected))
+                                        {
+                                            <img src="@($"_content/sc2dsstats.rlib/images/btn-unit-hero-{select.Selected.ToLower()}.png")" width="30" height="30" />
+                                        } else
+                                        {
+                                            <span class="oi oi-question-mark"></span>
+                                        }
+                                    </div>
+                                    <div class="text-white-50">
+                                        @select.Selected
+                                    </div>
+                                </div>
+                            </li>        
+                        }
+                    }
+                }
+                </ul>
+            </div>
+        </div>
+        @if (i == 1)
+        {
+            <div style="border-left: 6px solid darkred;"></div>
+        }
+    }
+</div>
+} else 
+{
+    <p>Loading ...</p>
+}

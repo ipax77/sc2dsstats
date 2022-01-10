@@ -49,7 +49,7 @@ namespace sc2dsstats._2022.Server.Hubs
             await Clients.Group(guid.ToString()).SendAsync("VisitorLeft", status.Visitors);
         }
 
-        public async Task Lock(PickbanSelectinfo info)
+        public virtual async Task Lock(PickbanSelectinfo info)
         {
             logger.LogInformation($"lock {info.Guid}");
             PickbanLockinfo lockInfo = null;
@@ -57,6 +57,20 @@ namespace sc2dsstats._2022.Server.Hubs
             // await Clients.OthersInGroup(info.Guid.ToString()).SendAsync("CmdrLocked", lockInfo);
             await Clients.Group(info.Guid.ToString()).SendAsync("CmdrLocked", lockInfo);
             if (status.Turn >= 6)
+            {
+                status.Picks.ForEach(f => f.Public = true);
+                await Clients.Group(info.Guid.ToString()).SendAsync("ConnectInfo", status.GetConnectInfo());
+            }
+        }
+
+        public virtual async Task LockBan(PickbanSelectinfo info)
+        {
+            logger.LogInformation($"lock {info.Guid}");
+            PickbanLockinfo lockInfo = null;
+            var status = Pbs.AddOrUpdate(info.Guid, new PickbanStatus(info.Guid), (key, oldvalue) => { lockInfo = oldvalue.Lock(info); return oldvalue; });
+            // await Clients.OthersInGroup(info.Guid.ToString()).SendAsync("CmdrLocked", lockInfo);
+            await Clients.Group(info.Guid.ToString()).SendAsync("CmdrLocked", lockInfo);
+            if (status.Turn >= 2)
             {
                 status.Picks.ForEach(f => f.Public = true);
                 await Clients.Group(info.Guid.ToString()).SendAsync("ConnectInfo", status.GetConnectInfo());
