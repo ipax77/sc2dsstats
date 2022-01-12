@@ -117,6 +117,7 @@ public class InsertService : IInsertService
             if (exPlayer != null && exPlayer.PlayerName == null)
             {
                 exPlayer.PlayerName = incPlayer.PlayerName;
+                exPlayer.Name = incPlayer.PlayerName.DbId.ToString();
             }
         }
 
@@ -144,6 +145,10 @@ public class InsertService : IInsertService
             else
             {
                 playerName = await context.DsPlayerNames.FirstOrDefaultAsync(f => f.AppId.ToString() == player.Name);
+            }
+            if (playerName == null)
+            {
+                continue;
             }
             player.Name = playerName.DbId.ToString();
             player.PlayerName = playerName;
