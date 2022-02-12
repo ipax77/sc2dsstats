@@ -339,6 +339,7 @@ namespace sc2dsstats._2022.Shared
             {
                 "GameModeBrawlCommanders" => Gamemode.BrawlCommanders,
                 "GameModeBrawlStandard" => Gamemode.BrawlStandard,
+                "GameModeBrawl" => Gamemode.BrawlStandard,
                 "GameModeCommanders" => Gamemode.Commanders,
                 "GameModeCommandersHeroic" => Gamemode.CommandersHeroic,
                 "GameModeGear" => Gamemode.Gear,
@@ -349,6 +350,7 @@ namespace sc2dsstats._2022.Shared
 
                 "BrawlCommanders" => Gamemode.BrawlCommanders,
                 "BrawlStandard" => Gamemode.BrawlStandard,
+                "Brawl" => Gamemode.BrawlStandard,
                 "Commanders" => Gamemode.Commanders,
                 "CommandersHeroic" => Gamemode.CommandersHeroic,
                 "Gear" => Gamemode.Gear,
