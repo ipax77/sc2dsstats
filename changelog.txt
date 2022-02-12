@@ -1,3 +1,7 @@
+3.0.8
+
+- fix GameModeBrawlStandard
+
 3.0.7
 
 - update Charts after decoding
