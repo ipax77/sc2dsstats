@@ -103,9 +103,9 @@
 @*                <div class="form-group" style="max-width: 450px;">
                     <InputText @bind-Value="request.Playername" @oninput="SearchPlayerName" placeholder="Name"></InputText>
                 </div>*@
-                <sc2dsstats.rlib.Helper.SearchComponent onSelected="SelectPlayer" Options="playerNames" SearchTerm="@request.Playername"></sc2dsstats.rlib.Helper.SearchComponent>
+                <sc2dsstats.rlib.Helper.SearchComponent onSelected="SelectPlayer" Options="playerNames"></sc2dsstats.rlib.Helper.SearchComponent>
                 <div class="form-group" style="max-width: 450px;">
-                    <InputSelect disabled="@(String.IsNullOrEmpty(request.Playername))" class="form-select" id="plraceSelect" @bind-Value="request.PlayerRace">
+                    <InputSelect tabindex="1" disabled="@(String.IsNullOrEmpty(request.Playername))" class="form-select" id="plraceSelect" @bind-Value="request.PlayerRace">
                         <option value="">Any</option>
                         @foreach (var cmdr in DSData.cmdrs)
                         {
@@ -121,7 +121,7 @@
                 </div>*@
             </div>
             <div class="col-auto">
-                <button class="btn btn-light mt-4" @onclick="ShowFilterModal">Filter</button>
+                <button type="button" class="btn btn-light mt-4" @onclick="ShowFilterModal">Filter</button>
             </div>
         </div>
     </EditForm>

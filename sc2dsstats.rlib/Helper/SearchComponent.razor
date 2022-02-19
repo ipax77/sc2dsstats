@@ -1,26 +1,28 @@
-﻿
+﻿@using Microsoft.Extensions.Logging
+
 @inject IJSRuntime _js
 @implements IDisposable
+@inject ILogger<SearchComponent> logger
 
 <label>Player <span class="oi oi-x text-danger pointer" @onclick="Clear"></span></label>
 <div @ref="inputRef" tabindex="0" class="position-relative" style="height: 2.5rem; width: 210px;" @onfocusout="FocusOut">
     <div class="position-absolute">
         @*<input class="form-control mr-sm-2" type="text" placeholder="Name" @onfocusin="FocusIn" @onfocusout="FocusOut" @onkeypress="DoEnter" @bind-value="SearchTerm" @bind-value:event="oninput">*@
-        <input class="form-control mr-sm-2" type="text" placeholder="Playername" @onfocusin:stopPropagation @onfocusin:preventDefault @onfocusin="FocusIn" @bind-value="SearchTerm" @onchange="DoEnter" @bind-value:event="oninput">
+        <input class="form-control mr-sm-2" type="text" placeholder="Playername" @onfocusin:stopPropagation @onfocusin:preventDefault @onfocusin="FocusIn" @bind="SearchTerm" @onchange="DoEnter" @bind:event="oninput">
     </div>
-        
+
     <div class="position-absolute bg-dark @selectClass" style="z-index: 99; min-width: 250px; max-height: 600px; overflow: auto; margin-top: 2.5rem;">
         <table class="table table-sm">
             <tbody>
-@*                @foreach (var option in filteredOptions)
-                {
+                @*                @foreach (var option in filteredOptions)
+                    {
                     <tr class="p-0">
-                        <td class="pointer" @onclick="@(() => Selected(option))">@option</td>
+                    <td class="pointer" @onclick="@(() => Selected(option))">@option</td>
                     </tr>
-                }*@
+                    }*@
                 <Virtualize Items="filteredOptions">
                     <ItemContent>
-                        <tr><td tabindex="0" class="pointer @(context == GetFocusTerm() ? "table-primary" : "")" @onfocusin="TableFocusin"  @onclick="@(() => Selected(context))">@context</td></tr>
+                        <tr><td tabindex="1" class="pointer @(context == GetFocusTerm() ? "table-primary" : "")" @onfocusin="TableFocusin" @onclick="@(() => Selected(context))">@context</td></tr>
                     </ItemContent>
                 </Virtualize>
             </tbody>
@@ -36,13 +38,12 @@
     [Parameter]
     public EventCallback<string> onSelected { get; set; }
 
-    [Parameter]
-    public string SearchTerm { get; set; } = String.Empty;
+    private string SearchTerm = String.Empty;
 
     bool showSelect = false;
     string selectClass => showSelect ? "" : "d-none";
 
-    
+
     private int FocusIndex = 0;
     private bool tableClick = false;
     public ElementReference inputRef;
@@ -67,10 +68,12 @@
         showSelect = false;
         onSelected.InvokeAsync("");
         StateHasChanged();
+        logger.LogDebug("clear");
     }
 
     void FocusIn()
     {
+        logger.LogDebug($"FocusIn {FocusIndex} {SearchTerm}");
         FocusIndex = 0;
         showSelect = true;
         StateHasChanged();
@@ -79,10 +82,12 @@
     void TableFocusin()
     {
         tableClick = true;
+        logger.LogDebug($"TableFocusin {FocusIndex} {SearchTerm}");
     }
 
     async void FocusOut()
     {
+        logger.LogDebug($"FocusOut {FocusIndex} {SearchTerm}");
         await Task.Delay(2);
         if (tableClick)
             return;
@@ -90,22 +95,27 @@
         StateHasChanged();
     }
 
-    void DoEnter()
+    async void DoEnter()
     {
+        logger.LogDebug($"DoEnter {FocusIndex} {SearchTerm}");
+        await Task.Delay(200);
+        if (tableClick || !showSelect)
+            return;
+        logger.LogDebug($"DoEnter2 {FocusIndex} {SearchTerm}");
         if (FocusIndex == 0)
         {
             showSelect = false;
             if (filteredOptions.Any())
-                onSelected.InvokeAsync(filteredOptions.First());
+                await onSelected.InvokeAsync(filteredOptions.First());
             else
-                onSelected.InvokeAsync(SearchTerm);
+                await onSelected.InvokeAsync(SearchTerm);
             StateHasChanged();
         }
     }
 
     void Selected(string selection)
     {
-        
+        logger.LogDebug($"Selected {FocusIndex} {SearchTerm} {selection}");
         showSelect = false;
         SearchTerm = selection;
         onSelected.InvokeAsync(selection);
@@ -124,13 +134,13 @@
 
     void KeyPressed(KeyboardEventArgs e)
     {
-        Console.WriteLine(e.Code);
-        Console.WriteLine(e.Key);
+        logger.LogDebug($"KeyPressed {FocusIndex} {SearchTerm} {e.Key} {e.Code}");
     }
 
     [JSInvokable("KeyPressed")]
     public void ArrowPressed(int keycode)
     {
+        logger.LogDebug($"ArrowPressed {FocusIndex} {SearchTerm} {keycode}");
         if (keycode == 38)
         {
             if (FocusIndex > 0)
@@ -146,7 +156,8 @@
                 FocusIndex++;
                 StateHasChanged();
             }
-        } else if (keycode == 13)
+        }
+        else if (keycode == 13)
         {
             if (FocusIndex > 0)
             {
@@ -157,7 +168,21 @@
                 FocusIndex = 0;
                 StateHasChanged();
             }
-        } else if (!showSelect)
+            else
+            {
+                showSelect = false;
+                tableClick = false;
+                if (filteredOptions.Any())
+                {
+                    SearchTerm = filteredOptions.First();
+                    onSelected.InvokeAsync(SearchTerm);
+                }
+                else
+                    onSelected.InvokeAsync(SearchTerm);
+                StateHasChanged();
+            }
+        }
+        else if (!showSelect)
         {
             showSelect = true;
             StateHasChanged();
