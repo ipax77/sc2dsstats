@@ -173,6 +173,15 @@ namespace sc2dsstats.db.Stats
                 }
                 replays = replays.Distinct();
             }
+            if (request.Filter != null && request.Filter.Players.Any())
+            {
+                replays = from r in replays
+                          from p in r.Dsplayers
+                          where request.Filter.Players.Contains(p.Name)
+                          select r;
+                if (request.Filter.Players.Count > 0)
+                    return replays.Distinct();
+            }
 
             return replays;
         }

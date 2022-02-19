@@ -18,7 +18,8 @@
                             <td>
                                 <div class="form-check p-0">
                                     <label class="col-form-label">
-                                        <input type="checkbox" @bind-value="context.selected" />
+                                        @*<input type="checkbox" @bind-value="context.selected" />*@
+                                        <input type="checkbox" @bind="context.selected" />
                                         @(context.ent.Length > 13 ? $"{context.ent.Substring(0, 12)}..." : context.ent)
                                     </label>
                                 </div>

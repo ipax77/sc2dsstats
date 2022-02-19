@@ -7,6 +7,7 @@
 
 @using sc2dsstats._2022.Shared
 @using sc2dsstats.app.Services
+@using static sc2dsstats._2022.Shared.DSData
 @inject IDataService dataService
 @inject NavigationManager _nav
 @inject ReplayService replayService
@@ -34,6 +35,21 @@
     protected override void OnInitialized()
     {
         Request = new DsRequest("Winrate", "This Year", true, "ALL", "ALL");
+        Request.Filter = new DsFilter()
+        {
+            GameEnts = DSData.gamemodes.Select(s => new _2022.Shared.EditEnt() { ent = s, selected = false }).ToList(),
+            PlayerEnts = replayService.AppConfig.Config.PlayersNames.Where(x => !String.IsNullOrEmpty(x)).Select(s => new _2022.Shared.EditEnt() { ent = s }).ToList(),
+            GameModes = new List<int>() { (int)Gamemode.Commanders, (int)Gamemode.CommandersHeroic }
+        };
+
+        Request.Filter.GameEnts.First(f => f.ent == "GameModeCommanders").selected = true;
+        Request.Filter.GameEnts.First(f => f.ent == "GameModeCommandersHeroic").selected = true;
+        Request.Filter.GameModes = Request.Filter.GameEnts.Where(x => x.selected).Select(s => (int)DSData.GetGameMode(s.ent)).ToList();
+        Request.Filter.Players = new List<string>();
+        Request.Filter.StartTime = Request.StartTime;
+        Request.Filter.EndTime = Request.EndTime;
+
+
         ParseOptions();
         replayService.CollectReplayStats += c_CollectReplayStats;
         base.OnInitialized();
