@@ -1,3 +1,9 @@
+
+3.0.9
+
+- fix chart player filter
+- database player filter improved
+
 3.0.8
 
 - fix GameModeBrawlStandard
