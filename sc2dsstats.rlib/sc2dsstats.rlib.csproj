@@ -19,11 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-<<<<<<< HEAD
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.2" />
-=======
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.3" />
->>>>>>> dev
     <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
   </ItemGroup>
 
