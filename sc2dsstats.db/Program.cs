@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using pax.elo;
 
 namespace sc2dsstats.db
 {
@@ -87,49 +86,49 @@ namespace sc2dsstats.db
                 // .Take(40000)
                 .ToList();
 
-            Dictionary<string, EloPlayer> eloPlayers = new Dictionary<string, EloPlayer>();
-            foreach (var replay in replays)
-            {
-                HashSet<EloPlayer> team1 = new HashSet<EloPlayer>();
-                HashSet<EloPlayer> team2 = new HashSet<EloPlayer>();
-                foreach (var pl in replay.Dsplayers)
-                {
-                    string name = pl.PlayerName == null ? pl.Name : pl.PlayerName.Name;
-                    if (name.StartsWith("player") || !eloPlayers.ContainsKey(name))
-                    {
-                        eloPlayers[name] = new EloPlayer()
-                        {
-                            Rating = 1500
-                        };
-                    }
-                    if (pl.Team == 0)
-                    {
-                        team1.Add(eloPlayers[name]);
-                    }
-                    else if (pl.Team == 1)
-                    {
-                        team2.Add(eloPlayers[name]);
-                    }
-                }
+            //Dictionary<string, EloPlayer> eloPlayers = new Dictionary<string, EloPlayer>();
+            //foreach (var replay in replays)
+            //{
+            //    HashSet<EloPlayer> team1 = new HashSet<EloPlayer>();
+            //    HashSet<EloPlayer> team2 = new HashSet<EloPlayer>();
+            //    foreach (var pl in replay.Dsplayers)
+            //    {
+            //        string name = pl.PlayerName == null ? pl.Name : pl.PlayerName.Name;
+            //        if (name.StartsWith("player") || !eloPlayers.ContainsKey(name))
+            //        {
+            //            eloPlayers[name] = new EloPlayer()
+            //            {
+            //                Rating = 1500
+            //            };
+            //        }
+            //        if (pl.Team == 0)
+            //        {
+            //            team1.Add(eloPlayers[name]);
+            //        }
+            //        else if (pl.Team == 1)
+            //        {
+            //            team2.Add(eloPlayers[name]);
+            //        }
+            //    }
 
-                Result result = replay.Winner == 0 ? Result.Win : Result.Lose;
+            //    Result result = replay.Winner == 0 ? Result.Win : Result.Lose;
 
-                EloGame eloGame = new EloGame(team1, team2, result);
+            //    EloGame eloGame = new EloGame(team1, team2, result);
 
-                foreach (var eloPl in team1)
-                {
-                    eloPl.Rating += eloGame.Team1Delta;
-                }
-                foreach (var eloPl in team2)
-                {
-                    eloPl.Rating += eloGame.Team2Delta;
-                }
-            }
+            //    foreach (var eloPl in team1)
+            //    {
+            //        eloPl.Rating += eloGame.Team1Delta;
+            //    }
+            //    foreach (var eloPl in team2)
+            //    {
+            //        eloPl.Rating += eloGame.Team2Delta;
+            //    }
+            //}
 
-            foreach (var ent in eloPlayers.OrderBy(o => o.Value.Rating))
-            {
-                Console.WriteLine($"{ent.Key} => {ent.Value.Rating} ({ent.Value.Games})");
-            }
+            //foreach (var ent in eloPlayers.OrderBy(o => o.Value.Rating))
+            //{
+            //    Console.WriteLine($"{ent.Key} => {ent.Value.Rating} ({ent.Value.Games})");
+            //}
 
             //var replays = context.Dsreplays
             //    .Include(i => i.Dsplayers)
