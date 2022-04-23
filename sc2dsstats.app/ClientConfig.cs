@@ -48,6 +48,7 @@ namespace sc2dsstats.app
         public int CPUCores { get; set; }
         public int DebugLevel { get; set; }
         public int CredentialAsking { get; set; }
+        public string ReplayName { get; set; } = "Direct Strike";
         [JsonIgnore]
         public List<EditEnt> PlayerEnts { get; set; }
         [JsonIgnore]

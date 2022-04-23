@@ -16,7 +16,8 @@
     <p>
         Dataset name: <strong>@Config.DbId.ToString().Substring(0, 8)</strong>@Config.DbId.ToString().Substring(8)
     </p>
-} else
+}
+else
 {
     <p>
         Your Dataset name will be shown after the first successful upload
@@ -68,37 +69,46 @@
     </div>
 
     <div class="container-fluid py-5 bg-primary mt-3">
-    <h4 class="fw-bold">Playernames - your ingame Starcraft 2 Player name(s) e.g. shown in the loading screen of Direct Strike</h4>
-    @for (int i = 0; i < Config.PlayerEnts.Count; i++)
-    {
-        int j = i;
-        var playerEnt = Config.PlayerEnts[i];
-        <div class="col-6 m-2 p-2">
-            <label class="col-form-label d-flex w-100">
-                Player @(i + 1)
-                <InputText class="w-75 ms-2" @bind-Value="playerEnt.ent"></InputText>
-                <span class="oi oi-x pointer text-danger ms-1 align-self-center" @onclick="e => RemovePlayer(j)"></span>
-            </label> 
-        </div>
-    }
-    <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPlayer">Add Player</button>
+        <h4 class="fw-bold">Playernames - your ingame Starcraft 2 Player name(s) e.g. shown in the loading screen of Direct Strike</h4>
+        @for (int i = 0; i < Config.PlayerEnts.Count; i++)
+        {
+            int j = i;
+            var playerEnt = Config.PlayerEnts[i];
+            <div class="col-6 m-2 p-2">
+                <label class="col-form-label d-flex w-100">
+                    Player @(i + 1)
+                    <InputText class="w-75 ms-2" @bind-Value="playerEnt.ent"></InputText>
+                    <span class="oi oi-x pointer text-danger ms-1 align-self-center" @onclick="e => RemovePlayer(j)"></span>
+                </label>
+            </div>
+        }
+        <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPlayer">Add Player</button>
     </div>
     <div class="container-fluid py-5 bg-primary mt-3">
-    <h4 class="fw-bold">Replay directories - location of the Direct Strike replays</h4>
-    <small>Somethink like: C:\Users\username\Documents\StarCraft II\Accounts\107095123\2-S2-1-226321\Replays\Multiplayer</small>
-    @for (int k = 0; k < Config.PathEnts.Count; k++)
-    {
-        int l = k;
-        var pathEnt = Config.PathEnts[k];
+        <h4 class="fw-bold">Replay directories - location of the Direct Strike replays</h4>
+        <small>Somethink like: C:\Users\username\Documents\StarCraft II\Accounts\107095123\2-S2-1-226321\Replays\Multiplayer</small>
+        @for (int k = 0; k < Config.PathEnts.Count; k++)
+        {
+            int l = k;
+            var pathEnt = Config.PathEnts[k];
+            <div class="col-10 m-2 p-2">
+                <label class="col-form-label d-flex w-100">
+                    Path @(k + 1)
+                    <InputText class="w-75 ms-2" @bind-Value="pathEnt.ent"></InputText>
+                    <span class="oi oi-x pointer text-danger" @onclick="e => RemovePath(l)"></span>
+                </label>
+            </div>
+        }
+        <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPath">Add Path</button>
+    </div>
+    <div class="container-fluid py-5 bg-primary mt-3">
+        <h4 class="fw-bold">Replay name <span class="text-danger">- Restart Required!</span></h4>
+        <small>The beginning of the filename of the Direct Strike replays - The default value is "Direct Strike" but might be different depending on your language</small>
         <div class="col-10 m-2 p-2">
             <label class="col-form-label d-flex w-100">
-                Path @(k + 1)
-                <InputText class="w-75 ms-2" @bind-Value="pathEnt.ent"></InputText>
-                <span class="oi oi-x pointer text-danger" @onclick="e => RemovePath(l)"></span>
-            </label> 
+                <InputText class="w-75 ms-2" @bind-Value="Config.ReplayName"></InputText>
+            </label>
         </div>
-    }
-    <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPath">Add Path</button>
     </div>
     <div class="btn-group mt-3 mb-5">
         <button type="submit" class="btn btn-primary btn-lg">Save</button>
@@ -136,6 +146,14 @@
     {
         Config.PlayersNames = Config.PlayerEnts.Where(x => !String.IsNullOrEmpty(x.ent)).Select(s => s.ent).ToList();
         Config.ReplayPaths = Config.PathEnts.Where(x => !String.IsNullOrEmpty(x.ent) && Directory.Exists(x.ent)).Select(s => s.ent).ToList();
+        if (!String.IsNullOrEmpty(Config.ReplayName))
+        {
+            Config.ReplayName = Config.ReplayName.Trim();
+        }
+        else
+        {
+            Config.ReplayName = "Direct Strike";
+        }
         replayService.SaveConfig();
         Init();
         StateHasChanged();

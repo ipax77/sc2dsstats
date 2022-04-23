@@ -64,6 +64,7 @@ namespace sc2dsstats.app.Services
                 }
                 isFirstRun = false;
             }
+            rx_ds = new Regex(@$"({AppConfig.Config.ReplayName}.*)\.SC2Replay$|(DST.*)\.SC2Replay$", RegexOptions.Singleline);
             _ = ScanReplayFolders();
             _ = electronService.CheckForUpdate(5000);
             if (AppConfig.Config.OnTheFlyScan)
