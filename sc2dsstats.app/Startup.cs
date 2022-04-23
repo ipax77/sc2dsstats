@@ -123,13 +123,17 @@ namespace sc2dsstats.app
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+            WebPreferences wp = new WebPreferences();
+            wp.NodeIntegration = false;
+
             Task.Run(async () => await Electron.WindowManager.CreateWindowAsync(new BrowserWindowOptions()
             {
                 AutoHideMenuBar = true,
                 Width = 1920,
                 Height = 1080,
                 X = 0,
-                Y = 0
+                Y = 0,
+                WebPreferences = wp
             }));
         }
     }

@@ -1,7 +1,6 @@
 
 3.0.11
 
-- update to dotnet 6.0.4
 - add language support for replay filenames (#7)
 
 3.0.10
