@@ -9,7 +9,7 @@
     <PackageReference Include="Blazored.Toast" Version="3.2.2" />
     <PackageReference Include="ElectronNET.API" Version="13.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
