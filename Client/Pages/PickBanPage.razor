@@ -12,7 +12,7 @@
 	<div class="btn-block">
 @*		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("cmdr1"))">Commanders</button>
 		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("gdsl1"))">GDSL Fun Tournament</button>*@
-		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("dsftwa"))">DSFTWA Cmdr Tournament</button>
+		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("dsth"))">DSTH Cmdr Tournament</button>
 		<button type="button" class="btn btn-primary" @onclick="@(() => ChangeMode("gdsl2"))">Official GDSL Tournament</button>
 	</div>
 }
@@ -26,7 +26,7 @@
 	
 } else if (mode == "gdsl2") {
 	<Gdsl2Component mode="@mode" guid="@guid"></Gdsl2Component>
-} else if (mode == "dsftwa") {
+} else if (mode == "dsth") {
 	<DsftwaComponent mode="@mode" guid="@guid"></DsftwaComponent>
 }
 

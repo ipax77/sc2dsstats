@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="IronPython.StdLib" Version="2.7.12" />
-    <PackageReference Include="s2protocol.NET" Version="0.6.4" />
+    <PackageReference Include="s2protocol.NET" Version="0.6.5" />
   </ItemGroup>
 
   <ItemGroup>
