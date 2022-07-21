@@ -41,6 +41,7 @@ namespace sc2dsstats._2022.Shared
             "Tychus",
             "Vorazun",
             "Zagara",
+            "Zeratul",
         };
 
         public enum Commander
@@ -64,7 +65,8 @@ namespace sc2dsstats._2022.Shared
             Swann = 140,
             Tychus = 150,
             Vorazun = 160,
-            Zagara = 170
+            Zagara = 170,
+            Zeratul = 180
         }
 
         public static List<Commander> GetCommanders => Enum.GetValues<Commander>().Where(x => (int)x > 3).ToList();
@@ -94,6 +96,7 @@ namespace sc2dsstats._2022.Shared
                 "Tychus" => Commander.Tychus,
                 "Vorazun" => Commander.Vorazun,
                 "Zagara" => Commander.Zagara,
+                "Zeratul" => Commander.Zeratul,
                 _ => Commander.Terran
             };
         }
@@ -148,6 +151,7 @@ namespace sc2dsstats._2022.Shared
             {     "Tychus", "#342db5" },
             {     "Vorazun", "#07c543" },
             {     "Zagara", "#b01c48" },
+            {     "Zeratul", "#a1e7e7"  },
             {     "Protoss", "#fcc828"   },
             {     "Terran", "#4a4684"   },
             {     "Zerg", "#6b1c92"   }

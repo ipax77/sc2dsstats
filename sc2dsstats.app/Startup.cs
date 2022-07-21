@@ -40,8 +40,8 @@ namespace sc2dsstats.app
                        x.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
                    }
                 )
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors()
+                // .EnableSensitiveDataLogging()
+                // .EnableDetailedErrors()
             );
 
             if (File.Exists(olddbFile))

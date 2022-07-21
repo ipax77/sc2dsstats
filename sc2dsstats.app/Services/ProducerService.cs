@@ -127,7 +127,8 @@ namespace sc2dsstats.app.Services
                 notifySource.Cancel();
                 Producing = false;
                 insertService.ReplaysInserted -= InsertService_ReplaysInserted;
-            } else
+            }
+            else
             {
                 insertCount = e.insertCount;
             }

@@ -1,12 +1,7 @@
 ﻿using s2protocol.NET;
 using s2protocol.NET.Models;
 using sc2dsstats._2022.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.parse;
 
@@ -224,7 +219,7 @@ public class ParseService
             {
                 continue;
             }
-            
+
             failsafe_pos++;
 
             replay.DSPlayer.Add(new DSPlayerDto()

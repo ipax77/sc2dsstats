@@ -546,6 +546,9 @@
     <None Update="pylib\site-packages\s2protocol\versions\protocol87702.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol88500.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="pylib\site-packages\s2protocol\versions\__init__.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

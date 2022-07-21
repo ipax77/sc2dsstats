@@ -1,4 +1,4 @@
-﻿@inject HttpClient Http 
+﻿@inject HttpClient Http
 @using sc2dsstats._2022.Shared
 
 <style>
@@ -9,12 +9,12 @@
         transform: rotate(-90deg);
     }
 
-    .verticalTableHeader:before {
-        content: '';
-        padding-top: 110%;
-        display: inline-block;
-        vertical-align: middle;
-    }
+        .verticalTableHeader:before {
+            content: '';
+            padding-top: 110%;
+            display: inline-block;
+            vertical-align: middle;
+        }
 
     .cnowrap {
         white-space: nowrap;
@@ -63,39 +63,48 @@
             {
                 int i = 0;
                 @foreach (var cmdr in DSData.cmdrs)
-                { 
-            <tr>
-                <td>@cmdr</td>
-                @foreach (var vs in DSData.cmdrs)
                 {
-                    
-                    @if (cmdr == vs)
-                    {
-                        <td class="text-white-50"></td>
-                    }
-                    else
-                    {
-                        var ent = response.Items[i];
-                        var diff = ent.Winrate - ent.OldWinrate;
-                        if (Math.Abs(diff) >= 1)
+                    <tr>
+                        <td>@cmdr</td>
+                        @foreach (var vs in DSData.cmdrs)
                         {
-                            @if (diff > 0)
+
+                            @if (cmdr == vs)
                             {
-                                <td class="cnowrap @ent.Color">@ent.Winrate.ToString("N2") <span class="badge bg-secondary text-success text-small"><span class="oi oi-arrow-top"></span>@Math.Abs(diff).ToString("N1")</span></td>
+                                <td class="text-white-50"></td>
                             }
                             else
                             {
-                                <td class="cnowrap @ent.Color">@ent.Winrate.ToString("N2") <span class="badge bg-secondary text-danger text-small"><span class="oi oi-arrow-bottom"></span>@Math.Abs(diff).ToString("N1")</span></td>
+                                // var ent = response.Items[i];
+                                var ent = response.Items.FirstOrDefault(f => f.Label == $"{cmdr} vs {vs}");
+                                @if (ent == null)
+                                {
+                                    ent = new()
+                                    {
+                                        Label = $"{cmdr} vs {vs}"
+                                    };
+                                }
+
+                                var diff = ent.Winrate - ent.OldWinrate;
+                                @if (Math.Abs(diff) >= 1)
+                                {
+                                    @if (diff > 0)
+                                    {
+                                        <td class="cnowrap @ent.Color">@ent.Winrate.ToString("N2") <span class="badge bg-secondary text-success text-small"><span class="oi oi-arrow-top"></span>@Math.Abs(diff).ToString("N1")</span></td>
+                                    }
+                                    else
+                                    {
+                                        <td class="cnowrap @ent.Color">@ent.Winrate.ToString("N2") <span class="badge bg-secondary text-danger text-small"><span class="oi oi-arrow-bottom"></span>@Math.Abs(diff).ToString("N1")</span></td>
+                                    }
+                                }
+                                else
+                                {
+                                    <td class="@ent.Color">@ent.Winrate.ToString("N2")</td>
+                                }
                             }
+                            i++;
                         }
-                        else
-                        {
-                            <td class="@ent.Color">@ent.Winrate.ToString("N2")</td>
-                        }
-                    }
-                    i++;
-                }
-            </tr>
+                    </tr>
                 }
             }
         </tbody>

@@ -52,8 +52,6 @@ namespace sc2dsstats.db.Services
                 }
             }
             return response;
-
-
         }
 
         public static async Task<DsResponse> GetCrossTableData(DsRequest request, sc2dsstatsContext context)

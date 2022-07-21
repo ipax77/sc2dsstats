@@ -6,7 +6,6 @@ using sc2dsstats.db.Services;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace sc2dsstats.db
 {
