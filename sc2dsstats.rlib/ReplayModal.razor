@@ -14,7 +14,8 @@
                     }
                     else
                     {
-                        <a href="@replayPath">FileLink</a>
+                        @*<a href="@replayPath">FileLink</a>*@
+                        <a href="@($"file://{replayPath.Replace('\\', '/')}")">Link</a>
                     }
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
