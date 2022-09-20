@@ -1,6 +1,6 @@
-﻿using sc2dsstats._2022.Shared;
+﻿using sc2dsstats.shared;
 using System.Text.Json.Serialization;
-using static sc2dsstats._2022.Shared.DSData;
+using static sc2dsstats.shared.DSData;
 
 namespace sc2dsstats.db
 {

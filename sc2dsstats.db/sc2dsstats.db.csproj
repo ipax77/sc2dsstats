@@ -1,26 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--<OutputType>Exe</OutputType>-->
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!--<RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.7">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\sc2dsstats.2022.Shared.csproj" />
+    <ProjectReference Include="..\sc2dsstats.shared\sc2dsstats.shared.csproj" />
   </ItemGroup>
 
 </Project>

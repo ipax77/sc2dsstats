@@ -1,4 +1,4 @@
-﻿using sc2dsstats._2022.Shared;
+﻿using sc2dsstats.shared;
 
 namespace sc2dsstats.db.Stats
 {

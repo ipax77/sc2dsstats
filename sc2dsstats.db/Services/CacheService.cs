@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using sc2dsstats._2022.Shared;
+using sc2dsstats.shared;
 
 namespace sc2dsstats.db.Services
 {

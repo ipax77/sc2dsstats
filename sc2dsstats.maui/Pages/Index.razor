@@ -1,0 +1,45 @@
+﻿@page "/"
+@using pax.dsstats.dbng.Repositories
+@using sc2dsstats.maui.Services
+@inject IReplayRepository ReplayRepository
+@inject DecodeService DecodeService
+@implements IDisposable
+
+<div class="btn-group">
+    <button type="button" class="btn btn-primary" @onclick="Decode">Decode</button>
+    <button type="button" class="btn btn-primary" @onclick="ScanForNewReplays">Scan</button>
+</div>
+
+@code {
+    private string errorString = "";
+    private int replayCount;
+    private List<string> newReplays = new();
+
+    protected override void OnInitialized()
+    {
+        DecodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
+
+        base.OnInitialized();
+    }
+
+    private void DecodeService_DecodeStateChanged(object? sender, DecodeEventArgs e)
+    {
+
+    }
+
+    public async Task ScanForNewReplays()
+    {
+        newReplays = await DecodeService.ScanForNewReplays();
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async Task Decode()
+    {
+        await DecodeService.DecodeParallel();
+    }
+
+    public void Dispose()
+    {
+        
+    }
+}

@@ -20,7 +20,7 @@ namespace sc2dsstats._2022.Shared
 
             DSData.Units = System.Text.Json.JsonSerializer.Deserialize<List<DsJsonEnt>>(File.ReadAllText(Path.Combine(rootDir, "json/dataunits.json")));
             DSData.Upgrades = System.Text.Json.JsonSerializer.Deserialize<List<DsJsonEnt>>(File.ReadAllText(Path.Combine(rootDir, "json/upgrademap.json")));
-            DSData.Objectives = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DsJsonObjective>>(File.ReadAllText(Path.Combine(rootDir, "json/objectives.json")));
+            // DSData.Objectives = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DsJsonObjective>>(File.ReadAllText(Path.Combine(rootDir, "json/objectives.json")));
         }
 
         public static string[] cmdrs = new string[] {

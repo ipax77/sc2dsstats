@@ -1,6 +1,6 @@
 ﻿using MathNet.Numerics;
 using Microsoft.EntityFrameworkCore;
-using sc2dsstats._2022.Shared;
+using sc2dsstats.shared;
 using sc2dsstats.db.Services;
 
 namespace sc2dsstats.db.Stats

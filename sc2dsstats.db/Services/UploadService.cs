@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using sc2dsstats._2022.Shared;
+using sc2dsstats.shared;
 using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Text.Json;
@@ -11,7 +11,6 @@ namespace sc2dsstats.db.Services
     public class UploadService
     {
         private ConcurrentBag<Dsreplay> Replays = new ConcurrentBag<Dsreplay>();
-        private bool jobRunning = false;
         SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         private readonly IServiceScopeFactory scopeFactory;

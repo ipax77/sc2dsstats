@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text;
-using static sc2dsstats._2022.Shared.DSData;
+using static sc2dsstats.shared.DSData;
 
 namespace sc2dsstats.db.Stats
 {

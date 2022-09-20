@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using sc2dsstats._2022.Shared;
+using sc2dsstats.shared;
 using sc2dsstats.db.Services;
 using System.Diagnostics;
 using System.Reflection;

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using sc2dsstats._2022.Shared;
+using sc2dsstats.shared;
 using System.Text;
 using System.Text.Json;
 
