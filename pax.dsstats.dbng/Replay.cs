@@ -14,6 +14,9 @@ public class Player
     [MaxLength(50)]
     public string Name { get; set; } = null!;
     public int ToonId { get; set; }
+    public double DsR { get; set; }
+    [MaxLength(2000)]
+    public string? DsROverTime { get; set; }
     [Precision(0)]
     public DateTime LatestUpload { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }

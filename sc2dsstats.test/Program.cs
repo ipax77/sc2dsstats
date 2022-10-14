@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using pax.dsstats.dbng;
@@ -30,7 +31,15 @@ var context = serviceProvider.GetService<ReplayContext>();
 
 ArgumentNullException.ThrowIfNull(context);
 
-var mmrService = new MmrService(context);
+context.Database.Migrate();
+
+var config = new MapperConfiguration(cfg => 
+{ 
+    cfg.AddProfile<AutoMapperProfile>();
+});
+var mapper = config.CreateMapper();
+
+var mmrService = new MmrService(context, mapper);
 
 mmrService.CalcMmmr().GetAwaiter().GetResult();
 

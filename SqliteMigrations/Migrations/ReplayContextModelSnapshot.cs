@@ -49,6 +49,13 @@ namespace SqliteMigrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<double>("DsR")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("DsROverTime")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("LatestUpload")
                         .HasPrecision(0)
                         .HasColumnType("TEXT");

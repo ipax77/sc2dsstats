@@ -50,6 +50,10 @@ namespace pax.dsstats.dbng
                 .ForMember(x => x.Cmdrs1, opt => opt.Ignore())
                 .ForMember(x => x.Cmdrs2, opt => opt.Ignore());
             CreateMap<ReplayEvent, ReplayEventListDto>(MemberList.Destination);
+
+            CreateMap<Replay, ReplayDsRDto>(MemberList.Destination);
+            CreateMap<ReplayPlayer, ReplayPlayerDsRDto>(MemberList.Destination);
+            CreateMap<Player, PlayerDsRDto>(MemberList.Destination);
         }
     }
 }
