@@ -10,9 +10,9 @@ namespace pax.dsstats.parser;
 
 public static partial class Parse
 {
-    public static ReplayDto GetReplayDto(DsReplay replay)
+    public static ReplayDto GetReplayDto(DsReplay replay, bool allSpawns = false)
     {
-        var players = GetPlayers(replay);
+        var players = GetPlayers(replay, allSpawns);
         var duration = (int)(replay.Duration / 22.4);
 
         ReplayDto replayDto = new()
@@ -49,7 +49,7 @@ public static partial class Parse
         return $"{firstTeam}|{middleString}";
     }
 
-    private static ICollection<ReplayPlayerDto> GetPlayers(DsReplay replay)
+    private static ICollection<ReplayPlayerDto> GetPlayers(DsReplay replay, bool allSpawns)
     {
         List<ReplayPlayerDto> dtos = new();
 
@@ -59,7 +59,7 @@ public static partial class Parse
 
             dtos.Add(new()
             {
-                Player = new() { Name = player.Name },
+                Player = new() { Name = player.Name, ToonId = player.ToonId },
                 Clan = player.Clan,
                 GamePos = player.GamePos,
                 Team = player.Team,
@@ -76,14 +76,14 @@ public static partial class Parse
                 Army = player.Army,
                 UpgradesSpent = player.UpgradesSpent,
                 Upgrades = player.Upgrades.Select(s => new PlayerUpgradeDto() { Upgrade = new UpgradeDto() { Name = s.Upgrade }, Gameloop = s.Gameloop }).ToList(),
-                Spawns = GetSpawns(player.SpawnStats, player.Race)
+                Spawns = GetSpawns(player.SpawnStats, player.Race, allSpawns)
             });
         }
 
         return dtos;
     }
 
-    private static ICollection<SpawnDto> GetSpawns(List<PlayerSpawnStats> spawns, string race)
+    private static ICollection<SpawnDto> GetSpawns(List<PlayerSpawnStats> spawns, string race, bool allSpawns)
     {
         var dtos = new List<SpawnDto>();
 
@@ -92,9 +92,24 @@ public static partial class Parse
 
         foreach (var spawn in spawns)
         {
+            int gameloop = spawn.Units.FirstOrDefault()?.Gameloop ?? 0;
+
+            if (!allSpawns)
+            {
+                // 5min: 6240, 6720, 7200
+                // 10min: 12960, 13440, 13920
+                // 15min: 19680, 20160, 20640
+                if (!((gameloop > 6240 && gameloop < 7209)
+                    || (gameloop > 12960 && gameloop < 13928)
+                    || (gameloop > 19680 && gameloop < 20649)))
+                {
+                    continue;
+                }
+            }
+
             dtos.Add(new()
             {
-                Gameloop = spawn.Units.FirstOrDefault()?.Gameloop ?? 0,
+                Gameloop = gameloop,
                 Income = spawn.Income,
                 GasCount = spawn.GasCount,
                 ArmyValue = spawn.ArmyValue,
@@ -102,6 +117,24 @@ public static partial class Parse
                 UpgradeSpent = spawn.UpgradesSpent,
                 Units = GetUnits(spawn.Units, commander)
             });
+        }
+
+        if (!allSpawns)
+        {
+            var lastSpawn = spawns.LastOrDefault();
+            if (lastSpawn != null && dtos.LastOrDefault()?.Income != lastSpawn.Income)
+            {
+                dtos.Add(new()
+                {
+                    Gameloop = lastSpawn.Units.FirstOrDefault()?.Gameloop ?? 0,
+                    Income = lastSpawn.Income,
+                    GasCount = lastSpawn.GasCount,
+                    ArmyValue = lastSpawn.ArmyValue,
+                    KilledValue = lastSpawn.KilledValue,
+                    UpgradeSpent = lastSpawn.UpgradesSpent,
+                    Units = GetUnits(lastSpawn.Units, commander)
+                });
+            }
         }
 
         return dtos;

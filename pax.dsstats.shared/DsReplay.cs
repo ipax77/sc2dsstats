@@ -37,6 +37,7 @@ public record DsMiddle
 public record DsPlayer
 {
     public string Name { get; set; } = "";
+    public int ToonId { get; set; }
     public string? Clan { get; set; }
     public int Pos { get; set; }
     public int GamePos { get; set; }

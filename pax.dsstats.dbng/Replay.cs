@@ -13,6 +13,7 @@ public class Player
     public int PlayerId { get; set; }
     [MaxLength(50)]
     public string Name { get; set; } = null!;
+    public int ToonId { get; set; }
     [Precision(0)]
     public DateTime LatestUpload { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }

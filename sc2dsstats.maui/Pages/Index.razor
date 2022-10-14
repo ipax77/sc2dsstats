@@ -1,45 +1,81 @@
 ﻿@page "/"
 @using pax.dsstats.dbng.Repositories
+@using pax.dsstats.shared
 @using sc2dsstats.maui.Services
+@using sc2dsstats.razorlib
 @inject IReplayRepository ReplayRepository
 @inject DecodeService DecodeService
 @implements IDisposable
 
 <div class="btn-group">
-    <button type="button" class="btn btn-primary" @onclick="Decode">Decode</button>
+    @if (DecodeService.IsRunning)
+    {
+        <button type="button" class="btn btn-primary" @onclick="StopDecoding">StopDecoding</button>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary" @onclick="Decode">Decode</button>
+
+    }
     <button type="button" class="btn btn-primary" @onclick="ScanForNewReplays">Scan</button>
+</div>
+
+<div>
+    @if (latestReplay != null)
+    {
+        <ReplayComponent replayDto="latestReplay"></ReplayComponent>
+    }
 </div>
 
 @code {
     private string errorString = "";
     private int replayCount;
     private List<string> newReplays = new();
+    ReplayDto? latestReplay = null;
 
     protected override void OnInitialized()
     {
-        DecodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
-
+        DecodeService.ScanStateChanged += DecodeService_ScanStateChanged;
         base.OnInitialized();
     }
 
-    private void DecodeService_DecodeStateChanged(object? sender, DecodeEventArgs e)
+    protected override void OnAfterRender(bool firstRender)
     {
+        if (firstRender)
+        {
+            _ = LoadLatestReplay();
+        }
+        base.OnAfterRender(firstRender);
+    }
 
+    public void DecodeService_ScanStateChanged(object? sender, ScanEventArgs e)
+    {
+        InvokeAsync(() => StateHasChanged());        
     }
 
     public async Task ScanForNewReplays()
     {
-        newReplays = await DecodeService.ScanForNewReplays();
+        await DecodeService.ScanForNewReplays();
+    }
+
+    private async Task LoadLatestReplay()
+    {
+        latestReplay = await ReplayRepository.GetLatestReplay();
         await InvokeAsync(() => StateHasChanged());
     }
 
-    private async Task Decode()
+    private void Decode()
     {
-        await DecodeService.DecodeParallel();
+        _ = DecodeService.DecodeParallel().ConfigureAwait(false);
+    }
+
+    private void StopDecoding()
+    {
+        DecodeService.StopDecoding();
     }
 
     public void Dispose()
     {
-        
+        DecodeService.ScanStateChanged -= DecodeService_ScanStateChanged;
     }
 }

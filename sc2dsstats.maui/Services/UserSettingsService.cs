@@ -57,7 +57,7 @@ internal class UserSettingsService
         }
     }
 
-    private void SetInitialNamesAndFolders()
+    internal void SetInitialNamesAndFolders()
     {
         var sc2Dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Starcraft II");
 

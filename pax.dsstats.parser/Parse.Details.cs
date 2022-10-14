@@ -19,6 +19,7 @@ public static partial class Parse
             replay.Players.Add(new DsPlayer()
             {
                 Name = player.Name,
+                ToonId = player.Toon.Id,
                 Clan = player.ClanName,
                 Race = player.Race,
                 Control = player.Control,

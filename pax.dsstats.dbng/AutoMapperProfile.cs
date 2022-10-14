@@ -12,6 +12,10 @@ namespace pax.dsstats.dbng
     {
         public AutoMapperProfile()
         {
+            // dotnet 7 workaround
+            // IncludeSourceExtensionMethods(typeof(SourceExtensions));
+            // ShouldMapMethod = (m => m.Name != nameof(SourceExtensions.AnotherNumber));
+
             CreateMap<Player, PlayerDto>(MemberList.Destination);
             CreateMap<PlayerDto, Player>(MemberList.Source);
 

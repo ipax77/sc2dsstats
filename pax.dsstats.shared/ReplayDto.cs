@@ -9,6 +9,7 @@ namespace pax.dsstats.shared;
 public record PlayerDto
 {
     public string Name { get; init; } = null!;
+    public int ToonId { get; init; }
 }
 
 public record ReplayDto

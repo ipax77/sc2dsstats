@@ -7,15 +7,15 @@
 
 @if (UserSettingsService.UserSettings.DbGuid != new Guid())
 {
-        <p>
-            Dataset name: <strong>@UserSettingsService.UserSettings.DbGuid.ToString().Substring(0, 8)</strong>@UserSettingsService.UserSettings.DbGuid.ToString().Substring(8)
-        </p>
+    <p>
+        Dataset name: <strong>@UserSettingsService.UserSettings.DbGuid.ToString().Substring(0, 8)</strong>@UserSettingsService.UserSettings.DbGuid.ToString().Substring(8)
+    </p>
 }
 else
 {
-        <p>
-            Your Dataset name will be shown after the first successful upload
-        </p>
+    <p>
+        Your Dataset name will be shown after the first successful upload
+    </p>
 
 }
 
@@ -67,13 +67,13 @@ else
         <h4 class="fw-bold">Playernames - your ingame Starcraft 2 Player name(s) e.g. shown in the loading screen of Direct Strike</h4>
         @foreach (var ent in PlayerNames)
         {
-                <div class="col-6 m-2 p-2">
-                    <label class="col-form-label d-flex w-100">
-                        Name:
-                        <InputText class="w-75 ms-2" @bind-Value="ent.Name"></InputText>
-                        <span class="oi oi-x pointer text-danger ms-1 align-self-center" @onclick="e => RemovePlayerName(ent)"></span>
-                    </label>
-                </div>
+            <div class="col-6 m-2 p-2">
+                <label class="col-form-label d-flex w-100">
+                    Name:
+                    <InputText class="w-75 ms-2" @bind-Value="ent.Name"></InputText>
+                    <span class="oi oi-x pointer text-danger ms-1 align-self-center" @onclick="e => RemovePlayerName(ent)"></span>
+                </label>
+            </div>
         }
         <button type="button" class="btn btn-secondary btm-sm" @onclick="AddPlayerName">Add Player Name</button>
     </div>
@@ -83,13 +83,13 @@ else
         @foreach (var ent in ReplayPaths)
         {
 
-                <div class="col-10 m-2 p-2">
-                    <label class="col-form-label d-flex w-100">
-                        Path:
-                        <InputText class="w-75 ms-2" @bind-Value="ent.Name"></InputText>
-                        <span class="oi oi-x pointer text-danger" @onclick="e => RemoveReplayPath(ent)"></span>
-                    </label>
-                </div>
+            <div class="col-10 m-2 p-2">
+                <label class="col-form-label d-flex w-100">
+                    Path:
+                    <InputText class="w-75 ms-2" @bind-Value="ent.Name"></InputText>
+                    <span class="oi oi-x pointer text-danger" @onclick="e => RemoveReplayPath(ent)"></span>
+                </label>
+            </div>
         }
         <button type="button" class="btn btn-secondary btm-sm" @onclick="AddReplayPath">Add Path</button>
     </div>
@@ -101,6 +101,11 @@ else
                 <InputText class="w-75 ms-2" @bind-Value="UserSettingsService.UserSettings.ReplayStartName"></InputText>
             </label>
         </div>
+    </div>
+
+    <div class="container-fluid py-5 bg-primary mt-3">
+        <h3 class="fw-bold">AppDataDir</h3>
+        <small>@FileSystem.Current.AppDataDirectory</small>
     </div>
 
     <div class="btn-group mt-3 mb-5">
@@ -148,13 +153,20 @@ else
 
         _ = UserSettingsService.Save();
         toastService.ShowSuccess("Settings saved.");
-        Reset();
+        PlayerNames = UserSettingsService.UserSettings.PlayerNames.Select(s => new ListEnt() { Name = s }).ToList();
+        ReplayPaths = UserSettingsService.UserSettings.ReplayPaths.Select(s => new ListEnt() { Name = s }).ToList();
     }
 
     private void Reset()
     {
+        UserSettingsService.SetInitialNamesAndFolders();
+
+        editContext = new(UserSettingsService.UserSettings);
+
         PlayerNames = UserSettingsService.UserSettings.PlayerNames.Select(s => new ListEnt() { Name = s }).ToList();
         ReplayPaths = UserSettingsService.UserSettings.ReplayPaths.Select(s => new ListEnt() { Name = s }).ToList();
+
+        StateHasChanged();
     }
 
     private void AddPlayerName()

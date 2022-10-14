@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using pax.dsstats.dbng;
 using pax.dsstats.parser;
 using pax.dsstats.shared;
@@ -9,6 +8,7 @@ using s2protocol.NET;
 using pax.dsstats.dbng.Repositories;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace sc2dsstats.maui.Services;
 
@@ -55,6 +55,8 @@ public class DecodeService : IDisposable
 
     private object lockobject = new object();
 
+    private CancellationTokenSource? decodeCts = null;
+    private CancellationTokenSource? notifyCts = null;
     public bool IsRunning { get; private set; }
 
     public event EventHandler<DecodeEventArgs>? DecodeStateChanged;
@@ -63,6 +65,14 @@ public class DecodeService : IDisposable
         EventHandler<DecodeEventArgs>? handler = DecodeStateChanged;
         handler?.Invoke(this, e);
     }
+
+    public event EventHandler<ScanEventArgs>? ScanStateChanged;
+    protected virtual void OnScanStateChanged(ScanEventArgs e)
+    {
+        EventHandler<ScanEventArgs>? handler = ScanStateChanged;
+        handler?.Invoke(this, e);
+    }
+
 
     public ICollection<string> GetErrorReplays()
     {
@@ -102,7 +112,7 @@ public class DecodeService : IDisposable
         return replayDto;
     }
 
-    public async Task DecodeParallel(CancellationToken cancellationToken = default)
+    public async Task DecodeParallel()
     {
         lock (lockobject)
         {
@@ -122,53 +132,76 @@ public class DecodeService : IDisposable
         total = replays.Count;
         startTime = DateTime.UtcNow;
 
-        CancellationTokenSource cts = new();
-        _ = Notify(cts.Token);
+        decodeCts = new();
+        notifyCts = new();
+        _ = Notify();
 
         Stopwatch sw = Stopwatch.StartNew();
 
-        await foreach (var sc2rep in decoder.DecodeParallel(replays, UserSettingsService.UserSettings.CpuCoresUsedForDecoding, decoderOptions, cancellationToken))
+        try
         {
-            try
+            await foreach (var sc2rep in decoder.DecodeParallel(replays, UserSettingsService.UserSettings.CpuCoresUsedForDecoding, decoderOptions, decodeCts.Token))
             {
-                var dsRep = Parse.GetDsReplay(sc2rep);
-                if (dsRep != null)
+                if (decodeCts.IsCancellationRequested)
                 {
-                    var dtoRep = Parse.GetReplayDto(dsRep);
-                    if (dtoRep != null)
+                    break;
+                }
+
+                try
+                {
+                    var dsRep = Parse.GetDsReplay(sc2rep);
+                    if (dsRep != null)
                     {
-                        Interlocked.Increment(ref decodeCounter);
-                        _ = SaveReplay(dtoRep);
+                        var dtoRep = Parse.GetReplayDto(dsRep);
+                        if (dtoRep != null)
+                        {
+                            Interlocked.Increment(ref decodeCounter);
+                            _ = SaveReplay(dtoRep);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                logger.DecodeError($"failed parsing replay {sc2rep.FileName}: {ex.Message}");
-                errorReplays.Add(sc2rep.FileName);
-                Interlocked.Increment(ref errorCounter);
-            }
+                catch (Exception ex)
+                {
+                    logger.DecodeError($"failed parsing replay {sc2rep.FileName}: {ex.Message}");
+                    errorReplays.Add(sc2rep.FileName);
+                    Interlocked.Increment(ref errorCounter);
+                }
 
-            if (decodeCounter % 100 == 0)
-            {
-                logger.DecodeInformation($"replays decoded: {decodeCounter}/{total}, replays in db: {dbCounter}/{total}");
+                if (decodeCounter % 100 == 0)
+                {
+                    logger.DecodeInformation($"replays decoded: {decodeCounter}/{total}, replays in db: {dbCounter}/{total}");
+                }
             }
         }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            logger.DecodeError($"failed decoding replays: {ex.Message}");
+        }
+        finally
+        {
+            sw.Stop();
 
-        sw.Stop();
+            logger.DecodeInformation($"Got dsReplays in {sw.ElapsedMilliseconds} ms");
 
-        logger.DecodeInformation($"Got dsReplays in {sw.ElapsedMilliseconds} ms");
+            await ScanForNewReplays();
 
-        await ScanForNewReplays();
+            notifyCts.Cancel();
 
-        cts.Cancel();
-
-        IsRunning = false;
+            IsRunning = false;
+            decodeCts.Dispose();
+            decodeCts = null;
+        }
     }
 
-    private async Task Notify(CancellationToken cancellationToken)
+    public void StopDecoding()
     {
-        while (!cancellationToken.IsCancellationRequested)
+        decodeCts?.Cancel();
+    }
+
+    private async Task Notify()
+    {
+        while (notifyCts != null && !notifyCts.IsCancellationRequested)
         {
             OnDecodeStateChanged(new()
             {
@@ -180,7 +213,7 @@ public class DecodeService : IDisposable
             });
             try
             {
-                await Task.Delay(1000, cancellationToken);
+                await Task.Delay(1000, notifyCts.Token);
             }
             catch (OperationCanceledException) { }
         }
@@ -194,6 +227,9 @@ public class DecodeService : IDisposable
             Saved = dbCounter,
             Done = true
         });
+
+        notifyCts?.Dispose();
+        notifyCts = null;
     }
 
     internal async Task<List<string>> ScanForNewReplays()
@@ -214,6 +250,9 @@ public class DecodeService : IDisposable
 
         NewReplays = newReplays.Count;
         DbReplays = dbReplayPaths.Count;
+
+        OnScanStateChanged(new() {  NewReplays = NewReplays, DbReplays = DbReplays });
+
         return newReplays;
     }
 
@@ -277,9 +316,20 @@ public class DecodeService : IDisposable
 
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
+        notifyCts?.Cancel();
+        decodeCts?.Cancel();
+        notifyCts?.Dispose();
+        decodeCts?.Dispose();
+        
         decoder.Dispose();
+        GC.SuppressFinalize(this);
     }
+}
+
+public class ScanEventArgs : EventArgs
+{
+    public int NewReplays { get; init; }
+    public int DbReplays { get; init; }
 }
 
 public class DecodeEventArgs : EventArgs

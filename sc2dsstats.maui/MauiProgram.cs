@@ -2,6 +2,7 @@
 using Blazored.Toast;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using pax.BlazorChartJs;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using sc2dsstats.maui.Services;
@@ -28,7 +29,7 @@ public static class MauiProgram
 #endif
 
         builder.Services.AddDbContext<ReplayContext>(options => options
-            .UseSqlite($"Data Source={Path.Combine(FileSystem.Current.AppDataDirectory, "dsstats.db")}", sqlOptions =>
+            .UseSqlite($"Data Source={Path.Combine(FileSystem.Current.AppDataDirectory, "dsstats2.db")}", sqlOptions =>
             {
                 sqlOptions.MigrationsAssembly("SqliteMigrations");
                 sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
@@ -40,6 +41,7 @@ public static class MauiProgram
         builder.Services.AddMemoryCache();
         builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
         builder.Services.AddBlazoredToast();
+        builder.Services.AddChartJs();
 
         builder.Services.AddSingleton<UserSettingsService>();
         builder.Services.AddSingleton<DecodeService>();

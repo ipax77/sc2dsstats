@@ -53,6 +53,22 @@ public class ReplayRepository : IReplayRepository
         return replay with { Views = replay.Views + 1 };
     }
 
+    public async Task<ReplayDto?> GetLatestReplay(CancellationToken token = default)
+    {
+        return await context.Replays
+            .Include(i => i.Players)
+                .ThenInclude(t => t.Spawns)
+                    .ThenInclude(t => t.Units)
+                        .ThenInclude(t => t.Unit)
+            .Include(i => i.Players)
+                .ThenInclude(t => t.Player)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .OrderByDescending(o => o.GameTime)
+            .ProjectTo<ReplayDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(token);
+    }
+
     public async Task<int> GetReplaysCount(ReplaysRequest request, CancellationToken token = default)
     {
         var replays = GetRequestReplays(request);
@@ -274,12 +290,13 @@ public class ReplayRepository : IReplayRepository
 
         foreach (var player in dbReplay.Players)
         {
-            var dbPlayer = await context.Players.FirstOrDefaultAsync(f => f.Name == player.Player.Name);
+            var dbPlayer = await context.Players.FirstOrDefaultAsync(f => f.ToonId == player.Player.ToonId);
             if (dbPlayer == null)
             {
                 dbPlayer = new()
                 {
                     Name = player.Player.Name,
+                    ToonId = player.Player.ToonId
                 };
                 context.Players.Add(dbPlayer);
                 try
@@ -398,5 +415,4 @@ public class ReplayRepository : IReplayRepository
             .Select(s => s.Name)
             .ToListAsync();
     }
-
 }

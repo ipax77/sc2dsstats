@@ -20,7 +20,13 @@ public partial class TopRow : ComponentBase, IDisposable
     protected override void OnInitialized()
     {
         decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
+        decodeService.ScanStateChanged += DecodeService_ScanStateChanged;
         base.OnInitialized();
+    }
+
+    private void DecodeService_ScanStateChanged(object? sender, ScanEventArgs e)
+    {
+        InvokeAsync(() => StateHasChanged());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -70,5 +76,6 @@ public partial class TopRow : ComponentBase, IDisposable
     public void Dispose()
     {
         decodeService.DecodeStateChanged -= DecodeService_DecodeStateChanged;
+        decodeService.ScanStateChanged -= DecodeService_ScanStateChanged;
     }
 }

@@ -29,12 +29,6 @@ public class ReplayContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Player>(entity =>
-        {
-            entity.HasIndex(e => e.Name)
-                .IsUnique();
-        });
-
         modelBuilder.Entity<Replay>(entity =>
         {
             entity.HasIndex(e => e.FileName);
@@ -60,6 +54,11 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<Event>(entity =>
         {
             entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<Player>(entity =>
+        {
+            entity.HasIndex(e => e.ToonId).IsUnique();
         });
     }
 }

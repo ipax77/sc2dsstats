@@ -9,7 +9,23 @@ using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng;
 
-//internal class ReplayContextFactory : IDesignTimeDbContextFactory<ReplayContext>
+public class ReplayContextFactory : IDesignTimeDbContextFactory<ReplayContext>
+{
+    public ReplayContext CreateDbContext(string[] args)
+    {
+
+        var optionsBuilder = new DbContextOptionsBuilder<ReplayContext>();
+        optionsBuilder.UseSqlite("Data Source=/data/dsreplaystest2.db", x =>
+        {
+            x.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
+            x.MigrationsAssembly("pax.dsstats.dbng");
+        });
+
+        return new ReplayContext(optionsBuilder.Options);
+    }
+}
+
+//public class ReplayContextFactory : IDesignTimeDbContextFactory<ReplayContext>
 //{
 //    public ReplayContext CreateDbContext(string[] args)
 //    {
@@ -18,7 +34,7 @@ namespace pax.dsstats.dbng;
 //        optionsBuilder.UseSqlite("Data Source=/data/dsreplaystest.db", x =>
 //        {
 //            x.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
-//            x.MigrationsAssembly("pax.dsstats.dbng");
+//            x.MigrationsAssembly("SqliteMigrations");
 //        });
 
 //        return new ReplayContext(optionsBuilder.Options);

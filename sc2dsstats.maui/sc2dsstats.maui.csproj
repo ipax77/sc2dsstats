@@ -31,8 +31,32 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 
 		<Nullable>enable</Nullable>
+
+		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+
+		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+
+		<PackageCertificateThumbprint>1A910ACDBF37CF1DD8D3D967D7D24847B3CB033C</PackageCertificateThumbprint>
+
+		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+
+		<AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+
+		<AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
+
+		<GenerateTestArtifacts>True</GenerateTestArtifacts>
+
+		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     </PropertyGroup>
 
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(Configuration)' == 'Release'">
+		<AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+		<PackageCertificateThumbprint>1A910ACDBF37CF1DD8D3D967D7D24847B3CB033C</PackageCertificateThumbprint>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">
+		<RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>
+	</PropertyGroup>	
+	
     <ItemGroup>
         <!-- App Icon -->
         <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -60,6 +84,7 @@
       <ProjectReference Include="..\pax.dsstats.dbng\pax.dsstats.dbng.csproj" />
       <ProjectReference Include="..\pax.dsstats.parser\pax.dsstats.parser.csproj" />
       <ProjectReference Include="..\pax.dsstats.shared\pax.dsstats.shared.csproj" />
+      <ProjectReference Include="..\sc2dsstats.razorlib\sc2dsstats.razorlib.csproj" />
       <ProjectReference Include="..\SqliteMigrations\SqliteMigrations.csproj" />
     </ItemGroup>
 
