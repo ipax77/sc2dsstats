@@ -10,7 +10,7 @@
     {
         @if (decodeEventArgs.Error > 0)
         {
-            <span class="badge bg-danger px-1 me-1 pointer" @onclick="ShowFailedReplays" style="height: 80% !important; padding: 1rem 0; font-size: 1em;">
+            <span class="badge bg-danger px-1 me-1 pointer" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" data-bs-toggle="modal" @onclick="e => decodeErrorModal?.Show()">
                 Replays failed: @decodeEventArgs.Error
             </span>
         }
@@ -62,13 +62,13 @@
 
     <div class="ms-auto">
         <span class="badge bg-info px-1" style="height: 50% !important; padding: 0.5rem 0; font-size: 1em;">
-            v0.1.2
+            v0.1.6
         </span>
     </div>
 </div>
 
-@*<ReplaysFailedModal @ref="replaysFailedModal"></ReplaysFailedModal>*@
+<DecodeErrorModal @ref="decodeErrorModal"></DecodeErrorModal>
 
 @code {
-
+    DecodeErrorModal? decodeErrorModal;
 }

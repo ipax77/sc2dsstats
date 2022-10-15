@@ -36,12 +36,11 @@ public class DecodeService : IDisposable
     public int NewReplays { get; private set; }
     public int DbReplays { get; private set; }
 
-
     private readonly ILogger<DecodeService> logger;
     private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly ReplayDecoderOptions decoderOptions;
     private readonly ReplayDecoder decoder;
-    private ConcurrentBag<string> errorReplays = new();
+    public ConcurrentDictionary<string, string> errorReplays { get; private set; } = new();
 
     private SemaphoreSlim semaphoreSlim = new(1, 1);
     private HashSet<Unit> Units = new();
@@ -72,11 +71,11 @@ public class DecodeService : IDisposable
         EventHandler<ScanEventArgs>? handler = ScanStateChanged;
         handler?.Invoke(this, e);
     }
-
-
-    public ICollection<string> GetErrorReplays()
+    public event EventHandler<EventArgs>? ErrorRaised;
+    protected virtual void OnErrorRaised(EventArgs e)
     {
-        return errorReplays.ToArray();
+        EventHandler<EventArgs>? handler = ErrorRaised;
+        handler?.Invoke(this, e);
     }
 
     public async Task<ReplayDto?> Decode(string replayPath)
@@ -163,8 +162,9 @@ public class DecodeService : IDisposable
                 catch (Exception ex)
                 {
                     logger.DecodeError($"failed parsing replay {sc2rep.FileName}: {ex.Message}");
-                    errorReplays.Add(sc2rep.FileName);
+                    errorReplays[sc2rep.FileName] = ex.Message;
                     Interlocked.Increment(ref errorCounter);
+                    OnErrorRaised(new());
                 }
 
                 if (decodeCounter % 100 == 0)
@@ -177,6 +177,8 @@ public class DecodeService : IDisposable
         catch (Exception ex)
         {
             logger.DecodeError($"failed decoding replays: {ex.Message}");
+            errorReplays["replays"] = ex.Message;
+            OnErrorRaised(new());
         }
         finally
         {
@@ -292,8 +294,9 @@ public class DecodeService : IDisposable
         catch (Exception ex)
         {
             logger.DecodeError($"failed saving replay: {ex.Message}");
-            errorReplays.Add(replayDto.FileName);
+            errorReplays[$"Db:{replayDto.FileName}"] = ex.Message + ex.InnerException?.Message;
             Interlocked.Increment(ref errorCounter);
+            OnErrorRaised(new());
         }
         finally
         {

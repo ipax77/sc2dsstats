@@ -299,7 +299,7 @@ public static partial class Parse
                     unit.DiedGameloop = bornEvent.SUnitDiedEvent.Gameloop;
                 }
 
-                unit.DsUnitData = DsUnitDatas.FirstOrDefault(f => f.Race == dsPlayer.Race && f.Name.Contains(unit.Name));
+                // unit.DsUnitData = DsUnitDatas.FirstOrDefault(f => f.Race == dsPlayer.Race && f.Name.Contains(unit.Name));
                 //if (unit.DsUnitData == null)
                 //{
                 //    Console.WriteLine($"could not find unitdata for {unit.Name}|{dsPlayer.Race}");

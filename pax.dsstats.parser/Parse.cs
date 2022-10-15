@@ -147,7 +147,7 @@ public static partial class Parse
             throw new ArgumentNullException(nameof(sc2Replay.Metadata));
         }
 
-        Import();
+        // Import();
 
         DsReplay replay = new();
 
