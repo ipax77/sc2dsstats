@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using pax.BlazorChartJs;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
+using pax.dsstats.dbng.Services;
+using pax.dsstats.shared;
 using sc2dsstats.maui.Services;
 
 namespace sc2dsstats.maui;
@@ -42,6 +44,8 @@ public static class MauiProgram
         builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
         builder.Services.AddBlazoredToast();
         builder.Services.AddChartJs();
+
+        builder.Services.AddTransient<IStatsService, StatsService>();
 
         builder.Services.AddSingleton<UserSettingsService>();
         builder.Services.AddSingleton<DecodeService>();

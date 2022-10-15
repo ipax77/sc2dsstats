@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using pax.dsstats.shared;
 using System;
@@ -9,15 +10,17 @@ using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng.Services;
 
-public class StatsService : IStatsService
+public partial class StatsService : IStatsService
 {
     private readonly IMemoryCache memoryCache;
     private readonly ReplayContext context;
+    private readonly IMapper mapper;
 
-    public StatsService(IMemoryCache memoryCache, ReplayContext context)
+    public StatsService(IMemoryCache memoryCache, ReplayContext context, IMapper mapper)
     {
         this.memoryCache = memoryCache;
         this.context = context;
+        this.mapper = mapper;
     }
 
     public async Task<StatsResponse> GetStatsResponse(StatsRequest request)

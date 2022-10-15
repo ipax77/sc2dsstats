@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using pax.dsstats.shared;
 using System;
@@ -19,17 +20,17 @@ public interface IStatsResponse
 public record WinrateResult(StatsResponse StatsResponse) : IStatsResponse;
 public record FailedResponse : IStatsResponse;
 
-public class StatsRepository : IStatsRepository
+public partial class StatsRepository : IStatsRepository
 {
     private readonly ILogger<StatsRepository> logger;
     private readonly ReplayContext context;
+    private readonly IMapper mapper;
 
-
-
-    public StatsRepository(ILogger<StatsRepository> logger, ReplayContext context)
+    public StatsRepository(ILogger<StatsRepository> logger, ReplayContext context, IMapper mapper)
     {
         this.logger = logger;
         this.context = context;
+        this.mapper = mapper;
     }
 
     public async Task<IStatsResponse> GetStats(StatsRequest request, CancellationToken token = default)
@@ -168,6 +169,8 @@ public class StatsRepository : IStatsRepository
 
         return replays;
     }
+
+
 }
 
 

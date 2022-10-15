@@ -23,3 +23,10 @@ public record PlayerDsRDto
     public string Name { get; init; } = null!;
     public int ToonId { get; init; }
 }
+
+public record PlayerRatingDto
+{
+    public string Name { get; init; } = null!;
+    public int ToonId { get; init; }
+    public double DsR { get; init; }
+}

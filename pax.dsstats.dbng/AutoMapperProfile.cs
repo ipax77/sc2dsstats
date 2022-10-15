@@ -54,6 +54,8 @@ namespace pax.dsstats.dbng
             CreateMap<Replay, ReplayDsRDto>(MemberList.Destination);
             CreateMap<ReplayPlayer, ReplayPlayerDsRDto>(MemberList.Destination);
             CreateMap<Player, PlayerDsRDto>(MemberList.Destination);
+
+            CreateMap<Player, PlayerRatingDto>(MemberList.Destination);
         }
     }
 }
