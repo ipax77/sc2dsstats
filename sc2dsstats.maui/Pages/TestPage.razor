@@ -1,0 +1,33 @@
+﻿@page "/testpage"
+
+<PageTitle>TestPage</PageTitle>
+
+<h3>TestPage</h3>
+
+<div class="d-flex">
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary" @onclick="DotStuff">DoStuffAsync</button>
+    </div>
+    @if (isLoading)
+    {
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    }
+    else
+    {
+
+    }
+</div>
+
+@code {
+    private bool isLoading;
+
+    private async Task DotStuff()
+    {
+        isLoading = true;
+        await Task.Delay(2000);
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+}

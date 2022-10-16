@@ -46,12 +46,14 @@ public static class MauiProgram
         builder.Services.AddChartJs();
 
         builder.Services.AddTransient<IStatsService, StatsService>();
-        builder.Services.AddTransient<MmrService>();
+        builder.Services.AddSingleton<MmrService>();
 
         builder.Services.AddSingleton<UserSettingsService>();
         builder.Services.AddSingleton<DecodeService>();
 
         builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
+        builder.Services.AddTransient<IStatsRepository, StatsRepository>();
+        builder.Services.AddTransient<IDataService, DataService>();
 
         // init services
         using var scope = builder.Services.BuildServiceProvider().CreateScope();
@@ -60,6 +62,7 @@ public static class MauiProgram
         //mapper.ConfigurationProvider.AssertConfigurationIsValid();
 
         var userSettingsService = scope.ServiceProvider.GetRequiredService<UserSettingsService>();
+        var mmrService = scope.ServiceProvider.GetRequiredService<MmrService>();
 
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         context.Database.Migrate();

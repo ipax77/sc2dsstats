@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using pax.dsstats.shared;
 using System;
 using System.Collections.Generic;
@@ -13,22 +14,32 @@ namespace pax.dsstats.dbng.Services;
 
 public class MmrService
 {
-    private readonly ReplayContext context;
+    private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
 
-    public MmrService(ReplayContext context, IMapper mapper)
+    public MmrService(IServiceProvider serviceProvider, IMapper mapper)
     {
-        this.context = context;
+        this.serviceProvider = serviceProvider;
         this.mapper = mapper;
     }
     private readonly int eloK = 35; // default 35
     private readonly double startMmr = 1000.0;
     private readonly Dictionary<int, List<DsRCheckpoint>> ratings = new();
 
+    public event EventHandler<EventArgs>? Recalculated;
+    protected virtual void OnRecalculated(EventArgs e)
+    {
+        EventHandler<EventArgs>? handler = Recalculated;
+        handler?.Invoke(this, e);
+    }
+
     public async Task CalcMmmr()
     {
         await ClearRatings();
 
+        using var scope = serviceProvider.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+        
         var replays = context.Replays
             .Include(i => i.Players)
                 .ThenInclude(i => i.Player)
@@ -54,16 +65,20 @@ public class MmrService
             SetRunnerMmr(runnerTeam, delta, f.GameTime);
         });
 
-        foreach (var rating in ratings.OrderByDescending(o => o.Value.Last().DsR).Take(15))
-        {
-            Console.WriteLine($"{rating.Key} => {rating.Value.Last().DsR:N2}");
-        }
+        //foreach (var rating in ratings.OrderByDescending(o => o.Value.Last().DsR).Take(15))
+        //{
+        //    Console.WriteLine($"{rating.Key} => {rating.Value.Last().DsR:N2}");
+        //}
 
         await SetRatings();
+        OnRecalculated(new());
     }
 
     private async Task SetRatings()
     {
+        using var scope = serviceProvider.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
         int i = 0;
         foreach (var ent in ratings)
         {
@@ -71,6 +86,10 @@ public class MmrService
             player.DsR = ent.Value.Last().DsR;
             player.DsROverTime = GetOverTimeRating(ent.Value);
             i++;
+            if (i % 1000 == 0)
+            {
+                await context.SaveChangesAsync();
+            }
         }
         await context.SaveChangesAsync();
     }
@@ -118,6 +137,9 @@ public class MmrService
 
     private async Task ClearRatings()
     {
+        using var scope = serviceProvider.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
         // todo: db-lock (no imports possible during this)
         await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET DsR = {startMmr}");
         await context.Database.ExecuteSqlRawAsync("UPDATE Players SET DsROverTime = NULL");
