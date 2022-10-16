@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Services;
 
@@ -11,19 +13,23 @@ Console.WriteLine("Hello, World!");
 
 var loc = Assembly.GetExecutingAssembly().Location;
 
-Console.WriteLine($"Location: {loc}");
+var logger = ApplicationLogging.CreateLogger<Program>();
+logger.LogInformation("Running ...");
 
 var services = new ServiceCollection();
 
 services.AddDbContext<ReplayContext>(options =>
 {
-    options.UseSqlite(@"Data Source=C:\Users\pax77\AppData\Local\Packages\sc2dsstats.maui_veygnay3cpztg\LocalState\dsstats2.db",
+    options
+        .UseLoggerFactory(ApplicationLogging.LogFactory)
+        .UseSqlite(@"Data Source=C:\Users\pax77\AppData\Local\Packages\sc2dsstats.maui_veygnay3cpztg\LocalState\dsstats2.db",
         x =>
         {
             x.MigrationsAssembly("SqliteMigrations");
             x.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
         }
-        );
+        ).EnableSensitiveDataLogging()
+        .EnableDetailedErrors();
 });
 
 var serviceProvider = services.BuildServiceProvider();
@@ -33,8 +39,8 @@ ArgumentNullException.ThrowIfNull(context);
 
 context.Database.Migrate();
 
-var config = new MapperConfiguration(cfg => 
-{ 
+var config = new MapperConfiguration(cfg =>
+{
     cfg.AddProfile<AutoMapperProfile>();
 });
 var mapper = config.CreateMapper();
@@ -43,4 +49,35 @@ var mmrService = new MmrService(context, mapper);
 
 mmrService.CalcMmmr().GetAwaiter().GetResult();
 
+var dev = await context.Players
+    .GroupBy(g => Math.Round(g.DsR, 0))
+    .Select(s => new
+    {
+        Count = s.Count(),
+        AvgDsr = s.Average(a => Math.Round(a.DsR, 0))
+    }).ToListAsync();
+
+foreach (var d in dev)
+{
+    Console.WriteLine($"{d.Count} => {d.AvgDsr}");
+}
+
 Console.ReadLine();
+
+
+public static class ApplicationLogging
+{
+    public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
+    {
+        builder.ClearProviders();
+        // Clear Microsoft's default providers (like eventlogs and others)
+        builder.AddSimpleConsole(options =>
+        {
+            options.IncludeScopes = true;
+            options.SingleLine = true;
+            options.TimestampFormat = "yyyy-MM-dd hh:mm:ss ";
+        }).SetMinimumLevel(LogLevel.Information);
+    });
+
+    public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
+}

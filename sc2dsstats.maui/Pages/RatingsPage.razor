@@ -1,7 +1,43 @@
 ﻿@page "/ratings"
-
-<sc2dsstats.razorlib.PlayerRatings></sc2dsstats.razorlib.PlayerRatings>
-
+@using pax.dsstats.dbng.Services;
+@inject MmrService mmrService
+<div class="d-flex mb-2">
+    <div>
+        <button class="btn btn-sm btn-primary" @onclick="Recalculate">(Re-)Calculate Ratings</button>
+    </div>
+    <sc2dsstats.razorlib.LoadingIndicator @ref="loadingIndicator"></sc2dsstats.razorlib.LoadingIndicator>
+</div>
+<div>
+<sc2dsstats.razorlib.PlayerRatings @ref="playerRatings"></sc2dsstats.razorlib.PlayerRatings>
+</div>
 @code {
+    private sc2dsstats.razorlib.PlayerRatings? playerRatings;
+    private sc2dsstats.razorlib.LoadingIndicator? loadingIndicator;
+    private bool isLoading = false;
+    private readonly object lockobject = new();
 
+    private void Recalculate()
+    {
+        lock (lockobject)
+        {
+            if (isLoading)
+            {
+                return;
+            }
+            isLoading = true;
+        }
+        loadingIndicator?.SetLoading();
+        _ = CalculateJob();
+    }
+
+    private async Task CalculateJob()
+    {
+        await mmrService.CalcMmmr();
+        if (playerRatings != null)
+        {
+            await playerRatings.Reload();
+        }
+        isLoading = false;
+        loadingIndicator?.UnsetLoading();
+    }
 }

@@ -47,28 +47,16 @@ public partial class StatsService
             .FirstOrDefaultAsync();
     }
 
-    public async Task GetRatingsDeviation()
+    public async Task<List<MmrDevDto>> GetRatingsDeviation()
     {
-        var players = context.Players
-            .AsNoTracking();
+        var devs = await context.Players
+            .GroupBy(g => Math.Round(g.DsR, 0))
+            .Select(s => new MmrDevDto
+            {
+                Count = s.Count(),
+                Mmr = s.Average(a => Math.Round(a.DsR, 0))
+            }).ToListAsync();
 
-        var bab = from p in players
-                  select new
-                  {
-                      All = 1,
-                      Range =
-                        (p.DsR > 0 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 550) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" :
-                        (p.DsR >= 500 && p.DsR < 500) ? "1" : null
-                  };
-        var lbab = bab.ToListAsync();
+        return devs;
     }
 }
