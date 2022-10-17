@@ -74,19 +74,6 @@ public class FireMmrService
             var winnerTeamMmr = GetTeamMmr(winnerTeam, replay.GameTime, replay.Duration);
             var loserTeamMmr = GetTeamMmr(loserTeam, replay.GameTime, replay.Duration);
 
-            // PAX, Xpax
-
-            // WinnerTeam = 1
-
-            //1000
-            //400
-            //1000
-
-            //1000
-            //800
-            //1100 <- -101
-
-            //rep = 1100
 
             var teamElo = ExpectationToWin(winnerTeamMmr, loserTeamMmr);
 

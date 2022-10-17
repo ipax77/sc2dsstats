@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AutoMapper;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Services;
+using pax.dsstats.shared;
 
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, World!");
@@ -46,22 +48,36 @@ var config = new MapperConfiguration(cfg =>
 var mapper = config.CreateMapper();
 
 // var mmrService = new MmrService(serviceProvider, mapper);
-var mmrService = new FireMmrService(serviceProvider, mapper);
+// var mmrService = new FireMmrService(serviceProvider, mapper);
 
-mmrService.CalcMmmr().GetAwaiter().GetResult();
+// mmrService.CalcMmmr().GetAwaiter().GetResult();
 
-var dev = await context.Players
-    .GroupBy(g => Math.Round(g.DsR, 0))
-    .Select(s => new
-    {
-        Count = s.Count(),
-        AvgDsr = s.Average(a => Math.Round(a.DsR, 0))
-    }).ToListAsync();
+// var dev = await context.Players
+//     .GroupBy(g => Math.Round(g.DsR, 0))
+//     .Select(s => new
+//     {
+//         Count = s.Count(),
+//         AvgDsr = s.Average(a => Math.Round(a.DsR, 0))
+//     }).ToListAsync();
 
-foreach (var d in dev)
+// foreach (var d in dev)
+// {
+//     Console.WriteLine($"{d.Count} => {d.AvgDsr}");
+// }
+
+var buildService = new BuildService(context);
+
+var buildRequest = new BuildRequest()
 {
-    Console.WriteLine($"{d.Count} => {d.AvgDsr}");
-}
+    PlayerNames = new List<string>() { "PAX" },
+    Interest = Commander.Abathur,
+    StartTime = new DateTime(2020, 1, 1),
+    EndTime = DateTime.Today
+};
+
+var result = buildService.GetBuild(buildRequest).GetAwaiter().GetResult();
+
+
 
 Console.ReadLine();
 
