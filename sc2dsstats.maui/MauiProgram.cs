@@ -47,6 +47,7 @@ public static class MauiProgram
 
         builder.Services.AddTransient<IStatsService, StatsService>();
         builder.Services.AddSingleton<MmrService>();
+        builder.Services.AddSingleton<FireMmrService>();
 
         builder.Services.AddSingleton<UserSettingsService>();
         builder.Services.AddSingleton<DecodeService>();

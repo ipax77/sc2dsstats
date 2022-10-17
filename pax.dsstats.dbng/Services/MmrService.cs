@@ -199,6 +199,7 @@ public class MmrService
 
 public record DsRCheckpoint
 {
+    public double Consistency { get; init; }
     public double DsR { get; init; }
     public DateTime Time { get; init; }
 }

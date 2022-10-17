@@ -1,11 +1,13 @@
 ﻿@page "/ratings"
 @using pax.dsstats.dbng.Services
 @inject MmrService MmrService
+@inject FireMmrService FireMmrService
 @implements IDisposable
 
 <div class="d-flex mb-2">
-    <div>
+    <div class="btn-group">
         <button class="btn btn-sm btn-primary" @onclick="Recalculate">(Re-)Calculate Ratings</button>
+        <button class="btn btn-sm btn-primary" @onclick="RecalculateFire">(Re-)Calculate Ratings with Fire</button>
     </div>
     @if (isLoading)
     {
@@ -54,6 +56,34 @@
         isLoading = false;
         
         await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async void RecalculateFire()
+    {
+        lock (lockobject)
+        {
+            if (isLoading)
+            {
+                return;
+            }
+            isLoading = true;
+        }
+        loadingIndicator?.SetLoading();
+
+        // ???
+        await Task.Run(async () =>
+        {
+            await FireMmrService.CalcMmmr().ConfigureAwait(false);
+        });
+
+        isLoading = false;
+
+        await InvokeAsync(() => StateHasChanged());
+
+        if (playerRatings != null)
+        {
+            await playerRatings.Reload();
+        }
     }
 
     private async void MmrService_Recalculated(object? sender, EventArgs e)

@@ -45,7 +45,8 @@ var config = new MapperConfiguration(cfg =>
 });
 var mapper = config.CreateMapper();
 
-var mmrService = new MmrService(context, mapper);
+// var mmrService = new MmrService(serviceProvider, mapper);
+var mmrService = new FireMmrService(serviceProvider, mapper);
 
 mmrService.CalcMmmr().GetAwaiter().GetResult();
 
