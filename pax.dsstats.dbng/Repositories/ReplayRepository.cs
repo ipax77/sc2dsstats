@@ -178,6 +178,11 @@ public class ReplayRepository : IReplayRepository
                 && x.ReplayEvent.Event.Name.Equals(request.Tournament));
         }
 
+        if (request.GameModes.Any())
+        {
+            replays = replays.Where(x => request.GameModes.Contains(x.GameMode));
+        }
+
         replays = SearchReplays(replays, request);
 
         return replays;

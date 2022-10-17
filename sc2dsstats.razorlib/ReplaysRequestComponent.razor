@@ -5,17 +5,17 @@
 <div>
     <EditForm EditContext="editContext">
         <div class="row">
-@*            <div class="col-auto">
-                <label class="form-label">
-                    Tournament:
-                    <InputSelect class="form-select" @bind-Value="replaysRequest.Tournament">
-                        <option value="">All</option>
-                        @foreach (var tournament in tournaments)
-                        {
-                            <option value="@tournament">@tournament</option>
-                        }
-                    </InputSelect>
-                </label>
+            @*            <div class="col-auto">
+            <label class="form-label">
+            Tournament:
+            <InputSelect class="form-select" @bind-Value="replaysRequest.Tournament">
+            <option value="">All</option>
+            @foreach (var tournament in tournaments)
+            {
+            <option value="@tournament">@tournament</option>
+            }
+            </InputSelect>
+            </label>
             </div>*@
             <div class="col-auto">
                 <label class="form-label">
@@ -34,6 +34,18 @@
                     End:
                     <InputDate class="form-control" @bind-Value="replaysRequest.EndTime"></InputDate>
                 </label>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" multiple aria-label="multiple" @onchange="GameModeChange">
+                    <option selected>All GameModes</option>
+                    @foreach (GameMode gameMode in Enum.GetValues(typeof(GameMode)))
+                    {
+                        @if (gameMode != GameMode.None)
+                        {
+                            <option value="@gameMode">@gameMode</option>
+                        }
+                    }
+                </select>
             </div>
             <div class="col-auto mt-3">
                 <button type="button" class="btn btn-outline-primary" @onclick="Reset">Reset</button>
@@ -66,6 +78,23 @@
     private void FieldChanged(object? sender, FieldChangedEventArgs e)
     {
         OnFieldChanged.InvokeAsync();
+    }
+
+    private void GameModeChange(ChangeEventArgs e)
+    {
+        if (e.Value is string[] values)
+        {
+            List<GameMode> gameModes = new();
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (Enum.TryParse(values[i], out GameMode gameMode))
+                {
+                    gameModes.Add(gameMode);
+                }
+            }
+            replaysRequest.GameModes = gameModes;
+            OnFieldChanged.InvokeAsync();
+        }
     }
 
     private void Reset()

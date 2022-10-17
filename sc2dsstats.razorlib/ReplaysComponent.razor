@@ -54,8 +54,6 @@
                 <col class="col">
                 <col class="col">
                 <col class="col">
-                <col class="col">
-                <col class="col">
             </colgroup>
             <thead class="user-select-none">
                 <CascadingValue Value="replaysRequest.Orders">
@@ -85,19 +83,9 @@
                                 Winner
                             </SortArrow>
                         </th>
-                        <th scope="col" class="pointer" @onclick="@(e => SortList(e, "Teams"))">
-                            <SortArrow Property="Teams">
-                                Teams
-                            </SortArrow>
-                        </th>
-                        <th scope="col" class="pointer" @onclick="@(e => SortList(e, "Group/Round"))">
-                            <SortArrow Property="Group/Round">
-                                Group/Round
-                            </SortArrow>
-                        </th>
-                        <th scope="col" class="pointer" @onclick="@(e => SortList(e, "Event"))">
-                            <SortArrow Property="Event">
-                                Event
+                        <th scope="col" class="pointer" @onclick="@(e => SortList(e, "GameMode"))">
+                            <SortArrow Property="GameMode">
+                                GameMode
                             </SortArrow>
                         </th>
                     </tr>
@@ -120,7 +108,7 @@
                                     {
                                         @foreach (var cmdr in replay.Cmdrs1)
                                         {
-                                            <img src="@($"_content/pax.dsstats.razorlibNg/images/btn-unit-hero-{cmdr.ToString().ToLower()}.png")"
+                                            <img class="p-1" src="@HelperService.GetImageSrc(cmdr)"
                                      alt="@cmdr"
                                      title="@cmdr"
                                      width="30"
@@ -138,7 +126,7 @@
                                     {
                                         @foreach (var cmdr in replay.Cmdrs2)
                                         {
-                                            <img src="@($"_content/pax.dsstats.razorlibNg/images/btn-unit-hero-{cmdr.ToString().ToLower()}.png")"
+                                            <img class="p-1" src="@HelperService.GetImageSrc(cmdr)"
                                      alt="@cmdr"
                                      title="@cmdr"
                                      width="30"
@@ -148,34 +136,7 @@
                                     }
                                 </td>
                                 <td>@replay.WinnerTeam</td>
-                                <td>
-                                    @if (replay.WinnerTeam == 1)
-                                    {
-                                        <span class="d-flex" style="width: 440px;">
-                                            <span class="d-inline-block text-success text-truncate" style="max-width: 220px;" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="@replay.ReplayEvent?.WinnerTeam">
-                                                @replay.ReplayEvent?.WinnerTeam
-                                            </span>
-                                            <span class="d-inline-block ms-2 me-2"> vs </span>
-                                            <span class="d-inline-block text-warning text-truncate" style="max-width: 220px;" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="@replay.ReplayEvent?.RunnerTeam">
-                                                @replay.ReplayEvent?.RunnerTeam
-                                            </span>
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="d-flex" style="width: 440px;">
-                                            <span class="d-inline-block text-warning text-truncate" style="max-width: 220px;" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="@replay.ReplayEvent?.RunnerTeam">
-                                                @replay.ReplayEvent?.RunnerTeam
-                                            </span>
-                                            <span class="d-inline-block ms-2 me-2"> vs </span>
-                                            <span class="d-inline-block text-success text-truncate" style="max-width: 220px;" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="@replay.ReplayEvent?.WinnerTeam">
-                                                @replay.ReplayEvent?.WinnerTeam
-                                            </span>
-                                        </span>
-                                    }
-                                </td>
-                                <td>@replay.ReplayEvent?.Round</td>
-                                <td>@replay.ReplayEvent?.Event.Name</td>
+                                <td><span style="display:block; width: 200px;">@replay.GameMode</span></td>
                             </tr>
                         </ItemContent>
                         <Placeholder>
