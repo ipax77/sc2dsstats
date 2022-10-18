@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using AutoMapper;
@@ -75,9 +76,15 @@ var buildRequest = new BuildRequest()
     EndTime = DateTime.Today
 };
 
+Stopwatch sw = new();
+sw.Start();
 var result = buildService.GetBuild(buildRequest).GetAwaiter().GetResult();
 
+// buildService.GetBuildResponse(buildRequest).GetAwaiter().GetResult();
 
+sw.Stop();
+
+Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
 
 Console.ReadLine();
 

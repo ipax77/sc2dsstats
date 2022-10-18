@@ -11,7 +11,8 @@ public record StatsResponse
 {
     public StatsRequest Request { get; init; } = null!;
     public ICollection<StatsResponseItem> Items { get; init; } = null!;
-    public int Count { get; init; }
+    public int CountDefaultFilter { get; init; }
+    public int CountNotDefaultFilter { get; init; }
     public int Bans { get; set; }
     public int AvgDuration { get; init; }
 }

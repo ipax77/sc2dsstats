@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using pax.dsstats.shared;
+using System.Security.Cryptography;
 
 namespace pax.dsstats.dbng.Services;
 
@@ -11,6 +12,111 @@ public class BuildService
     {
         this.context = context;
     }
+
+    public async Task GetBuildResponse(BuildRequest request)
+    {
+        var replays = GetReuqestReplays(request);
+
+        var groups = (request.Versus == Commander.None, request.PlayerNames.Any()) switch
+            {
+                (true, true) => 
+                                from r in replays
+                                from rp in r.Players
+                                from s in rp.Spawns
+                                from u in s.Units
+                                where rp.Race == request.Interest && request.PlayerNames.Contains(rp.Name)
+                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                                select new
+                                {
+                                    Gameloop = g.Key.Gameloop,
+                                    UnitId = g.Key.UnitId,
+                                    Sum = g.Sum(c => c.u.Count),
+                                    Gas = g.Sum(c => c.s.GasCount),
+                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                                },
+                (true, false) =>
+                                from r in replays
+                                from rp in r.Players
+                                from s in rp.Spawns
+                                from u in s.Units
+                                where rp.Race == request.Interest && rp.IsUploader
+                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                                select new
+                                {
+                                    Gameloop = g.Key.Gameloop,
+                                    UnitId = g.Key.UnitId,
+                                    Sum = g.Sum(c => c.u.Count),
+                                    Gas = g.Sum(c => c.s.GasCount),
+                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                                },
+                (false, true) =>
+                                from r in replays
+                                from rp in r.Players
+                                from s in rp.Spawns
+                                from u in s.Units
+                                where rp.Race == request.Interest && request.PlayerNames.Contains(rp.Name) && rp.OppRace == request.Versus
+                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                                select new
+                                {
+                                    Gameloop = g.Key.Gameloop,
+                                    UnitId = g.Key.UnitId,
+                                    Sum = g.Sum(c => c.u.Count),
+                                    Gas = g.Sum(c => c.s.GasCount),
+                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                                },
+                (false, false) =>
+                                from r in replays
+                                from rp in r.Players
+                                from s in rp.Spawns
+                                from u in s.Units
+                                where rp.Race == request.Interest && rp.IsUploader && rp.OppRace == request.Versus
+                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                                select new
+                                {
+                                    Gameloop = g.Key.Gameloop,
+                                    UnitId = g.Key.UnitId,
+                                    Sum = g.Sum(c => c.u.Count),
+                                    Gas = g.Sum(c => c.s.GasCount),
+                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                                }
+
+            };
+
+        var result = await groups
+            .AsSplitQuery()
+            .ToListAsync();
+
+        Console.WriteLine(result.FirstOrDefault());
+
+    }
+
+    private IQueryable<Replay> GetReuqestReplays(BuildRequest request)
+    {
+        var replays = context.Replays
+            .Include(i => i.Players)
+                .ThenInclude(i => i.Spawns)
+                .ThenInclude(i => i.Units)
+            .Where(x => x.Playercount == 6 && x.Duration > 300 && x.Maxleaver < 90)
+            .Where(x => x.Players.Any(a => a.Race == request.Interest))
+            .AsNoTracking();
+
+        replays = replays.Where(x => x.GameTime >= request.StartTime);
+        if (request.EndTime != DateTime.Today)
+        {
+            replays = replays.Where(x => x.GameTime <= request.EndTime);
+        }
+
+        if ((int)request.Interest > 3)
+        {
+            replays = replays.Where(x => x.GameMode == GameMode.Commanders || x.GameMode == GameMode.CommandersHeroic);
+        }
+        else
+        {
+            replays = replays.Where(x => x.GameMode == GameMode.Standard);
+        }
+        return replays;
+    }
+
 
     public async Task<BuildResponse> GetBuild(BuildRequest request)
     {
@@ -35,7 +141,7 @@ public class BuildService
         {
             replays = replays.Where(x => x.GameMode == GameMode.Standard);
         }
-            
+
 
         var buildResults = GetBuildResultQuery(replays, request);
 
@@ -60,7 +166,7 @@ public class BuildService
             Breakpoints = new List<BuildResponseBreakpoint>()
         };
 
-        
+
         foreach (Breakpoint bp in Enum.GetValues(typeof(Breakpoint)))
         {
             var bpReplays = builds.Where(x => Data.GetBreakpoint(x.Gameloop) == bp).ToList();

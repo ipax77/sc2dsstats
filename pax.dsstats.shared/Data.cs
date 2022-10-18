@@ -96,6 +96,8 @@ public static class Data
         };
     }
 
+    public static readonly string[] TimePeriods = new string[] { "This Month", "Last Month", "This Year", "Last Year", "Last Two Years", "Path 2.60", "ALL" };
+
     public static List<Commander> GetCommanders(CmdrGet cmdrGet)
     {
         return cmdrGet switch

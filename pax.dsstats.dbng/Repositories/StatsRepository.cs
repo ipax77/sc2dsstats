@@ -70,11 +70,12 @@ public partial class StatsRepository : IStatsRepository
         
         sw.Start();
 
+
         var response = new StatsResponse()
         {
             Request = request,
             Items = items,
-            Count = await GetCount(replays),
+            CountDefaultFilter = await GetCount(replays),
             AvgDuration = !items.Any() ? 0 : Convert.ToInt32(items.Select(s => s.duration / (double)s.Matchups).Average())
         };
 

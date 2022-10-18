@@ -1,0 +1,59 @@
+﻿@using pax.dsstats.shared;
+@inject IStatsService statsService
+
+<div>
+    <CascadingValue Value="StatsRequest">
+        <StatsRequestComponent OnRequestChanged="LoadData"></StatsRequestComponent>
+    </CascadingValue>
+</div>
+
+@if (isLoading)
+{
+    <div class="spinner-border text-danger" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+@if (statsResponse != null)
+{
+    <div class="d-flex">
+        <div>
+            <span class="badge bg-info">Replays: @statsResponse.CountDefaultFilter</span>
+        </div>
+        <div>
+            <span class="badge bg-info">Filtered: @statsResponse.CountNotDefaultFilter</span>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public StatsRequest StatsRequest { get; set; } = default!;
+
+    private bool isLoading = false;
+    private StatsResponse? statsResponse;
+    private object lockobject = new();
+
+    protected override void OnInitialized()
+    {
+        _ = LoadData();
+        base.OnInitialized();
+    }
+
+    public async Task LoadData()
+    {
+        lock (lockobject)
+        {
+            if (isLoading)
+            {
+                return;
+            }
+            isLoading = true;
+        }
+        await InvokeAsync(() => StateHasChanged());
+        statsResponse = await statsService.GetStatsResponse(StatsRequest);
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+}
