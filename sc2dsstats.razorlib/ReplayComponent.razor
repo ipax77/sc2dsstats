@@ -58,7 +58,7 @@
                                     <tbody>
                                         @foreach (var player in players)
                                         {
-                                            <tr class="@(player.GamePos == mvp ? "table-success" : "")">
+                                            <tr class="@(player.GamePos == mvp ? "table-success" : player.IsUploader ? "table-primary" : "")">
                                                 <td>@player.GamePos</td>
                                                 <td>
                                                     <span class="d-inline-block text-truncate" style="max-width: 120px;" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="@player.Player.Name">

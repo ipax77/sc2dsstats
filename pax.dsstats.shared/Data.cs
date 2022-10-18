@@ -80,4 +80,57 @@ public static class Data
             {     Commander.Terran, "#4a4684"   },
             {     Commander.Zerg, "#6b1c92"   }
         };
+
+    public static (DateTime, DateTime) TimeperiodSelected(string period)
+    {
+        return period switch
+        {
+            "This Month" => (DateTime.Today.AddDays(-(DateTime.Today.Day - 1)), DateTime.Today),
+            "Last Month" => (DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddMonths(-1), DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddDays(-1)),
+            "This Year" => (new DateTime(DateTime.Now.Year, 1, 1), DateTime.Today),
+            "Last Year" => (new DateTime(DateTime.Now.AddYears(-1).Year, 1, 1), new DateTime(DateTime.Now.Year, 1, 1)),
+            "Last Two Years" => (new DateTime(DateTime.Now.AddYears(-1).Year, 1, 1), DateTime.Today),
+            "ALL" => (new DateTime(2018, 1, 1), DateTime.Today),
+            "Patch 2.60" => (new DateTime(2020, 07, 28, 5, 23, 0), DateTime.Today),
+            _ => (new DateTime(DateTime.Now.Year, 1, 1), DateTime.Today)
+        };
+    }
+
+    public static List<Commander> GetCommanders(CmdrGet cmdrGet)
+    {
+        return cmdrGet switch
+        {
+            CmdrGet.All => Enum.GetValues(typeof(Commander)).Cast<Commander>().ToList(),
+            CmdrGet.NoNone => Enum.GetValues(typeof(Commander)).Cast<Commander>().Where(x => x != Commander.None).ToList(),
+            CmdrGet.NoStd => Enum.GetValues(typeof(Commander)).Cast<Commander>().Where(x => (int)x > 3).ToList(),
+            CmdrGet.Std => Enum.GetValues(typeof(Commander)).Cast<Commander>().Where(x => x != Commander.None && (int)x <= 3).ToList(),
+            _ => Enum.GetValues(typeof(Commander)).Cast<Commander>().ToList(),
+        };
+    }
+
+    public enum CmdrGet
+    {
+        All = 0,
+        NoNone = 1,
+        NoStd = 2,
+        Std = 3
+    }
+
+    public static Breakpoint GetBreakpoint(int gameloop)
+    {
+        // 5min: 6240, 6720, 7200
+        // 10min: 12960, 13440, 13920
+        // 15min: 19680, 20160, 20640
+
+        return gameloop switch
+        {
+            > 20645 => Breakpoint.All,
+            >= 19680 => Breakpoint.Min15,
+            >= 13930 => Breakpoint.All,
+            >= 12960 => Breakpoint.Min10,
+            >= 7210 => Breakpoint.All,
+            >= 6240 => Breakpoint.Min5,
+            _ => Breakpoint.All,
+        };
+    }
 }

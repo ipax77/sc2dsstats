@@ -151,7 +151,7 @@
 
 @if (replayDto != null)
 {
-    <ReplayComponent replayDto="replayDto" OnCloseRequested="OnReplayClose"></ReplayComponent>
+    <ReplayComponent @ref="replayComponent" replayDto="replayDto" OnCloseRequested="OnReplayClose"></ReplayComponent>
 }
 
 @code {
@@ -173,6 +173,7 @@
     private Virtualize<ReplayListDto>? virtualizeComponent;
     SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
     CancellationTokenSource cts = new();
+    ReplayComponent? replayComponent;
 
     private string? lastVisitHash;
 
@@ -260,6 +261,10 @@
 
         replayDto = await dataService.GetReplay(replayHash);
         lastVisitHash = replayDto?.ReplayHash;
+        if (replayDto != null)
+        {
+            replayComponent?.Init(replayDto);
+        }
         await InvokeAsync(() => StateHasChanged());
     }
 

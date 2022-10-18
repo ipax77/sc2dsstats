@@ -18,7 +18,7 @@ public class BuildService
             .Include(i => i.Players)
                 .ThenInclude(i => i.Spawns)
                 .ThenInclude(i => i.Units)
-            .Where(x => x.Duration > 300 && x.Maxleaver < 90)
+            .Where(x => x.Playercount == 6 && x.Duration > 300 && x.Maxleaver < 90)
             .AsNoTracking();
 
         replays = replays.Where(x => x.GameTime >= request.StartTime);
@@ -26,6 +26,16 @@ public class BuildService
         {
             replays = replays.Where(x => x.GameTime <= request.EndTime);
         }
+
+        if ((int)request.Interest > 3)
+        {
+            replays = replays.Where(x => x.GameMode == GameMode.Commanders || x.GameMode == GameMode.CommandersHeroic);
+        }
+        else
+        {
+            replays = replays.Where(x => x.GameMode == GameMode.Standard);
+        }
+            
 
         var buildResults = GetBuildResultQuery(replays, request);
 
@@ -50,10 +60,10 @@ public class BuildService
             Breakpoints = new List<BuildResponseBreakpoint>()
         };
 
-        var gameloops = buildResults.Select(s => s.Gameloop).Distinct();
-        foreach (var bp in gameloops)
+        
+        foreach (Breakpoint bp in Enum.GetValues(typeof(Breakpoint)))
         {
-            var bpReplays = builds.Where(x => x.Gameloop == bp).ToList();
+            var bpReplays = builds.Where(x => Data.GetBreakpoint(x.Gameloop) == bp).ToList();
 
             response.Breakpoints.Add(new BuildResponseBreakpoint()
             {
