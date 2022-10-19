@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sc2dsstats.shared;
-using sc2dsstats.db.Services;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
@@ -69,8 +68,8 @@ namespace sc2dsstats.db
             // context.Database.ExecuteSqlRaw("RESET QUERY CACHE");
             // context.Database.ExecuteSqlRaw("SET SESSION query_cache_type=0;");
 
-            DSData.Init();
-            NameService.Init(context, Assembly.GetExecutingAssembly().Location).GetAwaiter().GetResult();
+            //DSData.Init();
+            //NameService.Init(context, Assembly.GetExecutingAssembly().Location).GetAwaiter().GetResult();
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -241,48 +240,6 @@ namespace sc2dsstats.db
             });
 
             public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
-        }
-
-        public static void SetMengskTestReplaysDefaultToFalse(sc2dsstatsContext context)
-        {
-            var replays = ReplayFilter.DefaultFilter(context);
-            var testReplays = from r in replays
-                              from p in r.Dsplayers
-                              where p.Race == (byte)DSData.Commander.Mengsk && r.Gametime < new DateTime(2020, 07, 28, 5, 23, 0)
-                              select r;
-            foreach (var replay in testReplays)
-            {
-                replay.DefaultFilter = false;
-            }
-            context.SaveChanges();
-        }
-
-        public static void GetTimeResultsAsJson(sc2dsstatsContext context, ILogger logger)
-        {
-            var replays = ReplayFilter.DefaultFilter(context);
-
-            var results = replays
-                .Include(i => i.Dsplayers)
-                .Select(s => UploadService.GetTimeResultValues(s)).ToList().SelectMany(s => s).ToList();
-
-            logger.LogInformation($"Got results: {results.Count} - serializing ...");
-            File.WriteAllText("/data/results.json", JsonSerializer.Serialize(results, new JsonSerializerOptions() { WriteIndented = false }));
-        }
-
-        public static void ResetTimeResultsfromJson(sc2dsstatsContext context, ILogger logger)
-        {
-            var results = JsonSerializer.Deserialize<List<DsTimeResultValue>>(File.ReadAllText("/data/results.json"));
-            logger.LogInformation($"Got {results.Count} from json file.");
-
-            var timeresults = context.DsTimeResults.ToList();
-            timeresults.ForEach(f => { f.Count = 0; f.Wins = 0; f.MVP = 0; f.Duration = 0; f.Kills = 0; f.Army = 0; });
-            context.SaveChanges();
-
-            var participants = context.Participants.ToList();
-            participants.ForEach(f => { f.Count = 0; f.Wins = 0; });
-            context.SaveChanges();
-
-            UploadService.CollectTimeResults2(context, logger, results);
         }
     }
 }

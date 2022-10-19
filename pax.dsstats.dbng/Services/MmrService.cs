@@ -83,8 +83,8 @@ public class MmrService
         foreach (var ent in ratings)
         {
             var player = await context.Players.FirstAsync(f => f.PlayerId == ent.Key);
-            player.DsR = ent.Value.Last().DsR;
-            player.DsROverTime = GetOverTimeRating(ent.Value);
+            player.Mmr = ent.Value.Last().DsR;
+            player.MmrOverTime = GetOverTimeRating(ent.Value);
             i++;
             if (i % 1000 == 0)
             {

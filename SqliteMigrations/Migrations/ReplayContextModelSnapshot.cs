@@ -49,16 +49,15 @@ namespace SqliteMigrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<double>("DsR")
+                    b.Property<double>("Mmr")
                         .HasColumnType("REAL");
 
-                    b.Property<string>("DsROverTime")
+                    b.Property<string>("MmrOverTime")
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("LatestUpload")
-                        .HasPrecision(0)
-                        .HasColumnType("TEXT");
+                    b.Property<double>("MmrStd")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -68,10 +67,15 @@ namespace SqliteMigrations.Migrations
                     b.Property<int>("ToonId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("UploaderId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("PlayerId");
 
                     b.HasIndex("ToonId")
                         .IsUnique();
+
+                    b.HasIndex("UploaderId");
 
                     b.ToTable("Players");
                 });
@@ -469,6 +473,42 @@ namespace SqliteMigrations.Migrations
                     b.ToTable("Upgrades");
                 });
 
+            modelBuilder.Entity("pax.dsstats.dbng.Uploader", b =>
+                {
+                    b.Property<int>("UploaderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AppGuid")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AppVersion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BattleNetId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LatestUpload")
+                        .HasPrecision(0)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UploaderId");
+
+                    b.ToTable("Uploaders");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.Player", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.Uploader", "Uploader")
+                        .WithMany("Players")
+                        .HasForeignKey("UploaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Uploader");
+                });
+
             modelBuilder.Entity("pax.dsstats.dbng.PlayerUpgrade", b =>
                 {
                     b.HasOne("pax.dsstats.dbng.ReplayPlayer", "ReplayPlayer")
@@ -592,6 +632,11 @@ namespace SqliteMigrations.Migrations
             modelBuilder.Entity("pax.dsstats.dbng.Upgrade", b =>
                 {
                     b.Navigation("ReplayPlayers");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.Uploader", b =>
+                {
+                    b.Navigation("Players");
                 });
 #pragma warning restore 612, 618
         }

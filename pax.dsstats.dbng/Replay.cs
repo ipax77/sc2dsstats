@@ -4,6 +4,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace pax.dsstats.dbng;
 
+public class Uploader
+{
+    public Uploader()
+    {
+        Players = new HashSet<Player>();
+    }
+    public int UploaderId { get; set; }
+    public Guid AppGuid { get; set; }
+    public string AppVersion { get; set; } = "";
+    public int BattleNetId { get; set; }
+    [Precision(0)]
+    public DateTime LatestUpload { get; set; }
+    public DateTime LatestReplay { get; set; }
+    public virtual ICollection<Player> Players { get; set; }
+}
+
+
 public class Player
 {
     public Player()
@@ -14,11 +31,12 @@ public class Player
     [MaxLength(50)]
     public string Name { get; set; } = null!;
     public int ToonId { get; set; }
-    public double DsR { get; set; }
+    public double Mmr { get; set; }
+    public double MmrStd { get; set; }
     [MaxLength(2000)]
-    public string? DsROverTime { get; set; }
-    [Precision(0)]
-    public DateTime LatestUpload { get; set; }
+    public string? MmrOverTime { get; set; }
+    public int UploaderId { get; set; }
+    public virtual Uploader? Uploader { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
 }
 

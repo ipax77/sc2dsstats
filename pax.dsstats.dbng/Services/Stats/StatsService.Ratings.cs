@@ -43,18 +43,18 @@ public partial class StatsService
     {
         return await context.Players
             .Where(x => x.ToonId == toonId)
-            .Select(s => s.DsROverTime)
+            .Select(s => s.MmrOverTime)
             .FirstOrDefaultAsync();
     }
 
     public async Task<List<MmrDevDto>> GetRatingsDeviation()
     {
         var devs = await context.Players
-            .GroupBy(g => Math.Round(g.DsR, 0))
+            .GroupBy(g => Math.Round(g.Mmr, 0))
             .Select(s => new MmrDevDto
             {
                 Count = s.Count(),
-                Mmr = s.Average(a => Math.Round(a.DsR, 0))
+                Mmr = s.Average(a => Math.Round(a.Mmr, 0))
             }).ToListAsync();
 
         return devs;

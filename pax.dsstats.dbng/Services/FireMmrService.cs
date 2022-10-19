@@ -101,8 +101,8 @@ public class FireMmrService
         foreach (var rating in ratings)
         {
             var player = await context.Players.FirstAsync(f => f.PlayerId == rating.Key);
-            player.DsR = rating.Value.Last().DsR;
-            player.DsROverTime = GetOverTimeRating(rating.Value);
+            player.Mmr = rating.Value.Last().DsR;
+            player.MmrOverTime = GetOverTimeRating(rating.Value);
             i++;
         }
         await context.SaveChangesAsync();

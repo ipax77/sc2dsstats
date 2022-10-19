@@ -41,6 +41,7 @@ public record ReplayDto
 
 public record ReplayPlayerDto
 {
+    public string Name { get; init; } = null!;
     public string? Clan { get; init; }
     public int GamePos { get; init; }
     public int Team { get; init; }
@@ -53,7 +54,7 @@ public record ReplayPlayerDto
     public int Army { get; init; }
     public int Kills { get; init; }
     public int UpgradesSpent { get; init; }
-    public bool IsUploader { get; init; }
+    public bool IsUploader { get; set; }
     public string TierUpgrades { get; init; } = null!;
     public string Refineries { get; init; } = null!;
     public int Downloads { get; init; }
