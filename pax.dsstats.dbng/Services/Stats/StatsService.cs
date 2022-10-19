@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using pax.dsstats.shared;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +28,36 @@ public partial class StatsService : IStatsService
 
     public async Task<StatsResponse> GetStatsResponse(StatsRequest request)
     {
+        return request.StatsMode switch
+        {
+            StatsMode.Winrate => await GetWinrate(request),
+            StatsMode.Timeline => await GetTimeline(request),
+            _ => new()
+        };
+    }
+
+    public void ResetCache()
+    {
+        var field = typeof(MemoryCache).GetProperty("EntriesCollection", BindingFlags.NonPublic | BindingFlags.Instance);
+        var collection = field?.GetValue(memoryCache) as ICollection;
+        var items = new List<string>();
+        if (collection != null)
+        {
+            foreach (var item in collection)
+            {
+                var methodInfo = item.GetType().GetProperty("Key");
+                var val = methodInfo?.GetValue(item);
+                if (val != null)
+                {
+                    items.Add(val.ToString() ?? "");
+                }
+            }
+        }
+        items.ForEach(f => memoryCache.Remove(f));
+    }
+
+    private async Task<List<CmdrStats>> GetRequestStats(StatsRequest request)
+    {
         string memKey = request.Uploaders ? "cmdrstatsuploaders" : "cmdrstats";
         if (!memoryCache.TryGetValue(memKey, out List<CmdrStats> stats))
         {
@@ -42,19 +74,7 @@ public partial class StatsService : IStatsService
                 .SetAbsoluteExpiration(TimeSpan.FromDays(1))
             );
         }
-
-        return request.StatsMode switch
-        {
-            StatsMode.Winrate => await GetWinrate(request, stats),
-            StatsMode.Timeline => await GetTimeline(request, stats),
-            _ => new()
-        };
-    }
-
-    public void ResetCache()
-    {
-        memoryCache.Remove("cmdrstatsuploaders");
-        memoryCache.Remove("cmdrstats");
+        return stats;
     }
 
     private async Task<List<CmdrStats>> GetUploaderStats()
@@ -67,6 +87,7 @@ public partial class StatsService : IStatsService
                     {
                         Year = g.Key.year,
                         Month = g.Key.month,
+                        Time = new DateTime(g.Key.year, g.Key.month, 1),
                         Race = g.Key.race,
                         OppRace = g.Key.opprace,
                         Count = g.Count(),
@@ -104,61 +125,7 @@ public partial class StatsService : IStatsService
     }
 
 
-    private async Task<StatsResponse> GetTimeline(StatsRequest request, List<CmdrStats> cmdrstats)
-    {
-        DateTime endTime = request.EndTime == null ? DateTime.Today.AddDays(1) : request.EndTime;
-
-        var stats = cmdrstats.Where(x => x.Time >= request.StartTime && x.Time <= endTime);
-
-        int tcount = stats.Sum(s => s.Count);
-
-        (var countNotDefault, var countDefault) = await GetCount(request);
-
-        StatsResponse response = new()
-        {
-            Request = request,
-            CountDefaultFilter = countDefault,
-            CountNotDefaultFilter = countNotDefault,
-            AvgDuration = tcount == 0 ? 0 : (int)stats.Sum(s => s.Duration) / tcount,
-            Items = new List<StatsResponseItem>()
-        };
-
-        DateTime requestTime = request.StartTime;
-
-        while (requestTime < endTime)
-        {
-            var timeResults = stats.Where(f => f.Year == requestTime.Year && f.Month == requestTime.Month && f.Race == request.Interest);
-
-            if (!timeResults.Any())
-            {
-                response.Items.Add(new ()
-                {
-                    Label = $"{requestTime.ToString("yyyy-MM")} (0)",
-                    Matchups = 0,
-                    Wins = 0
-                });
-            }
-            else
-            {
-                int ccount = timeResults.Sum(s => s.Count);
-                response.Items.Add(new ()
-                {
-                    Label = $"{requestTime.ToString("yyyy-MM")} ({ccount})",
-                    Matchups = ccount,
-                    Wins = timeResults.Sum(s => s.Wins)
-                });
-            }
-            requestTime = requestTime.AddMonths(1);
-        }
-
-        var lastItem = response.Items.LastOrDefault();
-        if (lastItem != null && lastItem.Matchups < 10)
-        {
-            response.Items.Remove(lastItem);
-        }
-
-        return response;
-    }
+ 
 }
 
 public record CmdrStats

@@ -17,14 +17,24 @@
 {
     <div class="d-flex">
         <div>
-            <span class="badge bg-info">Replays: @statsResponse.CountDefaultFilter</span>
+            <span class="badge bg-info" style="font-size: 1rem;">Replays: @statsResponse.CountDefaultFilter</span>
         </div>
         <div>
-            <span class="badge bg-info">Filtered: @statsResponse.CountNotDefaultFilter</span>
+            <span class="badge bg-info" style="font-size: 1rem;">Filtered: @statsResponse.CountNotDefaultFilter</span>
         </div>
     </div>
-}
 
+    <CascadingValue Value="statsResponse">
+        <div class="row">
+            <div class="col-auto">
+                <StatsTable></StatsTable>
+            </div>
+            <div class="col-8">
+                <StatsChart @ref="statsChart"></StatsChart>
+            </div>
+        </div>
+    </CascadingValue>
+}
 
 @code {
     [Parameter]
@@ -34,6 +44,8 @@
     private bool isLoading = false;
     private StatsResponse? statsResponse;
     private object lockobject = new();
+
+    StatsChart? statsChart;
 
     protected override void OnInitialized()
     {
@@ -54,6 +66,7 @@
         await InvokeAsync(() => StateHasChanged());
         statsResponse = await statsService.GetStatsResponse(StatsRequest);
         isLoading = false;
+        statsChart?.SetChart();
         await InvokeAsync(() => StateHasChanged());
     }
 }

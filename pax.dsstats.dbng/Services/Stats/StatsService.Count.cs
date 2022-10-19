@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using pax.dsstats.shared;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,20 @@ using System.Xml.Linq;
 namespace pax.dsstats.dbng.Services;
 public partial class StatsService
 {
+    private async Task<(int, int)> GetRequestCount(StatsRequest request)
+    {
+        var memkey = GetRequestHash(request);
+        if (!memoryCache.TryGetValue(memkey, out (int, int) counts))
+        {
+            counts = await GetCount(request);
+            memoryCache.Set(memkey, counts, new MemoryCacheEntryOptions()
+                .SetPriority(CacheItemPriority.High)
+                .SetAbsoluteExpiration(TimeSpan.FromDays(1))
+            );
+        }
+        return counts;
+    }
+
     private async Task<double> GetLeaver(StatsRequest request)
     {
         var replays = GetCountReplays(request);
@@ -69,11 +84,7 @@ public partial class StatsService
 
     private IQueryable<Replay> GetCountReplays(StatsRequest request)
     {
-        var replays = (request.Interest == Commander.None && !request.PlayerNames.Any()) ?
-                context.Replays
-                .Where(x => x.GameTime > request.StartTime)
-                .AsNoTracking()
-                : context.Replays
+        var replays = context.Replays
                 .Include(i => i.Players)
                 .Where(x => x.GameTime > request.StartTime)
                 .AsNoTracking();
@@ -111,5 +122,23 @@ public partial class StatsService
         }
 
         return replays;
+    }
+
+    private string GetRequestHash(StatsRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("StatsRequest");
+        sb.Append(request.StartTime.ToString());
+        sb.Append(request.EndTime.ToString());
+        sb.Append(request.Interest.ToString());
+        sb.Append(request.Versus.ToString());
+        sb.Append(request.Uploaders.ToString());
+        sb.Append(request.DefaultFilter.ToString());
+        sb.Append(request.PlayerCount.ToString());
+        sb.Append(String.Concat(request.PlayerNames));
+        sb.Append(String.Concat(request.GameModes.ToString()));
+        //sb.Append(request.Tournament);
+        //sb.Append(request.Round);
+        return sb.ToString();
     }
 }

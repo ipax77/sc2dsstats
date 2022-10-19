@@ -1,31 +1,42 @@
-﻿using pax.dsstats.shared;
+﻿using Microsoft.EntityFrameworkCore;
+using pax.dsstats.shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace pax.dsstats.dbng.Services;
 
 public partial class StatsService
 {
 
-    private async Task<StatsResponse> GetWinrate(StatsRequest request, List<CmdrStats> cmdrstats)
+    private async Task<StatsResponse> GetWinrate(StatsRequest request)
     {
-        DateTime endTime = request.EndTime == null ? DateTime.Today.AddDays(1) : request.EndTime;
+        if (!request.DefaultFilter)
+        {
+            return await GetCustomWinrate(request);
+        }
+
+        var cmdrstats = await GetRequestStats(request);
+
+        DateTime endTime = request.EndTime == DateTime.MinValue ? DateTime.Today.AddDays(1) : request.EndTime;
 
         var stats = cmdrstats.Where(x => x.Time >= request.StartTime && x.Time <= endTime);
-
-        if (request.Interest != Commander.Protoss && request.Interest != Commander.Terran && request.Interest != Commander.Zerg)
-        {
-            var validCmdrs = Enum.GetValues(typeof(Commander)).Cast<Commander>().Where(x => (int)x > 3).ToList();
-            stats = stats.Where(x => validCmdrs.Contains(x.Race)
-                && validCmdrs.Contains(x.OppRace)).ToList();
-        }
 
         if (request.Interest != Commander.None)
         {
             stats = stats.Where(x => x.Race == request.Interest).ToList();
+        }
+
+        if (!stats.Any())
+        {
+            return new StatsResponse()
+            {
+                Request = request,
+                Items = new List<StatsResponseItem>(),
+            };
         }
 
         var data = request.Interest == Commander.None ?
@@ -54,6 +65,79 @@ public partial class StatsService
             CountDefaultFilter = countDefault,
             CountNotDefaultFilter = countNotDefault,
             AvgDuration = !data.Any() ? 0 : Convert.ToInt32(data.Select(s => s.duration / (double)s.Matchups).Average())
+        };
+    }
+
+    public async Task<StatsResponse> GetCustomWinrate(StatsRequest request)
+    {
+        var replays = GetCountReplays(request);
+
+        var responses = (request.Uploaders, request.Interest == Commander.None) switch
+        {
+            (false, true) => from r in replays
+                             from p in r.Players
+                             group new { r, p } by new { race = p.Race } into g
+                             select new StatsResponseItem()
+                             {
+                                 Label = g.Key.race.ToString(),
+                                 Matchups = g.Count(),
+                                 Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
+                                 duration = g.Sum(s => s.r.Duration)
+                             },
+            (false, false) => from r in replays
+                              from p in r.Players
+                              where p.Race == request.Interest
+                              group new { r, p } by new { race = p.OppRace } into g
+                              select new StatsResponseItem()
+                              {
+                                  Label = g.Key.race.ToString(),
+                                  Matchups = g.Count(),
+                                  Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
+                                  duration = g.Sum(s => s.r.Duration)
+                              },
+            (true, true) => from r in replays
+                            from p in r.Players
+                            where p.IsUploader
+                            group new { r, p } by new { race = p.Race } into g
+                            select new StatsResponseItem()
+                            {
+                                Label = g.Key.race.ToString(),
+                                Matchups = g.Count(),
+                                Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
+                                duration = g.Sum(s => s.r.Duration)
+                            },
+            (true, false) => from r in replays
+                             from p in r.Players
+                             where p.IsUploader && p.Race == request.Interest
+                             group new { r, p } by new { race = p.OppRace } into g
+                             select new StatsResponseItem()
+                             {
+                                 Label = g.Key.race.ToString(),
+                                 Matchups = g.Count(),
+                                 Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
+                                 duration = g.Sum(s => s.r.Duration)
+                             },
+        };
+
+        var items = await responses.ToListAsync();
+
+        if (!items.Any())
+        {
+            return new StatsResponse()
+            {
+                Request = request,
+                Items = new List<StatsResponseItem>()
+            };
+        }
+
+        (var countNotDefault, var countDefault) = await GetCount(request);
+        return new StatsResponse()
+        {
+            Request = request,
+            Items = items,
+            CountDefaultFilter = countDefault,
+            CountNotDefaultFilter = countNotDefault,
+            AvgDuration = !items.Any() ? 0 : Convert.ToInt32(items.Select(s => s.duration / (double)s.Matchups).Average())
         };
     }
 }

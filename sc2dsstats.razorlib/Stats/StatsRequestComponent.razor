@@ -7,7 +7,7 @@
         <div class="col-auto">
             <label class="form-label">
                 StatsMode
-                <InputSelect @bind-Value="StatsRequest.StatsMode">
+                <InputSelect class="form-select" @bind-Value="StatsRequest.StatsMode">
                     @foreach (StatsMode statsMode in Enum.GetValues(typeof(StatsMode)))
                     {
                         <option value="@statsMode">@statsMode</option>
@@ -18,7 +18,7 @@
         <div class="col-auto">
             <label class="form-label">
                 Time Period
-                <InputSelect @bind-Value="StatsRequest.TimePeriod">
+                <InputSelect class="form-select" @bind-Value="StatsRequest.TimePeriod">
                     @foreach (string time in Data.TimePeriods)
                     {
                         <option value="@time">@time</option>
@@ -29,7 +29,7 @@
         <div class="col-auto">
             <label class="form-label">
                 Commander
-                <InputSelect @bind-Value="StatsRequest.Interest">
+                <InputSelect class="form-select" @bind-Value="StatsRequest.Interest">
                     @foreach (Commander cmdr in Enum.GetValues(typeof(Commander)))
                     {
                         <option value="@cmdr">@cmdr</option>
@@ -38,41 +38,29 @@
             </label>
         </div>
         <div class="col-auto">
-            <label class="form-label">
-                Uploaders
-                <InputCheckbox @bind-Value="StatsRequest.Uploaders">
-                </InputCheckbox>
-            </label>
-        </div>
-        <div class="col-auto">
-            <label class="form-label">
-                DefaultFilter
-                <InputCheckbox @bind-Value="StatsRequest.DefaultFilter">
-                </InputCheckbox>
-            </label>
+            <div class="form-check form-switch">
+                <label class="form-check-label">
+                    Uploaders
+                    <InputCheckbox class="form-check-input" @bind-Value="StatsRequest.Uploaders">
+                    </InputCheckbox>
+                </label>
+            </div>
+            <div class="form-check form-switch">
+                <label class="form-check-label">
+                    DefaultFilter
+                    <InputCheckbox class="form-check-input" @bind-Value="StatsRequest.DefaultFilter">
+                    </InputCheckbox>
+                </label>
+            </div>
         </div>
         <div class="col-auto">
             <select class="form-select" multiple aria-label="multiple" @onchange="GameModeChange">
-                @if (StatsRequest.GameModes.Any())
-                {
-                    <option>All GameModes</option>
-                }
-                else
-                {
-                    <option selected>All GameModes</option>
-                }
+                <option selected>All GameModes</option>
                 @foreach (GameMode gameMode in Enum.GetValues(typeof(GameMode)))
                 {
                     @if (gameMode != GameMode.None)
                     {
-                        @if (StatsRequest.GameModes.Contains(gameMode))
-                        {
-                            <option selected value="@gameMode">@gameMode</option>
-                        }
-                        else
-                        {
-                            <option value="@gameMode">@gameMode</option>
-                        }
+                        <option value="@gameMode">@gameMode</option>
                     }
                 }
             </select>
