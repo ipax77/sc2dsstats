@@ -17,7 +17,7 @@ using Xunit;
 
 namespace dsstats.Tests;
 
-[Collection("Sequential")]
+// [Collection("Sequential")]
 public class UploadTests : IDisposable
 {
     private readonly UploadService uploadService;
@@ -96,22 +96,24 @@ public class UploadTests : IDisposable
     [Fact]
     public async Task ModifyUploader1()
     {
+        Guid appGuid = Guid.NewGuid();
+
         var uploaderDto = new UploaderDto()
         {
-            AppGuid = Guid.NewGuid(),
+            AppGuid = appGuid,
             AppVersion = "0.0.1",
-            BattleNetId = 12345,
+            BattleNetId = 1234,
             Players = new List<PlayerUploadDto>()
             {
                 new PlayerUploadDto()
                 {
                     Name = "PAX",
-                    Toonid = 12345
+                    Toonid = 1234
                 },
                 new PlayerUploadDto()
                 {
                     Name = "xPax",
-                    Toonid = 12346
+                    Toonid = 1235
                 }
             }
         };
@@ -119,36 +121,36 @@ public class UploadTests : IDisposable
         var latestReplay = await uploadService.CreateOrUpdateUploader(uploaderDto);
 
         var context = CreateContext();
-        bool dbHasUploader = await context.Uploaders.AnyAsync(a => a.BattleNetId == 12345);
+        bool dbHasUploader = await context.Uploaders.AnyAsync(a => a.BattleNetId == 1234);
         Assert.True(dbHasUploader, "Uploader does not exist, yet");
 
-        var hasOldPlayer = context.Players.Any(a => a.ToonId == 12346);
+        var hasOldPlayer = context.Players.Any(a => a.ToonId == 1235);
         Assert.True(hasOldPlayer, "Oldplayer wasn't even created.");
 
 
         var uploaderDto2 = new UploaderDto()
         {
-            AppGuid = Guid.NewGuid(),
+            AppGuid = appGuid,
             AppVersion = "0.0.1",
-            BattleNetId = 12345,
+            BattleNetId = 1234,
             Players = new List<PlayerUploadDto>()
             {
                 new PlayerUploadDto()
                 {
                     Name = "PAX",
-                    Toonid = 12345
+                    Toonid = 1234
                 }
             }
         };
 
         var latestReplay2 = await uploadService.CreateOrUpdateUploader(uploaderDto2);
 
-        hasOldPlayer = context.Players.Any(a => a.ToonId == 12346);
-        Assert.False(hasOldPlayer, "Uploader removePlayer got deleted");
+        hasOldPlayer = context.Players.Any(a => a.ToonId == 1235);
+        Assert.True(hasOldPlayer, "Uploader removePlayer got deleted");
 
         var uploader = await context.Uploaders
                         .Include(i => i.Players)
-                        .FirstOrDefaultAsync(f => f.BattleNetId == 12345);
+                        .FirstOrDefaultAsync(f => f.BattleNetId == 1234);
 
         Assert.True(uploader?.Players.Count == 1, "Uploader Players Count not as expected");
     }

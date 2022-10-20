@@ -286,6 +286,14 @@ public class DecodeService : IDisposable
                 Upgrades = (await context.Upgrades.AsNoTracking().ToListAsync()).ToHashSet();
             }
 
+            replayDto.Players.ToList().ForEach(f =>
+            {
+                if (UserSettingsService.UserSettings.PlayerNames.Contains(f.Name))
+                {
+                    f.IsUploader = true;
+                }
+            });
+
             var replayRepository = scope.ServiceProvider.GetRequiredService<IReplayRepository>();
             (Units, Upgrades) = await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
 

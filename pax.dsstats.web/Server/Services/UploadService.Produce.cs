@@ -17,7 +17,7 @@ public partial class UploadService
 
     public async Task Produce(string gzipbase64string, Guid appGuid)
     {
-        var replays = JsonSerializer.Deserialize<List<ReplayDto>>(await UnzipAsync(gzipbase64string))?.OrderByDescending(o => o.GameTime).ToList();
+        var replays = JsonSerializer.Deserialize<List<ReplayDto>>(await UnzipAsync(gzipbase64string))?.OrderBy(o => o.GameTime).ToList();
 
         if (replays == null || !replays.Any())
         {
@@ -35,6 +35,9 @@ public partial class UploadService
         {
             return;
         }
+
+        uploader.LatestReplay = replays.Last().GameTime;
+        await context.SaveChangesAsync();
 
         // replays.SelectMany(s => s.Players).Where(x => uploader.Players.Select(t => t.Name).Contains(x.Name)).ToList().ForEach(f => f.IsUploader = true);
 
@@ -99,7 +102,9 @@ public partial class UploadService
 
     public async Task<bool> HandleDuplicate(ReplayContext context, ReplayDto replayDto)
     {
-        var dupReplay = await context.Replays.FirstOrDefaultAsync(f => f.ReplayHash == replayDto.ReplayHash);
+        var dupReplay = await context.Replays
+            .Include(i => i.Players)
+            .FirstOrDefaultAsync(f => f.ReplayHash == replayDto.ReplayHash);
 
         if (dupReplay == null)
         {
@@ -123,9 +128,34 @@ public partial class UploadService
 
                 .FirstAsync(f => f.ReplayHash == replayDto.ReplayHash);
 
+            foreach (var uploader in delReplay.Players.Where(x => x.IsUploader))
+            {
+                var uploaderDto = replayDto.Players.FirstOrDefault(f => f.Name == uploader.Name);
+                if (uploaderDto == null)
+                {
+                    logger.LogWarning($"false positive duplicate (dtoPlayer)? {dupReplay.ReplayHash}");
+                    return false;
+                }
+                uploaderDto.IsUploader = true;
+            }
+
             context.Replays.Remove(delReplay);
             await context.SaveChangesAsync();
             return true;
+        }
+        else
+        {
+            foreach (var uploader in replayDto.Players.Where(x => x.IsUploader))
+            {
+                var dbUploader = dupReplay.Players.FirstOrDefault(f => f.Name == uploader.Name);
+                if (dbUploader == null)
+                {
+                    logger.LogWarning($"false positive duplicate (dbPlayer)? {dupReplay.ReplayHash}");
+                    return false;
+                }
+                dbUploader.IsUploader = true;
+            }
+            await context.SaveChangesAsync();
         }
         return false;
     }

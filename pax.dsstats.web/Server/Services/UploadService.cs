@@ -12,6 +12,7 @@ public partial class UploadService
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private readonly ILogger<UploadService> logger;
+    private readonly SemaphoreSlim ss = new(1, 1);
 
     public UploadService(IServiceProvider serviceProvider, IMapper mapper, ILogger<UploadService> logger)
     {
@@ -22,17 +23,27 @@ public partial class UploadService
 
     public async Task ImportReplays(string gzipbase64String, Guid appGuid)
     {
-        using var scope = serviceProvider.CreateScope();
-        using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-
-        var uploader = await context.Uploaders.FirstOrDefaultAsync(f => f.AppGuid == appGuid);
-        if (uploader == null)
+        await ss.WaitAsync();
+        try
         {
-            return;
-        }
+            using var scope = serviceProvider.CreateScope();
+            using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
 
-        uploader.LatestUpload = DateTime.UtcNow;
-        await context.SaveChangesAsync();
+            var uploader = await context.Uploaders.FirstOrDefaultAsync(f => f.AppGuid == appGuid);
+            if (uploader == null)
+            {
+                return;
+            }
+
+            uploader.LatestUpload = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"Failed updating uploader: {ex.Message}");
+        }
+        finally { ss.Release(); }
+
         _ = Produce(gzipbase64String, appGuid);
     }
 
@@ -104,7 +115,7 @@ public partial class UploadService
                 if (dbPlayer == null)
                 {
                     dbUploader.Players.Add(mapper.Map<Player>(uploader.Players.ElementAt(i)));
-                } 
+                }
                 else
                 {
                     dbPlayer.Uploader = dbUploader;

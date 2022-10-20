@@ -45,13 +45,14 @@ public class UploadService
                     .ThenInclude(t => t.Player)
                     .AsNoTracking()
                     .AsSplitQuery()
+                .OrderBy(o => o.GameTime)
                 .ProjectTo<ReplayDto>(mapper.ConfigurationProvider)
                 .Where(x => x.GameTime > latestReplayDate)
                 .ToListAsync();
 
-            var base64string = GetBase64String(replays);
+            var base64string = GetBase64String(replays.Take(1).ToList());
 
-            File.WriteAllText("/data/ds/uploadtest.base64", base64string);
+            File.WriteAllText("/data/ds/uploadtest3.json", JsonSerializer.Serialize(replays.Take(1).ToList()));
         } catch (Exception ex)
         {
 
@@ -69,7 +70,7 @@ public class UploadService
 
     private async Task<DateTime> GetLastReplay()
     {
-        return await Task.FromResult(new DateTime(2022, 10, 1));
+        return await Task.FromResult(new DateTime(2021, 10, 1));
     }
 
     private static string Zip(string str)

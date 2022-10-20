@@ -10,15 +10,17 @@ using pax.dsstats.web.Server.Services;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace dsstats.Tests;
 
-[Collection("Sequential")]
+// [Collection("Sequential")]
 public class ImportTests : IDisposable
 {
     private readonly UploadService uploadService;
@@ -129,3 +131,5 @@ public class ImportTests : IDisposable
 
     }
 }
+
+
