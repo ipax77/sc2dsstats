@@ -491,11 +491,17 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("BattleNetId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("LatestReplay")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime>("LatestUpload")
                         .HasPrecision(0)
                         .HasColumnType("datetime(0)");
 
                     b.HasKey("UploaderId");
+
+                    b.HasIndex("BattleNetId")
+                        .IsUnique();
 
                     b.ToTable("Uploaders");
                 });

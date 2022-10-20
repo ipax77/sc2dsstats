@@ -51,6 +51,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<UserSettingsService>();
         builder.Services.AddSingleton<DecodeService>();
+        builder.Services.AddSingleton<UploadService>();
 
         builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
         builder.Services.AddTransient<IStatsRepository, StatsRepository>();
@@ -68,6 +69,10 @@ public static class MauiProgram
 
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         context.Database.Migrate();
+
+        // debug
+        var uploadService = scope.ServiceProvider.GetRequiredService<UploadService>();
+        uploadService.UploadReplays().GetAwaiter().GetResult();
 
         return builder.Build();
     }

@@ -78,27 +78,37 @@ public partial class UploadService
         }
     }
 
-    private async Task UpdateUploaderPlayers(ReplayContext context, Uploader dbUplaoder, UploaderDto uploader)
+    private async Task UpdateUploaderPlayers(ReplayContext context, Uploader dbUploader, UploaderDto uploader)
     {
-        for (int i = 0; i < dbUplaoder.Players.Count; i++)
+        for (int i = 0; i < dbUploader.Players.Count; i++)
         {
-            var uploaderPlayer = uploader.Players.FirstOrDefault(f => f.Toonid == dbUplaoder.Players.ElementAt(i).ToonId);
+            var dbPlayer = dbUploader.Players.ElementAt(i);
+            var uploaderPlayer = uploader.Players.FirstOrDefault(f => f.Toonid == dbPlayer.ToonId);
             if (uploaderPlayer == null)
             {
-                dbUplaoder.Players.Remove(dbUplaoder.Players.ElementAt(i));
+                dbUploader.Players.Remove(dbPlayer);
+                dbPlayer.Uploader = null;
             }
-            else if (uploaderPlayer.Name != dbUplaoder.Players.ElementAt(i).Name)
+            else if (uploaderPlayer.Name != dbPlayer.Name)
             {
-                dbUplaoder.Players.ElementAt(i).Name = uploaderPlayer.Name;
+                dbPlayer.Name = uploaderPlayer.Name;
             }
         }
 
         for (int i = 0; i < uploader.Players.Count; i++)
         {
-            var dbuploaderPlayer = dbUplaoder.Players.FirstOrDefault(f => f.ToonId == uploader.Players.ElementAt(i).Toonid);
+            var dbuploaderPlayer = dbUploader.Players.FirstOrDefault(f => f.ToonId == uploader.Players.ElementAt(i).Toonid);
             if (dbuploaderPlayer == null)
             {
-                dbUplaoder.Players.Add(mapper.Map<Player>(uploader.Players.ElementAt(i)));
+                var dbPlayer = await context.Players.FirstOrDefaultAsync(f => f.ToonId == uploader.Players.ElementAt(i).Toonid);
+                if (dbPlayer == null)
+                {
+                    dbUploader.Players.Add(mapper.Map<Player>(uploader.Players.ElementAt(i)));
+                } 
+                else
+                {
+                    dbPlayer.Uploader = dbUploader;
+                }
             }
         }
         await context.SaveChangesAsync();

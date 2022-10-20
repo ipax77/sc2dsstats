@@ -166,6 +166,7 @@ public record UserSettings
     public Guid DbGuid { get; set; } = Guid.Empty;
     public int CpuCoresUsedForDecoding { get; set; } = 2;
     public bool AllowUploads { get; set; }
+    public bool AllowCleanUploads { get; set; }
     public bool AutoScanForNewReplays { get; set; } = true;
     public string ReplayStartName { get; set; } = "Direct Strike";
     public List<string> PlayerNames { get; set; } = new();

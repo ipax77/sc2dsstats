@@ -1,3 +1,4 @@
+using MathNet.Numerics;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using pax.BlazorChartJs;
@@ -5,6 +6,7 @@ using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
+using pax.dsstats.web.Server.Services;
 using sc2dsstats.db;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,10 +48,11 @@ builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
-builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddSingleton<MmrService>();
 builder.Services.AddSingleton<FireMmrService>();
+builder.Services.AddSingleton<UploadService>();
 
+builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
 builder.Services.AddTransient<IStatsRepository, StatsRepository>();
 builder.Services.AddTransient<BuildService>();

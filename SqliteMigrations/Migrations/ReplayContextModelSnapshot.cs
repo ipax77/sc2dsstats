@@ -67,7 +67,7 @@ namespace SqliteMigrations.Migrations
                     b.Property<int>("ToonId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("UploaderId")
+                    b.Property<int?>("UploaderId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("PlayerId");
@@ -489,11 +489,17 @@ namespace SqliteMigrations.Migrations
                     b.Property<int>("BattleNetId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("LatestReplay")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("LatestUpload")
                         .HasPrecision(0)
                         .HasColumnType("TEXT");
 
                     b.HasKey("UploaderId");
+
+                    b.HasIndex("BattleNetId")
+                        .IsUnique();
 
                     b.ToTable("Uploaders");
                 });
@@ -502,9 +508,7 @@ namespace SqliteMigrations.Migrations
                 {
                     b.HasOne("pax.dsstats.dbng.Uploader", "Uploader")
                         .WithMany("Players")
-                        .HasForeignKey("UploaderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UploaderId");
 
                     b.Navigation("Uploader");
                 });

@@ -83,7 +83,7 @@ public partial class UploadService
 
                 if (!dupReplayExists)
                 {
-                    await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
+                    (Units, Upgrades) = await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
                 }
                 else
                 {
