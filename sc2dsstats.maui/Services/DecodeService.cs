@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using pax.dsstats.dbng;
+using pax.dsstats.dbng.Repositories;
 using pax.dsstats.parser;
 using pax.dsstats.shared;
+using s2protocol.NET;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
-using s2protocol.NET;
-using pax.dsstats.dbng.Repositories;
-using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
-using System.Linq.Expressions;
 
 namespace sc2dsstats.maui.Services;
 
@@ -253,7 +252,7 @@ public class DecodeService : IDisposable
         NewReplays = newReplays.Count;
         DbReplays = dbReplayPaths.Count;
 
-        OnScanStateChanged(new() {  NewReplays = NewReplays, DbReplays = DbReplays });
+        OnScanStateChanged(new() { NewReplays = NewReplays, DbReplays = DbReplays });
 
         return newReplays;
     }
@@ -331,7 +330,7 @@ public class DecodeService : IDisposable
         decodeCts?.Cancel();
         notifyCts?.Dispose();
         decodeCts?.Dispose();
-        
+
         decoder.Dispose();
         GC.SuppressFinalize(this);
     }

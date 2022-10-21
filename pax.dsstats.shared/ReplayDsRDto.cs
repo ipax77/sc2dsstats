@@ -31,5 +31,6 @@ public record PlayerRatingDto
 {
     public string Name { get; init; } = null!;
     public int ToonId { get; init; }
-    public double DsR { get; init; }
+    public double Mmr { get; init; }
+    public double MmrStd { get; init; }
 }

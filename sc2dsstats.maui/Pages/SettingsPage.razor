@@ -41,6 +41,19 @@ else
             <div class="col-2">
                 <div class="form-check">
                     <label class="col-form-label">
+                        <InputCheckbox @bind-Value="UserSettingsService.UserSettings.AllowCleanUploads"></InputCheckbox>
+                        Allow Ratings
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-8 fs-4">
+                To get global ratings you allow uploading the full replay information - including playernames. For details check the sc2dsstats website.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <div class="form-check">
+                    <label class="col-form-label">
                         <InputCheckbox @bind-Value="UserSettingsService.UserSettings.AutoScanForNewReplays"></InputCheckbox>
                         OnTheFlyScan
                     </label>

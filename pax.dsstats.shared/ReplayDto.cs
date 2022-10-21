@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace pax.dsstats.shared;
+﻿namespace pax.dsstats.shared;
 
 public record PlayerDto
 {
@@ -61,7 +55,7 @@ public record ReplayPlayerDto
     public int Views { get; init; }
     public PlayerDto Player { get; init; } = null!;
     public ICollection<SpawnDto> Spawns { get; init; } = new HashSet<SpawnDto>();
-    public ICollection<PlayerUpgradeDto> Upgrades { get; init; } = new HashSet<PlayerUpgradeDto>(); 
+    public ICollection<PlayerUpgradeDto> Upgrades { get; init; } = new HashSet<PlayerUpgradeDto>();
 }
 
 public record SpawnDto

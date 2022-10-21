@@ -8,4 +8,10 @@ public interface IDataService
     Task<List<string>> GetTournaments();
     Task<StatsResponse> GetStats(StatsRequest request, CancellationToken token = default);
     Task<BuildResponse> GetBuild(BuildRequest request);
+
+    // ratings
+    Task<int> GetRatingsCount(CancellationToken token = default);
+    Task<List<PlayerRatingDto>> GetRatings(int skip, int take, Order order, CancellationToken token = default);
+    Task<string?> GetPlayerRatings(int toonId);
+    Task<List<MmrDevDto>> GetRatingsDeviation();
 }

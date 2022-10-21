@@ -1,4 +1,5 @@
-﻿<div class="top-row bg-secondary px-4">
+﻿@using sc2dsstats.maui.Services;
+<div class="top-row bg-secondary px-4">
     <span class="pointer badge bg-info px-1 me-1" style="height: 80% !important; padding: 1rem 0; font-size: 1em;" @onclick="@(() => { navigationManager.NavigateTo("replays"); })">
         Replays: @decodeService.DbReplays
     </span>
@@ -42,27 +43,27 @@
         </span>
     }
 
-    @*    @if (uploadStatus != UploadStatus.None)
+    @if (uploadStatus != UploadStatus.None)
     {
-    <div class="text-white-50 px-1">
-    @if (uploadStatus == UploadStatus.Uploading)
-    {
-    <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Uploading")
+        <div class="text-white-50 px-1">
+            @if (uploadStatus == UploadStatus.Uploading)
+            {
+                <span class="oi spinner-grow spinner-grow-sm text-success"> </span> @("Uploading")
+            }
+            else if (uploadStatus == UploadStatus.Success)
+            {
+                <span class="oi oi-circle-check text-success">&nbsp;</span> @("Upload successful")
+            }
+            else if (uploadStatus == UploadStatus.Error)
+            {
+                <span class="oi oi-circle-x text-danger">&nbsp;</span> @("Upload failed. Please try again later.")
+            }
+        </div>
     }
-    else if (uploadStatus == UploadStatus.Success)
-    {
-    <span class="oi oi-circle-check text-success">&nbsp;</span> @("Upload successful")
-    }
-    else if (uploadStatus == UploadStatus.Failed)
-    {
-    <span class="oi oi-circle-x text-danger">&nbsp;</span> @("Upload failed. Please try again later.")
-    }
-    </div>
-    }*@
 
     <div class="ms-auto">
         <span class="badge bg-info px-1" style="height: 50% !important; padding: 0.5rem 0; font-size: 1em;">
-            v0.1.15
+            v0.1.16
         </span>
     </div>
 </div>

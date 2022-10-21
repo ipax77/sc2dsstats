@@ -9,17 +9,25 @@ public class Uploader
     public Uploader()
     {
         Players = new HashSet<Player>();
+        BattleNetInfos = new HashSet<BattleNetInfo>();
     }
     public int UploaderId { get; set; }
     public Guid AppGuid { get; set; }
     public string AppVersion { get; set; } = "";
-    public int BattleNetId { get; set; }
+    public string Identifier { get; set; } = "Anonymous";
     [Precision(0)]
     public DateTime LatestUpload { get; set; }
+    [Precision(0)]
     public DateTime LatestReplay { get; set; }
     public virtual ICollection<Player> Players { get; set; }
+    public ICollection<BattleNetInfo>? BattleNetInfos { get; set; }
 }
 
+public class BattleNetInfo
+{
+    public int BattleNetInfoId { get; set; }
+    public int BattleNetId { get; set; }
+}
 
 public class Player
 {
@@ -195,7 +203,7 @@ public class PlayerUpgrade
 public class Unit
 {
     public int UnitId { get; set; }
-    [MaxLength(30)]
+    [MaxLength(50)]
     public string Name { get; set; } = null!;
     public int Cost { get; set; }
     public Commander Commander { get; set; }

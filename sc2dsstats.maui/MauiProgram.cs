@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Blazored.Toast;
+﻿using Blazored.Toast;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using pax.BlazorChartJs;
@@ -40,6 +39,8 @@ public static class MauiProgram
         //.EnableSensitiveDataLogging()
         );
 
+        // builder.Services.AddSingleton<HttpClient>();
+
         builder.Services.AddMemoryCache();
         builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
         builder.Services.AddBlazoredToast();
@@ -69,10 +70,6 @@ public static class MauiProgram
 
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         context.Database.Migrate();
-
-        // debug
-        var uploadService = scope.ServiceProvider.GetRequiredService<UploadService>();
-        uploadService.UploadReplays().GetAwaiter().GetResult();
 
         return builder.Build();
     }

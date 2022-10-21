@@ -40,7 +40,8 @@ public partial class Parse
                     {
                         replay.Duration = nexusBornEvent.SUnitDiedEvent.Gameloop;
                         replay.WinnerTeam = 1;
-                    } else if (planetaryBornEvent.SUnitDiedEvent != null)
+                    }
+                    else if (planetaryBornEvent.SUnitDiedEvent != null)
                     {
                         replay.Duration = planetaryBornEvent.SUnitDiedEvent.Gameloop;
                         replay.WinnerTeam = 2;
@@ -71,7 +72,7 @@ public partial class Parse
 
             if (bornEvent.UnitTypeName == "StagingAreaFootprintSouth" || bornEvent.UnitTypeName == "AreaMarkerSouth")
             {
-                 player.SpawnArea2.South = new Position(bornEvent.X, bornEvent.Y);
+                player.SpawnArea2.South = new Position(bornEvent.X, bornEvent.Y);
 
                 var distance = Vector2.DistanceSquared(new Vector2(bornEvent.X, 0), new Vector2(bornEvent.X, bornEvent.Y));
                 if (distance > 10000)
@@ -167,8 +168,8 @@ public partial class Parse
                                            SUnitBornEvent? cannonBornEvent,
                                            SUnitBornEvent? bunkerBornEvent)
     {
-        return nexusBornEvent != null 
-            && planetaryBornEvent != null 
+        return nexusBornEvent != null
+            && planetaryBornEvent != null
             && cannonBornEvent != null
             && bunkerBornEvent != null;
     }

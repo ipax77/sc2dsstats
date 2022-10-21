@@ -1,11 +1,10 @@
 using MathNet.Numerics;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using pax.BlazorChartJs;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
+using pax.dsstats.web.Server.Attributes;
 using pax.dsstats.web.Server.Services;
 using sc2dsstats.db;
 
@@ -30,7 +29,10 @@ builder.Services.AddDbContext<ReplayContext>(options =>
         p.EnableRetryOnFailure();
         p.MigrationsAssembly("MysqlMigrations");
         p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
-    });
+    })
+    .EnableDetailedErrors()
+    .EnableSensitiveDataLogging()
+    ;
 });
 
 builder.Services.AddDbContext<sc2dsstatsContext>(options =>
@@ -49,8 +51,9 @@ builder.Services.AddMemoryCache();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 builder.Services.AddSingleton<MmrService>();
-builder.Services.AddSingleton<FireMmrService>();
+// builder.Services.AddSingleton<FireMmrService>();
 builder.Services.AddSingleton<UploadService>();
+builder.Services.AddSingleton<AuthenticationFilterAttribute>();
 
 builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
@@ -63,6 +66,9 @@ var app = builder.Build();
 using var scope = app.Services.CreateScope();
 using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
 context.Database.Migrate();
+
+var mmrServie = scope.ServiceProvider.GetRequiredService<MmrService>();
+mmrServie.CalcMmmr().GetAwaiter().GetResult();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.maui.Services;
 
@@ -12,6 +7,7 @@ internal class UserSettingsService
 {
     public static readonly string ConfigFile = Path.Combine(FileSystem.Current.AppDataDirectory, "config.json");
     public static UserSettings UserSettings = new UserSettings();
+    public static string AppVersion = "0.0.1";
     private SemaphoreSlim semaphoreSlim = new(1, 1);
     private readonly bool debug = false;
 
@@ -34,6 +30,7 @@ internal class UserSettingsService
             {
                 UserSettings = userSettings;
             }
+            UserSettings.BattleNetIds = GetBattleNetIds();
         }
     }
 
@@ -96,6 +93,46 @@ internal class UserSettingsService
             UserSettings.ReplayPaths.AddRange(folderNames);
         }
 
+    }
+
+    private static Dictionary<int, List<int>>? GetBattleNetIds()
+    {
+        var docDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        var sc2Dir = Path.Combine(docDir, "Starcraft II");
+        var sc2AccDir = Path.Combine(sc2Dir, "Accounts");
+
+        if (!Directory.Exists(sc2AccDir))
+        {
+            return null;
+        }
+
+        var sc2AccDirs = Directory.GetDirectories(sc2AccDir);
+
+        Dictionary<int, List<int>> battleNetIds = new();
+        foreach (var accDir in sc2AccDirs)
+        {
+            if (int.TryParse(accDir.Split(Path.DirectorySeparatorChar).Last(), out int battleNetId))
+            {
+                battleNetIds[battleNetId] = new();
+
+                foreach (var toonDir in Directory.GetDirectories(accDir))
+                {
+                    if (Directory.Exists(Path.Combine(toonDir, "Replays", "Multiplayer")))
+                    {
+                        var toonFolder = toonDir.Split(Path.DirectorySeparatorChar).Last();
+                        var match = Regex.Match(toonFolder, @"\d+$");
+                        if (match.Success)
+                        {
+                            if (int.TryParse(match.Value, out int toonId))
+                            {
+                                battleNetIds[battleNetId].Add(toonId);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return battleNetIds;
     }
 
     private static string? GetShortcutTarget(string file)
@@ -164,6 +201,7 @@ public record UserSettings
 {
     public Guid AppGuid { get; set; } = Guid.NewGuid();
     public Guid DbGuid { get; set; } = Guid.Empty;
+    public Dictionary<int, List<int>>? BattleNetIds { get; set; }
     public int CpuCoresUsedForDecoding { get; set; } = 2;
     public bool AllowUploads { get; set; }
     public bool AllowCleanUploads { get; set; }

@@ -71,7 +71,7 @@ public static partial class Parse
         var armyValue = statsEvent.MineralsUsedActiveForces / 2;
 
         List<DsUnit> surwivers = new List<DsUnit>();
-        
+
         if (lastStat != null)
         {
             surwivers = lastStat.Units.Where(x => x.DiedGameloop > gameloop).ToList();

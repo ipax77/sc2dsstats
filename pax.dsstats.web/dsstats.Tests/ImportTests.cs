@@ -7,16 +7,7 @@ using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.shared;
 using pax.dsstats.web.Server.Services;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.IO.Compression;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace dsstats.Tests;
 
@@ -91,7 +82,13 @@ public class ImportTests : IDisposable
         {
             AppGuid = appGuid,
             AppVersion = "0.0.1",
-            BattleNetId = 12345,
+            BatteBattleNetInfos = new List<BattleNetInfoDto>()
+            {
+                new BattleNetInfoDto()
+                {
+                    BattleNetId = 12345
+                }
+            },
             Players = new List<PlayerUploadDto>()
             {
                 new PlayerUploadDto()
@@ -110,7 +107,7 @@ public class ImportTests : IDisposable
         var latestReplay = await uploadService.CreateOrUpdateUploader(uploaderDto);
 
         var context = CreateContext();
-        bool dbHasUploader = await context.Uploaders.AnyAsync(a => a.BattleNetId == 12345);
+        bool dbHasUploader = await context.Uploaders.AnyAsync(a => a.AppGuid == appGuid);
         Assert.True(dbHasUploader);
 
         string testFile = "/data/ds/uploadtest.base64";

@@ -7,16 +7,10 @@ using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.shared;
 using pax.dsstats.web.Server.Services;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.IO.Compression;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace dsstats.Tests;
 
@@ -138,7 +132,13 @@ public class DuplicateLeaverTests : IDisposable
         {
             AppGuid = Guid.NewGuid(),
             AppVersion = "0.0.1",
-            BattleNetId = 123456 + num,
+            BatteBattleNetInfos = new List<BattleNetInfoDto>()
+            {
+                new BattleNetInfoDto()
+                {
+                    BattleNetId = 123456 + num
+                }
+            },
             Players = new List<PlayerUploadDto>()
             {
                 new PlayerUploadDto()

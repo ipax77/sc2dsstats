@@ -17,6 +17,25 @@ namespace SqliteMigrations.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.10");
 
+            modelBuilder.Entity("pax.dsstats.dbng.BattleNetInfo", b =>
+                {
+                    b.Property<int>("BattleNetInfoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BattleNetId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("UploaderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("BattleNetInfoId");
+
+                    b.HasIndex("UploaderId");
+
+                    b.ToTable("BattleNetInfos");
+                });
+
             modelBuilder.Entity("pax.dsstats.dbng.Event", b =>
                 {
                     b.Property<int>("EventId")
@@ -486,8 +505,9 @@ namespace SqliteMigrations.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("BattleNetId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Identifier")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LatestReplay")
                         .HasColumnType("TEXT");
@@ -498,10 +518,17 @@ namespace SqliteMigrations.Migrations
 
                     b.HasKey("UploaderId");
 
-                    b.HasIndex("BattleNetId")
+                    b.HasIndex("AppGuid")
                         .IsUnique();
 
                     b.ToTable("Uploaders");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.BattleNetInfo", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.Uploader", null)
+                        .WithMany("BattleNetInfos")
+                        .HasForeignKey("UploaderId");
                 });
 
             modelBuilder.Entity("pax.dsstats.dbng.Player", b =>
@@ -640,6 +667,8 @@ namespace SqliteMigrations.Migrations
 
             modelBuilder.Entity("pax.dsstats.dbng.Uploader", b =>
                 {
+                    b.Navigation("BattleNetInfos");
+
                     b.Navigation("Players");
                 });
 #pragma warning restore 612, 618

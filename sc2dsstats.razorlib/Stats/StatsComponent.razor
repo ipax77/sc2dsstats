@@ -1,5 +1,5 @@
 ﻿@using pax.dsstats.shared;
-@inject IStatsService statsService
+@inject IDataService dataService
 
 <div>
     <CascadingValue Value="StatsRequest">
@@ -64,7 +64,7 @@
             isLoading = true;
         }
         await InvokeAsync(() => StateHasChanged());
-        statsResponse = await statsService.GetStatsResponse(StatsRequest);
+        statsResponse = await dataService.GetStats(StatsRequest);
         isLoading = false;
         statsChart?.SetChart();
         await InvokeAsync(() => StateHasChanged());

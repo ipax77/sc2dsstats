@@ -1,11 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace pax.dsstats.dbng.Services;
 public partial class StatsService
@@ -110,17 +104,17 @@ public partial class StatsService
     {
         var replays = GetCountReplays(request);
 
-        var results =   from r in replays
-                        from p in r.Players
-                        where p.Race == request.Interest
-                        select new DbStatsResult()
-                        {
-                            Id = r.ReplayId,
-                            Win = p.PlayerResult == PlayerResult.Win,
-                            GameTime = r.GameTime,
-                            IsUploader = p.IsUploader,
-                            OppRace = p.OppRace
-                        };
+        var results = from r in replays
+                      from p in r.Players
+                      where p.Race == request.Interest
+                      select new DbStatsResult()
+                      {
+                          Id = r.ReplayId,
+                          Win = p.PlayerResult == PlayerResult.Win,
+                          GameTime = r.GameTime,
+                          IsUploader = p.IsUploader,
+                          OppRace = p.OppRace
+                      };
         if (request.Uploaders)
         {
             results = results.Where(x => x.IsUploader);

@@ -1,6 +1,6 @@
 ﻿@using pax.dsstats.shared
 @using pax.BlazorChartJs
-@inject IStatsService statsService
+@inject IDataService dataService
 @implements IDisposable
 
 <div style="min-width: 900px;">
@@ -30,7 +30,7 @@
 
     public async Task LoadData()
     {
-        var devs = await statsService.GetRatingsDeviation();
+        var devs = await dataService.GetRatingsDeviation();
 
         if (devs.Any())
         {

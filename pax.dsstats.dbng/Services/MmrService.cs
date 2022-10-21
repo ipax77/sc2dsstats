@@ -3,12 +3,8 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng.Services;
 
@@ -39,7 +35,7 @@ public class MmrService
 
         using var scope = serviceProvider.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        
+
         var replays = context.Replays
             .Include(i => i.Players)
                 .ThenInclude(i => i.Player)
@@ -83,7 +79,7 @@ public class MmrService
         foreach (var ent in ratings)
         {
             var player = await context.Players.FirstAsync(f => f.PlayerId == ent.Key);
-            player.Mmr = ent.Value.Last().DsR;
+            player.Mmr = ent.Value.Last().Mmr;
             player.MmrOverTime = GetOverTimeRating(ent.Value);
             i++;
             if (i % 1000 == 0)
@@ -103,11 +99,11 @@ public class MmrService
 
         else if (dsRCheckpoints.Count == 1)
         {
-            return $"{Math.Round(dsRCheckpoints[0].DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[0].Time:MMyy}";
+            return $"{Math.Round(dsRCheckpoints[0].Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[0].Time:MMyy}";
         }
 
         StringBuilder sb = new();
-        sb.Append($"{Math.Round(dsRCheckpoints.First().DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.First().Time:MMyy}");
+        sb.Append($"{Math.Round(dsRCheckpoints.First().Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.First().Time:MMyy}");
 
         if (dsRCheckpoints.Count > 2)
         {
@@ -118,14 +114,14 @@ public class MmrService
                 if (currentTimeStr != timeStr)
                 {
                     sb.Append('|');
-                    sb.Append($"{Math.Round(dsRCheckpoints[i].DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[i].Time:MMyy}");
+                    sb.Append($"{Math.Round(dsRCheckpoints[i].Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[i].Time:MMyy}");
                 }
                 timeStr = currentTimeStr;
             }
         }
 
         sb.Append('|');
-        sb.Append($"{Math.Round(dsRCheckpoints.Last().DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.Last().Time:MMyy}");
+        sb.Append($"{Math.Round(dsRCheckpoints.Last().Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.Last().Time:MMyy}");
 
         if (sb.Length > 1999)
         {
@@ -141,8 +137,9 @@ public class MmrService
         using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
 
         // todo: db-lock (no imports possible during this)
-        await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET DsR = {startMmr}");
-        await context.Database.ExecuteSqlRawAsync("UPDATE Players SET DsROverTime = NULL");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET Mmr = {startMmr}");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET MmrStd = {startMmr}");
+        await context.Database.ExecuteSqlRawAsync("UPDATE Players SET MmrOverTime = NULL");
         ratings.Clear();
     }
 
@@ -151,8 +148,8 @@ public class MmrService
         foreach (var player in teamPlayers)
         {
             var plRatings = ratings[player.PlayerId];
-            var newRating = plRatings.Last().DsR - delta;
-            plRatings.Add(new DsRCheckpoint() { DsR = newRating, Time = gameTime });
+            var newRating = plRatings.Last().Mmr - delta;
+            plRatings.Add(new DsRCheckpoint() { Mmr = newRating, Time = gameTime });
         }
     }
 
@@ -161,8 +158,8 @@ public class MmrService
         foreach (var player in teamPlayers)
         {
             var plRatings = ratings[player.PlayerId];
-            var newRating = plRatings.Last().DsR + delta;
-            plRatings.Add(new DsRCheckpoint() { DsR = newRating, Time = gameTime });
+            var newRating = plRatings.Last().Mmr + delta;
+            plRatings.Add(new DsRCheckpoint() { Mmr = newRating, Time = gameTime });
         }
     }
 
@@ -185,12 +182,12 @@ public class MmrService
         {
             if (!ratings.ContainsKey(player.PlayerId))
             {
-                ratings[player.PlayerId] = new List<DsRCheckpoint>() { new() { DsR = 1000.0, Time = gameTime } };
+                ratings[player.PlayerId] = new List<DsRCheckpoint>() { new() { Mmr = 1000.0, Time = gameTime } };
                 teamMmr += 1000.0;
             }
             else
             {
-                teamMmr += ratings[player.PlayerId].Last().DsR;
+                teamMmr += ratings[player.PlayerId].Last().Mmr;
             }
         }
         return teamMmr / 3.0;
@@ -200,6 +197,6 @@ public class MmrService
 public record DsRCheckpoint
 {
     public double Consistency { get; init; }
-    public double DsR { get; init; }
+    public double Mmr { get; init; }
     public DateTime Time { get; init; }
 }

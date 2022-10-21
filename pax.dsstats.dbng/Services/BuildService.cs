@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using pax.dsstats.shared;
-using System.Security.Cryptography;
 
 namespace pax.dsstats.dbng.Services;
 
@@ -18,69 +17,69 @@ public class BuildService
         var replays = GetReuqestReplays(request);
 
         var groups = (request.Versus == Commander.None, request.PlayerNames.Any()) switch
-            {
-                (true, true) => 
-                                from r in replays
-                                from rp in r.Players
-                                from s in rp.Spawns
-                                from u in s.Units
-                                where rp.Race == request.Interest && request.PlayerNames.Contains(rp.Name)
-                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
-                                select new
-                                {
-                                    Gameloop = g.Key.Gameloop,
-                                    UnitId = g.Key.UnitId,
-                                    Sum = g.Sum(c => c.u.Count),
-                                    Gas = g.Sum(c => c.s.GasCount),
-                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
-                                },
-                (true, false) =>
-                                from r in replays
-                                from rp in r.Players
-                                from s in rp.Spawns
-                                from u in s.Units
-                                where rp.Race == request.Interest && rp.IsUploader
-                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
-                                select new
-                                {
-                                    Gameloop = g.Key.Gameloop,
-                                    UnitId = g.Key.UnitId,
-                                    Sum = g.Sum(c => c.u.Count),
-                                    Gas = g.Sum(c => c.s.GasCount),
-                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
-                                },
-                (false, true) =>
-                                from r in replays
-                                from rp in r.Players
-                                from s in rp.Spawns
-                                from u in s.Units
-                                where rp.Race == request.Interest && request.PlayerNames.Contains(rp.Name) && rp.OppRace == request.Versus
-                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
-                                select new
-                                {
-                                    Gameloop = g.Key.Gameloop,
-                                    UnitId = g.Key.UnitId,
-                                    Sum = g.Sum(c => c.u.Count),
-                                    Gas = g.Sum(c => c.s.GasCount),
-                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
-                                },
-                (false, false) =>
-                                from r in replays
-                                from rp in r.Players
-                                from s in rp.Spawns
-                                from u in s.Units
-                                where rp.Race == request.Interest && rp.IsUploader && rp.OppRace == request.Versus
-                                group new { s, u } by new { s.Gameloop, u.UnitId } into g
-                                select new
-                                {
-                                    Gameloop = g.Key.Gameloop,
-                                    UnitId = g.Key.UnitId,
-                                    Sum = g.Sum(c => c.u.Count),
-                                    Gas = g.Sum(c => c.s.GasCount),
-                                    Upgrades = g.Sum(c => c.s.UpgradeSpent),
-                                }
+        {
+            (true, true) =>
+                            from r in replays
+                            from rp in r.Players
+                            from s in rp.Spawns
+                            from u in s.Units
+                            where rp.Race == request.Interest && request.PlayerNames.Contains(rp.Name)
+                            group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                            select new
+                            {
+                                Gameloop = g.Key.Gameloop,
+                                UnitId = g.Key.UnitId,
+                                Sum = g.Sum(c => c.u.Count),
+                                Gas = g.Sum(c => c.s.GasCount),
+                                Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                            },
+            (true, false) =>
+                            from r in replays
+                            from rp in r.Players
+                            from s in rp.Spawns
+                            from u in s.Units
+                            where rp.Race == request.Interest && rp.IsUploader
+                            group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                            select new
+                            {
+                                Gameloop = g.Key.Gameloop,
+                                UnitId = g.Key.UnitId,
+                                Sum = g.Sum(c => c.u.Count),
+                                Gas = g.Sum(c => c.s.GasCount),
+                                Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                            },
+            (false, true) =>
+                            from r in replays
+                            from rp in r.Players
+                            from s in rp.Spawns
+                            from u in s.Units
+                            where rp.Race == request.Interest && request.PlayerNames.Contains(rp.Name) && rp.OppRace == request.Versus
+                            group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                            select new
+                            {
+                                Gameloop = g.Key.Gameloop,
+                                UnitId = g.Key.UnitId,
+                                Sum = g.Sum(c => c.u.Count),
+                                Gas = g.Sum(c => c.s.GasCount),
+                                Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                            },
+            (false, false) =>
+                            from r in replays
+                            from rp in r.Players
+                            from s in rp.Spawns
+                            from u in s.Units
+                            where rp.Race == request.Interest && rp.IsUploader && rp.OppRace == request.Versus
+                            group new { s, u } by new { s.Gameloop, u.UnitId } into g
+                            select new
+                            {
+                                Gameloop = g.Key.Gameloop,
+                                UnitId = g.Key.UnitId,
+                                Sum = g.Sum(c => c.u.Count),
+                                Gas = g.Sum(c => c.s.GasCount),
+                                Upgrades = g.Sum(c => c.s.UpgradeSpent),
+                            }
 
-            };
+        };
 
         var result = await groups
             .AsSplitQuery()

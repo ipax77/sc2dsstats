@@ -1,4 +1,5 @@
 ﻿using pax.dsstats.shared;
+using System.Collections.Generic;
 using System.Net.Http.Json;
 
 namespace pax.dsstats.web.Client.Services;
@@ -122,6 +123,67 @@ public class DataService : IDataService
         catch (Exception e)
         {
             logger.LogError($"failed getting build: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<int> GetRatingsCount(CancellationToken token = default)
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<int>($"{statsController}GetRatingsCount");
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting ratings count: {e.Message}");
+        }
+        return 0;
+    }
+
+    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, Order order, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{statsController}GetRatings/{skip}/{take}", order, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<PlayerRatingDto>>() ?? new();
+            }
+            else
+            {
+                logger.LogError($"failed getting ratings: {response.StatusCode}");
+            }
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting ratings: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<string?> GetPlayerRatings(int toonId)
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<string?>($"{statsController}GetPlayerRatings/{toonId}");
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting player ratings: {e.Message}");
+        }
+        return null;
+    }
+
+    public async Task<List<MmrDevDto>> GetRatingsDeviation()
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<List<MmrDevDto>>("{statsController}GetRatingsDeviation") ?? new();
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting rating deviation: {e.Message}");
         }
         return new();
     }

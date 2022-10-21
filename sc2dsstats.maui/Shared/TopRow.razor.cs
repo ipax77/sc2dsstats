@@ -9,11 +9,16 @@ public partial class TopRow : ComponentBase, IDisposable
     protected DecodeService decodeService { get; set; } = null!;
 
     [Inject]
+    protected UploadService uploadService { get; set; } = null!;
+
+
+    [Inject]
     protected NavigationManager navigationManager { get; set; } = null!;
 
     private DecodeEventArgs? decodeEventArgs;
     private TimeSpan elapsed = TimeSpan.Zero;
     private TimeSpan eta = TimeSpan.Zero;
+    private UploadStatus uploadStatus;
 
     // private ReplaysFailedModal? replaysFailedModal;
 
@@ -21,7 +26,14 @@ public partial class TopRow : ComponentBase, IDisposable
     {
         decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
         decodeService.ScanStateChanged += DecodeService_ScanStateChanged;
+        uploadService.UploadStateChanged += UploadService_UploadStateChanged;
         base.OnInitialized();
+    }
+
+    private void UploadService_UploadStateChanged(object? sender, UploadeEventArgs e)
+    {
+        uploadStatus = e.UploadStatus;
+        InvokeAsync(() => StateHasChanged());
     }
 
     private void DecodeService_ScanStateChanged(object? sender, ScanEventArgs e)

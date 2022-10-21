@@ -1,7 +1,7 @@
 ﻿@using System.Globalization;
 @using pax.dsstats.shared
 @using pax.BlazorChartJs
-@inject IStatsService statsService
+@inject IDataService dataService
 @implements IDisposable
 
 <div style="min-width: 900px;">
@@ -29,7 +29,7 @@
 
     public async Task LoadData(int toonId, string name)
     {
-        var plRatings = await statsService.GetPlayerRatings(toonId);
+        var plRatings = await dataService.GetPlayerRatings(toonId);
 
         if (String.IsNullOrEmpty(plRatings))
         {

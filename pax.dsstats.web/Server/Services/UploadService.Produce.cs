@@ -40,13 +40,13 @@ public partial class UploadService
         await context.SaveChangesAsync();
 
         // replays.SelectMany(s => s.Players).Where(x => uploader.Players.Select(t => t.Name).Contains(x.Name)).ToList().ForEach(f => f.IsUploader = true);
+        
+        _ = InsertReplays();
 
         for (int i = 0; i < replays.Count; i++)
         {
             ReplayChannel.Writer.TryWrite(replays[i]);
         }
-
-        _ = InsertReplays();
     }
 
     public async Task InsertReplays()
@@ -62,7 +62,7 @@ public partial class UploadService
 
         using var scope = serviceProvider.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var replayRepository = serviceProvider.GetRequiredService<IReplayRepository>();
+        var replayRepository = scope.ServiceProvider.GetRequiredService<IReplayRepository>();
 
         if (!Units.Any())
         {
@@ -82,18 +82,24 @@ public partial class UploadService
                     continue;
                 }
 
-                var dupReplayExists = context.Replays.Any(f => f.ReplayHash == replayDto.ReplayHash);
+                try
+                {
+                    var dupReplayExists = context.Replays.Any(f => f.ReplayHash == replayDto.ReplayHash);
 
-                if (!dupReplayExists)
-                {
-                    (Units, Upgrades) = await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
-                }
-                else
-                {
-                    if (await HandleDuplicate(context, replayDto))
+                    if (!dupReplayExists)
                     {
-                        await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
-                    };
+                        (Units, Upgrades) = await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
+                    }
+                    else
+                    {
+                        if (await HandleDuplicate(context, replayDto))
+                        {
+                            await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
+                        };
+                    }
+                } catch (Exception ex)
+                {
+                    logger.LogError($"failed inserting replay {replayDto.ReplayHash}: {ex.Message}");
                 }
             }
         }

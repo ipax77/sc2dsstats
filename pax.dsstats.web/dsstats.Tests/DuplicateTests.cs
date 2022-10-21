@@ -7,16 +7,10 @@ using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.shared;
 using pax.dsstats.web.Server.Services;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.IO.Compression;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace dsstats.Tests;
 
@@ -135,23 +129,23 @@ public class DuplicateTest : IDisposable
         }
 
         replayDto.Players.ToList().ForEach(f => f.IsUploader = false);
-        
+
         replayDto.Players.ElementAt(0).IsUploader = true;
         await uploadService.ImportReplays(ZipReplay(replayDto), uploaderDto1.AppGuid);
         replayDto.Players.ElementAt(0).IsUploader = false;
         replayDto.Players.ElementAt(1).IsUploader = true;
         await uploadService.ImportReplays(ZipReplay(replayDto), uploaderDto2.AppGuid);
         replayDto.Players.ElementAt(1).IsUploader = false;
-        replayDto.Players.ElementAt(2).IsUploader = true;        
+        replayDto.Players.ElementAt(2).IsUploader = true;
         await uploadService.ImportReplays(ZipReplay(replayDto), uploaderDto3.AppGuid);
         replayDto.Players.ElementAt(2).IsUploader = false;
-        replayDto.Players.ElementAt(3).IsUploader = true;        
+        replayDto.Players.ElementAt(3).IsUploader = true;
         await uploadService.ImportReplays(ZipReplay(replayDto), uploaderDto4.AppGuid);
         replayDto.Players.ElementAt(3).IsUploader = false;
-        replayDto.Players.ElementAt(4).IsUploader = true;        
+        replayDto.Players.ElementAt(4).IsUploader = true;
         await uploadService.ImportReplays(ZipReplay(replayDto), uploaderDto5.AppGuid);
         replayDto.Players.ElementAt(4).IsUploader = false;
-        replayDto.Players.ElementAt(5).IsUploader = true;        
+        replayDto.Players.ElementAt(5).IsUploader = true;
         await uploadService.ImportReplays(ZipReplay(replayDto), uploaderDto6.AppGuid);
 
         await Task.Delay(5000);
@@ -173,7 +167,13 @@ public class DuplicateTest : IDisposable
         {
             AppGuid = Guid.NewGuid(),
             AppVersion = "0.0.1",
-            BattleNetId = 123456 + num,
+            BatteBattleNetInfos = new List<BattleNetInfoDto>()
+            {
+                new BattleNetInfoDto()
+                {
+                    BattleNetId = 123456 + num
+                }
+            },
             Players = new List<PlayerUploadDto>()
             {
                 new PlayerUploadDto()

@@ -1,10 +1,5 @@
 ﻿using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace sc2dsstats.razorlib.Services;
 public static class HelperService

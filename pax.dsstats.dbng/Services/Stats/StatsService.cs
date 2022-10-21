@@ -2,14 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using pax.dsstats.shared;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng.Services;
 
@@ -105,7 +99,7 @@ public partial class StatsService : IStatsService
         var stats = from r in context.Replays
                     from p in r.Players
                     where r.GameMode == GameMode.Commanders || r.GameMode == GameMode.CommandersHeroic
-                        // where r.DefaultFilter && p.IsUploader
+                    // where r.DefaultFilter && p.IsUploader
                     group new { r, p } by new { year = r.GameTime.Year, month = r.GameTime.Month, race = p.Race, opprace = p.OppRace } into g
                     select new CmdrStats()
                     {
@@ -125,7 +119,7 @@ public partial class StatsService : IStatsService
     }
 
 
- 
+
 }
 
 public record CmdrStats

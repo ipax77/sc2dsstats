@@ -19,6 +19,25 @@ namespace MysqlMigrations.Migrations
                 .HasAnnotation("ProductVersion", "6.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("pax.dsstats.dbng.BattleNetInfo", b =>
+                {
+                    b.Property<int>("BattleNetInfoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("BattleNetId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UploaderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BattleNetInfoId");
+
+                    b.HasIndex("UploaderId");
+
+                    b.ToTable("BattleNetInfos");
+                });
+
             modelBuilder.Entity("pax.dsstats.dbng.Event", b =>
                 {
                     b.Property<int>("EventId")
@@ -69,7 +88,7 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("ToonId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UploaderId")
+                    b.Property<int?>("UploaderId")
                         .HasColumnType("int");
 
                     b.HasKey("PlayerId");
@@ -448,8 +467,8 @@ namespace MysqlMigrations.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("UnitId");
 
@@ -488,11 +507,13 @@ namespace MysqlMigrations.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("BattleNetId")
-                        .HasColumnType("int");
+                    b.Property<string>("Identifier")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("LatestReplay")
-                        .HasColumnType("datetime(6)");
+                        .HasPrecision(0)
+                        .HasColumnType("datetime(0)");
 
                     b.Property<DateTime>("LatestUpload")
                         .HasPrecision(0)
@@ -500,19 +521,24 @@ namespace MysqlMigrations.Migrations
 
                     b.HasKey("UploaderId");
 
-                    b.HasIndex("BattleNetId")
+                    b.HasIndex("AppGuid")
                         .IsUnique();
 
                     b.ToTable("Uploaders");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.BattleNetInfo", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.Uploader", null)
+                        .WithMany("BattleNetInfos")
+                        .HasForeignKey("UploaderId");
                 });
 
             modelBuilder.Entity("pax.dsstats.dbng.Player", b =>
                 {
                     b.HasOne("pax.dsstats.dbng.Uploader", "Uploader")
                         .WithMany("Players")
-                        .HasForeignKey("UploaderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UploaderId");
 
                     b.Navigation("Uploader");
                 });
@@ -644,6 +670,8 @@ namespace MysqlMigrations.Migrations
 
             modelBuilder.Entity("pax.dsstats.dbng.Uploader", b =>
                 {
+                    b.Navigation("BattleNetInfos");
+
                     b.Navigation("Players");
                 });
 #pragma warning restore 612, 618

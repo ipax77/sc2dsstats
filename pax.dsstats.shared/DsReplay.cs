@@ -23,7 +23,7 @@ public record DsReplay
 public record ReplayLayout
 {
     public Position Nexus { get; set; } = Position.Zero;
-    public Position Planetary {  get; set; } = Position.Zero;
+    public Position Planetary { get; set; } = Position.Zero;
     public Position Cannon { get; set; } = Position.Zero;
     public Position Bunker { get; set; } = Position.Zero;
 }

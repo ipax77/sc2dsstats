@@ -1,15 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng;
 
 public class ReplayContext : DbContext
 {
     public virtual DbSet<Uploader> Uploaders { get; set; } = null!;
+    public virtual DbSet<BattleNetInfo> BattleNetInfos { get; set; } = null!;
     public virtual DbSet<Player> Players { get; set; } = null!;
     public virtual DbSet<Replay> Replays { get; set; } = null!;
     public virtual DbSet<ReplayPlayer> ReplayPlayers { get; set; } = null!;
@@ -64,7 +60,7 @@ public class ReplayContext : DbContext
 
         modelBuilder.Entity<Uploader>(entity =>
         {
-            entity.HasIndex(e => e.BattleNetId).IsUnique();
+            entity.HasIndex(e => e.AppGuid).IsUnique();
         });
     }
 }

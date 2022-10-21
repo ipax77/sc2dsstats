@@ -12,12 +12,14 @@ namespace pax.dsstats.web.Server.Controllers
         private readonly IReplayRepository replayRepository;
         private readonly IStatsRepository statsRepository;
         private readonly BuildService buildService;
+        private readonly IStatsService statsService;
 
-        public StatsController(IReplayRepository replayRepository, IStatsRepository statsRepository, BuildService buildService)
+        public StatsController(IReplayRepository replayRepository, IStatsRepository statsRepository, BuildService buildService, IStatsService statsService)
         {
             this.replayRepository = replayRepository;
             this.statsRepository = statsRepository;
             this.buildService = buildService;
+            this.statsService = statsService;
         }
 
         [HttpPost]
@@ -60,6 +62,33 @@ namespace pax.dsstats.web.Server.Controllers
             return await buildService.GetBuild(request);
         }
 
+        [HttpGet]
+        [Route("GetRatingsCount")]
+        public async Task<int> GetRatingsCount(CancellationToken token = default)
+        {
+            return await statsService.GetRatingsCount(token);
+        }
+
+        [HttpPost]
+        [Route("GetRatings/{skip}/{take}")]
+        public async Task<List<PlayerRatingDto>> GetRatings([FromBody] Order order, int skip, int take, CancellationToken token = default)
+        {
+            return await statsService.GetRatings(skip, take, order, token);
+        }
+
+        [HttpGet]
+        [Route("GetPlayerRatings/{toonId}")]
+        public async Task<string?> GetPlayerRatings(int toonId)
+        {
+            return await statsService.GetPlayerRatings(toonId);
+        }
+
+        [HttpGet]
+        [Route("GetRatingsDeviation")]
+        public async Task<List<MmrDevDto>> GetRatingsDeviation()
+        {
+            return await statsService.GetRatingsDeviation();
+        }
     }
 
 }

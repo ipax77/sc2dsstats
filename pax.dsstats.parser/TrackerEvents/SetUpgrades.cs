@@ -1,10 +1,5 @@
 ﻿using pax.dsstats.shared;
 using s2protocol.NET.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.parser;
 
@@ -18,8 +13,8 @@ public static partial class Parse
         {
             var upgradeEvent = upgradeEvents[i];
 
-            if (upgradeEvent.Gameloop == 0 
-                && (upgradeEvent.UpgradeTypeName.StartsWith("Mutation") 
+            if (upgradeEvent.Gameloop == 0
+                && (upgradeEvent.UpgradeTypeName.StartsWith("Mutation")
                     || upgradeEvent.UpgradeTypeName.StartsWith("GameMode")))
             {
                 Modes.Add(upgradeEvent.UpgradeTypeName);

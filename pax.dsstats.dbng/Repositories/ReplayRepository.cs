@@ -4,11 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using pax.dsstats.dbng.Extensions;
 using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng.Repositories;
 
@@ -174,7 +169,7 @@ public class ReplayRepository : IReplayRepository
 
         if (!String.IsNullOrEmpty(request.Tournament))
         {
-            replays = replays.Where(x => x.ReplayEvent != null 
+            replays = replays.Where(x => x.ReplayEvent != null
                 && x.ReplayEvent.Event.Name.Equals(request.Tournament));
         }
 
@@ -307,7 +302,8 @@ public class ReplayRepository : IReplayRepository
                 try
                 {
                     await context.SaveChangesAsync();
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     logger.LogError($"failed saving replay: {ex.Message}");
                     throw;
@@ -329,7 +325,8 @@ public class ReplayRepository : IReplayRepository
         try
         {
             await context.SaveChangesAsync();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             logger.LogError($"failed saving replay: {ex.Message}");
             throw;

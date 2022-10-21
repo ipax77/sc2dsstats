@@ -1,10 +1,5 @@
 ﻿using AutoMapper;
 using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng
 {
@@ -58,7 +53,8 @@ namespace pax.dsstats.dbng
             CreateMap<Player, PlayerRatingDto>(MemberList.Destination);
 
             CreateMap<UploaderDto, Uploader>(MemberList.Source);
-            CreateMap<PlayerUploadDto, Player>(MemberList.Destination);
+            CreateMap<BattleNetInfoDto, BattleNetInfo>(MemberList.Source);
+            CreateMap<PlayerUploadDto, Player>(MemberList.Source);
         }
     }
 }

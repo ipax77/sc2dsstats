@@ -36,6 +36,7 @@ public partial class UploadService
             }
 
             uploader.LatestUpload = DateTime.UtcNow;
+            uploader.LatestReplay = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
         catch (Exception ex)
@@ -54,11 +55,13 @@ public partial class UploadService
 
         var dbUplaoder = await context.Uploaders
             .Include(i => i.Players)
-            .FirstOrDefaultAsync(f => f.BattleNetId == uploader.BattleNetId);
+            .Include(i => i.BattleNetInfos)
+            .FirstOrDefaultAsync(f => f.AppGuid == uploader.AppGuid);
 
         if (dbUplaoder == null)
         {
             dbUplaoder = mapper.Map<Uploader>(uploader);
+            dbUplaoder.Identifier = dbUplaoder.Players.FirstOrDefault()?.Name ?? "Anonymous";
             await CreateUploaderPlayers(context, dbUplaoder);
 
             context.Uploaders.Add(dbUplaoder);
@@ -78,12 +81,13 @@ public partial class UploadService
 
     private static async Task CreateUploaderPlayers(ReplayContext context, Uploader dbUplaoder)
     {
-        for (int i = 0; i < dbUplaoder.Players.Count; i++)
+        foreach (var player in dbUplaoder.Players.ToArray())
         {
-            var dbPlayer = await context.Players.FirstOrDefaultAsync(f => f.ToonId == dbUplaoder.Players.ElementAt(i).ToonId);
+            var dbPlayer = await context.Players.FirstOrDefaultAsync(f => f.ToonId == player.ToonId);
             if (dbPlayer != null)
             {
-                dbUplaoder.Players.Remove(dbUplaoder.Players.ElementAt(i));
+                dbPlayer.Uploader = dbUplaoder;
+                dbUplaoder.Players.Remove(player);
                 dbUplaoder.Players.Add(dbPlayer);
             }
         }
@@ -122,6 +126,40 @@ public partial class UploadService
                 }
             }
         }
+
+        if (dbUploader.BattleNetInfos != null)
+        {
+            for (int i = 0; i < dbUploader.BattleNetInfos.Count; i++)
+            {
+                var dbInfo = dbUploader.BattleNetInfos.ElementAt(i);
+                var info = uploader.BatteBattleNetInfos?.FirstOrDefault(f => f.BattleNetId == dbInfo.BattleNetId);
+                if (info == null)
+                {
+                    dbUploader.BattleNetInfos.Remove(dbInfo);
+                }
+            }
+        }
+
+        if (uploader.BatteBattleNetInfos != null)
+        {
+            for (int i = 0; i < uploader.BatteBattleNetInfos.Count; i++)
+            {
+                var info = uploader.BatteBattleNetInfos.ElementAt(i);
+                var dbInfo = dbUploader.BattleNetInfos?.FirstOrDefault(f => f.BattleNetId == info.BattleNetId);
+                if (dbInfo == null)
+                {
+                    if (dbUploader.BattleNetInfos == null)
+                    {
+                        dbUploader.BattleNetInfos = new List<BattleNetInfo>() { mapper.Map<BattleNetInfo>(info) };
+                    }
+                    else
+                    {
+                        dbUploader.BattleNetInfos.Add(mapper.Map<BattleNetInfo>(info));
+                    }
+                }
+            }
+        }
+
         await context.SaveChangesAsync();
     }
 

@@ -2,13 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng.Repositories;
 
@@ -67,7 +61,7 @@ public partial class StatsRepository : IStatsRepository
 
         sw.Stop();
         logger.LogInformation($"got winrate groups in {sw.ElapsedMilliseconds} ms");
-        
+
         sw.Start();
 
 
@@ -159,7 +153,7 @@ public partial class StatsRepository : IStatsRepository
         if (!string.IsNullOrEmpty(request.Tournament))
         {
             replays = replays
-                .Where(x => x.ReplayEvent != null 
+                .Where(x => x.ReplayEvent != null
                     && x.ReplayEvent.Event.Name == request.Tournament);
         }
 

@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using sc2dsstats.shared;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text.Json;
 
 namespace sc2dsstats.db

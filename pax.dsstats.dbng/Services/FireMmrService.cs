@@ -3,15 +3,8 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using pax.dsstats.shared;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Globalization;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.ConstrainedExecution;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace pax.dsstats.dbng.Services;
 
@@ -52,14 +45,16 @@ public class FireMmrService
             .ProjectTo<ReplayDsRDto>(mapper.ConfigurationProvider);
 
         int count = 0;
-        await replays.ForEachAsync(replay => {
+        await replays.ForEachAsync(replay =>
+        {
 
             var winnerTeam = replay.Players.Where(x => x.Team == replay.WinnerTeam);
             var loserTeam = replay.Players.Where(x => x.Team != replay.WinnerTeam);
             var leaverTeam = new List<ReplayPlayerDsRDto>().AsEnumerable();
-            
+
             int correctedDuration = replay.Duration;
-            if (replay.WinnerTeam == 0) {
+            if (replay.WinnerTeam == 0)
+            {
                 correctedDuration = replay.Players.Where(x => !x.IsUploader).Max(x => x.Duration);
 
                 var uploaders = replay.Players.Where(x => x.IsUploader);
@@ -81,7 +76,7 @@ public class FireMmrService
             (double[] losersMmrDelta, double[] losersConsistencyDelta) = CalculatePlayersDeltas(loserTeam.Select(s => s.Player), false, teamElo, loserTeamMmr);
 
             FixMMR_Equality(winnersMmrDelta, losersMmrDelta);
-            
+
 
             AddPlayersRankings(winnerTeam.Select(s => s.Player), winnersMmrDelta, winnersConsistencyDelta, replay.GameTime);
             AddPlayersRankings(loserTeam.Select(s => s.Player), losersMmrDelta, losersConsistencyDelta, replay.GameTime);
@@ -101,7 +96,7 @@ public class FireMmrService
         foreach (var rating in ratings)
         {
             var player = await context.Players.FirstAsync(f => f.PlayerId == rating.Key);
-            player.Mmr = rating.Value.Last().DsR;
+            player.Mmr = rating.Value.Last().Mmr;
             player.MmrOverTime = GetOverTimeRating(rating.Value);
             i++;
         }
@@ -116,11 +111,11 @@ public class FireMmrService
         }
         else if (dsRCheckpoints.Count == 1)
         {
-            return $"{Math.Round(dsRCheckpoints[0].DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[0].Time:MMyy}";
+            return $"{Math.Round(dsRCheckpoints[0].Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[0].Time:MMyy}";
         }
 
         StringBuilder sb = new();
-        sb.Append($"{Math.Round(dsRCheckpoints.First().DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.First().Time:MMyy}");
+        sb.Append($"{Math.Round(dsRCheckpoints.First().Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.First().Time:MMyy}");
 
         if (dsRCheckpoints.Count > 2)
         {
@@ -131,14 +126,14 @@ public class FireMmrService
                 if (currentTimeStr != timeStr)
                 {
                     sb.Append('|');
-                    sb.Append($"{Math.Round(dsRCheckpoints[i].DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[i].Time:MMyy}");
+                    sb.Append($"{Math.Round(dsRCheckpoints[i].Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints[i].Time:MMyy}");
                 }
                 timeStr = currentTimeStr;
             }
         }
 
         sb.Append('|');
-        sb.Append($"{Math.Round(dsRCheckpoints.Last().DsR, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.Last().Time:MMyy}");
+        sb.Append($"{Math.Round(dsRCheckpoints.Last().Mmr, 1).ToString(CultureInfo.InvariantCulture)},{dsRCheckpoints.Last().Time:MMyy}");
 
         if (sb.Length > 1999)
         {
@@ -154,8 +149,9 @@ public class FireMmrService
         using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
 
         // todo: db-lock (no imports possible during this)
-        await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET DsR = {startMmr}");
-        await context.Database.ExecuteSqlRawAsync("UPDATE Players SET DsROverTime = NULL");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET Mmr = {startMmr}");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE Players SET MmrStd = {startMmr}");
+        await context.Database.ExecuteSqlRawAsync("UPDATE Players SET MmrOverTime = NULL");
         ratings.Clear();
     }
 
@@ -188,7 +184,7 @@ public class FireMmrService
         for (int i = 0; i < teamPlayers.Count(); i++)
         {
             var plRatings = ratings[teamPlayers.ElementAt(i).PlayerId];
-            double playerMmr = plRatings.Last().DsR;
+            double playerMmr = plRatings.Last().Mmr;
             double playerConsistency = plRatings.Last().Consistency;
 
             double factor_playerToTeamMates = PlayerToTeamMates(teamMmr, playerMmr);
@@ -216,13 +212,13 @@ public class FireMmrService
         {
             var plRatings = ratings[teamPlayers.ElementAt(i).PlayerId];
 
-            double mmrBefore = plRatings.Last().DsR;
+            double mmrBefore = plRatings.Last().Mmr;
             double consistencyBefore = plRatings.Last().Consistency;
 
             double mmrAfter = mmrBefore + playersMmrDelta[i];
             double consistencyAfter = consistencyBefore + playersConsistencyDelta[i];
 
-            plRatings.Add(new DsRCheckpoint() { DsR = mmrAfter, Consistency = consistencyAfter, Time = gameTime });
+            plRatings.Add(new DsRCheckpoint() { Mmr = mmrAfter, Consistency = consistencyAfter, Time = gameTime });
         }
     }
 
@@ -254,12 +250,12 @@ public class FireMmrService
         {
             if (!ratings.ContainsKey(replayPlayer.Player.PlayerId))
             {
-                ratings[replayPlayer.Player.PlayerId] = new List<DsRCheckpoint>() { new() { DsR = startMmr, Time = gameTime } };
+                ratings[replayPlayer.Player.PlayerId] = new List<DsRCheckpoint>() { new() { Mmr = startMmr, Time = gameTime } };
                 teamMmr += startMmr;
             }
             else
             {
-                teamMmr += ratings[replayPlayer.Player.PlayerId].Last().DsR;
+                teamMmr += ratings[replayPlayer.Player.PlayerId].Last().Mmr;
             }
         }
 
