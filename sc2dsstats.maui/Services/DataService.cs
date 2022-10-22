@@ -65,9 +65,9 @@ public class DataService : IDataService
         return await statsService.GetRatingsCount(token);
     }
 
-    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, Order order, CancellationToken token = default)
+    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, List<TableOrder> orders, CancellationToken token = default)
     {
-        return await statsService.GetRatings(skip, take, order, token);
+        return await statsService.GetRatings(skip, take, orders, token);
     }
 
     public async Task<string?> GetPlayerRatings(int toonId)
@@ -79,4 +79,10 @@ public class DataService : IDataService
     {
         return await statsService.GetRatingsDeviation();
     }
+
+    public async Task<List<MmrDevDto>> GetRatingsDeviationStd()
+    {
+        return await statsService.GetRatingsDeviationStd();
+    }
+
 }
