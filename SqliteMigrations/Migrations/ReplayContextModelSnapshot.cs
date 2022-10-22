@@ -465,10 +465,13 @@ namespace SqliteMigrations.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(30)
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.HasKey("UnitId");
+
+                    b.HasIndex("Name", "Commander")
+                        .IsUnique();
 
                     b.ToTable("Units");
                 });
@@ -488,6 +491,9 @@ namespace SqliteMigrations.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("UpgradeId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Upgrades");
                 });
@@ -510,6 +516,7 @@ namespace SqliteMigrations.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LatestReplay")
+                        .HasPrecision(0)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LatestUpload")

@@ -472,6 +472,9 @@ namespace MysqlMigrations.Migrations
 
                     b.HasKey("UnitId");
 
+                    b.HasIndex("Name", "Commander")
+                        .IsUnique();
+
                     b.ToTable("Units");
                 });
 
@@ -490,6 +493,9 @@ namespace MysqlMigrations.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("UpgradeId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Upgrades");
                 });

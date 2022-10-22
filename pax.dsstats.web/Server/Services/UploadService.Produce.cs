@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using pax.dsstats.dbng;
-using pax.dsstats.dbng.Repositories;
 using pax.dsstats.shared;
+using sc2dsstats.shared;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Channels;
 
@@ -9,17 +10,15 @@ namespace pax.dsstats.web.Server.Services;
 
 public partial class UploadService
 {
-    private Channel<ReplayDto> ReplayChannel = Channel.CreateUnbounded<ReplayDto>();
+    private Channel<Replay> ReplayChannel = Channel.CreateUnbounded<Replay>();
     private object lockobject = new();
     private bool insertJobRunning;
-    private HashSet<Unit> Units = new();
-    private HashSet<Upgrade> Upgrades = new();
 
     public async Task Produce(string gzipbase64string, Guid appGuid)
     {
-        var replays = JsonSerializer.Deserialize<List<ReplayDto>>(await UnzipAsync(gzipbase64string))?.OrderBy(o => o.GameTime).ToList();
+        var replayDtos = JsonSerializer.Deserialize<List<ReplayDto>>(await UnzipAsync(gzipbase64string))?.OrderBy(o => o.GameTime).ToList();
 
-        if (replays == null || !replays.Any())
+        if (replayDtos == null || !replayDtos.Any())
         {
             return;
         }
@@ -36,11 +35,28 @@ public partial class UploadService
             return;
         }
 
-        uploader.LatestReplay = replays.Last().GameTime;
+        uploader.LatestReplay = replayDtos.Last().GameTime;
         await context.SaveChangesAsync();
 
-        // replays.SelectMany(s => s.Players).Where(x => uploader.Players.Select(t => t.Name).Contains(x.Name)).ToList().ForEach(f => f.IsUploader = true);
-        
+        Stopwatch sw = new();
+
+        sw.Start();
+        var replays = replayDtos.Select(s => mapper.Map<Replay>(s)).ToList();
+        sw.Stop();
+        logger.LogInformation($"mapped replays in {sw.ElapsedMilliseconds} ms");
+        sw.Restart();
+        await MapUpgrades(replays);
+        sw.Stop();
+        logger.LogInformation($"mapped upgrades in {sw.ElapsedMilliseconds} ms");
+        sw.Restart();
+        await MapUnits(replays);
+        sw.Stop();
+        logger.LogInformation($"mapped units in {sw.ElapsedMilliseconds} ms");
+        sw.Restart();
+        await MapPlayers(replays);
+        sw.Stop();
+        logger.LogInformation($"mapped  players in {sw.ElapsedMilliseconds} ms");
+
         _ = InsertReplays();
 
         for (int i = 0; i < replays.Count; i++)
@@ -60,70 +76,67 @@ public partial class UploadService
             insertJobRunning = true;
         }
 
-        using var scope = serviceProvider.CreateScope();
-        using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var replayRepository = scope.ServiceProvider.GetRequiredService<IReplayRepository>();
 
-        if (!Units.Any())
-        {
-            Units = (await context.Units.AsNoTracking().ToListAsync()).ToHashSet();
-        }
-        if (!Upgrades.Any())
-        {
-            Upgrades = (await context.Upgrades.AsNoTracking().ToListAsync()).ToHashSet();
-        }
 
         while (await ReplayChannel.Reader.WaitToReadAsync())
         {
-            if (ReplayChannel.Reader.TryRead(out ReplayDto? replayDto))
+            if (ReplayChannel.Reader.TryRead(out Replay? replay))
             {
-                if (replayDto == null)
+                if (replay == null)
                 {
                     continue;
                 }
 
                 try
                 {
-                    var dupReplayExists = context.Replays.Any(f => f.ReplayHash == replayDto.ReplayHash);
-
-                    if (!dupReplayExists)
-                    {
-                        (Units, Upgrades) = await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
-                    }
-                    else
-                    {
-                        if (await HandleDuplicate(context, replayDto))
-                        {
-                            await replayRepository.SaveReplay(replayDto, Units, Upgrades, null);
-                        };
-                    }
+                    await SaveReplay(replay);
                 } catch (Exception ex)
                 {
-                    logger.LogError($"failed inserting replay {replayDto.ReplayHash}: {ex.Message}");
+                    logger.LogError($"failed inserting replay {replay.ReplayHash}: {ex.Message}");
                 }
             }
         }
         insertJobRunning = false;
     }
 
-    public async Task<bool> HandleDuplicate(ReplayContext context, ReplayDto replayDto)
+    private async Task SaveReplay(Replay replay)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        var dupReplayExists = context.Replays.Any(f => f.ReplayHash == replay.ReplayHash);
+
+        if (!dupReplayExists)
+        {
+            context.Replays.Add(replay);
+            await context.SaveChangesAsync();
+        }
+
+        else if (await HandleDuplicate(context, replay))
+        {
+            context.Replays.Add(replay);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<bool> HandleDuplicate(ReplayContext context, Replay replay)
     {
         var dupReplay = await context.Replays
             .Include(i => i.Players)
-            .FirstOrDefaultAsync(f => f.ReplayHash == replayDto.ReplayHash);
+            .FirstOrDefaultAsync(f => f.ReplayHash == replay.ReplayHash);
 
         if (dupReplay == null)
         {
             return false;
         }
 
-        if (dupReplay.GameTime - replayDto.GameTime > TimeSpan.FromDays(1))
+        if (dupReplay.GameTime - replay.GameTime > TimeSpan.FromDays(1))
         {
             logger.LogWarning($"false positive duplicate? {dupReplay.ReplayHash}");
             return false;
         }
 
-        if (replayDto.Duration > dupReplay.Duration + 60)
+        if (replay.Duration > dupReplay.Duration + 60)
         {
             var delReplay = await context.Replays
                 .Include(i => i.Players)
@@ -132,11 +145,11 @@ public partial class UploadService
                 .Include(i => i.Players)
                     .ThenInclude(i => i.Upgrades)
 
-                .FirstAsync(f => f.ReplayHash == replayDto.ReplayHash);
+                .FirstAsync(f => f.ReplayHash == replay.ReplayHash);
 
             foreach (var uploader in delReplay.Players.Where(x => x.IsUploader))
             {
-                var uploaderDto = replayDto.Players.FirstOrDefault(f => f.Name == uploader.Name);
+                var uploaderDto = replay.Players.FirstOrDefault(f => f.Name == uploader.Name);
                 if (uploaderDto == null)
                 {
                     logger.LogWarning($"false positive duplicate (dtoPlayer)? {dupReplay.ReplayHash}");
@@ -151,7 +164,7 @@ public partial class UploadService
         }
         else
         {
-            foreach (var uploader in replayDto.Players.Where(x => x.IsUploader))
+            foreach (var uploader in replay.Players.Where(x => x.IsUploader))
             {
                 var dbUploader = dupReplay.Players.FirstOrDefault(f => f.Name == uploader.Name);
                 if (dbUploader == null)

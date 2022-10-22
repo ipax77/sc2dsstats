@@ -50,16 +50,20 @@ public class ImportTests : IDisposable
         //    .AddDbContext<ReplayContext>(options => options.UseSqlite(_connection),
         //        ServiceLifetime.Transient);
 
-        serviceCollection.AddDbContext<ReplayContext>(options =>
-        {
-            options.UseSqlite(_connection, sqlOptions =>
-            {
-                sqlOptions.MigrationsAssembly("SqliteMigrations");
-                sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
-            })
-            .EnableDetailedErrors()
-            .EnableDetailedErrors();
-        });
+        //serviceCollection.AddDbContext<ReplayContext>(options =>
+        //{
+        //    options.UseSqlite(_connection, sqlOptions =>
+        //    {
+        //        sqlOptions.MigrationsAssembly("SqliteMigrations");
+        //        sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
+        //    })
+        //    .EnableDetailedErrors()
+        //    .EnableSensitiveDataLogging();
+        //});
+
+        serviceCollection
+            .AddDbContext<ReplayContext>(options => options.UseSqlite(_connection),
+        ServiceLifetime.Transient);
 
         serviceCollection.AddTransient<IReplayRepository, ReplayRepository>();
         serviceCollection.AddAutoMapper(typeof(AutoMapperProfile));
