@@ -38,24 +38,10 @@ public partial class UploadService
         uploader.LatestReplay = replayDtos.Last().GameTime;
         await context.SaveChangesAsync();
 
-        Stopwatch sw = new();
-
-        sw.Start();
         var replays = replayDtos.Select(s => mapper.Map<Replay>(s)).ToList();
-        sw.Stop();
-        logger.LogInformation($"mapped replays in {sw.ElapsedMilliseconds} ms");
-        sw.Restart();
         await MapUpgrades(replays);
-        sw.Stop();
-        logger.LogInformation($"mapped upgrades in {sw.ElapsedMilliseconds} ms");
-        sw.Restart();
         await MapUnits(replays);
-        sw.Stop();
-        logger.LogInformation($"mapped units in {sw.ElapsedMilliseconds} ms");
-        sw.Restart();
         await MapPlayers(replays);
-        sw.Stop();
-        logger.LogInformation($"mapped  players in {sw.ElapsedMilliseconds} ms");
 
         _ = InsertReplays();
 

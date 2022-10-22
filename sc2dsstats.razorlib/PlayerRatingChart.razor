@@ -4,18 +4,24 @@
 @inject IDataService dataService
 @implements IDisposable
 
-<div style="min-width: 900px;">
+<div style="width: 800px;">
     <ChartComponent @ref="chartComponent" ChartJsConfig="chartJsConfig" OnEventTriggered="EventTriggered"></ChartComponent>
+</div>
+<div style="width: 800px;">
+    <ChartComponent @ref="chartComponentStd" ChartJsConfig="chartJsConfigStd" OnEventTriggered="EventTriggered"></ChartComponent>
 </div>
 
 @code {
     ChartComponent? chartComponent;
+    ChartComponent? chartComponentStd;
     ChartJsConfig chartJsConfig = null!;
+    ChartJsConfig chartJsConfigStd = null!;
     EventWaitHandle ewh = new(false, EventResetMode.ManualReset);
 
     protected override void OnInitialized()
     {
         chartJsConfig = GetLineChartConfig();
+        chartJsConfigStd = GetLineChartConfig();
         base.OnInitialized();
     }
 
@@ -29,9 +35,9 @@
 
     public async Task LoadData(int toonId, string name)
     {
-        var plRatings = await dataService.GetPlayerRatings(toonId);
+        var ratingsOt = await dataService.GetPlayerRatings(toonId);
 
-        if (String.IsNullOrEmpty(plRatings))
+        if (String.IsNullOrEmpty(ratingsOt))
         {
             return;
         }
@@ -39,34 +45,58 @@
         List<string> labels = new();
         List<double> ratings = new();
 
-        var ents = plRatings.Split('|');
-        for (int i = 0; i < ents.Length; i++)
-        {
-            var entData = ents[i].Split(',');
-            if (double.TryParse(entData[0], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double rating))
-            {
-                ratings.Add(Math.Round(rating, 1));
-                labels.Add(entData[1]);
-            }
-        }
+        var plRatingsOt = ratingsOt.Split('X');
 
-        ewh.WaitOne();
-        if (chartJsConfig.Data.Datasets.Any())
+        for (int j = 0; j < plRatingsOt.Length; j++)
         {
-            foreach (var dataset in chartJsConfig.Data.Datasets.ToArray())
+            labels.Clear();
+            ratings.Clear();
+
+            var ents = plRatingsOt[j].Split('|');
+            for (int i = 0; i < ents.Length; i++)
             {
-                chartJsConfig.RemoveDataset(dataset);
+                var entData = ents[i].Split(',');
+                if (double.TryParse(entData[0], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double rating))
+                {
+                    ratings.Add(Math.Round(rating, 1));
+                    labels.Add(entData[1]);
+                }
+            }
+
+            ewh.WaitOne();
+
+            if (j == 0)
+            {
+                if (chartJsConfig.Data.Datasets.Any())
+                {
+                    foreach (var dataset in chartJsConfig.Data.Datasets.ToArray())
+                    {
+                        chartJsConfig.RemoveDataset(dataset);
+                    }
+                }
+                chartJsConfig.SetLabels(labels);
+                chartJsConfig.AddDataset(GetLineDataset(ratings, name));
+            }
+            else if (j == 1)
+            {
+                if (chartJsConfigStd.Data.Datasets.Any())
+                {
+                    foreach (var dataset in chartJsConfigStd.Data.Datasets.ToArray())
+                    {
+                        chartJsConfigStd.RemoveDataset(dataset);
+                    }
+                }
+                chartJsConfigStd.SetLabels(labels);
+                chartJsConfigStd.AddDataset(GetLineDataset(ratings, name, true));
             }
         }
-        chartJsConfig.SetLabels(labels);
-        chartJsConfig.AddDataset(GetLineDataset(ratings, name));
     }
 
-    private LineDataset GetLineDataset(List<double> ratings, string name)
+    private LineDataset GetLineDataset(List<double> ratings, string name, bool std = false)
     {
         return new()
             {
-                Label = $"{name} development",
+                Label = $"{(std ? "Std" : "Cmdr")} {name} development",
                 Data = new List<object>(ratings.Cast<object>()),
                 BackgroundColor = "lightblue",
                 BorderColor = "lightblue",

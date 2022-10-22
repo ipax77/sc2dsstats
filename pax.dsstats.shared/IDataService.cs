@@ -11,7 +11,8 @@ public interface IDataService
 
     // ratings
     Task<int> GetRatingsCount(CancellationToken token = default);
-    Task<List<PlayerRatingDto>> GetRatings(int skip, int take, Order order, CancellationToken token = default);
+    Task<List<PlayerRatingDto>> GetRatings(int skip, int take, List<TableOrder> orders, CancellationToken token = default);
     Task<string?> GetPlayerRatings(int toonId);
     Task<List<MmrDevDto>> GetRatingsDeviation();
+    Task<List<MmrDevDto>> GetRatingsDeviationStd();
 }

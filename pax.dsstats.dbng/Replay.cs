@@ -43,6 +43,8 @@ public class Player
     public double MmrStd { get; set; }
     [MaxLength(2000)]
     public string? MmrOverTime { get; set; }
+    [MaxLength(2000)]
+    public string? MmrStdOverTime { get; set; }
     public int? UploaderId { get; set; }
     public virtual Uploader? Uploader { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }

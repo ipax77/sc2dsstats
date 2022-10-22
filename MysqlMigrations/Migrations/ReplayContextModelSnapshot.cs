@@ -80,6 +80,10 @@ namespace MysqlMigrations.Migrations
                     b.Property<double>("MmrStd")
                         .HasColumnType("double");
 
+                    b.Property<string>("MmrStdOverTime")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)

@@ -3,11 +3,14 @@
 @inject IDataService dataService
 @implements IDisposable
 
-<div style="min-width: 900px;">
+<div style="width: 800px;">
     <ChartComponent @ref="chartComponent" ChartJsConfig="chartJsConfig" OnEventTriggered="EventTriggered"></ChartComponent>
 </div>
 
 @code {
+    [Parameter]
+    public bool Std { get; set; }
+
     ChartComponent? chartComponent;
     ChartJsConfig chartJsConfig = null!;
     SemaphoreSlim ss = new(1, 1);
@@ -30,7 +33,7 @@
 
     public async Task LoadData()
     {
-        var devs = await dataService.GetRatingsDeviation();
+        var devs = Std ? await dataService.GetRatingsDeviationStd() : await dataService.GetRatingsDeviation();
 
         if (devs.Any())
         {
@@ -63,7 +66,7 @@
     {
         return new()
             {
-                Label = "Rating deviation",
+                Label = $"{(Std ? "Std" : "Cmdr")} Rating deviation",
                 Data = new List<object>(devs.Select(s => (object)s.Count)),
                 BackgroundColor = "lightblue",
                 BorderColor = "lightblue",
@@ -184,6 +187,6 @@
 
     public void Dispose()
     {
-        ss.Dispose();
+        //ss.Dispose();
     }
 }

@@ -8,7 +8,7 @@ public class DataService : IDataService
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<DataService> logger;
-    private readonly string statsController = "api/StatsController/";
+    private readonly string statsController = "api/Stats/";
 
     public DataService(HttpClient httpClient, ILogger<DataService> logger)
     {
@@ -140,11 +140,11 @@ public class DataService : IDataService
         return 0;
     }
 
-    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, Order order, CancellationToken token = default)
+    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, List<TableOrder> orders, CancellationToken token = default)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync($"{statsController}GetRatings/{skip}/{take}", order, token);
+            var response = await httpClient.PostAsJsonAsync($"{statsController}GetRatings/{skip}/{take}", orders, token);
 
             if (response.IsSuccessStatusCode)
             {
@@ -166,7 +166,11 @@ public class DataService : IDataService
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<string?>($"{statsController}GetPlayerRatings/{toonId}");
+            var response = await httpClient.GetAsync($"{statsController}GetPlayerRatings/{toonId}");
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
         }
         catch (Exception e)
         {
@@ -179,11 +183,24 @@ public class DataService : IDataService
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<List<MmrDevDto>>("{statsController}GetRatingsDeviation") ?? new();
+            return await httpClient.GetFromJsonAsync<List<MmrDevDto>>($"{statsController}GetRatingsDeviation") ?? new();
         }
         catch (Exception e)
         {
             logger.LogError($"failed getting rating deviation: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<List<MmrDevDto>> GetRatingsDeviationStd()
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<List<MmrDevDto>>($"{statsController}GetRatingsDeviationStd") ?? new();
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting rating deviationstd: {e.Message}");
         }
         return new();
     }

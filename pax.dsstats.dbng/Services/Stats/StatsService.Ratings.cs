@@ -12,20 +12,14 @@ public partial class StatsService
         return await context.Players.CountAsync(token);
     }
 
-    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, Order order, CancellationToken token = default)
+    public async Task<List<PlayerRatingDto>> GetRatings(int skip, int take, List<TableOrder> orders, CancellationToken token = default)
     {
         var players = context.Players
             .OrderBy(o => o.PlayerId)
             .AsNoTracking();
 
-        if (order.Ascending)
-        {
-            players = players.AppendOrderBy(order.Property);
-        }
-        else
-        {
-            players = players.AppendOrderByDescending(order.Property);
-        }
+        players = SetOrder(players, orders);
+
         return await players
         .Skip(skip)
             .Take(take)
@@ -33,11 +27,27 @@ public partial class StatsService
             .ToListAsync();
     }
 
+    public IQueryable<Player> SetOrder(IQueryable<Player> players, List<TableOrder> orders)
+    {
+        foreach (var order in orders)
+        {
+            if (order.Ascending)
+            {
+                players = players.AppendOrderBy(order.Property);
+            }
+            else
+            {
+                players = players.AppendOrderByDescending(order.Property);
+            }
+        }
+        return players;
+    }
+
     public async Task<string?> GetPlayerRatings(int toonId)
     {
         return await context.Players
             .Where(x => x.ToonId == toonId)
-            .Select(s => s.MmrOverTime)
+            .Select(s => $"{s.MmrOverTime}X{s.MmrStdOverTime}")
             .FirstOrDefaultAsync();
     }
 
@@ -49,6 +59,19 @@ public partial class StatsService
             {
                 Count = s.Count(),
                 Mmr = s.Average(a => Math.Round(a.Mmr, 0))
+            }).ToListAsync();
+
+        return devs;
+    }
+
+    public async Task<List<MmrDevDto>> GetRatingsDeviationStd()
+    {
+        var devs = await context.Players
+            .GroupBy(g => Math.Round(g.MmrStd, 0))
+            .Select(s => new MmrDevDto
+            {
+                Count = s.Count(),
+                Mmr = s.Average(a => Math.Round(a.MmrStd, 0))
             }).ToListAsync();
 
         return devs;

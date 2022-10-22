@@ -78,6 +78,10 @@ namespace SqliteMigrations.Migrations
                     b.Property<double>("MmrStd")
                         .HasColumnType("REAL");
 
+                    b.Property<string>("MmrStdOverTime")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)

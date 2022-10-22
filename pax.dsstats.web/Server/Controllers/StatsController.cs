@@ -71,16 +71,21 @@ namespace pax.dsstats.web.Server.Controllers
 
         [HttpPost]
         [Route("GetRatings/{skip}/{take}")]
-        public async Task<List<PlayerRatingDto>> GetRatings([FromBody] Order order, int skip, int take, CancellationToken token = default)
+        public async Task<List<PlayerRatingDto>> GetRatings([FromBody] List<TableOrder> orders, int skip, int take, CancellationToken token = default)
         {
-            return await statsService.GetRatings(skip, take, order, token);
+            return await statsService.GetRatings(skip, take, orders, token);
         }
 
         [HttpGet]
         [Route("GetPlayerRatings/{toonId}")]
-        public async Task<string?> GetPlayerRatings(int toonId)
+        public async Task<ActionResult<string>> GetPlayerRatings(int toonId)
         {
-            return await statsService.GetPlayerRatings(toonId);
+            var rating = await statsService.GetPlayerRatings(toonId);
+            if (rating == null)
+            {
+                return NotFound();
+            }
+            return rating;
         }
 
         [HttpGet]
@@ -88,6 +93,13 @@ namespace pax.dsstats.web.Server.Controllers
         public async Task<List<MmrDevDto>> GetRatingsDeviation()
         {
             return await statsService.GetRatingsDeviation();
+        }
+
+        [HttpGet]
+        [Route("GetRatingsDeviationStd")]
+        public async Task<List<MmrDevDto>> GetRatingsDeviationStd()
+        {
+            return await statsService.GetRatingsDeviationStd();
         }
     }
 
