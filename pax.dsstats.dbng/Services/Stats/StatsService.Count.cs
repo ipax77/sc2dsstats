@@ -74,7 +74,8 @@ public partial class StatsService
                         Count = g.Count()
                     };
         var lcount = await count.ToListAsync();
-        return (lcount.First(f => !f.DefaultFilter).Count, lcount.First(f => f.DefaultFilter).Count);
+
+        return (lcount.FirstOrDefault(f => !f.DefaultFilter)?.Count ?? 0, lcount.FirstOrDefault(f => f.DefaultFilter)?.Count ?? 0);
     }
 
     private IQueryable<Replay> GetCountReplays(StatsRequest request)

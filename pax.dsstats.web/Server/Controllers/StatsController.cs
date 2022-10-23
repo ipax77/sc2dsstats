@@ -52,7 +52,7 @@ namespace pax.dsstats.web.Server.Controllers
         [Route("GetStats")]
         public async Task<StatsResponse> GetStats(StatsRequest request, CancellationToken token = default)
         {
-            return (StatsResponse)await statsRepository.GetStats(request, token);
+            return await statsService.GetStatsResponse(request);
         }
 
         [HttpPost]

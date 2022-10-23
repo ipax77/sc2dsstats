@@ -3,27 +3,39 @@
 
 <div>
     <CascadingValue Value="StatsRequest">
-        <StatsRequestComponent OnRequestChanged="LoadData"></StatsRequestComponent>
+        <StatsRequestComponent OnRequestChanged="RequestChanged" OnChartOptionsChanged="ChartOptionsChanged"></StatsRequestComponent>
     </CascadingValue>
 </div>
 
-@if (isLoading)
-{
-    <div class="spinner-border text-danger" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-}
+<div class="d-flex">
+    @if (statsResponse == null)
+    {
+        <div>
+            <span class="badge bg-info" style="font-size: 1rem;">Replays: 0</span>
+        </div>
+        <div>
+            <span class="badge bg-info" style="font-size: 1rem;">Filtered: 0</span>
+        </div>
+    }
+    else
+    {
+        <div>
+            <span class="badge bg-info" style="font-size: 1rem;">Replays: @(StatsRequest.DefaultFilter ? statsResponse.CountDefaultFilter : statsResponse.CountDefaultFilter + statsResponse.CountNotDefaultFilter)</span>
+        </div>
+        <div>
+            <span class="badge bg-info" style="font-size: 1rem;">Filtered: @(StatsRequest.DefaultFilter ? statsResponse.CountNotDefaultFilter : 0)</span>
+        </div>
+    }
+    @if (isLoading)
+    {
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden" style="font-size: 1rem;">Loading...</span>
+        </div>
+    }
+</div>
+
 @if (statsResponse != null)
 {
-    <div class="d-flex">
-        <div>
-            <span class="badge bg-info" style="font-size: 1rem;">Replays: @statsResponse.CountDefaultFilter</span>
-        </div>
-        <div>
-            <span class="badge bg-info" style="font-size: 1rem;">Filtered: @statsResponse.CountNotDefaultFilter</span>
-        </div>
-    </div>
-
     <CascadingValue Value="statsResponse">
         <div class="row">
             <div class="col-auto">
@@ -41,6 +53,9 @@
     [EditorRequired]
     public StatsRequest StatsRequest { get; set; } = default!;
 
+    [Parameter]
+    public EventCallback OnRequestChanged { get; set; }
+
     private bool isLoading = false;
     private StatsResponse? statsResponse;
     private object lockobject = new();
@@ -49,11 +64,21 @@
 
     protected override void OnInitialized()
     {
-        _ = LoadData();
+        _ = LoadData(true);
         base.OnInitialized();
     }
 
-    public async Task LoadData()
+    public void ChartOptionsChanged()
+    {
+        statsChart?.SetBeginAtZero(StatsRequest.BeginAtZero);
+    }
+
+    private void RequestChanged()
+    {
+        _ = LoadData();
+    }
+
+    public async Task LoadData(bool init = false)
     {
         lock (lockobject)
         {
@@ -63,10 +88,27 @@
             }
             isLoading = true;
         }
+
+        if (StatsRequest.StatsMode == StatsMode.Timeline)
+        {
+            if (StatsRequest.Interest == Commander.None)
+            {
+                StatsRequest.Interest = Commander.Abathur;
+            }
+        }
+
         await InvokeAsync(() => StateHasChanged());
         statsResponse = await dataService.GetStats(StatsRequest);
+
+        statsResponse.Request.BeginAtZero = StatsRequest.BeginAtZero;
+
         isLoading = false;
-        statsChart?.SetChart();
         await InvokeAsync(() => StateHasChanged());
+        statsChart?.SetChart();
+
+        if (!init)
+        {
+            await OnRequestChanged.InvokeAsync();
+        }
     }
 }

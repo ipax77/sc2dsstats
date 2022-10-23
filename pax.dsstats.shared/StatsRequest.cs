@@ -9,6 +9,8 @@ public record StatsRequest
     public DateTime EndTime { get; set; }
     [JsonIgnore]
     public string TimePeriod { get; set; } = "This Year";
+    [JsonIgnore]
+    public bool BeginAtZero { get; set; }
     public Commander Interest { get; set; }
     public Commander Versus { get; set; }
     public bool Uploaders { get; set; }

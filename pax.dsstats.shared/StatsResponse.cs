@@ -4,8 +4,8 @@ namespace pax.dsstats.shared;
 
 public record StatsResponse
 {
-    public StatsRequest Request { get; init; } = null!;
-    public ICollection<StatsResponseItem> Items { get; init; } = null!;
+    public StatsRequest Request { get; init; } = new();
+    public ICollection<StatsResponseItem> Items { get; init; } = new List<StatsResponseItem>();
     public int CountDefaultFilter { get; init; }
     public int CountNotDefaultFilter { get; init; }
     public int Bans { get; set; }

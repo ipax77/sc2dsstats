@@ -75,6 +75,11 @@ public static class Data
             {     Commander.Zerg, "#6b1c92"   }
         };
 
+    public static string GetBackgroundColor(Commander cmdr, string transparency = "33")
+    {
+        return $"{CmdrColor[cmdr]}{transparency}";
+    }
+
     public static (DateTime, DateTime) TimeperiodSelected(string period)
     {
         return period switch
@@ -90,7 +95,7 @@ public static class Data
         };
     }
 
-    public static readonly string[] TimePeriods = new string[] { "This Month", "Last Month", "This Year", "Last Year", "Last Two Years", "Path 2.60", "ALL" };
+    public static readonly string[] TimePeriods = new string[] { "This Month", "Last Month", "This Year", "Last Year", "Last Two Years", "Patch 2.60", "ALL" };
 
     public static List<Commander> GetCommanders(CmdrGet cmdrGet)
     {

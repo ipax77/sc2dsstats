@@ -52,6 +52,13 @@
                     </InputCheckbox>
                 </label>
             </div>
+            <div class="form-check form-switch">
+                <label class="form-check-label">
+                    Chart BeginAtZero
+                    <InputCheckbox class="form-check-input" @bind-Value="StatsRequest.BeginAtZero">
+                    </InputCheckbox>
+                </label>
+            </div>
         </div>
         <div class="col-auto">
             <select class="form-select" multiple aria-label="multiple" @onchange="GameModeChange">
@@ -76,6 +83,9 @@
     [Parameter]
     public EventCallback OnRequestChanged { get; set; }
 
+    [Parameter]
+    public EventCallback OnChartOptionsChanged { get; set; }
+
     EditContext editContext = null!;
 
     protected override void OnInitialized()
@@ -91,7 +101,11 @@
         {
             (StatsRequest.StartTime, StatsRequest.EndTime) = Data.TimeperiodSelected(StatsRequest.TimePeriod);
         }
-
+        else if (e.FieldIdentifier.FieldName == "BeginAtZero")
+        {
+            OnChartOptionsChanged.InvokeAsync();
+            return;
+        }
         OnRequestChanged.InvokeAsync();
     }
 

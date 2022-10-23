@@ -54,18 +54,35 @@
         base.OnInitialized();
     }
 
+    public void SetBeginAtZero(bool beginAtZero)
+    {
+        if (chartConfig.Options?.Scales?.Y is LinearAxis linearAxis)
+        {
+            linearAxis.BeginAtZero = beginAtZero;
+            chartComponent?.UpdateChartOptions();
+        }
+    }
+
     public void SetChart()
     {
         if (StatsResponse.Request.StatsMode == StatsMode.Winrate)
         {
+            var items = GetFilterdAndSortedChartData(StatsResponse);
+
             chartConfig.Type = ChartType.bar;
-            chartConfig.Data.Labels = StatsResponse.Items.Select(s => s.Label).ToList();
+            chartConfig.Data.Labels = items.Select(s => s.Label).ToList();
             chartConfig.Data.Datasets = new List<ChartJsDataset>() { new BarDataset()
                 {
-                    Label = StatsResponse.Request.Interest == Commander.None ? StatsResponse.Request.StatsMode.ToString() : $"{StatsResponse.Request.StatsMode} - {StatsResponse.Request.Interest}",
-                    Data = StatsResponse.Items.Select(s => (object)Math.Round(s.Winrate, 2)).ToList(),
-                    BackgroundColor = StatsResponse.Request.Interest == Commander.None ? new IndexableOption<string>(StatsResponse.Items.Select(s => Data.CmdrColor[s.Cmdr]).ToList()) : new IndexableOption<string>(Data.CmdrColor[StatsResponse.Request.Interest]),
-                    BorderColor = new IndexableOption<string>("darkblue"),
+                    Label = StatsResponse.Request.Interest == Commander.None ?
+                        StatsResponse.Request.StatsMode.ToString()
+                        : $"{StatsResponse.Request.StatsMode} - {StatsResponse.Request.Interest}",
+                    Data = items.Select(s => (object)Math.Round(s.Winrate, 2)).ToList(),
+                    BackgroundColor = StatsResponse.Request.Interest == Commander.None ?
+                        new IndexableOption<string>(items.Select(s => Data.GetBackgroundColor(s.Cmdr)).ToList())
+                        : new IndexableOption<string>(Data.GetBackgroundColor(StatsResponse.Request.Interest)),
+                    BorderColor = StatsResponse.Request.Interest == Commander.None ?
+                        new IndexableOption<string>(items.Select(s => Data.CmdrColor[s.Cmdr]).ToList())
+                        : new IndexableOption<string>(Data.CmdrColor[StatsResponse.Request.Interest]),
                     BorderWidth = new IndexableOption<double>(2)
                 }
             };
@@ -74,17 +91,26 @@
                 {
                     Plugins = new Plugins()
                     {
+                        Title = new()
+                        {
+                            Display = true,
+                            Text = $"{StatsResponse.Request.StatsMode} {(StatsResponse.Request.Interest == Commander.None ? "" : StatsResponse.Request.Interest)}",
+                            Color = "white",
+                            Font = new()
+                            {
+                                Size = 16,
+                            }
+                        },
                         Labels = new()
                         {
                             Render = "image",
-                            Images = StatsResponse.Items.Select(s => new LabelsConfigImage()
+                            Images = items.Select(s => new LabelsConfigImage()
                             {
                                 Src = HelperService.GetImageSrc(s.Cmdr),
                                 Width = 45,
                                 Height = 45
                             }).ToList()
                         },
-
                         Datalabels = new()
                         {
                             Display = "auto",
@@ -96,6 +122,14 @@
                             Anchor = "end",
                             Align = "start",
                             Clip = true
+                        }
+                    },
+                    Scales = new()
+                    {
+                        Y = new LinearAxis()
+                        {
+                            BeginAtZero = StatsResponse.Request.BeginAtZero,
+                            SuggestedMax = StatsResponse.Request.BeginAtZero ? items.Select(s => s.Winrate).Max() + 10 : null
                         }
                     }
                 };
@@ -126,20 +160,20 @@
                 }
             };
             chartConfig.Options = new ChartJsOptions()
-            {
-                Plugins = new Plugins()
                 {
-                    Labels = new LabelsConfig()
+                    Plugins = new Plugins()
                     {
-                        Render = "image",
-                        Images = new List<LabelsConfigImage>()
-                    },
-                    Datalabels = new()
-                    {
-                        Display = false
+                        Labels = new LabelsConfig()
+                        {
+                            Render = "image",
+                            Images = new List<LabelsConfigImage>()
+                        },
+                        Datalabels = new()
+                        {
+                            Display = false
+                        }
                     }
-                }
-            };
+                };
         }
         _ = chartComponent?.DrawChart();
     }
@@ -177,4 +211,20 @@
 
         return nicedata;
     }
+
+    public List<StatsResponseItem> GetFilterdAndSortedChartData(StatsResponse response)
+    {
+        var items = response.Items.AsQueryable();
+
+        if (!response.Request.GameModes.Contains(GameMode.Standard)
+            && !response.Request.GameModes.Contains(GameMode.BrawlStandard))
+        {
+            items = items.Where(x => !x.Label.Contains("Protoss"));
+            items = items.Where(x => !x.Label.Contains("Terran"));
+            items = items.Where(x => !x.Label.Contains("Zerg"));
+        }
+
+        return items.OrderBy(o => o.Winrate).ToList();
+    }
+
 }
