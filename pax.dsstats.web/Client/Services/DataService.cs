@@ -20,7 +20,7 @@ public class DataService : IDataService
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync($"{statsController}GetReplay", replayHash, token);
+            var response = await httpClient.GetAsync($"{statsController}GetReplay/{replayHash}", token);
 
             if (response.IsSuccessStatusCode)
             {

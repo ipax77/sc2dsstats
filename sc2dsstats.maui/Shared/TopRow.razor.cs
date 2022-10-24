@@ -19,6 +19,7 @@ public partial class TopRow : ComponentBase, IDisposable
     private TimeSpan elapsed = TimeSpan.Zero;
     private TimeSpan eta = TimeSpan.Zero;
     private UploadStatus uploadStatus;
+    private uint updateProgress;
 
     // private ReplaysFailedModal? replaysFailedModal;
 
@@ -27,7 +28,14 @@ public partial class TopRow : ComponentBase, IDisposable
         decodeService.DecodeStateChanged += DecodeService_DecodeStateChanged;
         decodeService.ScanStateChanged += DecodeService_ScanStateChanged;
         uploadService.UploadStateChanged += UploadService_UploadStateChanged;
+        UpdateService.UpdateProgress += UpdateService_UpdateProgress;
         base.OnInitialized();
+    }
+
+    private void UpdateService_UpdateProgress(object? sender, UpdateProgressEvent e)
+    {
+        updateProgress = e.Progress;
+        InvokeAsync(() => StateHasChanged());
     }
 
     private void UploadService_UploadStateChanged(object? sender, UploadeEventArgs e)
@@ -47,6 +55,7 @@ public partial class TopRow : ComponentBase, IDisposable
         {
             await decodeService.ScanForNewReplays();
             await InvokeAsync(() => StateHasChanged());
+            CheckForUpdates(true);
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -85,9 +94,20 @@ public partial class TopRow : ComponentBase, IDisposable
         // replaysFailedModal?.Show(decodeService.GetErrorReplays().ToList());
     }
 
+    public async void CheckForUpdates(bool init = false)
+    {
+        if (init)
+        {
+            await Task.Delay(5000);
+        }
+        await UpdateService.CheckUpdate(init);
+        await InvokeAsync(() => StateHasChanged());
+    }
+
     public void Dispose()
     {
         decodeService.DecodeStateChanged -= DecodeService_DecodeStateChanged;
         decodeService.ScanStateChanged -= DecodeService_ScanStateChanged;
+        UpdateService.UpdateProgress -= UpdateService_UpdateProgress;
     }
 }

@@ -156,11 +156,25 @@ public class ReplayRepository : IReplayRepository
     {
 
 #pragma warning disable CS8602
-        var replays = context.Replays
-            .Include(i => i.ReplayEvent)
-                .ThenInclude(i => i.Event)
-            .Where(x => x.GameTime >= request.StartTime);
+        var replays = (String.IsNullOrEmpty(request.Tournament), String.IsNullOrEmpty(request.SearchPlayers)) switch        {
+            (true, true) => context.Replays
+                                .Include(i => i.ReplayEvent)
+                                    .ThenInclude(i => i.Event)
+                                .Include(i => i.Players)
+                                .AsNoTracking(),
+            (true, false) => context.Replays
+                                .Include(i => i.ReplayEvent)
+                                    .ThenInclude(i => i.Event)
+                                .AsNoTracking(),
+            (false, true) => context.Replays
+                                .Include(i => i.Players)
+                                .AsNoTracking(),
+            _ => context.Replays
+                .AsNoTracking()
+        };
 #pragma warning restore CS8602
+
+        replays = replays.Where(x => x.GameTime >= request.StartTime);
 
         if (request.EndTime != null)
         {
@@ -176,6 +190,14 @@ public class ReplayRepository : IReplayRepository
         if (request.GameModes.Any())
         {
             replays = replays.Where(x => request.GameModes.Contains(x.GameMode));
+        }
+
+        if (!String.IsNullOrEmpty(request.SearchPlayers))
+        {
+            foreach (string player in request.SearchPlayers.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                replays = replays.Where(x => x.Players.Any(a => a.Name.ToUpper().Contains(player.ToUpper())));
+            }
         }
 
         replays = SearchReplays(replays, request);

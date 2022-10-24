@@ -67,8 +67,8 @@ using var scope = app.Services.CreateScope();
 using var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
 context.Database.Migrate();
 
-//var mmrServie = scope.ServiceProvider.GetRequiredService<MmrService>();
-//mmrServie.CalcMmmr().GetAwaiter().GetResult();
+var mmrServie = scope.ServiceProvider.GetRequiredService<MmrService>();
+mmrServie.CalcMmmr().GetAwaiter().GetResult();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

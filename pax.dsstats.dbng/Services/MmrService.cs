@@ -44,7 +44,7 @@ public class MmrService
         await CalcMmrStd();
 
         sw.Stop();
-        logger.LogInformation($"ratings calculated in {sw.ElapsedMilliseconds} ms");
+        logger.LogWarning($"ratings calculated in {sw.ElapsedMilliseconds} ms");
 
         OnRecalculated(new());
     }

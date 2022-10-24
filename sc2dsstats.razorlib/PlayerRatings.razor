@@ -76,7 +76,7 @@
                 @if (ratingsCount > 0)
                 {
                     <Virtualize @ref="virtualize" Context="rating" ItemsProvider="LoadRatings">
-                        <tr @onclick="e => LoadPlayerChart(rating)">
+                        <tr class="pointer" @onclick="e => LoadPlayerChart(rating)">
                             <td>@rating.ToonId</td>
                             <td><span class="text-truncate" style="display: block; width: 150px;">@rating.Name</span></td>
                             <td>@Math.Round(rating.Mmr, 2).ToString(CultureInfo.InvariantCulture)</td>

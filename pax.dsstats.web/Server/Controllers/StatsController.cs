@@ -22,8 +22,8 @@ namespace pax.dsstats.web.Server.Controllers
             this.statsService = statsService;
         }
 
-        [HttpPost]
-        [Route("GetReplay")]
+        [HttpGet]
+        [Route("GetReplay/{replayHash}")]
         public async Task<ReplayDto?> GetReplay(string replayHash, CancellationToken token = default)
         {
             var replayDto = await replayRepository.GetReplay(replayHash);

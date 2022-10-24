@@ -20,7 +20,13 @@
             <div class="col-auto">
                 <label class="form-label">
                     Search:
-                    <InputText class="form-control" @bind-Value="replaysRequest.SearchString"></InputText>
+                    <InputText class="form-control" placeholder="Kerrigan Zagara" @bind-Value="replaysRequest.SearchString"></InputText>
+                </label>
+            </div>
+            <div class="col-auto">
+                <label class="form-label">
+                    Players:
+                    <InputText class="form-control" placeholder="PAX Feralan" @bind-Value="replaysRequest.SearchPlayers"></InputText>
                 </label>
             </div>
             <div class="col-auto">

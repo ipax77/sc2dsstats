@@ -29,6 +29,12 @@ internal class UserSettingsService
             else
             {
                 UserSettings = userSettings;
+
+                if (UserSettings.AllowCleanUploads)
+                {
+                    UserSettings.AutoScanForNewReplays = true;
+                    UserSettings.AllowUploads = true;
+                }
             }
             UserSettings.BattleNetIds = GetBattleNetIds();
         }
