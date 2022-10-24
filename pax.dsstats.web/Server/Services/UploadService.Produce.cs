@@ -16,6 +16,11 @@ public partial class UploadService
 
     public async Task Produce(string gzipbase64string, Guid appGuid)
     {
+        logger.LogWarning($"producing replays for {appGuid}");
+
+        Stopwatch sw = new();
+        sw.Start();
+
         var replayDtos = JsonSerializer.Deserialize<List<ReplayDto>>(await UnzipAsync(gzipbase64string))?.OrderBy(o => o.GameTime).ToList();
 
         if (replayDtos == null || !replayDtos.Any())
@@ -43,6 +48,9 @@ public partial class UploadService
         await MapUnits(replays);
         await MapPlayers(replays);
 
+        sw.Stop();
+        logger.LogWarning($"prepared replay import in {sw.ElapsedMilliseconds}ms");
+
         _ = InsertReplays();
 
         for (int i = 0; i < replays.Count; i++)
@@ -62,7 +70,7 @@ public partial class UploadService
             insertJobRunning = true;
         }
 
-
+        logger.LogWarning($"start importing replays: {DateTime.UtcNow}");
 
         while (await ReplayChannel.Reader.WaitToReadAsync())
         {
@@ -83,6 +91,7 @@ public partial class UploadService
             }
         }
         insertJobRunning = false;
+        logger.LogWarning($"importing replays done: {DateTime.UtcNow}");
     }
 
     private async Task SaveReplay(Replay replay)

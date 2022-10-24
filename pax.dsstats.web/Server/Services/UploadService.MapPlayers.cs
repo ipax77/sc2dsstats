@@ -57,6 +57,29 @@ public partial class UploadService
 
     private async Task CreateMissingPlayers(ReplayContext context, Dictionary<int, int> playersDic, ICollection<Replay> replays)
     {
+        int i = 0;
+        foreach (var player in replays.SelectMany(s => s.Players).Select(s => mapper.Map<PlayerDto>(s.Player)).Distinct())
+        {
+            if (!playersDic.ContainsKey(player.ToonId))
+            {
+                context.Players.Add(mapper.Map<Player>(player));
+                i++;
+                if (i % 1000 == 0)
+                {
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+        if (i > 0)
+        {
+            await context.SaveChangesAsync();
+            await InitPlayerDic(context);
+        }
+    }
+
+
+    private async Task CreateMissingPlayers_Deprecated(ReplayContext context, Dictionary<int, int> playersDic, ICollection<Replay> replays)
+    {
         foreach (var player in replays.SelectMany(s => s.Players).Select(s => mapper.Map<PlayerDto>(s.Player)).Distinct())
         {
             if (!playersDic.ContainsKey(player.ToonId))
