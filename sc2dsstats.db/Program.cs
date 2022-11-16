@@ -23,7 +23,7 @@ namespace sc2dsstats.db
             var connectionString = config.GetProperty("WSLConnectionString2").GetString();
             var serverVersion = new MySqlServerVersion(new System.Version(5, 0, 34));
 
-            bool dbToggle = true;
+            bool dbToggle = false;
 
             if (dbToggle)
             {
@@ -75,15 +75,63 @@ namespace sc2dsstats.db
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            logger.LogInformation($"replays: {context.Dsreplays.Count()}");
+            int winMax = 0;
+            int losMax = 0;
 
-            var replays = context.Dsreplays
-                .Include(i => i.Dsplayers).ThenInclude(j => j.PlayerName)
-                .Where(x => x.DefaultFilter)
+            int wins = 0;
+            int loss = 0;
+
+            var ents = context.Dsreplays
+                .Include(i => i.Dsplayers)
                 .OrderBy(o => o.Gametime)
-                .AsNoTracking()
-                // .Take(40000)
-                .ToList();
+                .SelectMany(s => s.Dsplayers).Where(x => x.isPlayer)
+                .Select(s => s.Win)
+                .ToList()
+                ;
+
+            bool current = true;
+            for (int i = 0; i < ents.Count; i++)
+            {
+                if (ents[i] == current)
+                {
+                    if (current)
+                    {
+                        wins++;
+                    }
+                    else
+                    {
+                        loss++;
+                    }
+                } else 
+                {
+                    if (current && wins > winMax)
+                    {
+                        winMax = wins;
+                    } 
+                    else if (!current && loss > losMax)
+                    {
+                        losMax = loss;
+                    }
+
+                    wins = 0;
+                    loss = 0;
+                }
+                current = ents[i];
+            }
+            Console.WriteLine($"Replays: {ents.Count}");
+            Console.WriteLine($"Winstreak max: {winMax}");
+            Console.WriteLine($"Loosesreak max: {losMax}");
+            Console.WriteLine($"Winrate: {Math.Round(ents.Count(c => c == true) * 100.0 / (double)ents.Count, 2)}");
+
+            // logger.LogInformation($"replays: {context.Dsreplays.Count()}");
+
+            // var replays = context.Dsreplays
+            //     .Include(i => i.Dsplayers).ThenInclude(j => j.PlayerName)
+            //     .Where(x => x.DefaultFilter)
+            //     .OrderBy(o => o.Gametime)
+            //     .AsNoTracking()
+            //     // .Take(40000)
+            //     .ToList();
 
             //Dictionary<string, EloPlayer> eloPlayers = new Dictionary<string, EloPlayer>();
             //foreach (var replay in replays)
